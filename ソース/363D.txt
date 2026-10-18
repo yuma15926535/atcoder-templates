@@ -1,0 +1,688 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ Palindrome Library (for integer palindrome ≤ 10^18)
+------------------------------------------------------------
+ 機能
+ 1. kth_palindrome(k)     : k番目の回文 (1-indexed)
+ 2. palindrome_rank(x)    : 回文xの順位 (回文でなければ -1)
+ 3. prev_palindrome(x)    : x以下で最大の回文
+ 4. next_palindrome(x)    : x以上で最小の回文
+
+ 計算量
+ O(log10 N) ≈ O(18)
+============================================================
+*/
+
+long long p10[19];
+
+void init_p10(){
+    p10[0] = 1;
+    for(int i=1;i<19;i++) p10[i] = p10[i-1]*10;
+}
+
+
+/*
+------------------------------------------------------------
+ k番目の回文数 (1-indexed, 0は含まない)
+------------------------------------------------------------
+ 1 -> 1
+ 9 -> 9
+ 10 -> 11
+------------------------------------------------------------
+*/
+long long kth_palindrome(long long k){
+
+    int len = 1;
+
+    while(true){
+        int half = (len+1)/2;
+        long long cnt = 9 * p10[half-1];
+
+        if(k > cnt){
+            k -= cnt;
+            len++;
+        }else break;
+    }
+
+    int half = (len+1)/2;
+
+    long long start = p10[half-1];
+    long long prefix = start + k - 1;
+
+    string s = to_string(prefix);
+    string t = s;
+
+    if(len % 2) t.pop_back();
+
+    reverse(t.begin(),t.end());
+
+    return stoll(s+t);
+}
+
+
+/*
+------------------------------------------------------------
+ 回文 x が何番目か (1-indexed)
+ 回文でない場合は -1
+------------------------------------------------------------
+*/
+long long palindrome_rank(long long x){
+
+    string s = to_string(x);
+    int len = s.size();
+
+    string t = s;
+    reverse(t.begin(),t.end());
+
+    if(s!=t) return -1;
+
+    long long rank = 0;
+
+    for(int d=1; d<len; d++){
+        int half = (d+1)/2;
+        rank += 9 * p10[half-1];
+    }
+
+    int half = (len+1)/2;
+
+    long long prefix = stoll(s.substr(0,half));
+    long long start = p10[half-1];
+
+    rank += prefix - start + 1;
+
+    return rank;
+}
+
+
+/*
+------------------------------------------------------------
+ x以下で最大の回文
+------------------------------------------------------------
+*/
+long long prev_palindrome(long long x){
+
+    string s = to_string(x);
+    int n = s.size();
+
+    string t = s;
+
+    for(int i=0;i<n/2;i++)
+        t[n-1-i] = t[i];
+
+    long long y = stoll(t);
+
+    if(y <= x) return y;
+
+    int half = (n+1)/2;
+
+    long long prefix = stoll(s.substr(0,half));
+    prefix--;
+
+    if(prefix < p10[half-1])
+        return p10[n-1]-1;
+
+    string a = to_string(prefix);
+    string b = a;
+
+    if(n%2) b.pop_back();
+
+    reverse(b.begin(),b.end());
+
+    return stoll(a+b);
+}
+
+
+/*
+------------------------------------------------------------
+ x以上で最小の回文
+------------------------------------------------------------
+*/
+long long next_palindrome(long long x){
+
+    string s = to_string(x);
+    int n = s.size();
+
+    string t = s;
+
+    for(int i=0;i<n/2;i++)
+        t[n-1-i] = t[i];
+
+    long long y = stoll(t);
+
+    if(y >= x) return y;
+
+    int half = (n+1)/2;
+
+    long long prefix = stoll(s.substr(0,half));
+    prefix++;
+
+    if(prefix >= p10[half])
+        return p10[n]+1;
+
+    string a = to_string(prefix);
+    string b = a;
+
+    if(n%2) b.pop_back();
+
+    reverse(b.begin(),b.end());
+
+    return stoll(a+b);
+}
+
+/*
+------------------------------------------------------------
+ x 以下の回文数の個数(引数が回文数でなくてもよい)
+------------------------------------------------------------
+*/
+long long palindrome_rank_leq(long long x){
+
+    string s = to_string(x);
+    int len = s.size();
+
+    long long rank = 0;
+
+    for(int d=1; d<len; d++){
+        int half = (d+1)/2;
+        rank += 9 * p10[half-1];
+    }
+
+    int half = (len+1)/2;
+
+    long long prefix = stoll(s.substr(0,half));
+    long long start = p10[half-1];
+
+    rank += prefix - start;
+
+    string t = s;
+
+    for(int i=0;i<len/2;i++)
+        t[len-1-i] = t[i];
+
+    long long y = stoll(t);
+
+    if(y <= x) rank++;
+
+    return rank;
+}
+
+/*
+------------------------------------------------------------
+ 回文判定
+------------------------------------------------------------
+*/
+bool is_palindrome(long long x){
+
+    string s = to_string(x);
+    string t = s;
+
+    reverse(t.begin(),t.end());
+
+    return s==t;
+}
+
+/*
+------------------------------------------------------------
+ prefix から回文生成
+ odd=true  : 奇数桁回文
+ odd=false : 偶数桁回文
+  例
+ prefix=123
+ odd=true  -> 12321
+ odd=false -> 123321
+------------------------------------------------------------
+*/
+long long make_palindrome(long long prefix,bool odd){
+
+    string s = to_string(prefix);
+    string t = s;
+
+    if(odd) t.pop_back();
+
+    reverse(t.begin(),t.end());
+
+    return stoll(s+t);
+}
+
+/*
+------------------------------------------------------------
+ d桁の回文数の個数
+------------------------------------------------------------
+*/
+long long count_palindrome_digits(int d){
+
+    int half=(d+1)/2;
+
+    return 9*p10[half-1];
+}
+
+/*
+============================================================
+ String Palindrome Library
+------------------------------------------------------------
+ 巨大整数回文用ライブラリ
+
+ 対応
+ 1. k番目の回文
+ 2. 回文判定
+ 3. prefixから回文生成
+ 4. 次の回文
+ 5. 前の回文
+
+ 想定
+ ・回文が long long を超える
+ ・桁数 30〜100 以上
+
+ 計算量
+ O(桁数)
+============================================================
+*/
+
+long long power(long long base,long long exp){
+    long long result=1;
+    while(exp){
+        if(exp&1) result*=base;
+        base*=base;
+        exp>>=1;
+    }
+    return result;
+}
+
+/*
+------------------------------------------------------------
+ 回文判定
+------------------------------------------------------------
+*/
+bool is_palindrome_string(const string& s){
+
+    int n=s.size();
+
+    for(int i=0;i<n/2;i++)
+        if(s[i]!=s[n-1-i])
+            return false;
+
+    return true;
+}
+
+/*
+------------------------------------------------------------
+ prefixから回文生成
+ odd=true  : 奇数桁回文
+ odd=false : 偶数桁回文
+------------------------------------------------------------
+*/
+string make_palindrome_string(string prefix,bool odd){
+
+    string t=prefix;
+
+    if(odd) t.pop_back();
+
+    reverse(t.begin(),t.end());
+
+    return prefix+t;
+}
+
+/*
+------------------------------------------------------------
+ k番目の回文 (k ≤ 1e18 想定)
+------------------------------------------------------------
+*/
+string kth_palindrome_string(long long k){
+
+    int len=1;
+
+    while(true){
+
+        int half=(len+1)/2;
+
+        long long cnt;
+
+        if(half<=18)
+            cnt=9*power(10,half-1);
+        else
+            cnt=LLONG_MAX;
+
+        if(k>cnt){
+            k-=cnt;
+            len++;
+        }
+        else break;
+    }
+
+    int half=(len+1)/2;
+
+    long long start=power(10,half-1);
+    long long prefix=start+k-1;
+
+    string s=to_string(prefix);
+    string t=s;
+
+    if(len%2) t.pop_back();
+
+    reverse(t.begin(),t.end());
+
+    return s+t;
+}
+
+/*
+------------------------------------------------------------
+ 次の回文
+ s以上の最小回文
+------------------------------------------------------------
+*/
+string next_palindrome_string(string s){
+
+    int n=s.size();
+
+    string t=s;
+
+    for(int i=0;i<n/2;i++)
+        t[n-1-i]=t[i];
+
+    if(t>=s) return t;
+
+    int carry=1;
+
+    int mid=(n-1)/2;
+
+    while(mid>=0 && carry){
+
+        int d=t[mid]-'0'+carry;
+
+        carry=d/10;
+        d%=10;
+
+        t[mid]=d+'0';
+        t[n-1-mid]=t[mid];
+
+        mid--;
+    }
+
+    if(carry){
+
+        string res="1";
+
+        for(int i=0;i<n-1;i++)
+            res.push_back('0');
+
+        res.push_back('1');
+
+        return res;
+    }
+
+    for(int i=0;i<n/2;i++)
+        t[n-1-i]=t[i];
+
+    return t;
+}
+
+/*
+------------------------------------------------------------
+ 前の回文
+ s以下の最大回文
+------------------------------------------------------------
+*/
+string prev_palindrome_string(string s){
+
+    int n=s.size();
+
+    string t=s;
+
+    for(int i=0;i<n/2;i++)
+        t[n-1-i]=t[i];
+
+    if(t<=s) return t;
+
+    int borrow=1;
+
+    int mid=(n-1)/2;
+
+    while(mid>=0 && borrow){
+
+        int d=t[mid]-'0'-borrow;
+
+        if(d<0){
+            d+=10;
+            borrow=1;
+        }
+        else borrow=0;
+
+        t[mid]=d+'0';
+        t[n-1-mid]=t[mid];
+
+        mid--;
+    }
+
+    if(t[0]=='0'){
+
+        string res(n-1,'9');
+        return res;
+    }
+
+    for(int i=0;i<n/2;i++)
+        t[n-1-i]=t[i];
+
+    return t;
+}
+
+/*
+------------------------------------------------------------
+ N以下の回文数の個数
+------------------------------------------------------------
+*/
+long long count_palindrome_leq_string(string s){
+
+    int n=s.size();
+
+    long long ans=0;
+
+    for(int d=1;d<n;d++){
+
+        int half=(d+1)/2;
+
+        if(half<=18)
+            ans+=9*power(10,half-1);
+        else
+            ans+=LLONG_MAX;
+    }
+
+    int half=(n+1)/2;
+
+    long long prefix=stoll(s.substr(0,half));
+
+    long long start=power(10,half-1);
+
+    ans+=prefix-start;
+
+    string pal=make_palindrome_string(s.substr(0,half),n%2);
+
+    if(pal<=s) ans++;
+
+    return ans;
+}
+
+void solv(){
+    init_p10();
+    ll N;
+    cin>>N;
+    if(N==1)cout<<0<<'\n';
+    else cout<<kth_palindrome_string(N-1)<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

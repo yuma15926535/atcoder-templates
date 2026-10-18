@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+vector<int> longest_increasing_subsequence(const vector<int>& a){
+    int n = a.size();
+    if(n==0) return {};
+
+    vector<int> dp;                 // 値を保持する最小末尾列
+    vector<int> idx;                // dp の各要素が指す a のインデックス
+    vector<int> parent(n, -1);      // 復元用の親ポインタ
+
+    rep(i,0,n){
+    int left = -1,right = (int)dp.size(); // right は「候補の最小インデックス」
+    while(right - left > 1){
+        int mid = (left + right) / 2;
+        if(dp[mid] < a[i]) left = mid; // dp[mid] < target のとき左を動かす
+        else right = mid;              // dp[mid] >= target のとき右を動かす
+    }
+    int pos = right;
+
+    if(pos == (int)dp.size()){
+        dp.push_back(a[i]);
+        idx.push_back(i);
+    } else {
+        dp[pos] = a[i];
+        idx[pos] = i;
+    }
+        if(pos > 0) parent[i] = idx[pos-1];
+    }
+
+    // 最後の要素のインデックスは idx.back()
+    int k = dp.size();
+    vector<int> lis(k);
+    int cur = idx[k-1];
+    for(int i=k-1;i>=0;i--){
+        lis[i] = a[cur];
+        cur = parent[cur];
+    }
+    return lis;
+}
+
+int main(){
+    int N;
+    cin>>N;
+    vector<int>A(N),B(N);
+    rep(i,0,N)cin>>A[i]>>B[i];
+    vector<int>idx(N);
+    iota(nall(idx),0);
+    sort(nall(idx),[&](int a,int b){
+        if(A[a]==A[b])return B[a]>B[b];
+        return A[a]<A[b];
+    });
+    vector<int>C(N);
+    rep(i,0,N)C[i]=B[idx[i]];
+    auto v=longest_increasing_subsequence(C);
+    cout<<v.size()<<'\n';
+    return 0;
+}

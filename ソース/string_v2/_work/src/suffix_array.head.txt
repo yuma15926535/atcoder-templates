@@ -1,0 +1,60 @@
+// =============================================================================
+//  接尾辞配列（SA-IS・LCP・O(1) の LCP と比較・出現・異なる部分文字列・k 番目・LCP の和・複数の文字列・最長共通部分文字列）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 03 接尾辞
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  列は string でも vector<int>・vector<long long> でもよい（数は中で圧縮する）。位置は 0 始まり、部分文字列は [l, r)
+//  ACL の suffix_array / lcp_array とは名前を変えている（make_suffix_array / make_lcp_array）
+//  「部分文字列」は連続する部分。飛び飛びの「部分列」の LCS は 06_lcs_edit
+//
+//  機能一覧                                                                       計算量
+//    make_suffix_array(s) / make_lcp_array(s, sa)   接尾辞配列（SA-IS）/ 隣どうしの LCP（Kasai。長さ N - 1）   O(N)
+//    SuffixArray SA(s)                     sa / rank / lcp_adj（隣どうしの LCP）を持つ                  O(N)
+//    SuffixArray::of_strings(vs)           複数の文字列をまとめて（区切りの位置も sa に入る。owner = -1）
+//      SA.owner(p) / offset(p) / position(t, off) / length_at(p)   何番目の文字列か / その中の位置 / 逆 / 接尾辞の長さ
+//      SA.lcp(i, j)                        位置 i, j から始まる接尾辞の LCP                              O(1)（初回 O(N log N)）
+//      SA.compare(l1, r1, l2, r2)          部分文字列の辞書順（-1 / 0 / 1）                               O(1)
+//      SA.find_range(pat) / count(pat) / find_all(pat)   pat で始まる SA の区間 / 出現回数 / 出現位置     O(M log N)
+//      SA.count_occurrences(l, r) / occurrence_range(l, r)   s[l, r) の出現回数 / SA の区間            O(log N)
+//      SA.count_distinct_substrings()      異なる部分文字列（空でない）の数                               O(N)
+//      SA.distinct_substrings_by_length()  長さごとの異なる部分文字列の数                                 O(N)
+//      SA.kth_substring(k)                 異なる部分文字列の辞書順 k 番目（0 から。StrSpan）              O(log N)
+//      SA.substring_rank(l, r)             異なる部分文字列のうち s[l, r) より小さいものの数               O(log N)
+//      SA.kth_substring_with_dup(k) / count_substrings_with_dup()   位置が違えば別として k 番目 / 総数     O(log N)
+//      SA.longest_repeated()               2 か所以上に現れる最長（重なってよい。CommonSubstring{len, pos_a, pos_b}）  O(N)
+//      SA.longest_repeated_non_overlapping()   重ならずに 2 か所に現れる最長                              O(N log N)
+//      SA.sum_lcp_with_all() / sum_lcp_all_pairs()   各 i で Σ_j lcp(i, j)（j = i も）/ Σ_{i<j} lcp   O(N)
+//    longest_common_substring(a, b)        2 つの最長共通部分文字列（CommonSubstring{len, pos_a, pos_b}）  O(N + M)
+//    longest_common_substrings_all(a, b)   最長共通部分文字列をすべて（a での位置。辞書順・重複なし）      O(N + M)
+//    longest_common_substring_k(vs)        K 個すべてに現れる最長の部分文字列（vs[0] での StrSpan）        O(全体)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    sa_test::random_test()  … 全部の部分文字列を並べた愚直解と全機能を突き合わせるランダムテスト
+//    sa_test::benchmark()    … 速度計測
+//    sa_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

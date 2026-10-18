@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    sort(nall(A),[](ll a,ll b){return a<b;});
+    vector<ll>X(Q),Y(Q);
+    rep(i,0,Q)cin>>X[i]>>Y[i];
+    //含まれない個数
+    //num以下のAの要素の個数
+    auto g=[&](ll num)->ll{
+        if(num<A[0])return 0;
+        if(A[(int)A.size()-1]<=num)return A.size();
+        int left=0,right=(int)A.size()-1;
+        while(right-left>1){
+            int mid=(right+left)/2;
+            if(A[mid]<=num)left=mid;
+            else right=mid;
+        }
+        return left+1;
+    };
+    //left以上right以下のAの要素の個数
+    auto f=[&](ll left,ll right)->ll{
+        left--;
+        return g(right)-g(left);
+    };
+    rep(i,0,Q){
+        ll left=0,right=2e18;
+        while(right-left>1){
+            ll mid=(right+left)/2;
+            if(Y[i]<=mid-X[i]+1-f(X[i],mid))right=mid;
+            else left=mid;
+        }
+        cout<<right<<'\n';
+    }
+    return 0;
+}

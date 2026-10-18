@@ -1,0 +1,892 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ===================== template begin (ここから下をコピー) =====================
+#ifndef ITV_STRUCT_DEFINED
+#define ITV_STRUCT_DEFINED
+// 半開区間 [l, r)。l < r が前提（assert なし）。l >= r の値は「空／該当なし」を表す（Itv{} = {0,0}）。
+struct Itv {
+    long long l, r;
+    constexpr long long len() const noexcept { return r - l; }                         // 長さ
+    constexpr long long mid2() const noexcept { return l + r; }                        // 中央値×2（整数のまま比較するため）
+    constexpr bool contains(long long x) const noexcept { return l <= x && x < r; }    // x ∈ [l, r)
+    constexpr bool empty() const noexcept { return l >= r; }                           // 空（該当なし）か
+    constexpr explicit operator bool() const noexcept { return l < r; }                // 空でなければ true
+    friend constexpr bool operator==(const Itv& a, const Itv& b) noexcept { return a.l == b.l && a.r == b.r; }
+    friend constexpr bool operator!=(const Itv& a, const Itv& b) noexcept { return !(a == b); }
+    friend constexpr bool operator<(const Itv& a, const Itv& b) noexcept { return a.l != b.l ? a.l < b.l : a.r < b.r; }  // (l, r) 辞書順
+    friend constexpr bool operator>(const Itv& a, const Itv& b) noexcept { return b < a; }
+    friend constexpr bool operator<=(const Itv& a, const Itv& b) noexcept { return !(b < a); }
+    friend constexpr bool operator>=(const Itv& a, const Itv& b) noexcept { return !(a < b); }
+    friend std::ostream& operator<<(std::ostream& os, const Itv& t) { return os << '[' << t.l << ", " << t.r << ')'; }
+};
+#endif
+
+// =============================================================================
+//  ④ ItvSetPlus : 重なる区間・隣接する区間を常に結合して管理しつつ、最適な区間を検索できる集合
+//                 （② ItvSet の全機能 ＋ ③ ItvMultiSet と同じ名前の検索機能）
+// -----------------------------------------------------------------------------
+//  区間は半開区間 [l, r)（l < r が前提。高速化のため assert なし）。座標は |値| <= 4e18 程度まで。
+//  内部では「互いに重ならず隣接もしない区間」を昇順に保持する（[1,3) と [3,5) は [1,5) になる）。
+//  該当なしのときは空区間 Itv{}（= {0,0}）を返す。 if (auto t = s.find(x)) { ... } で判定できる。
+//
+//  [更新]  add(l, r) / add(t)       [l, r) を追加して結合。結合後の（[l, r) を含む）区間を返す
+//          erase(l, r) / erase(t)   [l, r) の部分を削除（区間は切断される）。削除された長さを返す
+//          clear()
+//  [情報]  size()    区間数        empty()
+//          length()  覆われている長さの合計（O(1)）
+//          to_vector()  区間を昇順に列挙
+//  [最適]  min_l()  max_l()  min_r()  max_r()  min_mid()  max_mid()  min_len()  max_len()
+//          ※区間は互いに素なので l 順 = r 順 = 中央値順（min_l = min_r = min_mid = 先頭の区間）
+//          ※長さが同じなら min_len は l 最小、max_len は l 最大
+//  [検索]  l_ge(x)  l_gt(x)  l_le(x)  l_lt(x)   … 左端が x 以上/超/以下/未満で、左端が最小/最小/最大/最大の区間
+//          r_ge(x)  r_gt(x)  r_le(x)  r_lt(x)   … 右端について同様
+//          ※ r_gt(x) は「x を含む区間、無ければ x より右の最初の区間」、r_le(x) は「x より左の最後の区間」
+//  [判定]  contains(x)        x を含む区間があるか
+//          find(x)            x を含む区間（無ければ空。結合済みなので一意）
+//          covers(l, r)       [l, r) 全体が覆われているか
+//          intersects(l, r)   [l, r) と共通部分を持つ区間があるか（重複判定）
+//          next_free(x)       x 以上で覆われていない最小の値（mex は next_free(0)）
+//          prev_free(x)       x 以下で覆われていない最大の値
+//
+//  計算量（n = 区間数, B = ブロック長 128〜。区間数が増えると自動で大きくなる）:
+//    add / erase は償却 O(B + log n)、検索・判定系は O(log n)。std::map で書いた同機能より約 2 倍速い。
+//    min_len / max_len は初回呼び出し時にヒープを O(n) で作り、以後は償却 O(log n)（使わなければ ② と同じ速さ）。
+//
+//  【使い方】 "template begin" 〜 "template end" の間だけをコピーして使う（main・テスト・デモは貼らない）。
+//    4 つのテンプレートを同じファイルに貼っても struct Itv は 1 回だけ定義される（#ifndef ガード）。
+//    このファイル単体で実行すると demo()（全機能の使用例）→ random_test()（愚直解との照合）が走る。Release ビルド推奨。
+// =============================================================================
+class ItvSetPlus {
+    using Key = std::pair<long long, long long>;  // (長さ, l)
+    struct Pos { int b, i; };                     // ブロック番号, ブロック内位置（b == ブロック数 なら末尾の次）
+
+    // ---- 削除予約付きヒープ（min 用は std::greater、max 用は std::less） ----
+    template <class Cmp> struct LazyHeap {
+        std::vector<Key> h, d;  // h: 全要素, d: 削除予約
+        bool on = false;        // 初回クエリで構築されたか
+        void push(const Key& k) { h.push_back(k); std::push_heap(h.begin(), h.end(), Cmp()); }
+        void del(const Key& k) { d.push_back(k); std::push_heap(d.begin(), d.end(), Cmp()); }
+        bool bloated() const { return d.size() > h.size() / 2 + 32; }
+        const Key& top() {
+            while (!d.empty() && d.front() == h.front()) {
+                std::pop_heap(h.begin(), h.end(), Cmp()); h.pop_back();
+                std::pop_heap(d.begin(), d.end(), Cmp()); d.pop_back();
+            }
+            return h.front();
+        }
+        void build(std::vector<Key>&& v) {
+            h = std::move(v);
+            std::make_heap(h.begin(), h.end(), Cmp());
+            d.clear();
+            on = true;
+        }
+        void reset() { h.clear(); d.clear(); on = false; }
+    };
+
+    int bsz_;                                // 目標ブロック長（2*bsz_ に達したら分割。ブロック数が多くなると倍にする）
+    int n_ = 0;                              // 区間数
+    long long total_ = 0;                    // 長さの合計
+    std::vector<std::vector<Itv>> bl_;       // 各ブロック（空ブロックは持たない）
+    std::vector<Itv> last_;                  // 各ブロックの末尾要素（l, r ともに単調なので二分探索に使える）
+    mutable LazyHeap<std::greater<Key>> len_min_;
+    mutable LazyHeap<std::less<Key>> len_max_;
+
+    int nb() const { return (int)bl_.size(); }
+    bool is_end(const Pos& p) const { return p.b == nb(); }
+    const Itv& at(const Pos& p) const { return bl_[p.b][p.i]; }
+    Pos prev(const Pos& p) const { return p.i > 0 ? Pos{p.b, p.i - 1} : Pos{p.b - 1, (int)bl_[p.b - 1].size() - 1}; }
+    Itv at_or_none(const Pos& p) const { return is_end(p) ? Itv{} : at(p); }
+    Itv before(const Pos& p) const { return (p.b == 0 && p.i == 0) ? Itv{} : at(prev(p)); }  // p の1つ前（無ければ空）
+
+    Pos r_ge_pos(long long x) const {  // 最初の r >= x
+        const int b = (int)(std::lower_bound(last_.begin(), last_.end(), x, [](const Itv& a, long long v) { return a.r < v; }) - last_.begin());
+        if (b == nb()) return Pos{b, 0};
+        const auto& v = bl_[b];
+        return Pos{b, (int)(std::lower_bound(v.begin(), v.end(), x, [](const Itv& a, long long y) { return a.r < y; }) - v.begin())};
+    }
+    Pos r_gt_pos(long long x) const {  // 最初の r > x
+        const int b = (int)(std::upper_bound(last_.begin(), last_.end(), x, [](long long v, const Itv& a) { return v < a.r; }) - last_.begin());
+        if (b == nb()) return Pos{b, 0};
+        const auto& v = bl_[b];
+        return Pos{b, (int)(std::upper_bound(v.begin(), v.end(), x, [](long long y, const Itv& a) { return y < a.r; }) - v.begin())};
+    }
+    Pos l_ge_pos(long long x) const {  // 最初の l >= x
+        const int b = (int)(std::lower_bound(last_.begin(), last_.end(), x, [](const Itv& a, long long v) { return a.l < v; }) - last_.begin());
+        if (b == nb()) return Pos{b, 0};
+        const auto& v = bl_[b];
+        return Pos{b, (int)(std::lower_bound(v.begin(), v.end(), x, [](const Itv& a, long long y) { return a.l < y; }) - v.begin())};
+    }
+    Pos l_gt_pos(long long x) const {  // 最初の l > x
+        const int b = (int)(std::upper_bound(last_.begin(), last_.end(), x, [](long long v, const Itv& a) { return v < a.l; }) - last_.begin());
+        if (b == nb()) return Pos{b, 0};
+        const auto& v = bl_[b];
+        return Pos{b, (int)(std::upper_bound(v.begin(), v.end(), x, [](long long y, const Itv& a) { return y < a.l; }) - v.begin())};
+    }
+
+    void split(int b) {
+        std::vector<Itv> w(bl_[b].begin() + bsz_, bl_[b].end());
+        bl_[b].resize(bsz_);
+        last_[b] = bl_[b].back();
+        last_.insert(last_.begin() + b + 1, w.back());
+        bl_.insert(bl_.begin() + b + 1, std::move(w));
+        if (nb() > 32 * bsz_) bsz_ *= 2;  // 区間数が多いときはブロックを大きくする
+    }
+    void fix_block(int b) {  // 空なら削除、そうでなければ末尾更新と分割
+        if (bl_[b].empty()) {
+            bl_.erase(bl_.begin() + b);
+            last_.erase(last_.begin() + b);
+            return;
+        }
+        last_[b] = bl_[b].back();
+        if ((int)bl_[b].size() >= 2 * bsz_) split(b);
+    }
+    void rebalance() {
+        std::vector<Itv> flat;
+        flat.reserve(n_);
+        for (const auto& v : bl_) flat.insert(flat.end(), v.begin(), v.end());
+        bl_.clear();
+        last_.clear();
+        for (int s = 0; s < n_; s += bsz_) {
+            const int e = std::min(n_, s + bsz_);
+            bl_.emplace_back(flat.begin() + s, flat.begin() + e);
+            last_.push_back(flat[e - 1]);
+        }
+    }
+    template <class Cmp> void heap_build(LazyHeap<Cmp>& hp) const {
+        std::vector<Key> v;
+        v.reserve(n_);
+        for (const auto& b : bl_) for (const Itv& t : b) v.push_back(Key(t.r - t.l, t.l));
+        hp.build(std::move(v));
+    }
+    void removed(const Itv& t) {  // 区間 t が消えた
+        total_ -= t.r - t.l;
+        if (len_min_.on) len_min_.del(Key(t.r - t.l, t.l));
+        if (len_max_.on) len_max_.del(Key(t.r - t.l, t.l));
+    }
+    // 要素列の [p, q) を e[0..k) で置き換える（p <= q）
+    void replace(Pos p, Pos q, const Itv* e, int k) {
+        long long added = 0;
+        for (int j = 0; j < k; ++j) {
+            added += e[j].r - e[j].l;
+            if (len_min_.on) len_min_.push(Key(e[j].r - e[j].l, e[j].l));
+            if (len_max_.on) len_max_.push(Key(e[j].r - e[j].l, e[j].l));
+        }
+        if (bl_.empty()) {  // 空集合への挿入
+            bl_.emplace_back(e, e + k);
+            last_.push_back(e[k - 1]);
+            n_ = k;
+            total_ = added;
+            return;
+        }
+        if (is_end(p)) p = q = Pos{nb() - 1, (int)bl_.back().size()};
+        if (q.i == 0 && q.b > p.b) q = Pos{q.b - 1, (int)bl_[q.b - 1].size()};
+        if (p.b == q.b) {
+            std::vector<Itv>& v = bl_[p.b];
+            const int cnt = q.i - p.i;
+            for (int j = p.i; j < q.i; ++j) removed(v[j]);
+            if (k <= cnt) {
+                std::copy(e, e + k, v.begin() + p.i);
+                v.erase(v.begin() + p.i + k, v.begin() + q.i);
+            } else {
+                std::copy(e, e + cnt, v.begin() + p.i);
+                v.insert(v.begin() + q.i, e + cnt, e + k);
+            }
+            n_ += k - cnt;
+            fix_block(p.b);
+        } else {
+            std::vector<Itv>& vp = bl_[p.b];
+            std::vector<Itv>& vq = bl_[q.b];
+            for (int j = p.i; j < (int)vp.size(); ++j) removed(vp[j]);
+            for (int b = p.b + 1; b < q.b; ++b) {
+                for (const Itv& t : bl_[b]) removed(t);
+                n_ -= (int)bl_[b].size();
+            }
+            for (int j = 0; j < q.i; ++j) removed(vq[j]);
+            n_ += k - ((int)vp.size() - p.i) - q.i;
+            vp.resize(p.i);
+            vp.insert(vp.end(), e, e + k);
+            vq.erase(vq.begin(), vq.begin() + q.i);
+            bl_.erase(bl_.begin() + p.b + 1, bl_.begin() + q.b);
+            last_.erase(last_.begin() + p.b + 1, last_.begin() + q.b);
+            fix_block(p.b + 1);
+            fix_block(p.b);
+        }
+        total_ += added;  // 先に引いてから足す（途中でのオーバーフロー防止）
+        if ((long long)nb() * bsz_ > 4LL * n_ + 4LL * bsz_) rebalance();  // 小さいブロックが増えすぎたら詰め直す
+        if (len_min_.on && len_min_.bloated()) heap_build(len_min_);
+        if (len_max_.on && len_max_.bloated()) heap_build(len_max_);
+    }
+
+public:
+    // block: 平方分割の初期ブロック長（1 以上。通常は指定不要。テストで小さくして境界を突くため）
+    explicit ItvSetPlus(int block = 128) : bsz_(block) {}
+
+    // ---------------- 更新 ----------------
+    Itv add(long long l, long long r) {  // [l, r) を追加。結合後の区間を返す
+        const Pos p = r_ge_pos(l);        // [l, r) と重なる／接する最初の区間
+        if (is_end(p) || at(p).l > r) {
+            const Itv t{l, r};
+            replace(p, p, &t, 1);
+            return t;
+        }
+        if (at(p).l <= l && r <= at(p).r) return at(p);  // 既に覆われている
+        const Pos q = l_gt_pos(r);        // 結合対象の次
+        const Itv t{std::min(l, at(p).l), std::max(r, at(prev(q)).r)};
+        replace(p, q, &t, 1);
+        return t;
+    }
+    Itv add(const Itv& t) { return add(t.l, t.r); }
+    long long erase(long long l, long long r) {  // [l, r) を削除。削除された長さを返す
+        const Pos p = r_gt_pos(l);
+        if (is_end(p) || at(p).l >= r) return 0;
+        const Pos q = l_ge_pos(r);
+        const Itv first = at(p), lastv = at(prev(q));
+        Itv e[2];
+        int k = 0;
+        if (first.l < l) e[k++] = Itv{first.l, l};
+        if (lastv.r > r) e[k++] = Itv{r, lastv.r};
+        const long long before_total = total_;
+        replace(p, q, e, k);
+        return before_total - total_;
+    }
+    long long erase(const Itv& t) { return erase(t.l, t.r); }
+    void clear() { n_ = 0; total_ = 0; bl_.clear(); last_.clear(); len_min_.reset(); len_max_.reset(); }
+
+    // ---------------- 情報 ----------------
+    int size() const { return n_; }
+    bool empty() const { return n_ == 0; }
+    long long length() const { return total_; }
+    std::vector<Itv> to_vector() const {
+        std::vector<Itv> v;
+        v.reserve(n_);
+        for (const auto& b : bl_) v.insert(v.end(), b.begin(), b.end());
+        return v;
+    }
+
+    // ---------------- 最適な区間 ----------------
+    Itv min_l() const { return n_ ? bl_.front().front() : Itv{}; }
+    Itv max_l() const { return n_ ? bl_.back().back() : Itv{}; }
+    Itv min_r() const { return min_l(); }
+    Itv max_r() const { return max_l(); }
+    Itv min_mid() const { return min_l(); }
+    Itv max_mid() const { return max_l(); }
+    Itv min_len() const {  // 長さ最小（同じなら l 最小）
+        if (!n_) return Itv{};
+        if (!len_min_.on) heap_build(len_min_);
+        const Key& k = len_min_.top();
+        return Itv{k.second, k.second + k.first};
+    }
+    Itv max_len() const {  // 長さ最大（同じなら l 最大）
+        if (!n_) return Itv{};
+        if (!len_max_.on) heap_build(len_max_);
+        const Key& k = len_max_.top();
+        return Itv{k.second, k.second + k.first};
+    }
+
+    // ---------------- 左端・右端で検索 ----------------
+    Itv l_ge(long long x) const { return at_or_none(l_ge_pos(x)); }  // l >= x で l 最小
+    Itv l_gt(long long x) const { return at_or_none(l_gt_pos(x)); }  // l >  x で l 最小
+    Itv l_le(long long x) const { return before(l_gt_pos(x)); }      // l <= x で l 最大
+    Itv l_lt(long long x) const { return before(l_ge_pos(x)); }      // l <  x で l 最大
+    Itv r_ge(long long x) const { return at_or_none(r_ge_pos(x)); }  // r >= x で r 最小
+    Itv r_gt(long long x) const { return at_or_none(r_gt_pos(x)); }  // r >  x で r 最小
+    Itv r_le(long long x) const { return before(r_gt_pos(x)); }      // r <= x で r 最大
+    Itv r_lt(long long x) const { return before(r_ge_pos(x)); }      // r <  x で r 最大
+
+    // ---------------- 判定 ----------------
+    bool contains(long long x) const {
+        const Pos p = r_gt_pos(x);
+        return !is_end(p) && at(p).l <= x;
+    }
+    Itv find(long long x) const {
+        const Pos p = r_gt_pos(x);
+        return (!is_end(p) && at(p).l <= x) ? at(p) : Itv{};
+    }
+    bool covers(long long l, long long r) const {
+        const Pos p = r_gt_pos(l);
+        return !is_end(p) && at(p).l <= l && r <= at(p).r;
+    }
+    bool covers(const Itv& t) const { return covers(t.l, t.r); }
+    bool intersects(long long l, long long r) const {
+        const Pos p = r_gt_pos(l);
+        return !is_end(p) && at(p).l < r;
+    }
+    bool intersects(const Itv& t) const { return intersects(t.l, t.r); }
+    long long next_free(long long x) const {  // x 以上で覆われていない最小値
+        const Pos p = r_gt_pos(x);
+        return (!is_end(p) && at(p).l <= x) ? at(p).r : x;
+    }
+    long long prev_free(long long x) const {  // x 以下で覆われていない最大値
+        const Pos p = r_gt_pos(x);
+        return (!is_end(p) && at(p).l <= x) ? at(p).l - 1 : x;
+    }
+};
+// ===================== template end (ここまでをコピー) =====================
+
+// =============================================================================
+//  ランダムテスト（愚直実装と全クエリを比較。座標が小さい設定では「点ごとの塗り配列」とも照合）
+// =============================================================================
+namespace itv4_test {
+
+struct Naive {  // 正規化済み（重ならず隣接しない・昇順）の区間列を O(n) で愚直に管理
+    std::vector<Itv> v;
+    Itv add(long long l, long long r) {
+        long long nl = l, nr = r;
+        std::vector<Itv> w;
+        for (const Itv& t : v) {
+            if (t.r < l || r < t.l) w.push_back(t);
+            else { nl = std::min(nl, t.l); nr = std::max(nr, t.r); }
+        }
+        const Itv m{nl, nr};
+        w.insert(std::upper_bound(w.begin(), w.end(), m), m);
+        v.swap(w);
+        return m;
+    }
+    long long erase(long long l, long long r) {
+        long long removed = 0;
+        std::vector<Itv> w;
+        for (const Itv& t : v) {
+            if (t.r <= l || r <= t.l) { w.push_back(t); continue; }
+            removed += std::min(t.r, r) - std::max(t.l, l);
+            if (t.l < l) w.push_back(Itv{t.l, l});
+            if (r < t.r) w.push_back(Itv{r, t.r});
+        }
+        v.swap(w);
+        return removed;
+    }
+    Itv find(long long x) const {
+        for (const Itv& t : v) if (t.l <= x && x < t.r) return t;
+        return Itv{};
+    }
+    long long length() const {
+        long long s = 0;
+        for (const Itv& t : v) s += t.r - t.l;
+        return s;
+    }
+    template <class Ok, class Better> Itv best(Ok ok, Better better) const {
+        Itv res{};
+        bool found = false;
+        for (const Itv& t : v)
+            if (ok(t) && (!found || better(t, res))) { res = t; found = true; }
+        return res;
+    }
+};
+using K2 = std::pair<long long, long long>;
+
+[[noreturn]] static void fail(const std::string& what, long long seed, int step, long long x, long long y, long long expect, long long got) {
+    std::cout << "\n*** MISMATCH *** " << what << " seed=" << seed << " step=" << step << " x=" << x << " y=" << y
+              << " expect=" << expect << " got=" << got << std::endl;
+    std::exit(1);
+}
+[[noreturn]] static void fail_itv(const std::string& what, long long seed, int step, long long x, long long y, const Itv& expect, const Itv& got) {
+    std::cout << "\n*** MISMATCH *** " << what << " seed=" << seed << " step=" << step << " x=" << x << " y=" << y
+              << " expect=" << expect << " got=" << got << std::endl;
+    std::exit(1);
+}
+
+struct Config {
+    const char* name;
+    int block;
+    long long lo, hi;   // 左端の範囲
+    long long maxlen;   // 追加区間の長さの最大
+    long long maxdel;   // 削除区間の長さの最大
+    int ops;
+    bool use_paint;     // 点ごとの塗り配列でも照合する（座標が小さいとき）
+    int phase;          // 増える局面と減る局面を切り替える間隔
+    int align_del;      // 削除のうち既存区間の端に合わせる割合（%）
+    int reps;           // 繰り返し回数（シードを変える）
+};
+
+static void run(const Config& cfg, long long seed) {
+    std::mt19937_64 rng((unsigned long long)seed * 0x9E3779B97F4A7C15ULL + 4444);
+    auto rnd = [&](long long a, long long b) { return a + (long long)(rng() % (unsigned long long)(b - a + 1)); };
+    auto rlen = [&](long long mx) { return 1 + (rng() % 3 == 0 ? rnd(0, mx - 1) : rnd(0, std::min(mx, 4LL) - 1)); };
+    ItvSetPlus s(cfg.block);
+    Naive nv;
+    const long long P0 = cfg.lo - 2 * std::max(cfg.maxlen, cfg.maxdel) - 2;  // 座標の範囲 [P0, P1)（塗り配列もこの範囲）
+    const long long P1 = cfg.hi + 2 * std::max(cfg.maxlen, cfg.maxdel) + 3;
+    auto clamp = [&](long long& l, long long& r) {
+        l = std::max(l, P0);
+        r = std::min(r, P1);
+        return l < r;
+    };
+    std::vector<char> paint(cfg.use_paint ? (size_t)(P1 - P0) : 0, 0);
+    int add_bias = 55;
+    const int start_len = (int)rnd(0, cfg.ops / 2);  // len 系（遅延構築）を使い始めるタイミング
+
+    auto gen_x = [&]() {
+        if (!nv.v.empty() && rng() % 2) {
+            const Itv& t = nv.v[rng() % nv.v.size()];
+            switch (rng() % 4) {
+                case 0: return t.l;
+                case 1: return t.r;
+                case 2: return t.l - 1;
+                default: return t.r - 1;
+            }
+        }
+        return rnd(P0, P1 - 1);
+    };
+
+    for (int step = 0; step < cfg.ops; ++step) {
+        if (step % cfg.phase == 0) add_bias = (step / cfg.phase) % 2 == 0 ? (int)rnd(60, 85) : (int)rnd(10, 35);
+        const int r100 = (int)(rng() % 100);
+        if (r100 < add_bias) {
+            long long l, r;
+            if (!nv.v.empty() && rng() % 4 == 0) {  // 既存区間に接する／内側の追加
+                const Itv& t = nv.v[rng() % nv.v.size()];
+                switch (rng() % 3) {
+                    case 0: r = t.l; l = r - rlen(cfg.maxlen); break;
+                    case 1: l = t.r; r = l + rlen(cfg.maxlen); break;
+                    default: l = t.l + (t.r - t.l) / 3; r = std::max(l + 1, t.r - (t.r - t.l) / 3); break;
+                }
+            } else {
+                l = rnd(cfg.lo, cfg.hi);
+                r = l + rlen(cfg.maxlen);
+            }
+            if (!clamp(l, r)) continue;
+            const Itv e = nv.add(l, r);
+            const Itv g = (rng() % 2) ? s.add(l, r) : s.add(Itv{l, r});
+            if (!(e == g)) fail_itv("add(return)", seed, step, l, r, e, g);
+            if (cfg.use_paint) for (long long x = l; x < r; ++x) paint[(size_t)(x - P0)] = 1;
+        } else if (r100 < 97) {
+            long long l, r;
+            if (!nv.v.empty() && (int)(rng() % 100) < cfg.align_del) {
+                const Itv& t = nv.v[rng() % nv.v.size()];
+                switch (rng() % 4) {
+                    case 0: l = t.l; r = t.r; break;
+                    case 1: l = t.l; r = l + rlen(cfg.maxdel); break;
+                    case 2: r = t.r; l = r - rlen(cfg.maxdel); break;
+                    default: l = t.l - rlen(cfg.maxdel); r = t.r + rlen(cfg.maxdel); break;
+                }
+            } else {
+                l = rnd(cfg.lo, cfg.hi);
+                r = l + rlen(cfg.maxdel);
+            }
+            if (!clamp(l, r)) continue;
+            const long long e = nv.erase(l, r);
+            const long long g = (rng() % 2) ? s.erase(l, r) : s.erase(Itv{l, r});
+            if (e != g) fail("erase(return)", seed, step, l, r, e, g);
+            if (cfg.use_paint) {
+                long long pe = 0;
+                for (long long x = l; x < r; ++x) { pe += paint[(size_t)(x - P0)]; paint[(size_t)(x - P0)] = 0; }
+                if (pe != e) fail("paint-vs-naive erase", seed, step, l, r, pe, e);
+            }
+        } else if (r100 == 99 && rng() % 50 == 0) {
+            s.clear();
+            nv.v.clear();
+            std::fill(paint.begin(), paint.end(), 0);
+        }
+
+        // ---------------- 全体の整合 ----------------
+        if ((long long)s.size() != (long long)nv.v.size()) fail("size", seed, step, 0, 0, (long long)nv.v.size(), s.size());
+        if (s.empty() != nv.v.empty()) fail("empty", seed, step, 0, 0, nv.v.empty(), s.empty());
+        if (step % 16 == 0 || cfg.use_paint) {
+            if (s.length() != nv.length()) fail("length", seed, step, 0, 0, nv.length(), s.length());
+        }
+        if (rng() % 32 == 0) {
+            const std::vector<Itv> got = s.to_vector();
+            if (got != nv.v) fail("to_vector", seed, step, 0, 0, (long long)nv.v.size(), (long long)got.size());
+            if (cfg.use_paint) {
+                std::vector<Itv> pv;
+                for (long long x = P0; x < P1; ++x) {
+                    if (!paint[(size_t)(x - P0)]) continue;
+                    long long y = x;
+                    while (y < P1 && paint[(size_t)(y - P0)]) ++y;
+                    pv.push_back(Itv{x, y});
+                    x = y;
+                }
+                if (pv != nv.v) fail("paint-vs-naive intervals", seed, step, 0, 0, (long long)pv.size(), (long long)nv.v.size());
+            }
+        }
+
+        // ---------------- クエリ ----------------
+        const int nq = 1 + (int)(rng() % 3);
+        for (int q = 0; q < nq; ++q) {
+            const long long x = gen_x();
+            long long a = gen_x(), b = gen_x();
+            if (a > b) std::swap(a, b);
+            if (a == b) ++b;
+            if (rng() % 3 == 0) b = a + rlen(4);
+            const Naive& V = nv;
+            int kind = (int)(rng() % 25);
+            if (step < start_len && (kind == 6 || kind == 7)) kind = 0;
+            Itv e{}, g{};
+            std::string nm;
+            auto lessLR = [](const Itv& p, const Itv& q2) { return K2(p.l, p.r) < K2(q2.l, q2.r); };
+            auto moreLR = [](const Itv& p, const Itv& q2) { return K2(p.l, p.r) > K2(q2.l, q2.r); };
+            auto lessRL = [](const Itv& p, const Itv& q2) { return K2(p.r, p.l) < K2(q2.r, q2.l); };
+            auto moreRL = [](const Itv& p, const Itv& q2) { return K2(p.r, p.l) > K2(q2.r, q2.l); };
+            auto all = [](const Itv&) { return true; };
+            switch (kind) {
+                case 0: nm = "min_l"; e = V.best(all, lessLR); g = s.min_l(); break;
+                case 1: nm = "max_l"; e = V.best(all, moreLR); g = s.max_l(); break;
+                case 2: nm = "min_r"; e = V.best(all, lessRL); g = s.min_r(); break;
+                case 3: nm = "max_r"; e = V.best(all, moreRL); g = s.max_r(); break;
+                case 4: nm = "min_mid"; e = V.best(all, [](const Itv& p, const Itv& q2) { return K2(p.l + p.r, p.l) < K2(q2.l + q2.r, q2.l); }); g = s.min_mid(); break;
+                case 5: nm = "max_mid"; e = V.best(all, [](const Itv& p, const Itv& q2) { return K2(p.l + p.r, p.l) > K2(q2.l + q2.r, q2.l); }); g = s.max_mid(); break;
+                case 6: nm = "min_len"; e = V.best(all, [](const Itv& p, const Itv& q2) { return K2(p.r - p.l, p.l) < K2(q2.r - q2.l, q2.l); }); g = s.min_len(); break;
+                case 7: nm = "max_len"; e = V.best(all, [](const Itv& p, const Itv& q2) { return K2(p.r - p.l, p.l) > K2(q2.r - q2.l, q2.l); }); g = s.max_len(); break;
+                case 8: nm = "l_ge"; e = V.best([&](const Itv& t) { return t.l >= x; }, lessLR); g = s.l_ge(x); break;
+                case 9: nm = "l_gt"; e = V.best([&](const Itv& t) { return t.l > x; }, lessLR); g = s.l_gt(x); break;
+                case 10: nm = "l_le"; e = V.best([&](const Itv& t) { return t.l <= x; }, moreLR); g = s.l_le(x); break;
+                case 11: nm = "l_lt"; e = V.best([&](const Itv& t) { return t.l < x; }, moreLR); g = s.l_lt(x); break;
+                case 12: nm = "r_ge"; e = V.best([&](const Itv& t) { return t.r >= x; }, lessRL); g = s.r_ge(x); break;
+                case 13: nm = "r_gt"; e = V.best([&](const Itv& t) { return t.r > x; }, lessRL); g = s.r_gt(x); break;
+                case 14: nm = "r_le"; e = V.best([&](const Itv& t) { return t.r <= x; }, moreRL); g = s.r_le(x); break;
+                case 15: nm = "r_lt"; e = V.best([&](const Itv& t) { return t.r < x; }, moreRL); g = s.r_lt(x); break;
+                case 16:
+                    nm = "find"; e = V.find(x); g = s.find(x);
+                    if (s.contains(x) != !e.empty()) fail("contains", seed, step, x, 0, !e.empty(), s.contains(x));
+                    break;
+                case 17: {
+                    bool ex = false;
+                    for (const Itv& t : V.v) ex |= (t.l <= a && b <= t.r);
+                    const bool gg = (rng() % 2) ? s.covers(a, b) : s.covers(Itv{a, b});
+                    if (ex != gg) fail("covers", seed, step, a, b, ex, gg);
+                    continue;
+                }
+                case 18: {
+                    bool ex = false;
+                    for (const Itv& t : V.v) ex |= (t.l < b && a < t.r);
+                    const bool gg = (rng() % 2) ? s.intersects(a, b) : s.intersects(Itv{a, b});
+                    if (ex != gg) fail("intersects", seed, step, a, b, ex, gg);
+                    continue;
+                }
+                case 19: {
+                    long long y = x;
+                    for (Itv t = V.find(y); t; t = V.find(y)) y = t.r;
+                    if (s.next_free(x) != y) fail("next_free", seed, step, x, 0, y, s.next_free(x));
+                    continue;
+                }
+                case 20: {
+                    long long y = x;
+                    for (Itv t = V.find(y); t; t = V.find(y)) y = t.l - 1;
+                    if (s.prev_free(x) != y) fail("prev_free", seed, step, x, 0, y, s.prev_free(x));
+                    continue;
+                }
+                default:
+                    if (cfg.use_paint && x >= P0 && x < P1) {
+                        const bool ex = paint[(size_t)(x - P0)] != 0;
+                        if (s.contains(x) != ex) fail("contains(paint)", seed, step, x, 0, ex, s.contains(x));
+                    }
+                    continue;
+            }
+            if (!(e == g)) fail_itv(nm, seed, step, x, 0, e, g);
+        }
+    }
+}
+
+inline void random_test() {
+    const auto t0 = std::chrono::steady_clock::now();
+    const Config cfgs[] = {
+        // name                       block  lo     hi       maxlen  maxdel  ops    paint  phase  align_del  reps
+        {"tiny block, dense", 1, 0, 30, 6, 5, 30000, true, 3000, 33, 3},
+        {"block=2, dense", 2, 0, 60, 10, 8, 30000, true, 3000, 33, 3},
+        {"block=3, mid", 3, -200, 200, 40, 20, 40000, true, 5000, 33, 3},
+        {"block=4, long ranges", 4, 0, 400, 150, 150, 30000, true, 5000, 33, 3},
+        {"block=8, grow/shrink", 8, 0, 4000, 2, 2, 50000, true, 5000, 90, 3},
+        {"block=16, grow/shrink", 16, 0, 8000, 3, 2, 50000, true, 8000, 90, 3},
+        {"default block, many itvs", 128, 0, 20000, 6, 4, 60000, true, 15000, 50, 2},
+        {"default block, mixed lengths", 128, 0, 1000000, 3000, 2000, 60000, false, 10000, 40, 2},
+        {"huge coords", 3, -2000000000000000000LL, 2000000000000000000LL, 1000000000000000000LL, 500000000000000000LL, 30000, false, 5000, 33, 3},
+        {"huge coords default", 128, -2000000000000000000LL, 2000000000000000000LL, 100000000000000LL, 100000000000000LL, 30000, false, 7500, 50, 2},
+    };
+    long long seed = 1;
+    for (const Config& c : cfgs) {
+        for (int rep = 0; rep < c.reps; ++rep) run(c, seed++);
+        std::cout << "  [OK] " << c.name << " x" << c.reps << "\n";
+    }
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    std::cout << "random_test: ALL PASSED (" << (long long)ms << " ms)\n";
+}
+
+}
+
+// =============================================================================
+//  使い方（全機能）。右のコメントが出力される値
+// =============================================================================
+namespace itv4_test {
+
+inline void demo() {
+    using std::cout;
+    auto S = [](const Itv& t) { return t ? "[" + std::to_string(t.l) + ", " + std::to_string(t.r) + ")" : std::string("none"); };
+    auto B01 = [](bool v) { return std::string(v ? "1" : "0"); };
+    auto V = [&](const std::vector<Itv>& v) { std::string r; for (const Itv& t : v) r += " " + S(t); return r; };
+    // 1 行 =「呼び出し = 結果」＋「何を返す／何をするか」
+    auto line = [](std::string left, const std::string& what) {
+        if (left.size() < 36) left.resize(36, ' ');
+        cout << left << " : " << what << "\n";
+    };
+    cout << "===== (4) ItvSetPlus demo =====\n";
+    cout << "重なる区間・接する区間を常に結合して持ち、最適な区間も検索できる集合。該当なしは none（空区間 Itv{}）\n";
+
+    ItvSetPlus s;
+    s.add(1, 3);                                                          // [1,3)
+    s.add(6, 10);                                                         // [6,10)
+    s.add(Itv{12, 13});                                                   // [12,13)
+    s.add(20, 24);                                                        // [20,24)
+    cout << "\n[追加]  add は区間を追加して結合し、結合後の区間を返す\n";
+    line("add(1, 3), add(6, 10)", "離れた区間を追加（それぞれ別の区間になる）");
+    line("add({12, 13}), add(20, 24)", "Itv でも (l, r) でも渡せる");
+    line("add(3, 4) -> " + S(s.add(3, 4)), "[3, 4) を追加。接する [1, 3) と結合した区間を返す");            // [1, 4)
+    line("add(7, 9) -> " + S(s.add(7, 9)), "既に覆われているので何も変わらず、覆っている区間を返す");      // [6, 10)
+
+    cout << "\n[情報]\n";
+    line("size = " + std::to_string(s.size()), "区間の個数（結合後の個数）");                               // 4
+    line("length = " + std::to_string(s.length()), "覆われている長さの合計");                              // 12
+    line("empty = " + B01(s.empty()), "空かどうか（1: 空 / 0: 空でない）");                                 // 0
+    line("to_vector =" + V(s.to_vector()), "全区間を昇順に並べた vector<Itv>");                             // [1, 4) [6, 10) [12, 13) [20, 24)
+
+    // ---- 最適な区間（互いに素なので l 順 = r 順 = 中央値順） ----
+    cout << "\n[最適な区間]  区間どうしは重ならないので l 順 = r 順 = 中央値順\n";
+    line("min_l = " + S(s.min_l()), "左端 l が最小の区間（= 先頭の区間）");                                 // [1, 4)
+    line("max_l = " + S(s.max_l()), "左端 l が最大の区間（= 末尾の区間）");                                 // [20, 24)
+    line("min_r = " + S(s.min_r()), "右端 r が最小の区間（= 先頭の区間）");                                 // [1, 4)
+    line("max_r = " + S(s.max_r()), "右端 r が最大の区間（= 末尾の区間）");                                 // [20, 24)
+    line("min_mid = " + S(s.min_mid()), "中央値 (l+r)/2 が最小の区間（= 先頭の区間）");                     // [1, 4)
+    line("max_mid = " + S(s.max_mid()), "中央値 (l+r)/2 が最大の区間（= 末尾の区間）");                     // [20, 24)
+    line("min_len = " + S(s.min_len()), "長さ r-l が最小の区間（同じなら l が小さい方）");                   // [12, 13)
+    line("max_len = " + S(s.max_len()), "長さ r-l が最大の区間（長さ4が2つあるので l が大きい方）");        // [20, 24)
+
+    // ---- 左端・右端で検索 ----
+    cout << "\n[左端・右端で検索]  ge/gt は条件を満たす中で最小、le/lt は最大を返す\n";
+    line("l_ge(5) = " + S(s.l_ge(5)), "l >= 5 の中で l が最小の区間");                                     // [6, 10)
+    line("l_gt(6) = " + S(s.l_gt(6)), "l > 6 の中で l が最小の区間");                                      // [12, 13)
+    line("l_le(6) = " + S(s.l_le(6)), "l <= 6 の中で l が最大の区間");                                     // [6, 10)
+    line("l_lt(6) = " + S(s.l_lt(6)), "l < 6 の中で l が最大の区間");                                      // [1, 4)
+    line("r_ge(10) = " + S(s.r_ge(10)), "r >= 10 の中で r が最小の区間");                                  // [6, 10)
+    line("r_gt(10) = " + S(s.r_gt(10)), "r > 10 の中で r が最小の区間");                                   // [12, 13)
+    line("r_le(10) = " + S(s.r_le(10)), "r <= 10 の中で r が最大の区間");                                  // [6, 10)
+    line("r_lt(10) = " + S(s.r_lt(10)), "r < 10 の中で r が最大の区間");                                   // [1, 4)
+    line("r_gt(8) = " + S(s.r_gt(8)), "8 を含む区間（無ければ 8 より右にある最初の区間）");                  // [6, 10)
+    line("r_gt(11) = " + S(s.r_gt(11)), "11 を含む区間は無いので、11 より右にある最初の区間");               // [12, 13)
+    line("l_lt(1) = " + S(s.l_lt(1)), "条件を満たす区間が無いときは none（空区間 Itv{}）");                  // none
+
+    // ---- 判定 ----
+    cout << "\n[判定]\n";
+    line("contains(9) = " + B01(s.contains(9)), "9 を含む区間があるか（1: ある / 0: ない）");               // 1
+    line("contains(10) = " + B01(s.contains(10)), "10 を含む区間があるか（[6, 10) は 10 を含まない）");      // 0
+    line("find(22) = " + S(s.find(22)), "22 を含む区間（結合済みなので1つに決まる）");                        // [20, 24)
+    line("find(5) = " + S(s.find(5)), "5 を含む区間は無いので none");                                        // none
+    if (auto t = s.find(2))
+        line("find(2): l = " + std::to_string(t.l) + ", r = " + std::to_string(t.r),
+             "if (auto t = s.find(x)) で見つかった区間を受け取れる");                                          // find(2): l = 1, r = 4
+    line("covers(6, 10) = " + B01(s.covers(6, 10)), "[6, 10) 全体が覆われているか");                        // 1
+    line("covers({3, 7}) = " + B01(s.covers(Itv{3, 7})), "[3, 7) 全体が覆われているか（4, 5 が空いている）");  // 0
+    line("intersects(10, 12) = " + B01(s.intersects(10, 12)), "[10, 12) と共通部分を持つ区間があるか（重複判定）");  // 0
+    line("intersects({9, 12}) = " + B01(s.intersects(Itv{9, 12})), "[9, 12) と共通部分を持つ区間があるか");   // 1
+    line("next_free(1) = " + std::to_string(s.next_free(1)), "1 以上で覆われていない最小の値（mex は next_free(0)）");  // 4
+    line("prev_free(7) = " + std::to_string(s.prev_free(7)), "7 以下で覆われていない最大の値");             // 5
+
+    // ---- 削除（区間は切断される）後も検索できる ----
+    cout << "\n[削除]  erase は [l, r) の部分を削除し、削除された長さを返す（削除後も検索できる）\n";
+    const long long d = s.erase(8, 21);                                   // [8,10) の 2 + [12,13) の 1 + [20,21) の 1
+    line("erase(8, 21) -> removed " + std::to_string(d), "[8, 10) の 2 + [12, 13) の 1 + [20, 21) の 1 が消える");  // removed 4
+    line("to_vector =" + V(s.to_vector()), "削除後の区間（はみ出した部分は残る）");                         // [1, 4) [6, 8) [21, 24)
+    line("min_len = " + S(s.min_len()), "削除後も長さ最小の区間を返す");                                     // [6, 8)
+    line("max_len = " + S(s.max_len()), "長さ最大の区間（長さ3が2つあるので l が大きい方）");                // [21, 24)
+    const long long d2 = s.erase(Itv{0, 100});
+    line("erase({0, 100}) -> removed " + std::to_string(d2), "全体を覆う範囲を削除すると全部消える");       // removed 8
+    line("size = " + std::to_string(s.size()), "区間の個数");                                               // 0
+    line("max_len = " + S(s.max_len()), "空なので none");                                                   // none
+
+    s.add(5, 6);
+    s.clear();
+    cout << "\n[全削除]\n";
+    line("after clear: size = " + std::to_string(s.size()), "clear() で全区間を削除した後の個数");         // 0
+    line("min_l = " + S(s.min_l()), "空なので none");                                                     // none
+}
+
+}
+
+void solv(){
+    itv4_test::demo();
+    std::cout << "\n===== (4) ItvSetPlus random test =====\n";
+    itv4_test::random_test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

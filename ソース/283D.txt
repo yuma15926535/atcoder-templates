@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    string S;
+    cin>>S;
+    unordered_set<char> s,n;
+    //括弧列ごとの処理をstackで実装(典型)
+    stack<unordered_set<char>> x;
+    x.push(n);
+    //英子文字26程度なので実際にシミュレーションしても間に合う
+    rep(i,0,S.size()){
+        if(S[i]=='(')x.push(n);
+        else if(S[i]==')'){
+            for(char c:x.top())if(s.count(c))s.erase(c);
+            x.pop();
+        }else{
+            if(s.count(S[i])){
+                NO;
+                return 0;
+            }else{
+                x.top().insert(S[i]);
+                s.insert(S[i]);
+            }
+        }
+    }
+    YES;
+    return 0;
+}

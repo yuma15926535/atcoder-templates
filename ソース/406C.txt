@@ -1,0 +1,44 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template <typename T> constexpr auto ssize(const T& container) -> std::ptrdiff_t {return static_cast<std::ptrdiff_t>(container.size());}
+
+int main(){
+    int N;
+    cin>>N;
+    vector<int>P(N);
+    rep(i,0,N)cin>>P[i];
+    //増加していれば0減少していれば1
+    vector<int>diff;
+    rep(i,0,N-1)diff.push_back(P[i]<P[i+1]?0:1);
+    //ランレングス圧縮
+    //文字wがc個存在する
+    //firstが0,1,0の順に列を取れば条件を満たす
+    vector<pair<int,int>>rie;
+    for(int a:diff){
+        if(rie.size()&&rie.back().first==a)rie.back().second++;
+        else rie.emplace_back(a,1);
+    }
+    ll ans=0;
+    rep(i,0,rie.size()){
+        if(rie[i].first==1){
+            //l:左にいくつ伸ばせるか、r:右にいくつ伸ばせるか
+            ll l=0,r=0;
+            if(i)l=rie[i-1].second;
+            if(i+1<rie.size())r=rie[i+1].second;
+            ans+=l*r;
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

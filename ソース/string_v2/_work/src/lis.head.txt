@@ -1,0 +1,51 @@
+// =============================================================================
+//  最長増加部分列（LIS。長さ・復元・各位置で終わる / 始まる長さ・入りうる位置・数・減少・分割の最小数・2 次元）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 06 部分列
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  列は vector<整数>（int・long long。負・10^18 級もよい）でも string でもよい
+//  strict = true（既定）で狭義増加（a[i] < a[j]）、false で広義（a[i] ≤ a[j]。「減らない」）。添字は 0 始まり
+//  数える関数は型 T を受け取る（math_v2 の using mint = ModInt998; で count_lis<mint>(a)。long long なら溢れたら止める）
+//
+//  機能一覧                                                                       計算量
+//    lis_length(a, strict)                 最長増加部分列の長さ                                         O(N log N)
+//    lis_restore(a, strict)                その 1 つ（添字の列。昇順）                                   O(N log N)
+//    lis_ending_at(a, strict)              r[i] = a[i] で終わる最長の長さ                                 O(N log N)
+//    lis_starting_at(a, strict)            r[i] = a[i] から始まる最長の長さ                               O(N log N)
+//    lis_members(a, strict)                LisMembers{length, in_some, in_all}（入りうる・必ず入る位置）    O(N log N)
+//    count_lis<T>(a, strict)               LIS の数（添字の列として）                                    O(N log N)
+//    lds_length(a, strict)                 最長減少部分列の長さ                                          O(N log N)
+//    min_increasing_cover(a, strict)       増加部分列に分ける最小の数（= 最長の減らない / 減る部分列）       O(N log N)
+//    min_decreasing_cover(a, strict)       減少部分列に分ける最小の数                                    O(N log N)
+//    lis_2d(ps)                            (x, y) が両方とも狭義に増える最長の列（添字。x の小さい順）       O(N log N)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    lis_test::random_test()  … O(N^2) の DP・全部の部分列の列挙と全機能を突き合わせるランダムテスト
+//    lis_test::benchmark()    … 速度計測
+//    lis_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

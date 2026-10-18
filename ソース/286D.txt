@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N,X;
+struct AB{
+    int A;
+    int B;
+};
+vector<AB> v;
+vector<vector<bool>> rec;
+int m;
+
+int main()
+{
+    cin>>N>>X;
+    v.resize(N);
+    rep(i,0,N){
+        int a,b;
+        cin>>a>>b;
+        v[i]={a,b};
+    }
+    rec.resize(2,vector<bool>(X+1,false));
+    rec[1][0]=true;
+    m=0;
+    //Nが十分に小さいのでrec(DP)を使って全探索
+    rep(i,0,N)erep(j,0,m)if(rec[(i+1)%2][j]){
+        rec[i%2][j]=true;
+        erep(k,1,v[i].B){
+            if(j+v[i].A*k<=X){
+                rec[i%2][j+v[i].A*k]=true;
+                m=max((ll)m,j+v[i].A*k);
+            }else break;
+        }
+    }
+    if(rec[(N-1)%2][X])YN;
+    return 0;
+}

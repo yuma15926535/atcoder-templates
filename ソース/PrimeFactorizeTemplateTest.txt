@@ -1,0 +1,446 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+====================================
+素因数分解系テンプレート
+====================================
+*/
+
+/*
+==================================================
+ 素因数分解（試し割り版）
+==================================================
+
+【機能】
+与えられた自然数 n を素因数分解し，
+素因数の vector と指数の vector を pair で返す。
+
+【引数】
+- n : 分解したい自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- pair<primes, exps>
+  primes[i]^exps[i] が n の素因数分解を表す
+
+【計算量】
+- O(√n)
+
+【用途】
+- 単発の素因数分解
+*/
+pair<vector<ll>, vector<int>> prime_factorize(ll n) {
+    vector<ll> primes;
+    vector<int> exps;
+
+    for (ll p = 2; p * p <= n; p++) {
+        if (n % p == 0) {
+            int cnt = 0;
+            while (n % p == 0) {
+                n /= p;
+                cnt++;
+            }
+            primes.push_back(p);
+            exps.push_back(cnt);
+        }
+    }
+    if (n > 1) {
+        primes.push_back(n);
+        exps.push_back(1);
+    }
+    return {primes, exps};
+}
+
+/*
+==================================================
+ 約数列挙（試し割り版）
+==================================================
+
+【機能】
+n のすべての正の約数を列挙する（順序は未保証）。
+
+【引数】
+- n : 自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- n の約数をすべて含む vector
+
+【計算量】
+- O(τ(n))（τ(n) は約数の個数）
+
+【備考】
+- 昇順にしたい場合は sort を呼ぶ
+*/
+vector<ll> enum_divisors(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    vector<ll> divisors = {1};
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        vector<ll> next;
+        ll p = primes[i];
+        int e = exps[i];
+
+        for (ll d : divisors) {
+            ll cur = 1;
+            for (int k = 1; k <= e; k++) {
+                cur *= p;
+                next.push_back(d * cur);
+            }
+        }
+        divisors.insert(divisors.end(), next.begin(), next.end());
+    }
+    return divisors;
+}
+
+/*
+==================================================
+ 約数の個数 τ(n)
+==================================================
+
+【機能】
+n の正の約数の個数を返す。
+
+【引数】
+- n : 自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- 約数の個数
+
+【計算量】
+- O(√n)
+*/
+ll count_divisors(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    ll res = 1;
+    for (int e : exps) {
+        res *= (e + 1);
+    }
+    return res;
+}
+
+/*
+==================================================
+ 約数の和 σ(n)
+==================================================
+
+【機能】
+n の正の約数の総和を返す。
+
+【引数】
+- n : 自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- 約数の和
+
+【計算量】
+- O(√n)
+
+【注意】
+- オーバーフローに注意（mod がある場合は別実装推奨）
+*/
+ll sum_divisors(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    ll res = 1;
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        ll p = primes[i];
+        int e = exps[i];
+
+        ll term = 1;
+        ll cur = 1;
+        for (int k = 0; k < e; k++) {
+            cur *= p;
+            term += cur;
+        }
+        res *= term;
+    }
+    return res;
+}
+
+/*
+==================================================
+ N 以下の素数列挙（エラトステネスの篩）
+==================================================
+
+【機能】
+n 以下のすべての素数を列挙する。
+
+【引数】
+- n : 上限（0 <= n <= 10^7 程度）
+
+【戻り値】
+- n 以下の素数を昇順に並べた vector
+
+【計算量】
+- O(n log log n)
+*/
+vector<int> primes_upto(int n) {
+    vector<bool> is_prime(n + 1, true);
+    vector<int> primes;
+
+    if (n < 2) return primes;
+
+    is_prime[0] = is_prime[1] = false;
+    for (int i = 2; i * i <= n; i++) {
+        if (is_prime[i]) {
+            for (int j = i * i; j <= n; j += i) {
+                is_prime[j] = false;
+            }
+        }
+    }
+    for (int i = 2; i <= n; i++) {
+        if (is_prime[i]) primes.push_back(i);
+    }
+    return primes;
+}
+
+/*
+==================================================
+ 最小素因数（SPF）テーブル構築
+==================================================
+
+【機能】
+各数の最小素因数を前計算する。
+
+【引数】
+- n : テーブルを作る最大値（1 <= n <= 10^7 程度）
+
+【戻り値】
+- spf[i] = i の最小素因数
+
+【計算量】
+- O(n log log n)
+
+【用途】
+- 多数回の素因数分解を高速化
+*/
+vector<int> build_spf(int n) {
+    vector<int> spf(n + 1);
+    for (int i = 0; i <= n; i++) spf[i] = i;
+
+    for (int i = 2; i * i <= n; i++) {
+        if (spf[i] == i) { // i は素数
+            for (int j = i * i; j <= n; j += i) {
+                if (spf[j] == j) spf[j] = i;
+            }
+        }
+    }
+    return spf;
+}
+
+/*
+==================================================
+ SPF を用いた素因数分解
+==================================================
+
+【機能】
+SPF テーブルを使って高速に素因数分解する。
+
+【引数】
+- n   : 分解したい自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- pair<primes, exps>
+
+【計算量】
+- O(log n)
+*/
+pair<vector<int>, vector<int>> prime_factorize_spf(int n, const vector<int>& spf) {
+    vector<int> primes, exps;
+
+    while (n > 1) {
+        int p = spf[n];
+        int cnt = 0;
+        while (n % p == 0) {
+            n /= p;
+            cnt++;
+        }
+        primes.push_back(p);
+        exps.push_back(cnt);
+    }
+    return {primes, exps};
+}
+
+/*
+==================================================
+ SPF版 約数列挙
+==================================================
+
+【機能】
+SPF を使って n の約数を列挙する（順序未保証）。
+
+【引数】
+- n   : 自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- n の約数をすべて含む vector
+
+【計算量】
+- O(τ(n))
+*/
+vector<int> enum_divisors_spf(int n, const vector<int>& spf) {
+    auto [primes, exps] = prime_factorize_spf(n, spf);
+    vector<int> divisors = {1};
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        vector<int> next;
+        int p = primes[i];
+        int e = exps[i];
+
+        for (int d : divisors) {
+            int cur = 1;
+            for (int k = 1; k <= e; k++) {
+                cur *= p;
+                next.push_back(d * cur);
+            }
+        }
+        divisors.insert(divisors.end(), next.begin(), next.end());
+    }
+    return divisors;
+}
+
+/*
+==================================================
+ SPF版 約数の個数
+==================================================
+
+【機能】
+SPF を用いて n の約数の個数を返す。
+
+【引数】
+- n   : 自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- 約数の個数
+
+【計算量】
+- O(log n)
+*/
+ll count_divisors_spf(int n, const vector<int>& spf) {
+    auto [primes, exps] = prime_factorize_spf(n, spf);
+    ll res = 1;
+    for (int e : exps) res *= (e + 1);
+    return res;
+}
+
+/*
+==================================================
+ SPF版 約数の和
+==================================================
+
+【機能】
+SPF を用いて n の約数の総和を返す。
+
+【引数】
+- n   : 自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- 約数の和
+
+【計算量】
+- O(log n)
+*/
+ll sum_divisors_spf(int n, const vector<int>& spf) {
+    auto [primes, exps] = prime_factorize_spf(n, spf);
+    ll res = 1;
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        ll p = primes[i];
+        int e = exps[i];
+
+        ll term = 1;
+        ll cur = 1;
+        for (int k = 0; k < e; k++) {
+            cur *= p;
+            term += cur;
+        }
+        res *= term;
+    }
+    return res;
+}
+
+void solv(){
+    ll n = 360;   // 2^3 * 3^2 * 5
+    int m = 50;
+
+    // ---- 試し割り版 素因数分解 ----
+    auto [pf_p, pf_e] = prime_factorize(n);
+    cout << "[prime_factorize]\n";
+    for (int i = 0; i < (int)pf_p.size(); i++) {
+        cout << pf_p[i] << "^" << pf_e[i] << " ";
+    }
+    cout << "\n\n";
+
+    // ---- 試し割り版 約数列挙 ----
+    auto divs = enum_divisors(n);
+    sort(divs.begin(), divs.end());
+    cout << "[enum_divisors]\n";
+    for (ll d : divs) cout << d << " ";
+    cout << "\n\n";
+
+    // ---- 約数の個数・約数の和（試し割り） ----
+    cout << "[count_divisors] " << count_divisors(n) << "\n";
+    cout << "[sum_divisors]   " << sum_divisors(n) << "\n\n";
+
+    // ---- n 以下の素数列挙 ----
+    auto primes = primes_upto(m);
+    cout << "[primes_upto]\n";
+    for (int p : primes) cout << p << " ";
+    cout << "\n\n";
+
+    // ---- SPF 構築 ----
+    int MAXN = 1000;
+    auto spf = build_spf(MAXN);
+
+    // ---- SPF版 素因数分解 ----
+    auto [spf_p, spf_e] = prime_factorize_spf((int)n, spf);
+    cout << "[prime_factorize_spf]\n";
+    for (int i = 0; i < (int)spf_p.size(); i++) {
+        cout << spf_p[i] << "^" << spf_e[i] << " ";
+    }
+    cout << "\n\n";
+
+    // ---- SPF版 約数列挙 ----
+    auto divs_spf = enum_divisors_spf((int)n, spf);
+    sort(divs_spf.begin(), divs_spf.end());
+    cout << "[enum_divisors_spf]\n";
+    for (int d : divs_spf) cout << d << " ";
+    cout << "\n\n";
+
+    // ---- SPF版 約数の個数・約数の和 ----
+    cout << "[count_divisors_spf] " << count_divisors_spf((int)n, spf) << "\n";
+    cout << "[sum_divisors_spf]   " << sum_divisors_spf((int)n, spf) << "\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

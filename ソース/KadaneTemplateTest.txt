@@ -1,0 +1,185 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+// Kadane 最大・最小部分列和（空あり / 空なし）
+// 値 + 区間 [l, r) をすべて保持
+struct SubarrayAll {
+    // ===== 最大（空あり）=====
+    long long max_allow_sum;
+    int max_allow_l, max_allow_r;
+
+    // ===== 最大（空なし）=====
+    long long max_force_sum;
+    int max_force_l, max_force_r;
+
+    // ===== 最小（空あり）=====
+    long long min_allow_sum;
+    int min_allow_l, min_allow_r;
+
+    // ===== 最小（空なし）=====
+    long long min_force_sum;
+    int min_force_l, min_force_r;
+
+    SubarrayAll(const vector<long long>& a) {
+        int n = a.size();
+
+        // ---------- 最大（空あり）----------
+        {
+            long long cur = 0;
+            int cur_l = 0;
+            max_allow_sum = 0;
+            max_allow_l = max_allow_r = 0;
+
+            for (int i = 0; i < n; i++) {
+                cur += a[i];
+                if (cur > max_allow_sum) {
+                    max_allow_sum = cur;
+                    max_allow_l = cur_l;
+                    max_allow_r = i + 1;
+                }
+                if (cur < 0) {
+                    cur = 0;
+                    cur_l = i + 1;
+                }
+            }
+        }
+
+        // ---------- 最大（空なし）----------
+        {
+            long long cur = a[0];
+            int cur_l = 0;
+            max_force_sum = a[0];
+            max_force_l = 0;
+            max_force_r = 1;
+
+            for (int i = 1; i < n; i++) {
+                if (cur < 0) {
+                    cur = a[i];
+                    cur_l = i;
+                } else {
+                    cur += a[i];
+                }
+                if (cur > max_force_sum) {
+                    max_force_sum = cur;
+                    max_force_l = cur_l;
+                    max_force_r = i + 1;
+                }
+            }
+        }
+
+        // ---------- 最小（空あり）----------
+        {
+            long long cur = 0;
+            int cur_l = 0;
+            min_allow_sum = 0;
+            min_allow_l = min_allow_r = 0;
+
+            for (int i = 0; i < n; i++) {
+                cur += a[i];
+                if (cur < min_allow_sum) {
+                    min_allow_sum = cur;
+                    min_allow_l = cur_l;
+                    min_allow_r = i + 1;
+                }
+                if (cur > 0) {
+                    cur = 0;
+                    cur_l = i + 1;
+                }
+            }
+        }
+
+        // ---------- 最小（空なし）----------
+        {
+            long long cur = a[0];
+            int cur_l = 0;
+            min_force_sum = a[0];
+            min_force_l = 0;
+            min_force_r = 1;
+
+            for (int i = 1; i < n; i++) {
+                if (cur > 0) {
+                    cur = a[i];
+                    cur_l = i;
+                } else {
+                    cur += a[i];
+                }
+                if (cur < min_force_sum) {
+                    min_force_sum = cur;
+                    min_force_l = cur_l;
+                    min_force_r = i + 1;
+                }
+            }
+        }
+    }
+};
+
+void solv(){
+    vector<vector<long long>> tests = {
+        {1, -3, 4, -1, 2},
+        {-5, -2, -3},
+        {3, 2, 1},
+        {2, -1, 2, -1, 2},
+        {-1, 0, -2, 0, -3}
+    };
+
+    for (int t = 0; t < (int)tests.size(); t++) {
+        auto& a = tests[t];
+        SubarrayAll sa(a);
+
+        cout << "==== テストケース " << t + 1 << " ====\n";
+        cout << "配列: ";
+        for (auto x : a) cout << x << " ";
+        cout << "\n\n";
+
+        cout << "【最大部分列和（空あり）】\n";
+        cout << "  値 = " << sa.max_allow_sum
+             << ", 区間 = [" << sa.max_allow_l
+             << ", " << sa.max_allow_r << ")\n";
+
+        cout << "【最大部分列和（空なし）】\n";
+        cout << "  値 = " << sa.max_force_sum
+             << ", 区間 = [" << sa.max_force_l
+             << ", " << sa.max_force_r << ")\n";
+
+        cout << "【最小部分列和（空あり）】\n";
+        cout << "  値 = " << sa.min_allow_sum
+             << ", 区間 = [" << sa.min_allow_l
+             << ", " << sa.min_allow_r << ")\n";
+
+        cout << "【最小部分列和（空なし）】\n";
+        cout << "  値 = " << sa.min_force_sum
+             << ", 区間 = [" << sa.min_force_l
+             << ", " << sa.min_force_r << ")\n";
+
+        cout << "\n";
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    cin>>T;
+    while(T--)solv();
+    return 0;
+}

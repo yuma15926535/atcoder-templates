@@ -1,0 +1,1297 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+  BigInt（多倍長整数）テンプレート
+============================================================
+
+■ 概要
+  任意精度整数を扱うクラス。
+  四則演算（+,-,*,/,%）、比較、gcd/lcm、pow に対応。
+
+■ 内部表現
+  - vector<int> a : 下位桁から保持（little endian）
+  - 各要素は BASE = 1e9（10^9）進数
+  - bool neg : 負数フラグ
+
+  例：
+    1234567890123
+    → a = [890123, 234567, 1]（イメージ）
+
+■ 設計方針
+  - 符号と絶対値を完全分離
+  - 演算は基本「絶対値で処理 → 符号を後付け」
+  - normalize() によって常に正規形を維持
+
+------------------------------------------------------------
+
+■ 不変条件（重要）
+  - a に leading zero は存在しない
+    → つまり a.empty() ⇔ 値は0
+  - 0 のとき必ず neg = false
+
+------------------------------------------------------------
+
+■ 基本関数
+
+◆ normalize()
+  - 末尾の0を削除
+  - a.empty() の場合 neg=false にする
+  → すべての演算の最後に必ず呼ぶこと
+
+◆ cmp_abs()
+  - 絶対値同士の比較
+  - 符号は見ない
+
+------------------------------------------------------------
+
+■ 四則演算
+
+◆ 加算・減算
+  - add_abs / sub_abs を内部で使用
+  - sub_abs は「|a| >= |b|」前提（重要）
+
+  ロジック：
+    同符号 → 加算
+    異符号 → 大きい方から小さい方を引く
+
+◆ 乗算
+  - O(n^2) の単純実装
+  - long long で中間計算（オーバーフロー防止）
+
+◆ 除算（重要）
+  - Knuth風の正規化割り算を使用
+  - 計算量：O(n^2)
+
+  手順：
+    1. norm = BASE / (b.back()+1) で正規化
+    2. 上位2桁で商を推定
+    3. 必要なら補正（最大2回程度）
+    4. 最後に余りを逆正規化
+
+------------------------------------------------------------
+
+■ 剰余（%）
+  - C++と同じ定義
+    → 余りは「被除数と同符号」
+
+  例：
+    -7 % 3 = -1
+
+------------------------------------------------------------
+
+■ gcd / lcm
+
+◆ gcd
+  - ユークリッドの互除法
+  - 必ず絶対値で処理
+
+◆ lcm
+  - lcm(a,b) = a/gcd(a,b) * b
+  - オーバーフロー回避のため順序に注意
+
+------------------------------------------------------------
+
+■ pow
+  - 二分累乗（O(log n)）
+  - 指数は long long
+
+------------------------------------------------------------
+
+■ 計算量まとめ
+
+  +, -        : O(n)
+  *           : O(n^2)
+  /, %        : O(n^2)
+  gcd         : O(n^2 log n)
+  pow         : O(n^2 log exp)
+
+------------------------------------------------------------
+
+■ 注意点（超重要）
+
+1. normalize忘れ
+   → ほぼ確実にバグる
+
+2. 0の扱い
+   → a.empty() && neg=false を維持
+
+3. sub_absの前提
+   → |a| >= |b| を必ず守る
+
+4. オーバーフロー
+   → 掛け算・割り算は long long を使う
+
+5. 除算の符号
+   → 最後に neg ^ b.neg で決める
+
+6. % の符号
+   → 被除数と同符号（C++仕様）
+
+7. lcmの計算順
+   → (a / gcd) * b にする
+
+8. absの実装
+   → 符号だけ消す（値は触らない）
+
+------------------------------------------------------------
+
+■ 拡張候補
+
+  - 高速化（Karatsuba / FFT）
+  - mod付き演算
+  - 文字列I/O最適化
+
+------------------------------------------------------------
+
+■ 想定用途（競プロ）
+
+  - 桁数制限のない整数計算
+  - 高精度計算
+  - 特殊問題（巨大数、桁DPなど）
+
+  ※ 通常は modint の方が速いので使い分けること
+
+============================================================
+*/
+struct BigInt {
+    static const int BASE = 1000000000;
+    vector<int> a; // 下位桁から
+    bool neg;
+
+    // ===== コンストラクタ =====
+    BigInt(long long x = 0) {
+        neg = x < 0;
+        if (x < 0) x = -x;
+        while (x) {
+            a.push_back(x % BASE);
+            x /= BASE;
+        }
+        normalize();
+    }
+
+    BigInt(const string& s) {
+        neg = false;
+        a.clear();
+
+        int pos = 0;
+        if (!s.empty() && s[0] == '-') {
+            neg = true;
+            pos = 1;
+        }
+
+        for (int i = (int)s.size(); i > pos; i -= 9) {
+            int l = max(pos, i - 9);
+            int len = i - l;
+            int x = stoi(s.substr(l, len));
+            a.push_back(x);
+        }
+
+        normalize();
+    }
+
+    string to_string() const {
+        if (a.empty()) return "0";
+
+        string s = neg ? "-" : "";
+        s += std::to_string(a.back());
+
+        for (int i = (int)a.size() - 2; i >= 0; i--) {
+            string t = std::to_string(a[i]);
+            s += string(9 - t.length(), '0') + t;
+        }
+
+        return s;
+    }
+
+    // ===== 正規化 =====
+    void normalize() {
+        while (!a.empty() && a.back() == 0) a.pop_back();
+        if (a.empty()) neg = false; // 0は正
+    }
+
+    // ===== 絶対値比較 =====
+    int cmp_abs(const BigInt& b) const {
+        if (a.size() != b.a.size())
+            return a.size() < b.a.size() ? -1 : 1;
+        for (int i = (int)a.size() - 1; i >= 0; i--) {
+            if (a[i] != b.a[i])
+                return a[i] < b.a[i] ? -1 : 1;
+        }
+        return 0;
+    }
+
+    BigInt abs() const {
+        BigInt r = *this;
+        r.neg = false;
+        return r;
+    }
+
+    // ===== 比較 =====
+    bool operator<(const BigInt& b) const {
+        if (neg != b.neg) return neg;
+        int c = cmp_abs(b);
+        return neg ? (c > 0) : (c < 0);
+    }
+
+    bool operator==(const BigInt& b) const {
+        return neg == b.neg && a == b.a;
+    }
+
+    bool operator!=(const BigInt& b) const {
+        return !(*this == b);
+    }
+
+    bool operator<=(const BigInt& b) const {
+        return !(*this > b);
+    }
+
+    bool operator>(const BigInt& b) const {
+        return b < *this;
+    }
+
+    bool operator>=(const BigInt& b) const {
+        return !(*this < b);
+    }
+
+    static BigInt add_abs(const BigInt& a, const BigInt& b) {
+        BigInt res;
+        res.neg = false;
+
+        int n = a.a.size(), m = b.a.size();
+        int sz = max(n, m);
+        res.a.resize(sz);
+
+        long long carry = 0;
+
+        for (int i = 0; i < sz; i++) {
+            long long cur = carry;
+            if (i < n) cur += a.a[i];
+            if (i < m) cur += b.a[i];
+
+            res.a[i] = cur % BASE;
+            carry = cur / BASE;
+        }
+
+        if (carry) res.a.push_back(carry);
+
+        res.normalize();
+        return res;
+    }
+
+    static BigInt sub_abs(const BigInt& a, const BigInt& b) {
+        BigInt res;
+        res.neg = false;
+
+        int n = a.a.size(), m = b.a.size();
+        res.a.resize(n);
+
+        long long borrow = 0;
+
+        for (int i = 0; i < n; i++) {
+            long long cur = (long long)a.a[i] - borrow;
+            if (i < m) cur -= b.a[i];
+
+            if (cur < 0) {
+                cur += BASE;
+                borrow = 1;
+            } else {
+                borrow = 0;
+            }
+
+            res.a[i] = (int)cur;
+        }
+
+        res.normalize();
+        return res;
+    }
+
+    BigInt operator+(const BigInt& b) const {
+        if (neg == b.neg) {
+            BigInt res = add_abs(*this, b);
+            res.neg = neg;
+            return res;
+        } else {
+            int c = cmp_abs(b);
+            if (c == 0) {
+                return BigInt(0);
+            } else if (c > 0) {
+                BigInt res = sub_abs(*this, b);
+                res.neg = neg;
+                return res;
+            } else {
+                BigInt res = sub_abs(b, *this);
+                res.neg = b.neg;
+                return res;
+            }
+        }
+    }
+
+    BigInt operator-(const BigInt& b) const {
+        BigInt nb = b;
+        nb.neg = !b.neg;
+        return *this + nb;
+    }
+
+    BigInt operator*(const BigInt& b) const {
+        BigInt res;
+        res.neg = neg ^ b.neg;
+
+        int n = a.size(), m = b.a.size();
+        res.a.assign(n + m, 0);
+
+        for (int i = 0; i < n; i++) {
+            long long carry = 0;
+            for (int j = 0; j < m || carry; j++) {
+                long long cur = res.a[i + j]
+                    + (long long)a[i] * (j < m ? b.a[j] : 0)
+                    + carry;
+
+                res.a[i + j] = (int)(cur % BASE);
+                carry = cur / BASE;
+            }
+        }
+
+        res.normalize();
+        return res;
+    }
+
+    BigInt operator/(int v) const {
+        assert(v != 0);
+
+        BigInt res;
+        res.neg = (neg ^ (v < 0));
+
+        long long dv = v >= 0 ? v : -(long long)v;
+
+        res.a.resize(a.size());
+
+        long long rem = 0;
+
+        for (int i = (int)a.size() - 1; i >= 0; i--) {
+            long long cur = a[i] + rem * BASE;
+            res.a[i] = (int)(cur / dv);
+            rem = cur % dv;
+        }
+
+        res.normalize();
+        return res;
+    }
+
+    int operator%(int v) const {
+        assert(v != 0);
+
+        long long dv = v >= 0 ? v : -(long long)v;
+        long long rem = 0;
+
+        for (int i = (int)a.size() - 1; i >= 0; i--) {
+            long long cur = a[i] + rem * BASE;
+            rem = cur % dv;
+        }
+
+        return neg ? -rem : rem;
+    }
+
+    // 返り値: {quotient, remainder} （どちらも非負）
+    static pair<BigInt, BigInt> divmod_abs(BigInt a, BigInt b) {
+        assert(!b.a.empty()); // b != 0
+
+        if (a.cmp_abs(b) < 0) {
+            return {BigInt(0), a};
+        }
+
+        int n = a.a.size();
+        int m = b.a.size();
+
+        // --- 正規化 ---
+        long long norm = BASE / ((long long)b.a.back() + 1);
+        a = a * (int)norm;
+        b = b * (int)norm;
+
+        BigInt q;
+        q.a.assign(n - m + 1, 0);
+
+        BigInt r;
+        r.a.assign(a.a.begin(), a.a.end());
+        r.a.push_back(0); // 番兵
+
+        for (int i = n - m; i >= 0; i--) {
+            long long r2 = ((long long)r.a[i + m] * BASE + r.a[i + m - 1]);
+            long long d = r2 / b.a[m - 1];
+
+            if (d >= BASE) d = BASE - 1;
+
+            // --- b * d を引く ---
+            BigInt bd = b * (int)d;
+
+            // shift
+            bd.a.insert(bd.a.begin(), i, 0);
+
+            while (r.cmp_abs(bd) < 0) {
+                d--;
+                bd = b * (int)d;
+                bd.a.insert(bd.a.begin(), i, 0);
+            }
+
+            r = r - bd;
+            q.a[i] = (int)d;
+        }
+
+        q.normalize();
+
+        // --- 余りを戻す ---
+        r = r / (int)norm;
+        r.normalize();
+
+        return {q, r};
+    }
+
+    BigInt operator%(const BigInt& b) const {
+        assert(!b.a.empty());
+
+        auto [q, r] = divmod_abs(abs(), b.abs());
+        r.neg = neg;
+        r.normalize();
+        return r;
+    }
+
+    BigInt& operator+=(const BigInt& b) {
+        *this = *this + b;
+        return *this;
+    }
+
+    BigInt& operator-=(const BigInt& b) {
+        *this = *this - b;
+        return *this;
+    }
+
+    BigInt& operator*=(const BigInt& b) {
+        *this = *this * b;
+        return *this;
+    }
+
+    BigInt& operator/=(int v) {
+        *this = *this / v;
+        return *this;
+    }
+
+    BigInt operator/(const BigInt& b) const {
+        assert(!b.a.empty());
+
+        auto [q, r] = divmod_abs(abs(), b.abs());
+        q.neg = neg ^ b.neg;
+        q.normalize();
+        return q;
+    }
+
+    static BigInt gcd(BigInt a, BigInt b) {
+        a.neg = b.neg = false; // 絶対値でやる
+
+        while (!b.a.empty()) {
+            BigInt r = a % b;
+            a = b;
+            b = r;
+        }
+        return a;
+    }
+
+    static BigInt lcm(const BigInt& a, const BigInt& b) {
+        if (a.a.empty() || b.a.empty()) return BigInt(0);
+
+        BigInt g = gcd(a, b);
+        BigInt res = (a / g) * b;
+
+        res.neg = false; // lcmは常に非負
+        return res;
+    }
+
+    static BigInt pow(BigInt base, long long exp) {
+        assert(exp >= 0);
+
+        BigInt res(1);
+
+        while (exp > 0) {
+            if (exp & 1) res = res * base;
+            base = base * base;
+            exp >>= 1;
+        }
+
+        return res;
+    }
+};
+
+long long to_ll(const BigInt& x) {
+    long long res = 0;
+    for (int i = (int)x.a.size() - 1; i >= 0; i--) {
+        res = res * BigInt::BASE + x.a[i];
+    }
+    return x.neg ? -res : res;
+}
+
+void test_step1() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 100000; t++) {
+        long long x = (long long)(rng() % 2000000000LL) - 1000000000LL;
+        long long y = (long long)(rng() % 2000000000LL) - 1000000000LL;
+
+        BigInt a(x), b(y);
+
+        // < の検証
+        if ((a < b) != (x < y)) {
+            cout << "Error <\n";
+            cout << x << " " << y << "\n";
+            exit(0);
+        }
+
+        // == の検証
+        if ((a == b) != (x == y)) {
+            cout << "Error ==\n";
+            cout << x << " " << y << "\n";
+            exit(0);
+        }
+
+        // 対称性チェック
+        if ((a < b) && (b < a)) {
+            cout << "Error antisymmetry\n";
+            exit(0);
+        }
+    }
+
+    cout << "Step1 OK\n";
+}
+
+void test_string_constructor() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 100000; t++) {
+        long long x = (long long)(rng() % 2000000000LL) - 1000000000LL;
+
+        string s = std::to_string(x);
+
+        BigInt a(x);
+        BigInt b(s);
+
+        if (!(a == b)) {
+            cout << "Error constructor mismatch\n";
+            cout << "x = " << x << "\n";
+            cout << "a = " << a.to_string() << "\n";
+            cout << "b = " << b.to_string() << "\n";
+            exit(0);
+        }
+
+        // 逆変換チェック
+        if (b.to_string() != s) {
+            cout << "Error to_string mismatch\n";
+            cout << "original = " << s << "\n";
+            cout << "got = " << b.to_string() << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "String constructor OK\n";
+}
+
+void test_string_edge() {
+    vector<string> cases = {
+        "0", "-0", "0000",
+        "1", "-1",
+        "999999999",
+        "1000000000",
+        "-1000000000",
+        "1234567890123456789",
+        "-1234567890123456789"
+    };
+
+    for (auto& s : cases) {
+        BigInt x(s);
+        cout << s << " -> " << x.to_string() << "\n";
+    }
+}
+
+void test_step2() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 100000; t++) {
+        long long x = rng() % 1000000000LL;
+        long long y = rng() % 1000000000LL;
+
+        BigInt a(x), b(y);
+
+        BigInt c = a + b;
+        long long expected = x + y;
+
+        if (to_ll(c) != expected) {
+            cout << "Error +\n";
+            cout << "x = " << x << " y = " << y << "\n";
+            cout << "got = " << c.to_string() << "\n";
+            cout << "expected = " << expected << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "Step2 OK\n";
+}
+
+void test_step2_edge() {
+    BigInt a("999999999");
+    BigInt b("1");
+
+    BigInt c = a + b;
+
+    cout << a.to_string() << " + " << b.to_string()
+         << " = " << c.to_string() << "\n";
+}
+
+void test_step3() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 2000000000LL) - 1000000000LL;
+        long long y = (long long)(rng() % 2000000000LL) - 1000000000LL;
+
+        BigInt a(x), b(y);
+
+        // 加算
+        {
+            BigInt c = a + b;
+            long long expected = x + y;
+
+            if (to_ll(c) != expected) {
+                cout << "Error +\n";
+                cout << "x = " << x << " y = " << y << "\n";
+                cout << "got = " << c.to_string() << "\n";
+                cout << "expected = " << expected << "\n";
+                exit(0);
+            }
+        }
+
+        // 減算
+        {
+            BigInt c = a - b;
+            long long expected = x - y;
+
+            if (to_ll(c) != expected) {
+                cout << "Error -\n";
+                cout << "x = " << x << " y = " << y << "\n";
+                cout << "got = " << c.to_string() << "\n";
+                cout << "expected = " << expected << "\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "Step3 OK\n";
+}
+
+void test_step3_edge() {
+    vector<pair<string,string>> cases = {
+        {"1", "1"},
+        {"1", "-1"},
+        {"-1", "1"},
+        {"-1", "-1"},
+        {"1000000000", "1"},
+        {"1", "1000000000"},
+        {"-1000000000", "1"},
+        {"1", "-1000000000"},
+        {"-1000000000", "-1"},
+    };
+
+    for (auto& [x, y] : cases) {
+        BigInt a(x), b(y);
+        cout << x << " + " << y << " = " << (a + b).to_string() << "\n";
+        cout << x << " - " << y << " = " << (a - b).to_string() << "\n";
+    }
+}
+
+void test_minus_equal() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 2000000000LL) - 1000000000LL;
+        long long y = (long long)(rng() % 2000000000LL) - 1000000000LL;
+
+        BigInt a(x), b(y);
+
+        // 比較用
+        BigInt c = a;
+        c -= b;
+
+        BigInt d = BigInt(x) - BigInt(y);
+
+        if (!(c == d)) {
+            cout << "Error -= mismatch\n";
+            cout << "x = " << x << " y = " << y << "\n";
+            cout << "c = " << c.to_string() << "\n";
+            cout << "d = " << d.to_string() << "\n";
+            exit(0);
+        }
+
+        // long longとの比較
+        long long expected = x - y;
+        if (to_ll(c) != expected) {
+            cout << "Error -= value\n";
+            cout << "x = " << x << " y = " << y << "\n";
+            cout << "got = " << c.to_string() << "\n";
+            cout << "expected = " << expected << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "operator-= OK\n";
+}
+
+void test_step4() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 1000000LL) - 500000LL;
+        long long y = (long long)(rng() % 1000000LL) - 500000LL;
+
+        BigInt a(x), b(y);
+
+        BigInt c = a * b;
+        long long expected = x * y;
+
+        if (to_ll(c) != expected) {
+            cout << "Error *\n";
+            cout << "x = " << x << " y = " << y << "\n";
+            cout << "got = " << c.to_string() << "\n";
+            cout << "expected = " << expected << "\n";
+            exit(0);
+        }
+
+        // 可換性チェック
+        BigInt d = b * a;
+        if (!(c == d)) {
+            cout << "Error commutativity\n";
+            exit(0);
+        }
+    }
+
+    cout << "Step4 OK\n";
+}
+
+void test_step4_edge() {
+    BigInt a("999999999");
+    BigInt b("999999999");
+
+    BigInt c = a * b;
+
+    cout << a.to_string() << " * " << b.to_string()
+         << " = " << c.to_string() << "\n";
+}
+
+void test_step5A() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 1000000000000LL) - 500000000000LL;
+        int v = (int)(rng() % 1000000) - 500000;
+        if (v == 0) v = 1;
+
+        BigInt a(x);
+
+        BigInt q = a / v;
+        int r = a % v;
+
+        long long expected_q = x / v;
+        long long expected_r = x % v;
+
+        if (to_ll(q) != expected_q) {
+            cout << "Error / int\n";
+            cout << "x=" << x << " v=" << v << "\n";
+            cout << "got=" << q.to_string() << "\n";
+            cout << "expected=" << expected_q << "\n";
+            exit(0);
+        }
+
+        if (r != expected_r) {
+            cout << "Error % int\n";
+            cout << "x=" << x << " v=" << v << "\n";
+            cout << "got=" << r << "\n";
+            cout << "expected=" << expected_r << "\n";
+            exit(0);
+        }
+
+        // 検算: q*v + r == x
+        BigInt check = q * BigInt(v) + BigInt(r);
+        if (to_ll(check) != x) {
+            cout << "Error reconstruction\n";
+            cout << "x=" << x << " v=" << v << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "Step5A OK\n";
+}
+
+void test_step5A_edge() {
+    BigInt a("1234567890123456789");
+
+    cout << a.to_string() << " / 10 = " << (a / 10).to_string() << "\n";
+    cout << a.to_string() << " % 10 = " << (a % 10) << "\n";
+
+    BigInt b("-1234567890123456789");
+
+    cout << b.to_string() << " / 10 = " << (b / 10).to_string() << "\n";
+    cout << b.to_string() << " % 10 = " << (b % 10) << "\n";
+}
+
+void test_step5B() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 1000000000000LL) - 500000000000LL;
+        long long y = (long long)(rng() % 1000000000LL) - 500000000LL;
+        if (y == 0) y = 1;
+
+        BigInt a(x), b(y);
+
+        BigInt q = a / b;
+        BigInt r = a % b;
+
+        long long expected_q = x / y;
+        long long expected_r = x % y;
+
+        if (to_ll(q) != expected_q) {
+            cout << "Error / BigInt\n";
+            cout << "x=" << x << " y=" << y << "\n";
+            exit(0);
+        }
+
+        if (to_ll(r) != expected_r) {
+            cout << "Error % BigInt\n";
+            cout << "x=" << x << " y=" << y << "\n";
+            exit(0);
+        }
+
+        // 検算
+        BigInt check = q * b + r;
+        if (to_ll(check) != x) {
+            cout << "Error reconstruction\n";
+            cout << "x=" << x << " y=" << y << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "Step5B OK\n";
+}
+
+void test_step5B_big() {
+    BigInt a("123456789012345678901234567890");
+    BigInt b("9876543210");
+
+    BigInt q = a / b;
+    BigInt r = a % b;
+
+    cout << "q = " << q.to_string() << "\n";
+    cout << "r = " << r.to_string() << "\n";
+
+    cout << "check = " << (q * b + r).to_string() << "\n";
+}
+
+void test_gcd() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 100000; t++) {
+        long long x = (long long)(rng() % 1000000000LL) + 1;
+        long long y = (long long)(rng() % 1000000000LL) + 1;
+
+        BigInt a(x), b(y);
+
+        BigInt g = BigInt::gcd(a, b);
+        long long expected = std::gcd(x, y);
+
+        if (to_ll(g) != expected) {
+            cout << "Error gcd\n";
+            exit(0);
+        }
+    }
+
+    cout << "gcd OK\n";
+}
+
+void test_lcm() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 100000; t++) {
+        long long x = (long long)(rng() % 1000000LL) + 1;
+        long long y = (long long)(rng() % 1000000LL) + 1;
+
+        BigInt a(x), b(y);
+
+        BigInt l = BigInt::lcm(a, b);
+        long long expected = std::lcm(x, y);
+
+        if (to_ll(l) != expected) {
+            cout << "Error lcm\n";
+            exit(0);
+        }
+    }
+
+    cout << "lcm OK\n";
+}
+
+void test_pow() {
+    for (long long x = -10; x <= 10; x++) {
+        for (int e = 0; e <= 10; e++) {
+            BigInt a(x);
+
+            BigInt p = BigInt::pow(a, e);
+
+            long long expected = 1;
+            for (int i = 0; i < e; i++) expected *= x;
+
+            if (to_ll(p) != expected) {
+                cout << "Error pow\n";
+                cout << "x=" << x << " e=" << e << "\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "pow OK\n";
+}
+
+void test_all() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 1000000000LL) - 500000000LL;
+        long long y = (long long)(rng() % 1000000000LL) - 500000000LL;
+
+        if (y == 0) y = 1;
+
+        BigInt a(x), b(y);
+
+        // ===== 四則演算 =====
+        BigInt add = a + b;
+        BigInt sub = a - b;
+        BigInt mul = a * b;
+        BigInt div = a / b;
+        BigInt mod = a % b;
+
+        if (to_ll(add) != x + y) {
+            cout << "Error +\n"; exit(0);
+        }
+        if (to_ll(sub) != x - y) {
+            cout << "Error -\n"; exit(0);
+        }
+        if (to_ll(mul) != x * y) {
+            cout << "Error *\n"; exit(0);
+        }
+        if (to_ll(div) != x / y) {
+            cout << "Error /\n"; exit(0);
+        }
+        if (to_ll(mod) != x % y) {
+            cout << "Error %\n"; exit(0);
+        }
+
+        // ===== 恒等式 =====
+        if (!((div * b + mod) == a)) {
+            cout << "Error divmod identity\n"; exit(0);
+        }
+
+        if (!(((a + b) - b) == a)) {
+            cout << "Error add-sub identity\n"; exit(0);
+        }
+
+        if (!(((a - b) + b) == a)) {
+            cout << "Error sub-add identity\n"; exit(0);
+        }
+
+        if (y != 0) {
+            if (!(((a * b) / b) == a)) {
+                cout << "Error mul-div identity\n"; exit(0);
+            }
+        }
+
+        // ===== gcd =====
+        BigInt g = BigInt::gcd(a, b);
+        long long expected_g = std::gcd(x, y);
+
+        if (to_ll(g) != expected_g) {
+            cout << "Error gcd\n"; exit(0);
+        }
+
+        // 割り切れるか
+        if (!(a % g == BigInt(0) && b % g == BigInt(0))) {
+            cout << "Error gcd divides\n"; exit(0);
+        }
+
+        // ===== lcm =====
+        BigInt l = BigInt::lcm(a, b);
+        long long expected_l = std::lcm(x, y);
+
+        if (to_ll(l) != expected_l) {
+            cout << "Error lcm\n"; exit(0);
+        }
+
+        // lcm * gcd = |a*b|
+        BigInt lhs = l * g;
+        BigInt rhs = a * b;
+        rhs.neg = false;
+
+        if (!(lhs == rhs)) {
+            cout << "Error lcm*gcd identity\n"; exit(0);
+        }
+
+        // ===== pow =====
+        int e1 = rng() % 10;
+        int e2 = rng() % 10;
+
+        BigInt p1 = BigInt::pow(a, e1);
+        BigInt p2 = BigInt::pow(a, e2);
+        BigInt p3 = BigInt::pow(a, e1 + e2);
+
+        if (!(p3 == p1 * p2)) {
+            cout << "Error pow identity\n"; exit(0);
+        }
+    }
+
+    cout << "ALL TEST OK\n";
+}
+
+void test_compare_all() {
+    mt19937_64 rng(0);
+
+    for (int t = 0; t < 200000; t++) {
+        long long x = (long long)(rng() % 2000000000LL) - 1000000000LL;
+        long long y = (long long)(rng() % 2000000000LL) - 1000000000LL;
+
+        BigInt a(x), b(y);
+
+        if ((a < b) != (x < y)) {
+            cout << "Error <\n"; exit(0);
+        }
+        if ((a > b) != (x > y)) {
+            cout << "Error >\n"; exit(0);
+        }
+        if ((a <= b) != (x <= y)) {
+            cout << "Error <=\n"; exit(0);
+        }
+        if ((a >= b) != (x >= y)) {
+            cout << "Error >=\n"; exit(0);
+        }
+        if ((a == b) != (x == y)) {
+            cout << "Error ==\n"; exit(0);
+        }
+        if ((a != b) != (x != y)) {
+            cout << "Error !=\n"; exit(0);
+        }
+
+        // 追加：整合性チェック
+        if ((a < b) && (a >= b)) {
+            cout << "Error consistency 1\n"; exit(0);
+        }
+        if ((a > b) && (a <= b)) {
+            cout << "Error consistency 2\n"; exit(0);
+        }
+        if ((a == b) && (a != b)) {
+            cout << "Error consistency 3\n"; exit(0);
+        }
+    }
+
+    cout << "compare operators OK\n";
+}
+
+void solv(){
+    test_step1();
+    test_string_constructor();
+    test_string_edge();
+    test_step2();
+    test_step2_edge();
+    test_step3();
+    test_step3_edge();
+    test_minus_equal();
+    test_step4();
+    test_step4_edge();
+    test_step5A();
+    test_step5A_edge();
+    test_step5B();
+    test_step5B_big();
+    test_gcd();
+    test_lcm();
+    test_pow();
+    test_all();
+    test_compare_all();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

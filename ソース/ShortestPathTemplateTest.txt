@@ -1,0 +1,439 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+====================================
+最短路アルゴリズム総合テンプレート
+====================================
+
+【収録内容】
+- Dijkstra（経路復元付き）
+- 01-BFS（経路復元付き）
+- Bellman-Ford（負閉路検出付き）
+- Warshall-Floyd（全点対最短路）
+
+【共通注意】
+- INF は 1e18 程度を使用
+- 頂点番号は 0-indexed を想定
+*/
+/* ====================================
+   Dijkstra（経路復元付き）
+   ====================================
+
+【概要】
+- 非負重みグラフの単一始点最短路
+- priority_queue を使用
+
+【制約目安】
+- 頂点数 N ≤ 2×10^5
+- 辺数   M ≤ 2×10^5
+- 辺の重みは 0 以上
+
+【戻り値】
+- dist[i] : 始点から i への最短距離
+- prev[i] : 最短経路における直前の頂点（経路復元用）
+*/
+pair<vector<ll>, vector<int>> dijkstra_with_prev(
+    int N,
+    vector<vector<pair<int,ll>>> &G, // G[u] = {v, cost}
+    int s
+){
+    const ll INF = (1LL<<60);
+    vector<ll> dist(N, INF);
+    vector<int> prev(N, -1);
+
+    priority_queue<pair<ll,int>, vector<pair<ll,int>>, greater<pair<ll,int>>> pq;
+    dist[s] = 0;
+    pq.push({0, s});
+
+    while(!pq.empty()){
+        auto [d, u] = pq.top(); pq.pop();
+        if(d > dist[u]) continue;
+
+        for(auto [v, cost] : G[u]){
+            if(dist[v] > dist[u] + cost){
+                dist[v] = dist[u] + cost;
+                prev[v] = u;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    return {dist, prev};
+}
+
+
+/* ====================================
+   01-BFS（経路復元付き）
+   ====================================
+
+【概要】
+- 辺の重みが 0 または 1 の場合の最短路
+- deque を用いて O(N+M)
+
+【制約目安】
+- 頂点数 N ≤ 2×10^5
+- 辺数   M ≤ 2×10^5
+- 辺の重みは 0 or 1 のみ
+
+【戻り値】
+- dist[i] : 始点から i への最短距離
+- prev[i] : 経路復元用
+*/
+pair<vector<ll>, vector<int>> bfs01_with_prev(
+    int N,
+    vector<vector<pair<int,int>>> &G, // cost は 0 or 1
+    int s
+){
+    const ll INF = (1LL<<60);
+    vector<ll> dist(N, INF);
+    vector<int> prev(N, -1);
+    deque<int> deq;
+
+    dist[s] = 0;
+    deq.push_front(s);
+
+    while(!deq.empty()){
+        int u = deq.front();
+        deq.pop_front();
+
+        for(auto [v, cost] : G[u]){
+            if(dist[v] > dist[u] + cost){
+                dist[v] = dist[u] + cost;
+                prev[v] = u;
+                if(cost == 0) deq.push_front(v);
+                else          deq.push_back(v);
+            }
+        }
+    }
+
+    return {dist, prev};
+}
+
+
+/* ====================================
+   Bellman-Ford（負閉路検出付き）
+   ====================================
+
+【概要】
+- 負の辺を含む単一始点最短路
+- 負閉路の存在を検出可能
+
+【制約目安】
+- 頂点数 N ≤ 2000
+- 辺数   M ≤ 2×10^5
+- 計算量 O(NM) のため重い
+
+【戻り値】
+- dist[i] : 最短距離
+- has_negative_cycle : 負閉路が存在するか
+*/
+struct Edge {
+    int from, to;
+    ll cost;
+};
+
+pair<vector<ll>, bool> bellman_ford(
+    int N,
+    vector<Edge> &edges,
+    int s
+){
+    const ll INF = (1LL<<60);
+    vector<ll> dist(N, INF);
+    dist[s] = 0;
+
+    // N-1 回緩和
+    for(int i = 0; i < N-1; i++){
+        bool updated = false;
+        for(auto &e : edges){
+            if(dist[e.from] == INF) continue;
+            if(dist[e.to] > dist[e.from] + e.cost){
+                dist[e.to] = dist[e.from] + e.cost;
+                updated = true;
+            }
+        }
+        if(!updated) break;
+    }
+
+    // 負閉路検出
+    bool has_negative_cycle = false;
+    for(auto &e : edges){
+        if(dist[e.from] == INF) continue;
+        if(dist[e.to] > dist[e.from] + e.cost){
+            has_negative_cycle = true;
+            break;
+        }
+    }
+
+    return {dist, has_negative_cycle};
+}
+
+
+/* ====================================
+   Warshall-Floyd（全点対最短路）
+   ====================================
+
+【概要】
+- 全頂点対の最短距離を求める
+- 負の辺 OK
+- dist[i][i] < 0 なら負閉路あり
+
+【制約目安】
+- 頂点数 N ≤ 400
+- 計算量 O(N^3)
+
+【引数】
+- dist : 初期距離行列（未接続は INF）
+*/
+vector<vector<ll>> warshall_floyd(
+    int N,
+    vector<vector<ll>> dist
+){
+    const ll INF = (1LL<<60);
+
+    for(int k = 0; k < N; k++){
+        for(int i = 0; i < N; i++){
+            if(dist[i][k] == INF) continue;
+            for(int j = 0; j < N; j++){
+                if(dist[k][j] == INF) continue;
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+            }
+        }
+    }
+    return dist;
+}
+
+
+/* ====================================
+   経路復元ユーティリティ
+   ====================================
+
+【概要】
+- prev 配列から終点 t までの経路を復元
+- Dijkstra / 01-BFS 用
+
+【制約】
+- prev は -1 で始点を表す
+*/
+vector<int> restore_path(int t, vector<int> &prev){
+    vector<int> path;
+    for(int v = t; v != -1; v = prev[v]){
+        path.push_back(v);
+    }
+    reverse(path.begin(), path.end());
+    return path;
+}
+
+void solv(){
+    cout << "===== 最短路アルゴリズム 動作確認 =====\n\n";
+
+    /* ------------------------------------
+       1. Dijkstra（非負重み）
+       ------------------------------------ */
+    {
+        cout << "[Dijkstra（経路復元付き）]\n";
+        int N = 5;
+        vector<vector<pair<int,ll>>> G(N);
+
+        auto add_edge = [&](int u, int v, ll w){
+            G[u].push_back({v, w});
+            G[v].push_back({u, w});
+        };
+
+        add_edge(0,1,2);
+        add_edge(0,2,5);
+        add_edge(1,2,1);
+        add_edge(1,3,3);
+        add_edge(2,4,2);
+        add_edge(3,4,1);
+
+        auto [dist, prev] = dijkstra_with_prev(N, G, 0);
+
+        cout << "最短距離:\n";
+        for(int i = 0; i < N; i++){
+            cout << "  0 -> " << i << " = " << dist[i] << "\n";
+        }
+
+        auto path = restore_path(4, prev);
+        cout << "0 から 4 への最短経路: ";
+        for(int v : path) cout << v << " ";
+        cout << "\n\n";
+    }
+
+    /* ------------------------------------
+       2. 01-BFS（重み 0/1）
+       ------------------------------------ */
+    {
+        cout << "[01-BFS（経路復元付き）]\n";
+        int N = 5;
+        vector<vector<pair<int,int>>> G(N);
+
+        auto add_edge = [&](int u, int v, int w){
+            G[u].push_back({v, w});
+            G[v].push_back({u, w});
+        };
+
+        add_edge(0,1,0);
+        add_edge(0,2,1);
+        add_edge(1,2,0);
+        add_edge(1,3,1);
+        add_edge(2,4,0);
+        add_edge(3,4,1);
+
+        auto [dist, prev] = bfs01_with_prev(N, G, 0);
+
+        cout << "最短距離:\n";
+        for(int i = 0; i < N; i++){
+            cout << "  0 -> " << i << " = " << dist[i] << "\n";
+        }
+
+        auto path = restore_path(4, prev);
+        cout << "0 から 4 への最短経路: ";
+        for(int v : path) cout << v << " ";
+        cout << "\n\n";
+    }
+
+    /* ------------------------------------
+       3. Bellman-Ford（負の辺あり・負閉路なし）
+       ------------------------------------ */
+    {
+        cout << "[Bellman-Ford（負閉路なし）]\n";
+        int N = 4;
+        vector<Edge> edges;
+
+        edges.push_back({0,1,1});
+        edges.push_back({1,2,-2});
+        edges.push_back({2,3,1});
+        edges.push_back({0,3,5});
+
+        auto [dist, has_neg] = bellman_ford(N, edges, 0);
+
+        cout << "最短距離:\n";
+        for(int i = 0; i < N; i++){
+            cout << "  0 -> " << i << " = " << dist[i] << "\n";
+        }
+
+        cout << "負閉路の有無: " << (has_neg ? "あり" : "なし") << "\n\n";
+    }
+
+    /* ------------------------------------
+       4. Bellman-Ford（負閉路あり）
+       ------------------------------------ */
+    {
+        cout << "[Bellman-Ford（負閉路あり）]\n";
+        int N = 4;
+        vector<Edge> edges;
+
+        // 1 -> 2 -> 1 が負閉路（-2 + 1 = -1）
+        edges.push_back({0,1,1});
+        edges.push_back({1,2,-2});
+        edges.push_back({2,1,1});
+        edges.push_back({2,3,2});
+
+        auto [dist, has_neg] = bellman_ford(N, edges, 0);
+
+        cout << "最短距離（負閉路があるため値は不定）:\n";
+        for(int i = 0; i < N; i++){
+            cout << "  0 -> " << i << " = " << dist[i] << "\n";
+        }
+
+        cout << "負閉路の有無: " << (has_neg ? "あり" : "なし") << "\n\n";
+    }
+
+    /* ------------------------------------
+       5. Warshall-Floyd（全点対・負閉路なし）
+       ------------------------------------ */
+    {
+        cout << "[Warshall-Floyd（負閉路なし）]\n";
+        int N = 4;
+        const ll INF = (1LL<<60);
+        vector<vector<ll>> dist(N, vector<ll>(N, INF));
+
+        for(int i = 0; i < N; i++) dist[i][i] = 0;
+
+        dist[0][1] = 2;
+        dist[1][2] = -1;
+        dist[2][3] = 2;
+        dist[0][3] = 10;
+
+        auto res = warshall_floyd(N, dist);
+
+        cout << "全点対最短距離:\n";
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                if(res[i][j] >= INF/2) cout << "INF ";
+                else cout << res[i][j] << " ";
+            }
+            cout << "\n";
+        }
+
+        bool has_neg = false;
+        for(int i = 0; i < N; i++){
+            if(res[i][i] < 0) has_neg = true;
+        }
+        cout << "負閉路の有無: " << (has_neg ? "あり" : "なし") << "\n\n";
+    }
+
+    /* ------------------------------------
+       6. Warshall-Floyd（負閉路あり）
+       ------------------------------------ */
+    {
+        cout << "[Warshall-Floyd（負閉路あり）]\n";
+        int N = 3;
+        const ll INF = (1LL<<60);
+        vector<vector<ll>> dist(N, vector<ll>(N, INF));
+
+        for(int i = 0; i < N; i++) dist[i][i] = 0;
+
+        // 0 -> 1 -> 2 -> 0 が負閉路
+        dist[0][1] = 1;
+        dist[1][2] = -2;
+        dist[2][0] = -2;
+
+        auto res = warshall_floyd(N, dist);
+
+        cout << "全点対最短距離:\n";
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                if(res[i][j] >= INF/2) cout << "INF ";
+                else cout << res[i][j] << " ";
+            }
+            cout << "\n";
+        }
+
+        bool has_neg = false;
+        for(int i = 0; i < N; i++){
+            if(res[i][i] < 0) has_neg = true;
+        }
+        cout << "負閉路の有無: " << (has_neg ? "あり" : "なし") << "\n";
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

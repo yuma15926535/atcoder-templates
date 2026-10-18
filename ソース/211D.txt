@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct discount{
+    int dis;
+    int count;
+};
+
+int main()
+{
+    int N,M,m=1e9+7;
+    cin>>N>>M;
+    vector<vector<int>> G(N);
+    rep(i,0,M){
+        int a,b;
+        cin>>a>>b;
+        a--;
+        b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    vector<discount> d(N,{(int)1e9+7,0});
+    d[0]={0,1};
+    queue<int> q;
+    q.push(0);
+    //経路数もカウントするBFS
+    while(!q.empty()){
+        int p=q.front();
+        q.pop();
+        for(int r:G[p]){
+            if(d[r].dis>d[p].dis+1){
+                d[r]={d[p].dis+1,d[p].count};
+                q.push(r);
+            }else if(d[r].dis==d[p].dis+1)d[r].count=(d[r].count+d[p].count)%m;
+        }
+    }
+    cout<<d[N-1].count<<"\n";
+    return 0;
+}

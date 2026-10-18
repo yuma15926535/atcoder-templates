@@ -1,0 +1,64 @@
+// =============================================================================
+//  行列（Matrix<T>：mint・long long・double・半環（MinPlus・MinMax など）、行列の累乗、漸化式の行列、MatrixFixed<T, K>）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 05 行列・線形代数
+//  依存       : 00_int_common, 00_math_base, 00_modint（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt107;
+//      Matrix<mint> A = {{1, 1}, {1, 0}};     // 2×2（Matrix<mint> A(n, m) なら全部 0）
+//      cout << A.pow(K)(0, 1) << '\n';         // フィボナッチ数 F_K
+//  T が long long のときは溢れたら止める（数え上げは mint で）
+//
+//  機能一覧                                                                    計算量
+//    Matrix<T> A(n, m) / A = {{…}, {…}} / Matrix<T>::identity(n)   0 の行列 / 値を並べて / 単位行列
+//      A(i, j) / A[i][j] / A.rows() / A.cols()                    成分 / 大きさ
+//      A + B / A - B / A * B / A * s（スカラー）/ += -= *=         O(n m k)
+//      A.pow(e)                       A^e（e ≤ 10^18）                                          O(n^3 log e)
+//      A.apply(v)                     A v（行列 × 縦ベクトル。vector<T>）                         O(n m)
+//      A.transpose() / A.trace()      転置 / 対角成分の和
+//      cout << A                      1 行ずつ空白区切りで
+//    半環（行列の + と × を別のものにする。Matrix<MinPlus<long long>> のように使う）
+//      MinPlus<T>                     + が min、× が +：ちょうど K 歩の最短路（道がないのは INF）
+//      MaxPlus<T>                     + が max、× が +：ちょうど K 歩の最長路
+//      MinMax<T> / MaxMin<T>          + が min、× が max：通る辺の最大を最小に（ボトルネック）/ その逆（最大容量路）
+//      XorAnd                         + が XOR、× が AND（unsigned long long。ABC009 D）
+//      OrAnd                          + が OR、× が AND：ちょうど K 歩で行けるか
+//      自作の半環：operator+ と operator* と static zero()（+ の単位元・× で 0 になる）/ static one()（× の単位元）を
+//                 持つ struct を作れば Matrix<自作> で使える（== と << もあると便利）
+//    companion_matrix(c)              a_i = c_0 a_{i−1} + … + c_{k−1} a_{i−k} の行列
+//    recurrence_nth_matrix(c, a, n)   その漸化式の a_n（a = a_0〜a_{k−1}。半環でもよい。long long は        O(k^3 log n)
+//                                     途中の行列の値が溢れると、a_n が収まっても止まる → mint で）
+//    MatrixFixed<T, K>                K×K の小さい行列（2×2・3×3 などを速く）。M(i, j) / M[i][j]、+ − × スカラー倍、
+//                                     pow / apply（std::array）/ transpose / trace と
+//      M.det() / M.inv() / M.try_inv()    行列式 / 逆行列（T は mint か double）                       O(K^3)
+//  （N×N の行列式・逆行列・連立一次方程式・ランクは 05_linear_algebra）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    mat_test::random_test()  … 愚直な掛け算・DP・余因子展開との突き合わせ
+//    mat_test::benchmark()    … 速度計測
+//    mat_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

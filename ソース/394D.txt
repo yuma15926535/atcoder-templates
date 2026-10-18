@@ -1,0 +1,42 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    string S;
+    cin>>S;
+    //複数種類の括弧列の判定
+    //括弧の種類とindexを管理
+    stack<pair<char,int>> s;
+    vector<bool> index(S.size(),true);
+    rep(i,0,S.size()){
+        if(S[i]=='('||S[i]=='['||S[i]=='<')s.push({S[i],i});
+        else{
+            if(!s.empty()){
+                if(S[i]==')'&&s.top().first!='(')continue;
+                if(S[i]==']'&&s.top().first!='[')continue;
+                if(S[i]=='>'&&s.top().first!='<')continue;
+                index[i]=false;
+                index[s.top().second]=false;
+                s.pop();
+            }
+        }
+    }
+    rep(i,0,S.size())if(index[i]){
+        NO;
+        return 0;
+    }
+    YES;
+    return 0;
+}

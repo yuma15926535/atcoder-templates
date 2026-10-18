@@ -1,0 +1,316 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ 木テンプレート統合版（LCA + 木DP + 全方位木DP + HLD）
+==================================================
+
+【含まれる機能】
+- LCA（二分探索）
+- 距離計算 / k番目の祖先 / パス判定 / パス取得
+- 木DP（根固定） ★問題依存
+- 全方位木DP（Rerooting） ★問題依存
+- Heavy-Light Decomposition (HLD)
+
+【注意】
+- ★が付いている部分は問題ごとに実装を変更する
+- 日本語コメントは削除しない前提
+*/
+struct Tree {
+    int N;
+    vector<vector<int>> g;
+
+    // ===== LCA =====
+    int LOG;
+    vector<int> depth;
+    vector<vector<int>> parent;
+    vector<ll> dist_from_root;
+
+    // ===== HLD =====
+    vector<int> sz, heavy, head, in, out;
+    int cur;
+
+    // ===== 木DP =====
+    vector<ll> dp;        // ★部分木DP
+
+    // ===== 全方位木DP =====
+    vector<ll> dp_all;    // ★全方位の答え
+
+    Tree(int n=0){ init(n); }
+
+    void init(int n){
+        N = n;
+        g.assign(N, {});
+
+        LOG = 1;
+        while((1<<LOG) <= N) LOG++;
+        depth.assign(N, 0);
+        parent.assign(LOG, vector<int>(N, -1));
+        dist_from_root.assign(N, 0);
+
+        sz.assign(N, 0);
+        heavy.assign(N, -1);
+        head.assign(N, 0);
+        in.assign(N, 0);
+        out.assign(N, 0);
+        cur = 0;
+
+        dp.assign(N, 0);
+        dp_all.assign(N, 0);
+    }
+
+    // 辺の追加（無向木）
+    void add_edge(int u, int v, ll w=1){
+        g[u].push_back(v);
+        g[v].push_back(u);
+    }
+
+    // ===== build =====
+    void build(int root=0){
+        dfs_lca(root, -1, 0, 0);
+        for(int k=0;k+1<LOG;k++){
+            for(int v=0;v<N;v++){
+                if(parent[k][v] < 0) parent[k+1][v] = -1;
+                else parent[k+1][v] = parent[k][ parent[k][v] ];
+            }
+        }
+        dfs_size(root, -1);
+        dfs_hld(root, -1, root);
+    }
+
+    // ===== LCA 構築 DFS =====
+    void dfs_lca(int v, int p, int d, ll dist){
+        parent[0][v] = p;
+        depth[v] = d;
+        dist_from_root[v] = dist;
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_lca(to, v, d+1, dist + 1);
+        }
+    }
+
+    // LCA取得
+    int lca(int a, int b){
+        if(depth[a] < depth[b]) swap(a,b);
+        int diff = depth[a] - depth[b];
+        for(int k=0;k<LOG;k++) if(diff&(1<<k)) a = parent[k][a];
+        if(a == b) return a;
+        for(int k=LOG-1;k>=0;k--){
+            if(parent[k][a] != parent[k][b]){
+                a = parent[k][a];
+                b = parent[k][b];
+            }
+        }
+        return parent[0][a];
+    }
+
+    // 距離取得
+    ll dist(int u, int v){
+        int c = lca(u,v);
+        return dist_from_root[u] + dist_from_root[v] - 2*dist_from_root[c];
+    }
+
+    // k番目の祖先
+    int kth_parent(int v, int k){
+        for(int i=0;i<LOG;i++) if(k&(1<<i)) v = parent[i][v];
+        return v;
+    }
+
+    // u-vパス上にaがあるか
+    bool on_path(int u, int v, int a){
+        return dist(u,v) == dist(u,a) + dist(a,v);
+    }
+
+    // u→vのパス取得
+    vector<int> get_path(int u, int v){
+        int c = lca(u,v);
+        vector<int> a,b;
+        while(u!=c){ a.push_back(u); u = parent[0][u]; }
+        a.push_back(c);
+        while(v!=c){ b.push_back(v); v = parent[0][v]; }
+        reverse(b.begin(), b.end());
+        for(int x:b) a.push_back(x);
+        return a;
+    }
+
+    // ===== HLD =====
+    void dfs_size(int v, int p){
+        sz[v] = 1;
+        int mx = 0;
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_size(to, v);
+            sz[v] += sz[to];
+            if(sz[to] > mx){
+                mx = sz[to];
+                heavy[v] = to;
+            }
+        }
+    }
+
+    void dfs_hld(int v, int p, int h){
+        head[v] = h;
+        in[v] = cur++;
+        if(heavy[v] != -1) dfs_hld(heavy[v], v, h);
+        for(int to : g[v]){
+            if(to == p || to == heavy[v]) continue;
+            dfs_hld(to, v, to);
+        }
+        out[v] = cur;
+    }
+
+    // HLDでu-vパスを区間に分解
+    vector<pair<int,int>> get_path_hld(int u, int v){
+        vector<pair<int,int>> res;
+        while(head[u] != head[v]){
+            if(depth[head[u]] < depth[head[v]]) swap(u,v);
+            res.push_back({in[head[u]], in[u]});
+            u = parent[0][head[u]];
+        }
+        if(depth[u] > depth[v]) swap(u,v);
+        res.push_back({in[u], in[v]});
+        return res;
+    }
+
+    // ===== 木DP（根固定） =====
+    void dfs_tree_dp(int v, int p){
+        dp[v] = 0; // ★初期値
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_tree_dp(to, v);
+            dp[v] += dp[to]; // ★マージ処理
+        }
+        dp[v] += 1; // ★自身の寄与
+    }
+
+    // ===== 全方位木DP =====
+    void dfs_reroot(int v, int p, ll from_parent){
+        vector<ll> pref, suff;
+        for(int to : g[v]){
+            if(to == p) pref.push_back(from_parent);
+            else pref.push_back(dp[to]);
+        }
+        int m = pref.size();
+        suff = pref;
+        for(int i=1;i<m;i++) pref[i] += pref[i-1]; // ★
+        for(int i=m-2;i>=0;i--) suff[i] += suff[i+1]; // ★
+
+        dp_all[v] = (m?pref[m-1]:0) + 1; // ★
+
+        int idx = 0;
+        for(int to : g[v]){
+            if(to == p){ idx++; continue; }
+            ll val = 1;
+            if(idx>0) val += pref[idx-1];
+            if(idx+1<m) val += suff[idx+1];
+            dfs_reroot(to, v, val);
+            idx++;
+        }
+    }
+};
+
+void solv(){
+    /*
+        木の構造（0-indexed）
+
+              0
+            /   \
+           1     2
+         /   \     \
+        3     4     5
+                      \
+                       6
+    */
+
+    int N = 7;
+    Tree tree(N);
+
+    // 辺の追加
+    tree.add_edge(0,1);
+    tree.add_edge(0,2);
+    tree.add_edge(1,3);
+    tree.add_edge(1,4);
+    tree.add_edge(2,5);
+    tree.add_edge(5,6);
+
+    // build（LCA + HLD 前処理）
+    tree.build(0);
+
+    cout << "==== LCA / 距離 ====\n";
+    cout << "lca(3,4) = " << tree.lca(3,4) << "\n"; // 1
+    cout << "lca(3,6) = " << tree.lca(3,6) << "\n"; // 0
+    cout << "dist(3,6) = " << tree.dist(3,6) << "\n"; // 5
+
+    cout << "\n==== k番目の祖先 ====\n";
+    cout << "kth_parent(6,1) = " << tree.kth_parent(6,1) << "\n"; // 5
+    cout << "kth_parent(6,2) = " << tree.kth_parent(6,2) << "\n"; // 2
+    cout << "kth_parent(6,3) = " << tree.kth_parent(6,3) << "\n"; // 0
+
+    cout << "\n==== on_path 判定 ====\n";
+    cout << "on_path(3,6,0) = " << tree.on_path(3,6,0) << "\n"; // true
+    cout << "on_path(3,6,1) = " << tree.on_path(3,6,1) << "\n"; // true
+    cout << "on_path(3,6,4) = " << tree.on_path(3,6,4) << "\n"; // false
+
+    cout << "\n==== パス取得 ====\n";
+    auto path = tree.get_path(3,6);
+    cout << "path 3 -> 6 : ";
+    for(int v : path) cout << v << " ";
+    cout << "\n";
+
+    cout << "\n==== HLD 情報 ====\n";
+    for(int v=0;v<N;v++){
+        cout << "v=" << v
+             << " in=" << tree.in[v]
+             << " head=" << tree.head[v]
+             << "\n";
+    }
+
+    cout << "\n==== HLD パス分解 (3 -> 6) ====\n";
+    auto segs = tree.get_path_hld(3,6);
+    for(auto [l,r] : segs){
+        cout << "[" << l << "," << r << "] ";
+    }
+    cout << "\n";
+
+    cout << "\n==== 木DP（部分木サイズ） ====\n";
+    tree.dfs_tree_dp(0, -1);
+    for(int v=0;v<N;v++){
+        cout << "dp[" << v << "] = " << tree.dp[v] << "\n";
+    }
+
+    cout << "\n==== 全方位木DP ====\n";
+    tree.dfs_reroot(0, -1, 0);
+    for(int v=0;v<N;v++){
+        cout << "dp_all[" << v << "] = " << tree.dp_all[v] << "\n";
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

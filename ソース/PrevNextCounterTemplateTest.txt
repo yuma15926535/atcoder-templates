@@ -1,0 +1,601 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)//i=s,s+1...n-1 ノーマルfor
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// 順序付き重複集合
+// 値ごとの個数を管理しながら、前後検索・最小最大取得を行う
+struct PrevNextCounter{
+    map<ll,ll> mp;
+    ll sz = 0;
+
+    static constexpr ll NOT_FOUND = (ll)4e18;
+
+    // x を 1 個追加
+    void insert(ll x){
+        insert(x, 1);
+    }
+
+    // x を cnt 個追加
+    void insert(ll x, ll cnt){
+        if(cnt <= 0) return;
+        mp[x] += cnt;
+        sz += cnt;
+    }
+
+    // x を 1 個削除
+    bool erase_one(ll x){
+        return erase(x, 1);
+    }
+
+    // x を最大 cnt 個削除
+    bool erase(ll x, ll cnt){
+        auto it = mp.find(x);
+        if(it == mp.end() || cnt <= 0) return false;
+
+        ll d = std::min(cnt, it->second);
+        it->second -= d;
+        sz -= d;
+
+        if(it->second == 0) mp.erase(it);
+        return true;
+    }
+
+    // x を全削除
+    ll erase_all(ll x){
+        auto it = mp.find(x);
+        if(it == mp.end()) return 0;
+
+        ll cnt = it->second;
+        sz -= cnt;
+        mp.erase(it);
+        return cnt;
+    }
+
+    // x が存在するか
+    bool contains(ll x) const{
+        return mp.find(x) != mp.end();
+    }
+
+    // x の個数
+    ll count(ll x) const{
+        auto it = mp.find(x);
+        return (it == mp.end() ? 0 : it->second);
+    }
+
+    // 最小値
+    ll min() const{
+        return mp.begin()->first;
+    }
+
+    // 最大値
+    ll max() const{
+        return std::prev(mp.end())->first;
+    }
+
+    // x より大きい最小の値
+    ll next(ll x) const{
+        auto it = mp.upper_bound(x);
+        return (it == mp.end() ? NOT_FOUND : it->first);
+    }
+
+    // x 以上の最小の値
+    ll next_eq(ll x) const{
+        auto it = mp.lower_bound(x);
+        return (it == mp.end() ? NOT_FOUND : it->first);
+    }
+
+    // x 未満の最大の値
+    ll prev(ll x) const{
+        auto it = mp.lower_bound(x);
+        if(it == mp.begin()) return NOT_FOUND;
+        --it;
+        return it->first;
+    }
+
+    // x 以下の最大の値
+    ll prev_eq(ll x) const{
+        auto it = mp.upper_bound(x);
+        if(it == mp.begin()) return NOT_FOUND;
+        --it;
+        return it->first;
+    }
+
+    // 全要素数（重複込み）
+    ll size() const{
+        return sz;
+    }
+
+    // 異なる値の個数
+    ll distinct_size() const{
+        return (ll)mp.size();
+    }
+
+    // 空かどうか
+    bool empty() const{
+        return sz == 0;
+    }
+
+    // 全削除
+    void clear(){
+        mp.clear();
+        sz = 0;
+    }
+
+    // 昇順の配列に変換（重複あり）
+    vector<ll> vec() const{
+        vector<ll> res;
+        res.reserve(sz);
+
+        for(auto &[x, cnt] : mp){
+            rep(_, cnt){
+                res.push_back(x);
+            }
+        }
+
+        return res;
+    }
+};
+
+void random_test_prev_next_counter(){
+    mt19937 rng(
+        chrono::steady_clock::now().time_since_epoch().count()
+    );
+
+    rep(_,10000){
+
+        PrevNextCounter pc;
+        vector<ll> vec;
+
+        rep(__,1000){
+
+            int op = rng()%11;
+            ll x = rng()%20;
+            ll cnt = rng()%5 + 1;
+
+            // insert(x)
+            if(op==0){
+                pc.insert(x);
+
+                vec.push_back(x);
+            }
+
+            // insert(x,cnt)
+            if(op==1){
+                pc.insert(x,cnt);
+
+                rep(i,cnt){
+                    vec.push_back(x);
+                }
+            }
+
+            // erase_one(x)
+            if(op==2){
+                bool res1 = pc.erase_one(x);
+
+                bool res2 = false;
+                auto it = find(nall(vec),x);
+                if(it!=vec.end()){
+                    vec.erase(it);
+                    res2 = true;
+                }
+
+                assert(res1==res2);
+            }
+
+            // erase(x,cnt)
+            if(op==3){
+                bool res1 = pc.erase(x,cnt);
+
+                bool res2 = false;
+
+                rep(i,cnt){
+                    auto it = find(nall(vec),x);
+                    if(it==vec.end()) break;
+
+                    vec.erase(it);
+                    res2 = true;
+                }
+
+                assert(res1==res2);
+            }
+
+            // erase_all(x)
+            if(op==4){
+                ll res1 = pc.erase_all(x);
+
+                ll res2 = 0;
+                vector<ll> nxt;
+
+                for(ll y:vec){
+                    if(y==x){
+                        res2++;
+                    }else{
+                        nxt.push_back(y);
+                    }
+                }
+
+                vec.swap(nxt);
+
+                assert(res1==res2);
+            }
+
+            vector<ll> a = vec;
+            sort(nall(a));
+
+            // count
+            {
+                ll ans = count(nall(a),x);
+                assert(pc.count(x)==ans);
+            }
+
+            // contains
+            {
+                bool ans = count(nall(a),x)>0;
+                assert(pc.contains(x)==ans);
+            }
+
+            // next
+            {
+                ll ans = PrevNextCounter::NOT_FOUND;
+
+                for(ll y:a){
+                    if(y>x){
+                        ans=y;
+                        break;
+                    }
+                }
+
+                assert(pc.next(x)==ans);
+            }
+
+            // next_eq
+            {
+                ll ans = PrevNextCounter::NOT_FOUND;
+
+                for(ll y:a){
+                    if(y>=x){
+                        ans=y;
+                        break;
+                    }
+                }
+
+                assert(pc.next_eq(x)==ans);
+            }
+
+            // prev
+            {
+                ll ans = PrevNextCounter::NOT_FOUND;
+
+                for(ll y:a){
+                    if(y<x){
+                        ans=y;
+                    }
+                }
+
+                assert(pc.prev(x)==ans);
+            }
+
+            // prev_eq
+            {
+                ll ans = PrevNextCounter::NOT_FOUND;
+
+                for(ll y:a){
+                    if(y<=x){
+                        ans=y;
+                    }
+                }
+
+                assert(pc.prev_eq(x)==ans);
+            }
+
+            // vec
+            {
+                assert(pc.vec()==a);
+            }
+
+            // size
+            {
+                assert(pc.size()==(ll)a.size());
+            }
+
+            // distinct_size
+            {
+                set<ll> st(nall(a));
+                assert(pc.distinct_size()==(ll)st.size());
+            }
+
+            // empty
+            {
+                assert(pc.empty()==a.empty());
+            }
+
+            // min / max
+            if(!a.empty()){
+                assert(pc.min()==a.front());
+                assert(pc.max()==a.back());
+            }
+        }
+
+        // clear
+        pc.clear();
+
+        assert(pc.empty());
+        assert(pc.size()==0);
+        assert(pc.distinct_size()==0);
+        assert(pc.vec().empty());
+    }
+
+    cout<<"PrevNextCounter Random Test Passed\n";
+}
+
+void check_prev_next_counter(){
+    PrevNextCounter pc;
+
+    cout << "===== PrevNextCounter 動作確認 =====\n\n";
+
+    cout << "1, 3, 3, 5, 8 を追加\n";
+    pc.insert(1);
+    pc.insert(3);
+    pc.insert(3);
+    pc.insert(5);
+    pc.insert(8);
+
+    cout << "現在の要素 : ";
+    for(ll x : pc.vec()) cout << x << ' ';
+    cout << "\n\n";
+
+    cout << "要素数(重複込み) : " << pc.size() << '\n';
+    cout << "異なる値の個数 : " << pc.distinct_size() << '\n';
+    cout << '\n';
+
+    cout << "最小値 : " << pc.min() << '\n';
+    cout << "最大値 : " << pc.max() << '\n';
+    cout << '\n';
+
+    cout << "3 の個数 : " << pc.count(3) << '\n';
+    cout << "4 の個数 : " << pc.count(4) << '\n';
+    cout << '\n';
+
+    cout << "3 が存在するか : "
+         << (pc.contains(3) ? "はい" : "いいえ") << '\n';
+
+    cout << "4 が存在するか : "
+         << (pc.contains(4) ? "はい" : "いいえ") << '\n';
+    cout << '\n';
+
+    cout << "next(3)    = " << pc.next(3) << '\n';
+    cout << "next_eq(3) = " << pc.next_eq(3) << '\n';
+    cout << "prev(5)    = " << pc.prev(5) << '\n';
+    cout << "prev_eq(5) = " << pc.prev_eq(5) << '\n';
+    cout << '\n';
+
+    cout << "next(8)    = " << pc.next(8)
+         << " (存在しないので NOT_FOUND)\n";
+
+    cout << "prev(1)    = " << pc.prev(1)
+         << " (存在しないので NOT_FOUND)\n";
+    cout << '\n';
+
+    cout << "3 を 1 個削除\n";
+    pc.erase_one(3);
+
+    cout << "現在の要素 : ";
+    for(ll x : pc.vec()) cout << x << ' ';
+    cout << "\n\n";
+
+    cout << "5 を 1 個追加\n";
+    pc.insert(5);
+
+    cout << "現在の要素 : ";
+    for(ll x : pc.vec()) cout << x << ' ';
+    cout << "\n\n";
+
+    cout << "5 を 2 個削除\n";
+    pc.erase(5, 2);
+
+    cout << "現在の要素 : ";
+    for(ll x : pc.vec()) cout << x << ' ';
+    cout << "\n\n";
+
+    cout << "3 を全削除\n";
+    pc.erase_all(3);
+
+    cout << "現在の要素 : ";
+    for(ll x : pc.vec()) cout << x << ' ';
+    cout << "\n\n";
+
+    cout << "clear()\n";
+    pc.clear();
+
+    cout << "空かどうか : "
+         << (pc.empty() ? "空" : "空でない") << '\n';
+
+    cout << "要素数 : " << pc.size() << '\n';
+
+    cout << "\n===== 動作確認終了 =====\n";
+}
+
+void solv(){
+    random_test_prev_next_counter();
+    check_prev_next_counter();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

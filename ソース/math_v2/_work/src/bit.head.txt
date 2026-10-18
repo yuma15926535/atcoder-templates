@@ -1,0 +1,54 @@
+// =============================================================================
+//  ビット（1 の数・位置、部分集合の列挙、グレイコード、0〜n の XOR・ビットの数、XOR の和）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 09 ビット
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  x は 64 ビットとして扱う（負の数は 2 の補数のビット）。ビットの位置 i は 0〜63（0 が最下位）
+//  集合 {0, …, n−1} の部分集合を n ビットの数で表す（i ビット目が 1 ⇔ i を含む）。列挙はすべて小さい順
+//
+//  機能一覧                                                                    計算量
+//   1 つの数
+//    bit_count(x) / top_bit(x) / low_bit(x)     1 の数 / 最上位・最下位の 1 の位置（0 なら −1）       O(1)
+//    bit_length(x) / has_bit(x, i)              2 進数の桁数（0 なら 0）/ i ビット目が 1 か
+//    bit_indices(x) / for_each_bit(x, f)        1 のビットの位置（小さい順）
+//    bit_reverse(x, n) / mask_to_string(mask, n)    下 n ビットの左右反転 / "0101" の形（上の桁が左）
+//   部分集合の列挙（小さい順に f(s)）
+//    for_each_submask(mask, f, include_zero = true, include_self = true)   s ⊆ mask（全 mask で合計 3^n）  O(2^|mask|)
+//    for_each_supermask(mask, n, f)             mask ⊆ s ⊆ {0, …, n−1}
+//    for_each_mask_between(must, allowed, f)    must ⊆ s ⊆ allowed（必ず 1 のビットと、使ってよいビット）
+//    for_each_mask_between(must, allowed, k, f) そのうち 1 の数がちょうど k のもの                     O(個数 × k)
+//    for_each_subset_k(n, k, f)                 {0, …, n−1} の k 個の部分集合（ゴスパーの方法）       O(C(n, k))
+//   グレイコード
+//    gray_code(i) / gray_inverse(g)             i 番目（隣どうしは 1 ビットだけ違う）/ 何番目か
+//   0〜n の XOR・ビットの数（n ≥ 0）
+//    xor_up_to(n) / xor_range(l, r) / xor_range_closed(L, R)    0 ⊕ … ⊕ n / l ⊕ … ⊕ (r − 1) / L ⊕ … ⊕ R   O(1)
+//    count_bit_up_to(n, k)                      0〜n のうち k ビット目が 1 の数                        O(1)
+//    popcount_sum_up_to(n)                      Σ_{x=0}^{n} bit_count(x)（Int128）                     O(63)
+//   XOR の和（a_i ≥ 0。Int128。a は vector<long long>・vector<int> など）
+//    xor_pair_sum(a)                            Σ_{i<j} (a_i ⊕ a_j)                                    O(63 n)
+//    subarray_xor_sum(a)                        すべての区間（長さ 1 以上）の XOR の和                 O(63 n)
+//  （ビット DP・高速ゼータ変換は 07_subset_transform、XOR 基底は 05_xor_basis）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    bit_test::random_test()  … 全部調べる愚直解との突き合わせ
+//    bit_test::benchmark()    … 速度計測
+//    bit_demo::demo()         … 全機能の使い方デモ（日本語の説明付き。bit 全探索の形も）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

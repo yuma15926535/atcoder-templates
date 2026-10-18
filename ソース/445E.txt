@@ -1,0 +1,249 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+ll m=998244353;
+
+vector<int> build_spf(int n) {
+    vector<int> spf(n + 1);
+    for (int i = 0; i <= n; i++) spf[i] = i;
+
+    for (int i = 2; i * i <= n; i++) {
+        if (spf[i] == i) { // i は素数
+            for (int j = i * i; j <= n; j += i) {
+                if (spf[j] == j) spf[j] = i;
+            }
+        }
+    }
+    return spf;
+}
+
+pair<vector<int>, vector<int>> prime_factorize_spf(int n, const vector<int>& spf) {
+    vector<int> primes, exps;
+
+    while (n > 1) {
+        int p = spf[n];
+        int cnt = 0;
+        while (n % p == 0) {
+            n /= p;
+            cnt++;
+        }
+        primes.push_back(p);
+        exps.push_back(cnt);
+    }
+    return {primes, exps};
+}
+
+// ----------------------------
+// safe_gcd
+// 符号・0対応の安全版
+// 常に非負を返す
+// ----------------------------
+ll safe_gcd(ll a, ll b) {
+    if (a == 0) return llabs(b);
+    if (b == 0) return llabs(a);
+    a = llabs(a);
+    b = llabs(b);
+    while (b) {
+        a %= b;
+        swap(a, b);
+    }
+    return a;
+}
+
+// ----------------------------
+// safe_lcm
+// オーバーフロー検出付き
+// overflowなら -1 を返す
+// ----------------------------
+ll safe_lcm(ll a, ll b) {
+    if (a == 0 || b == 0) return 0;
+    ll g = safe_gcd(a, b);
+    __int128 tmp = (__int128)(a / g) * b;
+    if (tmp > LLONG_MAX || tmp < LLONG_MIN)return -1;
+    return (ll)tmp;
+}
+
+// ----------------------------
+// safe_lcm_mod
+// オーバーフロー検出付き
+// overflowなら -1 を返す
+// 複数要素のlcmを取る場合はmodを取り続けると値がずれる
+// ----------------------------
+ll safe_lcm_mod(ll a, ll b, ll mod) {
+    if (a == 0 || b == 0) return 0;
+    ll g = safe_gcd(a, b);
+    __int128 x = (__int128)(a / g) * (b % mod);
+    ll res = (ll)(x % mod);
+    if (res < 0) res += mod;
+    return res;
+}
+
+ll mod_pow(ll base,ll exp,ll mod) {
+    ll result=1%mod;
+    base%=mod;
+    while(exp>0){
+        if(exp&1)result = (ll)((__int128)result * base % mod);
+        base=(ll)((__int128)base*base%mod);
+        exp>>=1;
+    }
+    return result;
+}
+
+ll mod_inv(ll a,ll mod){
+    return mod_pow(a,mod-2,mod);
+}
+
+//build_spfをmain内で行うとT回呼ばれてTLE
+auto spf = build_spf(10000000);
+
+void solv(){
+    int N;
+    cin>>N;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    vector<pair<vector<int>,vector<int>>>v(N);
+    map<int,int>e1,e2;
+    //各素因数の指数の最大値と最大値から2番目の値を保持
+    //使わなくなる値が1つのみなので、除かれた素因数の指数が最大であれば2番目の指数が全体のlcmに採用される
+    //よって最大から2つを保持すれば十分
+    rep(i,0,N){
+        v[i]=prime_factorize_spf(A[i],spf);
+        auto [pv,ev]=v[i];
+        rep(j,0,sizei(pv)){
+            int p=pv[j],e=ev[j];
+            if (e > e1[p]){
+                e2[p] = e1[p];
+                e1[p] = e;
+            }else if (e > e2[p])e2[p] = e;
+        }
+    }
+    //lcmを取りながらmodも取ってしまうと値が合わなくなるため
+    //複数要素のlcmを取る場合はmod前にかける値を事前に持っておく必要がある
+    ll lcm=1;
+    for(auto [p,e]:e1){
+        lcm*=mod_pow(p,e,m);
+        lcm%=m;
+    }
+    debug();
+    rep(i,0,N){
+        ll ans=lcm;
+        ll a=A[i];
+        auto [pv,ev]=v[i];
+        rep(j,0,sizei(pv)){
+            ll p=pv[j],e=ev[j];
+            if(e1[p]==e){
+                //最大指数だった場合は2番目を採用
+                ans*=mod_inv(mod_pow(p,e1[p]-e2[p],m),m);
+                ans%=m;
+            }
+        }
+        cout<<ans<<' ';
+    }
+    cout<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    cin>>T;
+    while(T--)solv();
+    return 0;
+}

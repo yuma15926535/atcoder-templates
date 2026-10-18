@@ -1,0 +1,624 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+//https://atcoder.jp/contests/abc423/tasks/abc423_e
+
+template <class T = long long>
+struct WeightedPrefixSum {
+    using ll = long long;
+    using i128 = __int128_t;
+
+    // s0[i] = Σ A[k]     (0 <= k < i)
+    // s1[i] = Σ kA[k]   (0 <= k < i)
+    // s2[i] = Σ k²A[k]  (0 <= k < i)
+    vector<i128> s0, s1, s2;
+
+    ll mod;
+    bool use_mod;
+
+    // modを指定しない場合はmodなし
+    WeightedPrefixSum(const vector<T>& a, ll mod_ = 0)
+        : mod(mod_), use_mod(mod_ != 0) {
+
+        int n = a.size();
+
+        s0.resize(n + 1);
+        s1.resize(n + 1);
+        s2.resize(n + 1);
+
+        for (int k = 0; k < n; k++) {
+            i128 x = (i128)a[k];
+            i128 kk = k;
+
+            s0[k + 1] = s0[k] + x;
+            s1[k + 1] = s1[k] + kk * x;
+            s2[k + 1] = s2[k] + kk * kk * x;
+
+            if (use_mod) {
+                s0[k + 1] %= mod;
+                s1[k + 1] %= mod;
+                s2[k + 1] %= mod;
+            }
+        }
+    }
+
+    ll normalize(i128 x) const {
+        if (!use_mod) return (ll)x;
+
+        x %= mod;
+        if (x < 0) x += mod;
+        return (ll)x;
+    }
+
+    // Σ A[k] : l <= k < r
+    ll sum(int l, int r) const {
+        return normalize(s0[r] - s0[l]);
+    }
+
+    // Σ kA[k] : l <= k < r
+    ll sum_k(int l, int r) const {
+        return normalize(s1[r] - s1[l]);
+    }
+
+    // Σ k²A[k] : l <= k < r
+    ll sum_k2(int l, int r) const {
+        return normalize(s2[r] - s2[l]);
+    }
+};
+
+#ifdef LOCAL
+void testWeightedPrefixSum() {
+    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+    const int TEST = 10000;
+
+    for (int tc = 0; tc < TEST; tc++) {
+        // ------------------------------------------------------------
+        // 配列をランダム生成
+        // ------------------------------------------------------------
+        int n = rng() % 30 + 1;
+
+        vector<ll> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = (ll)(rng() % 201) - 100;
+        }
+
+        // ------------------------------------------------------------
+        // modなし
+        // ------------------------------------------------------------
+        {
+            WeightedPrefixSum ps(a);
+
+            // 全区間をランダムに検証
+            int Q = 100;
+
+            for (int q = 0; q < Q; q++) {
+                int l = rng() % (n + 1);
+                int r = rng() % (n + 1);
+                if (l > r) swap(l, r);
+
+                __int128 e0 = 0;
+                __int128 e1 = 0;
+                __int128 e2 = 0;
+
+                for (int k = l; k < r; k++) {
+                    __int128 x = a[k];
+                    e0 += x;
+                    e1 += (__int128)k * x;
+                    e2 += (__int128)k * k * x;
+                }
+
+                ll g0 = ps.sum(l, r);
+                ll g1 = ps.sum_k(l, r);
+                ll g2 = ps.sum_k2(l, r);
+
+                if (g0 != (ll)e0 ||
+                    g1 != (ll)e1 ||
+                    g2 != (ll)e2) {
+
+                    cerr << "WA: modなし\n";
+                    cerr << "tc = " << tc << '\n';
+                    cerr << "l = " << l << ", r = " << r << '\n';
+
+                    cerr << "A = ";
+                    for (ll x : a) cerr << x << ' ';
+                    cerr << '\n';
+
+                    cerr << "sum    : " << g0 << " / " << (ll)e0 << '\n';
+                    cerr << "sum_k  : " << g1 << " / " << (ll)e1 << '\n';
+                    cerr << "sum_k2 : " << g2 << " / " << (ll)e2 << '\n';
+
+                    assert(false);
+                }
+            }
+        }
+
+        // ------------------------------------------------------------
+        // modあり
+        // ------------------------------------------------------------
+        {
+            // 1以上のランダムなmod
+            ll mod = rng() % 1000 + 1;
+
+            WeightedPrefixSum ps(a, mod);
+
+            int Q = 100;
+
+            for (int q = 0; q < Q; q++) {
+                int l = rng() % (n + 1);
+                int r = rng() % (n + 1);
+                if (l > r) swap(l, r);
+
+                __int128 e0 = 0;
+                __int128 e1 = 0;
+                __int128 e2 = 0;
+
+                for (int k = l; k < r; k++) {
+                    __int128 x = a[k];
+
+                    e0 += x;
+                    e1 += (__int128)k * x;
+                    e2 += (__int128)k * k * x;
+                }
+
+                auto normalize = [&]( __int128 x ) -> ll {
+                    x %= mod;
+                    if (x < 0) x += mod;
+                    return (ll)x;
+                };
+
+                ll g0 = ps.sum(l, r);
+                ll g1 = ps.sum_k(l, r);
+                ll g2 = ps.sum_k2(l, r);
+
+                ll e0_mod = normalize(e0);
+                ll e1_mod = normalize(e1);
+                ll e2_mod = normalize(e2);
+
+                if (g0 != e0_mod ||
+                    g1 != e1_mod ||
+                    g2 != e2_mod) {
+
+                    cerr << "WA: modあり\n";
+                    cerr << "tc = " << tc << '\n';
+                    cerr << "mod = " << mod << '\n';
+                    cerr << "l = " << l << ", r = " << r << '\n';
+
+                    cerr << "A = ";
+                    for (ll x : a) cerr << x << ' ';
+                    cerr << '\n';
+
+                    cerr << "sum    : " << g0 << " / " << e0_mod << '\n';
+                    cerr << "sum_k  : " << g1 << " / " << e1_mod << '\n';
+                    cerr << "sum_k2 : " << g2 << " / " << e2_mod << '\n';
+
+                    assert(false);
+                }
+            }
+        }
+    }
+
+    cout << "WeightedPrefixSum: ALL TEST PASSED\n";
+}
+
+void testWeightedPrefixSumBoundary() {
+    // ------------------------------------------------------------
+    // 空区間
+    // ------------------------------------------------------------
+    {
+        vector<ll> a = {1, -2, 3, -4, 5};
+        WeightedPrefixSum ps(a);
+
+        assert(ps.sum(2, 2) == 0);
+        assert(ps.sum_k(2, 2) == 0);
+        assert(ps.sum_k2(2, 2) == 0);
+    }
+
+    // ------------------------------------------------------------
+    // 全区間
+    // ------------------------------------------------------------
+    {
+        vector<ll> a = {1, 2, 3, 4, 5};
+        WeightedPrefixSum ps(a);
+
+        // Σ A[k] = 1 + 2 + 3 + 4 + 5 = 15
+        assert(ps.sum(0, 5) == 15);
+
+        // Σ kA[k]
+        // = 0*1 + 1*2 + 2*3 + 3*4 + 4*5
+        // = 40
+        assert(ps.sum_k(0, 5) == 40);
+
+        // Σ k²A[k]
+        // = 0²*1 + 1²*2 + 2²*3 + 3²*4 + 4²*5
+        // = 0 + 2 + 12 + 36 + 80
+        // = 130
+        assert(ps.sum_k2(0, 5) == 130);
+    }
+
+    // ------------------------------------------------------------
+    // 負数
+    // ------------------------------------------------------------
+    {
+        vector<ll> a = {-1, -2, -3, -4};
+
+        WeightedPrefixSum ps(a);
+
+        // Σ A[k] = -10
+        assert(ps.sum(0, 4) == -10);
+
+        // Σ kA[k]
+        // = 0*(-1) + 1*(-2) + 2*(-3) + 3*(-4)
+        // = -20
+        assert(ps.sum_k(0, 4) == -20);
+
+        // Σ k²A[k]
+        // = 0²*(-1) + 1²*(-2) + 2²*(-3) + 3²*(-4)
+        // = -2 - 12 - 36
+        // = -50
+        assert(ps.sum_k2(0, 4) == -50);
+    }
+
+    // ------------------------------------------------------------
+    // modあり + 負数
+    // ------------------------------------------------------------
+    {
+        vector<ll> a = {-1, -2, -3, -4};
+
+        WeightedPrefixSum ps(a, 7);
+
+        // -10 mod 7 = 4
+        assert(ps.sum(0, 4) == 4);
+
+        // -20 mod 7 = 1
+        assert(ps.sum_k(0, 4) == 1);
+
+        // -50 mod 7 = 6
+        assert(ps.sum_k2(0, 4) == 6);
+    }
+
+    // ------------------------------------------------------------
+    // mod = 1
+    // ------------------------------------------------------------
+    {
+        vector<ll> a = {-100, -50, 0, 50, 100};
+
+        WeightedPrefixSum ps(a, 1);
+
+        assert(ps.sum(0, 5) == 0);
+        assert(ps.sum_k(0, 5) == 0);
+        assert(ps.sum_k2(0, 5) == 0);
+    }
+
+    cout << "WeightedPrefixSum: BOUNDARY TEST PASSED\n";
+}
+
+void demoWeightedPrefixSum() {
+    cout << "=== WeightedPrefixSum 動作確認 ===\n";
+
+    // ------------------------------------------------------------
+    // A[k] の累積和
+    // ------------------------------------------------------------
+    {
+        vector<ll> A = {1, 2, 3, 4, 5};
+        WeightedPrefixSum ps(A);
+
+        cout << "\n【基本】A = {1, 2, 3, 4, 5}\n";
+
+        // [0, 5)
+        cout << "Σ A[k] [0,5) = "
+             << ps.sum(0, 5) << '\n';
+
+        // Σ kA[k]
+        // = 0*1 + 1*2 + 2*3 + 3*4 + 4*5
+        cout << "Σ kA[k] [0,5) = "
+             << ps.sum_k(0, 5) << '\n';
+
+        // Σ k²A[k]
+        // = 0²*1 + 1²*2 + 2²*3 + 3²*4 + 4²*5
+        cout << "Σ k²A[k] [0,5) = "
+             << ps.sum_k2(0, 5) << '\n';
+
+        // 区間 [1,4)
+        cout << "Σ A[k] [1,4) = "
+             << ps.sum(1, 4) << '\n';
+
+        cout << "Σ kA[k] [1,4) = "
+             << ps.sum_k(1, 4) << '\n';
+
+        cout << "Σ k²A[k] [1,4) = "
+             << ps.sum_k2(1, 4) << '\n';
+    }
+
+    // ------------------------------------------------------------
+    // 多項式 × A[k]
+    //
+    // P(k) = k² + 2k + 3
+    //
+    // Σ P(k)A[k]
+    // = Σ k²A[k] + 2Σ kA[k] + 3Σ A[k]
+    // ------------------------------------------------------------
+    {
+        vector<ll> A = {1, 2, 3, 4, 5};
+        WeightedPrefixSum ps(A);
+
+        ll ans =
+            ps.sum_k2(0, 5)
+            + 2 * ps.sum_k(0, 5)
+            + 3 * ps.sum(0, 5);
+
+        cout << "\n【多項式との組み合わせ】\n";
+        cout << "P(k) = k² + 2k + 3\n";
+        cout << "Σ P(k)A[k] [0,5) = "
+             << ans << '\n';
+    }
+
+    // ------------------------------------------------------------
+    // 負数
+    // ------------------------------------------------------------
+    {
+        vector<ll> A = {-1, -2, -3, -4};
+        WeightedPrefixSum ps(A);
+
+        cout << "\n【負数】A = {-1, -2, -3, -4}\n";
+
+        cout << "Σ A[k] [0,4) = "
+             << ps.sum(0, 4) << '\n';
+
+        cout << "Σ kA[k] [0,4) = "
+             << ps.sum_k(0, 4) << '\n';
+
+        cout << "Σ k²A[k] [0,4) = "
+             << ps.sum_k2(0, 4) << '\n';
+    }
+
+    // ------------------------------------------------------------
+    // modあり
+    // ------------------------------------------------------------
+    {
+        const ll MOD = 7;
+
+        vector<ll> A = {-1, -2, -3, -4};
+        WeightedPrefixSum ps(A, MOD);
+
+        cout << "\n【modあり】MOD = 7\n";
+        cout << "A = {-1, -2, -3, -4}\n";
+
+        cout << "Σ A[k] mod 7 [0,4) = "
+             << ps.sum(0, 4) << '\n';
+
+        cout << "Σ kA[k] mod 7 [0,4) = "
+             << ps.sum_k(0, 4) << '\n';
+
+        cout << "Σ k²A[k] mod 7 [0,4) = "
+             << ps.sum_k2(0, 4) << '\n';
+    }
+
+    // ------------------------------------------------------------
+    // 空区間
+    // ------------------------------------------------------------
+    {
+        vector<ll> A = {10, 20, 30};
+        WeightedPrefixSum ps(A);
+
+        cout << "\n【空区間】\n";
+        cout << "Σ A[k] [2,2) = "
+             << ps.sum(2, 2) << '\n';
+
+        cout << "Σ kA[k] [2,2) = "
+             << ps.sum_k(2, 2) << '\n';
+
+        cout << "Σ k²A[k] [2,2) = "
+             << ps.sum_k2(2, 2) << '\n';
+    }
+
+    cout << "\n=== 動作確認終了 ===\n";
+}
+#endif
+
+void solv(){
+    #ifdef LOCAL
+    testWeightedPrefixSum();
+    testWeightedPrefixSumBoundary();
+    demoWeightedPrefixSum();
+    #endif
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>A(N);
+    cin>>A;
+    WeightedPrefixSum wps(A);
+    rep(i,Q){
+        ll L,R;
+        cin>>L>>R;
+        L--;R--;
+        ll ans=-wps.sum_k2(L,R+1);
+        ans+=(L+R)*wps.sum_k(L,R+1);
+        ans+=(-L*R+R-L+1)*wps.sum(L,R+1);
+        cout<<ans<<'\n';
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

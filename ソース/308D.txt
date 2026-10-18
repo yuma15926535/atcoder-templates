@@ -1,0 +1,43 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W;
+vector<string> S;
+const string snuke="snuke";
+vector<vector<bool>> visited;
+vector<int> dx,dy;
+//DFSで探索
+void dfs(int x,int y,int pos){
+    rep(i,0,4){
+        int nx=x+dx[i],ny=y+dy[i];
+        if(0<=nx&&nx<H&&0<=ny&&ny<W&&(!visited[nx][ny])&&S[nx][ny]==snuke[pos]){
+            visited[nx][ny]=true;
+            dfs(nx,ny,(pos+1)%5);
+        }
+    }
+}
+
+int main()
+{
+    cin>>H>>W;
+    S.resize(H);
+    rep(i,0,H)cin>>S[i];
+    visited=vector<vector<bool>>(H,vector<bool>(W,false));
+    dx={-1,1,0,0};dy={0,0,-1,1};
+    if(S[0][0]!=snuke[0]){NO;return 0;}
+    visited[0][0]=true;
+    dfs(0,0,1);
+    if(visited[H-1][W-1])YN;
+    return 0;
+}

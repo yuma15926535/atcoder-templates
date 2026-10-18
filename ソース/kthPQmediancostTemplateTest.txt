@@ -1,0 +1,685 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+struct KthPQ {
+    int k;
+    bool largest; // false: k番目に小さい, true: k番目に大きい
+
+    priority_queue<ll> small; // k個（max-heap）
+    priority_queue<ll, vector<ll>, greater<ll>> large; // 残り（min-heap）
+
+    unordered_map<ll,int> del_small, del_large;
+
+    int small_size = 0; // 実サイズ（lazy削除を除く）
+    int large_size = 0;
+
+    // ============================
+    // コンストラクタ（kのみ）
+    // ============================
+    KthPQ(int _k, bool _largest=false) : k(_k), largest(_largest) {}
+
+    // ============================
+    // コンストラクタ（初期配列）
+    // ============================
+    KthPQ(int _k, const vector<ll>& A, bool _largest=false)
+        : k(_k), largest(_largest)
+    {
+        for(auto x : A) add(x);
+    }
+
+    // ============================
+    // 内部：lazy削除
+    // ============================
+    void prune_small() {
+        while(!small.empty()) {
+            ll x = small.top();
+            if(del_small[x]) {
+                del_small[x]--;
+                small.pop();
+            } else break;
+        }
+    }
+
+    void prune_large() {
+        while(!large.empty()) {
+            ll x = large.top();
+            if(del_large[x]) {
+                del_large[x]--;
+                large.pop();
+            } else break;
+        }
+    }
+
+    // ============================
+    // バランス調整
+    // ============================
+    void rebalance() {
+        prune_small();
+        prune_large();
+
+        // smallをk個にする
+        while(small_size > k) {
+            prune_small();
+            ll x = small.top(); small.pop();
+            small_size--;
+            large.push(x);
+            large_size++;
+        }
+        while(small_size < k && large_size > 0) {
+            prune_large();
+            ll x = large.top(); large.pop();
+            large_size--;
+            small.push(x);
+            small_size++;
+        }
+    }
+
+    // ============================
+    // add
+    // ============================
+    void add(ll x) {
+        if(largest) x = -x;
+
+        if(small_size < k) {
+            small.push(x);
+            small_size++;
+        } else {
+            prune_small();
+            if(!small.empty() && x <= small.top()) {
+                small.push(x);
+                small_size++;
+            } else {
+                large.push(x);
+                large_size++;
+            }
+        }
+        rebalance();
+    }
+
+    // ============================
+    // erase
+    // ============================
+    void erase(ll x) {
+        if(largest) x = -x;
+
+        prune_small();
+
+        if(!small.empty() && x <= small.top()) {
+            del_small[x]++;
+            small_size--;
+            if(x == small.top()) prune_small();
+        } else {
+            del_large[x]++;
+            large_size--;
+            if(!large.empty() && x == large.top()) prune_large();
+        }
+        rebalance();
+    }
+
+    // ============================
+    // kth取得
+    // ============================
+    ll kth() {
+        prune_small();
+        if(small_size < k) return -1; // 要素不足
+        ll x = small.top();
+        return largest ? -x : x;
+    }
+};
+
+struct MedianCost {
+    using ll = long long;
+
+    priority_queue<ll> L; // max heap
+    priority_queue<ll, vector<ll>, greater<ll>> R; // min heap
+
+    unordered_map<ll,int> delL, delR;
+
+    ll sumL = 0, sumR = 0;
+    int sizeL = 0, sizeR = 0;
+
+    // ============================
+    // lazy削除
+    // ============================
+    void pruneL() {
+        while(!L.empty()) {
+            ll x = L.top();
+            if(delL[x]) {
+                delL[x]--;
+                L.pop();
+            } else break;
+        }
+    }
+
+    void pruneR() {
+        while(!R.empty()) {
+            ll x = R.top();
+            if(delR[x]) {
+                delR[x]--;
+                R.pop();
+            } else break;
+        }
+    }
+
+    // ============================
+    // バランス調整
+    // ============================
+    void rebalance() {
+        pruneL();
+        pruneR();
+
+        // Lを多めにする
+        if(sizeL > sizeR + 1) {
+            pruneL();
+            ll x = L.top(); L.pop();
+            sumL -= x;
+            sizeL--;
+
+            R.push(x);
+            sumR += x;
+            sizeR++;
+        }
+        if(sizeL < sizeR) {
+            pruneR();
+            ll x = R.top(); R.pop();
+            sumR -= x;
+            sizeR--;
+
+            L.push(x);
+            sumL += x;
+            sizeL++;
+        }
+    }
+
+    // ============================
+    // add
+    // ============================
+    void add(ll x) {
+        if(L.empty() || x <= L.top()) {
+            L.push(x);
+            sumL += x;
+            sizeL++;
+        } else {
+            R.push(x);
+            sumR += x;
+            sizeR++;
+        }
+        rebalance();
+    }
+
+    // ============================
+    // erase（存在前提）
+    // ============================
+    void erase(ll x) {
+        pruneL();
+
+        if(!L.empty() && x <= L.top()) {
+            delL[x]++;
+            sumL -= x;
+            sizeL--;
+            if(x == L.top()) pruneL();
+        } else {
+            delR[x]++;
+            sumR -= x;
+            sizeR--;
+            if(!R.empty() && x == R.top()) pruneR();
+        }
+        rebalance();
+    }
+
+    // ============================
+    // median取得
+    // ============================
+    ll median() {
+        pruneL();
+        return L.top();
+    }
+
+    // ============================
+    // cost取得
+    // ============================
+    ll cost() {
+        pruneL();
+        pruneR();
+        ll m = median();
+        return m * sizeL - sumL + sumR - m * sizeR;
+    }
+
+    // ============================
+    // サイズ
+    // ============================
+    int size() const {
+        return sizeL + sizeR;
+    }
+};
+
+
+// ============================
+// ナイーブ（検証用）
+// ============================
+ll naive_kth(vector<ll> v, int k, bool largest){
+    if((int)v.size() < k) return -1;
+    sort(v.begin(), v.end());
+    if(largest) reverse(v.begin(), v.end());
+    return v[k-1];
+}
+
+// ============================
+// テスト関数
+// ============================
+void test_case(string name, KthPQ ds, vector<ll> init, int k, bool largest){
+    cout << "==============================\n";
+    cout << name << "\n";
+    cout << "==============================\n";
+
+    vector<ll> v = init;
+
+    auto check = [&](){
+        ll a = ds.kth();
+        ll b = naive_kth(v, k, largest);
+        cout << "k番目: " << a << "（期待:" << b << "）";
+        if(a == b) cout << " OK\n";
+        else cout << " NG\n";
+    };
+
+    // 初期状態
+    cout << "[初期]\n";
+    check();
+
+    // add
+    cout << "\n[add]\n";
+    vector<ll> adds = {5, 1, 5, 10};
+    for(auto x : adds){
+        cout << "add(" << x << ")\n";
+        ds.add(x);
+        v.push_back(x);
+        check();
+    }
+
+    // erase（存在するもの）
+    cout << "\n[erase（存在）]\n";
+    vector<ll> erases = {5, 1};
+    for(auto x : erases){
+        cout << "erase(" << x << ")\n";
+        ds.erase(x);
+        auto it = find(v.begin(), v.end(), x);
+        if(it != v.end()) v.erase(it);
+        check();
+    }
+
+    // erase（複数回）
+    cout << "\n[erase（重複）]\n";
+    ds.add(3); v.push_back(3);
+    ds.add(3); v.push_back(3);
+    cout << "add(3), add(3)\n";
+    check();
+
+    ds.erase(3);
+    auto it = find(v.begin(), v.end(), 3);
+    if(it != v.end()) v.erase(it);
+    cout << "erase(3)\n";
+    check();
+
+    ds.erase(3);
+    it = find(v.begin(), v.end(), 3);
+    if(it != v.end()) v.erase(it);
+    cout << "erase(3)\n";
+    check();
+
+    // k未満
+    cout << "\n[k未満]\n";
+    while(!v.empty()){
+        ll x = v.back(); v.pop_back();
+        ds.erase(x);
+        cout << "erase(" << x << ")\n";
+        check();
+    }
+
+    cout << "\n";
+}
+
+void random_test_kthpq() {
+    using ll = long long;
+    mt19937 rng(0);
+
+    auto test = [&](int k, bool largest, bool use_init) {
+        vector<ll> v;
+
+        // 初期配列
+        if(use_init) {
+            int n = rng() % 10;
+            for(int i = 0; i < n; i++) {
+                ll x = rng() % 5; // 重複多め
+                v.push_back(x);
+            }
+        }
+
+        KthPQ ds = use_init ? KthPQ(k, v, largest) : KthPQ(k, largest);
+
+        for(int t = 0; t < 2000; t++) {
+            int op = rng() % 3;
+
+            if(op == 0 || v.empty()) {
+                // add
+                ll x = rng() % 5;
+                ds.add(x);
+                v.push_back(x);
+            } else {
+                // erase（必ず存在する値）
+                int idx = rng() % v.size();
+                ll x = v[idx];
+                ds.erase(x);
+                v.erase(v.begin() + idx);
+            }
+
+            // 検証
+            ll a = ds.kth();
+
+            ll b;
+            if((int)v.size() < k) b = -1;
+            else {
+                vector<ll> tmp = v;
+                sort(tmp.begin(), tmp.end());
+                if(largest) reverse(tmp.begin(), tmp.end());
+                b = tmp[k-1];
+            }
+
+            if(a != b) {
+                cout << "不一致発生\n";
+                cout << "k=" << k << " largest=" << largest << " init=" << use_init << "\n";
+
+                cout << "配列: ";
+                for(auto x : v) cout << x << " ";
+                cout << "\n";
+
+                cout << "KthPQ: " << a << "\n";
+                cout << "naive: " << b << "\n";
+                return;
+            }
+        }
+    };
+
+    // 複数パターン
+    for(int k = 1; k <= 5; k++) {
+        test(k, false, false); // 小さい順・初期なし
+        test(k, false, true);  // 小さい順・初期あり
+        test(k, true, false);  // 大きい順・初期なし
+        test(k, true, true);   // 大きい順・初期あり
+    }
+
+    cout << "全テスト通過\n";
+}
+
+void random_test_median_cost() {
+    using ll = long long;
+    mt19937 rng(0);
+
+    MedianCost ds;
+    vector<ll> v;
+
+    auto naive_median = [&](vector<ll> a) -> ll {
+        if(a.empty()) return 0;
+        sort(a.begin(), a.end());
+        return a[(a.size()-1)/2]; // L.top()に合わせる
+    };
+
+    auto naive_cost = [&](vector<ll> a) -> ll {
+        if(a.empty()) return 0;
+        ll m = naive_median(a);
+        ll res = 0;
+        for(ll x : a) res += abs(x - m);
+        return res;
+    };
+
+    for(int t = 0; t < 5000; t++) {
+        int op = rng() % 3;
+
+        if(op == 0 || v.empty()) {
+            // add
+            ll x;
+            if(rng() % 2) x = rng() % 5;          // 重複多め
+            else x = (rng() % 21) - 10;           // 負数含む
+
+            ds.add(x);
+            v.push_back(x);
+        } else {
+            // erase（必ず存在する値）
+            int idx = rng() % v.size();
+            ll x = v[idx];
+
+            ds.erase(x);
+            v.erase(v.begin() + idx);
+        }
+
+        // 検証
+        ll m1 = v.empty() ? 0 : ds.median();
+        ll m2 = naive_median(v);
+
+        ll c1 = v.empty() ? 0 : ds.cost();
+        ll c2 = naive_cost(v);
+
+        if(m1 != m2 || c1 != c2) {
+            cout << "不一致発生\n";
+
+            cout << "配列: ";
+            for(auto x : v) cout << x << " ";
+            cout << "\n";
+
+            cout << "median: " << m1 << " vs " << m2 << "\n";
+            cout << "cost  : " << c1 << " vs " << c2 << "\n";
+
+            return;
+        }
+    }
+
+    cout << "全テスト通過\n";
+}
+
+void solv(){
+    vector<ll> init = {5,1,3,5,7,3};
+
+    int k = 3;
+
+    // ① 小さい順（kのみ）
+    {
+        KthPQ ds(k);
+        test_case("小さい順（kのみ）", ds, {}, k, false);
+    }
+
+    // ② 小さい順（初期配列）
+    {
+        KthPQ ds(k, init);
+        test_case("小さい順（初期配列）", ds, init, k, false);
+    }
+
+    // ③ 大きい順（kのみ）
+    {
+        KthPQ ds(k, true);
+        test_case("大きい順（kのみ）", ds, {}, k, true);
+    }
+
+    // ④ 大きい順（初期配列）
+    {
+        KthPQ ds(k, init, true);
+        test_case("大きい順（初期配列）", ds, init, k, true);
+    }
+    random_test_kthpq();
+    random_test_median_cost();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

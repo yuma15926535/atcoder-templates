@@ -1,0 +1,31 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int K;
+    cin>>K;
+    vector<ll> dp(K+1,1);
+    const int m=1000000007;
+    //DPで解く
+    //dp[k]:=数字和がkの場合の数
+    //最上位の桁を除いたときdpの-1~-9までに必ず入りかつ一意に決まる
+    erep(i,1,K){
+        if(i<=9)rep(j,1,i)dp[i]+=dp[j];
+        else dp[i]=(dp[i-1]+dp[i-2]+dp[i-3]+dp[i-4]+dp[i-5]+dp[i-6]+dp[i-7]+dp[i-8]+dp[i-9])%m;
+    }
+    if(K%9==0)cout<<dp[K]<<"\n";
+    else cout<<0<<"\n";
+    return 0;
+}

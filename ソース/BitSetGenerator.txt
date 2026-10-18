@@ -1,0 +1,473 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+//bitsetジェネレーター
+//1が立っているbitの列挙(1の位が0)
+vector<int> indices(ull mask){
+    vector<int> res;
+    for(int i=0;mask;i++){
+        if(mask&1) res.push_back(i);
+        mask>>=1;
+    }
+    return res;
+}
+
+//popcountの固定(nCk列挙)
+struct CombinationBits {
+    using ull = unsigned long long;
+
+    int N, K;
+    ull cur;
+    ull limit;
+
+    //n桁,popcount=k
+    CombinationBits(int n, int k) : N(n), K(k) {
+        cur = (1ULL << K) - 1;   // 最初: 下位Kbitが1
+        limit = (1ULL << N);
+    }
+
+    bool has_next() const {
+        return cur < limit;
+    }
+
+    ull next() {
+        ull ret = cur;
+
+        // --- Gosper's Hack ---
+        ull c = cur & -cur;
+        ull r = cur + c;
+        cur = (((r ^ cur) >> 2) / c) | r;
+
+        return ret;
+    }
+};
+
+//1固定(superset列挙)
+struct ForcedOneMaskGenerator {
+    using ull = unsigned long long;
+
+    int N;
+    ull base;
+    vector<int> free_pos;
+
+    ull state = 0;
+    ull limit;
+
+    //n桁,bの1は固定
+    ForcedOneMaskGenerator(int n, ull b)
+        : N(n)
+    {
+        ull valid = (N==64 ? ~0ULL : ((1ULL<<N)-1));
+        base = b & valid;
+
+        for(int i=0;i<N;i++)
+            if(!(base>>i & 1))
+                free_pos.push_back(i);
+
+        limit = 1ULL << free_pos.size();
+    }
+
+    bool has_next() const {
+        return state < limit;
+    }
+
+    ull next() {
+        ull add = 0;
+
+        for(int i=0;i<(int)free_pos.size();i++)
+            if(state>>i & 1)
+                add |= 1ULL << free_pos[i];
+
+        state++;
+        return base | add;
+    }
+};
+
+//0固定(subset制限)
+struct ForcedZeroMaskGenerator {
+    using ull = unsigned long long;
+
+    int N;
+    vector<int> free_pos;
+
+    ull state = 0;
+    ull limit;
+
+    //n桁,zero_maskの1を0に固定
+    ForcedZeroMaskGenerator(int n, ull zero_mask)
+        : N(n)
+    {
+        ull valid = (N==64 ? ~0ULL : ((1ULL<<N)-1));
+        zero_mask &= valid;
+
+        for(int i=0;i<N;i++)
+            if(!(zero_mask>>i & 1))
+                free_pos.push_back(i);
+
+        limit = 1ULL << free_pos.size();
+    }
+
+    bool has_next() const {
+        return state < limit;
+    }
+
+    ull next() {
+        ull res = 0;
+
+        for(int i=0;i<(int)free_pos.size();i++)
+            if(state>>i & 1)
+                res |= 1ULL << free_pos[i];
+
+        state++;
+        return res;
+    }
+};
+
+//1固定+popcount固定(条件付き選択)
+struct ForcedOnePopcountK {
+    using ull = unsigned long long;
+
+    int N;
+    ull base;
+
+    vector<int> free_pos;
+
+    ull comb = 0;
+    bool valid = true;
+
+    //n桁,bの1は固定,popcount=k
+    ForcedOnePopcountK(int n, ull b, int K)
+        : N(n)
+    {
+        ull valid_mask =
+            (N==64 ? ~0ULL : ((1ULL<<N)-1));
+
+        base = b & valid_mask;
+
+        int fixed = __builtin_popcountll(base);
+        int R = K - fixed;
+
+        if(R < 0){
+            valid = false;
+            return;
+        }
+
+        for(int i=0;i<N;i++)
+            if(!(base>>i & 1))
+                free_pos.push_back(i);
+
+        if(R > (int)free_pos.size()){
+            valid = false;
+            return;
+        }
+
+        comb = (1ULL<<R)-1;
+    }
+
+    bool has_next() const {
+        return valid;
+    }
+
+    ull next() {
+        ull add = 0;
+
+        for(int i=0;i<(int)free_pos.size();i++)
+            if(comb>>i & 1)
+                add |= 1ULL<<free_pos[i];
+
+        ull res = base | add;
+
+        // --- Gosper ---
+        ull c = comb & -comb;
+        ull r = comb + c;
+        if(r >= (1ULL<<free_pos.size()))
+            valid = false;
+        else
+            comb = (((r^comb)>>2)/c)|r;
+
+        return res;
+    }
+};
+
+//0固定+popcount固定(禁止付き選択)
+struct ForcedZeroPopcountK {
+    using ull = unsigned long long;
+
+    int N;
+    vector<int> free_pos;
+
+    ull comb = 0;
+    bool valid = true;
+
+    //n桁,zero_maskの1を0に固定,popcount=k
+    ForcedZeroPopcountK(int n, ull zero_mask, int K)
+        : N(n)
+    {
+        ull valid_mask =
+            (N==64 ? ~0ULL : ((1ULL<<N)-1));
+
+        zero_mask &= valid_mask;
+
+        for(int i=0;i<N;i++)
+            if(!(zero_mask>>i & 1))
+                free_pos.push_back(i);
+
+        if(K > (int)free_pos.size()){
+            valid=false;
+            return;
+        }
+
+        comb = (1ULL<<K)-1;
+    }
+
+    bool has_next() const {
+        return valid;
+    }
+
+    ull next() {
+        ull res = 0;
+
+        for(int i=0;i<(int)free_pos.size();i++)
+            if(comb>>i & 1)
+                res |= 1ULL<<free_pos[i];
+
+        ull c = comb & -comb;
+        ull r = comb + c;
+        if(r >= (1ULL<<free_pos.size()))
+            valid=false;
+        else
+            comb = (((r^comb)>>2)/c)|r;
+
+        return res;
+    }
+};
+
+void solv(){
+    {
+        int cnt=0;
+        cout<<"popcount固定\n";
+        CombinationBits gen(5,2);
+        while(gen.has_next()){
+            ull mask = gen.next();
+            cout << bitset<5>(mask) << "\n";
+        }
+    }
+    cout<<'\n';
+    {
+        cout<<"1固定\n";
+        ForcedOneMaskGenerator gen(5,2);
+        cout<<"固定:"<<bitset<5>(2)<<'\n';
+        while(gen.has_next()){
+            ull mask = gen.next();
+            cout << bitset<5>(mask) << "\n";
+        }
+    }
+    cout<<'\n';
+    {
+        cout<<"0固定\n";
+        ForcedZeroMaskGenerator gen(5,6);
+        cout<<"固定:"<<bitset<5>(6)<<'\n';
+        while(gen.has_next()){
+            ull mask = gen.next();
+            cout << bitset<5>(mask) << "\n";
+        }
+    }
+    cout<<'\n';
+    {
+        cout<<"1固定,popcount固定\n";
+        ForcedOnePopcountK gen(5,2,3);
+        cout<<"固定:"<<bitset<5>(2)<<'\n';
+        cout<<"popcou:3"<<'\n';
+        while(gen.has_next()){
+            ull mask = gen.next();
+            cout << bitset<5>(mask) << "\n";
+        }
+    }
+    cout<<'\n';
+    {
+        cout<<"0固定,popcount固定\n";
+        ForcedZeroPopcountK gen(5,6,3);
+        cout<<"固定:"<<bitset<5>(6)<<'\n';
+        cout<<"popcou:3"<<'\n';
+        while(gen.has_next()){
+            ull mask = gen.next();
+            cout << bitset<5>(mask) << "\n";
+        }
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

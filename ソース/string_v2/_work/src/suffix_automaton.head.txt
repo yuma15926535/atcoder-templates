@@ -1,0 +1,48 @@
+// =============================================================================
+//  接尾辞オートマトン（部分文字列か・出現回数・最初の出現・異なる部分文字列の数・辞書順 k 番目・最長共通部分文字列・状態（DP 用））   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 03 接尾辞
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  SuffixAutomaton sam(s, A)：s のすべての部分文字列を受け付ける最小の DFA。状態は 2N 個以下（0 が根 = 空文字列）
+//  遷移は 状態数 × σ 個の int（N = 5×10^5・σ = 26 で約 100MB）。extend(c) で 1 文字ずつ足せる。add_string(t) で複数の文字列をまとめる
+//  位置は足した文字の通し番号（1 つの文字列なら s の位置そのもの）。多くの問題は 03_suffix_array でも解ける（どちらか書きやすい方）
+//
+//  機能一覧                                                                       計算量
+//    SuffixAutomaton sam(s, A) / sam.extend(c) / sam.add_string(t)   作る / 1 文字足す / 別の文字列として足す   O(N σ)
+//    sam.contains(t) / count_occurrences(t) / first_occurrence(t)   部分文字列か / 出現回数 / 最初の開始位置   O(|t|)
+//    sam.count_distinct_substrings() / total_length_distinct()     異なる部分文字列の数 / 長さの合計          O(状態数)
+//    sam.kth_substring(k, with_dup) / kth_substring_ids(k, with_dup)   辞書順 k 番目（0 から。with_dup で重複も） O(|答え| σ)
+//    sam.count_substrings_with_dup()       位置が違えば別として数えた数                                     O(状態数)
+//    sam.longest_common_substring(t)       t の部分文字列でこれにも現れる最長（t での StrSpan）              O(|t|)
+//    状態: size() / len(v) / link(v) / next(v, c) / next_id(v, id) / endpos_count(v) / first_end(v) / order_by_len() / last()
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    sam_test::random_test()  … 全部の部分文字列を数える愚直解と全機能を突き合わせるランダムテスト
+//    sam_test::benchmark()    … 速度計測
+//    sam_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

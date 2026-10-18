@@ -1,0 +1,528 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ StaticSegTree（静的セグメント木・完全版）
+------------------------------------------------------------
+【概要】
+ build 後に更新を行わない SegTree。
+ Monoid に基づき区間取得と木上二分探索を行う。
+
+------------------------------------------------------------
+【モノイド条件】
+ op(a,b) が以下を満たす必要あり：
+
+ 1. 結合法則
+      op(op(a,b),c) == op(a,op(b,c))
+
+ 2. 単位元 ID
+      op(ID,a)=a
+      op(a,ID)=a
+
+------------------------------------------------------------
+【主用途】
+ ・区間取得
+ ・条件付き最大区間
+ ・prefix制約探索
+ ・尺取り代替
+ ・二分探索 on SegTree
+
+------------------------------------------------------------
+【計算量】
+ build        : O(N)
+ prod         : O(log N)
+ all_prod     : O(1)
+ max_right    : O(log N)
+ min_left     : O(log N)
+ find_first   : O(log N)
+ find_last    : O(log N)
+ operator[]   : O(1)
+
+============================================================
+*/
+template<class T,class OP>
+struct StaticSegTree {
+
+    int n;      // 内部サイズ(2冪)
+    int sz;     // 元配列サイズ
+    vector<T> seg;
+
+    OP op;
+    T ID;
+
+    //--------------------------------------------------------
+    // constructor + build
+    // 計算量: O(N)
+    //--------------------------------------------------------
+    StaticSegTree(const vector<T>& A, OP op, T id)
+        : op(op), ID(id)
+    {
+        sz = (int)A.size();
+        n = 1;
+        while(n < sz) n <<= 1;
+
+        seg.assign(2*n, ID);
+
+        // 葉構築
+        for(int i=0;i<sz;i++)
+            seg[n+i] = A[i];
+
+        // bottom-up build
+        for(int i=n-1;i>0;i--)
+            seg[i] = op(seg[i<<1], seg[i<<1|1]);
+    }
+
+    //--------------------------------------------------------
+    // 区間取得 [l,r)
+    // 計算量: O(log N)
+    //--------------------------------------------------------
+    T prod(int l,int r) const {
+
+        T L = ID, R = ID;
+
+        for(l+=n,r+=n;l<r;l>>=1,r>>=1){
+            if(l&1) L = op(L,seg[l++]);
+            if(r&1) R = op(seg[--r],R);
+        }
+        return op(L,R);
+    }
+
+    //--------------------------------------------------------
+    // 全体取得
+    // 計算量: O(1)
+    //--------------------------------------------------------
+    T all_prod() const {
+        return seg[1];
+    }
+
+    //--------------------------------------------------------
+    // 要素アクセス
+    // 計算量: O(1)
+    //--------------------------------------------------------
+    T operator[](int i) const {
+        return seg[n+i];
+    }
+
+    //--------------------------------------------------------
+    // size
+    // 計算量: O(1)
+    //--------------------------------------------------------
+    int size() const {
+        return sz;
+    }
+
+    //--------------------------------------------------------
+    // max_right
+    //
+    // l から右へ伸ばし
+    // f(op(A[l..r))) == true
+    // を満たす最大 r を返す
+    //
+    // ※ f(ID) == true 必須
+    //
+    // 計算量: O(log N)
+    //--------------------------------------------------------
+    template<class F>
+    int max_right(int l, F f) const {
+
+        if(l==sz) return sz;
+
+        T sm = ID;
+        l += n;
+
+        do{
+            while(!(l&1)) l >>= 1;
+
+            if(!f(op(sm,seg[l]))){
+                while(l < n){
+                    l <<= 1;
+                    if(f(op(sm,seg[l]))){
+                        sm = op(sm,seg[l]);
+                        l++;
+                    }
+                }
+                return l - n;
+            }
+
+            sm = op(sm,seg[l]);
+            l++;
+
+        }while((l & -l) != l);
+
+        return sz;
+    }
+
+    //--------------------------------------------------------
+    // min_left
+    //
+    // r から左へ伸ばし
+    // f(op(A[l..r))) == true
+    // を満たす最小 l
+    //
+    // 計算量: O(log N)
+    //--------------------------------------------------------
+    template<class F>
+    int min_left(int r, F f) const {
+
+        if(r==0) return 0;
+
+        T sm = ID;
+        r += n;
+
+        do{
+            --r;
+            while(r>1 && (r&1)) r >>= 1;
+
+            if(!f(op(seg[r],sm))){
+                while(r<n){
+                    r = r<<1|1;
+                    if(f(op(seg[r],sm))){
+                        sm = op(seg[r],sm);
+                        r--;
+                    }
+                }
+                return r+1-n;
+            }
+
+            sm = op(seg[r],sm);
+
+        }while((r & -r) != r);
+
+        return 0;
+    }
+
+    //--------------------------------------------------------
+    // find_first
+    //
+    // l 以上で初めて
+    // cond(prod(l,x+1)) == true
+    // となる位置を返す
+    //
+    // 存在しなければ sz
+    //
+    // 計算量: O(log N)
+    //--------------------------------------------------------
+    template<class F>
+    int find_first(int l, F cond) const {
+
+        int r = max_right(l,[&](T x){
+            return !cond(x);
+        });
+
+        return (r==sz ? sz : r);
+    }
+
+    //--------------------------------------------------------
+    // find_last
+    //
+    // r 未満で最後に
+    // cond(prod(x,r)) == true
+    // となる位置
+    //
+    // 存在しなければ -1
+    //
+    // 計算量: O(log N)
+    //--------------------------------------------------------
+    template<class F>
+    int find_last(int r, F cond) const {
+
+        int l = min_left(r,[&](T x){
+            return !cond(x);
+        });
+
+        return (l==0 ? -1 : l-1);
+    }
+};
+
+//==================================================
+// モノイド例：区間和
+//==================================================
+struct Add {
+    ll operator()(ll a,ll b) const {
+        return a+b;
+    }
+};
+
+void solv(){
+    //------------------------------------------------
+    // 元配列
+    //------------------------------------------------
+    vector<ll> A={2,1,3,4,2,5,1};
+
+    StaticSegTree<ll,Add> seg(A,Add(),0LL);
+
+
+    //------------------------------------------------
+    // ■ 要素アクセス
+    //------------------------------------------------
+    cout<<"[access]\n";
+    cout<<"A[3] = "<<seg[3]<<"\n";
+    // → 4
+
+
+    //------------------------------------------------
+    // ■ 区間取得
+    //------------------------------------------------
+    cout<<"\n[range sum]\n";
+
+    cout<<"sum[0,3) = "
+        <<seg.prod(0,3)<<"\n"; //6
+
+    cout<<"sum[2,6) = "
+        <<seg.prod(2,6)<<"\n"; //14
+
+
+
+    //------------------------------------------------
+    // ■ max_right
+    //
+    // prefix和がK以下の最大r
+    //------------------------------------------------
+    cout<<"\n[max_right]\n";
+
+    ll K=6;
+
+    int r=seg.max_right(0,[&](ll x){
+        return x<=K;
+    });
+
+    cout<<"prefix sum <= "<<K
+        <<" : r = "<<r<<"\n";
+
+    /*
+        [0,r) が条件を満たす最大
+    */
+
+
+
+    //------------------------------------------------
+    // ■ min_left
+    //
+    // suffix和制約
+    //------------------------------------------------
+    cout<<"\n[min_left]\n";
+
+    int l=seg.min_left(A.size(),[&](ll x){
+        return x<=K;
+    });
+
+    cout<<"suffix sum <= "<<K
+        <<" : l = "<<l<<"\n";
+
+
+
+    //------------------------------------------------
+    // ■ find_first
+    //
+    // 初めて prefix >= K
+    //------------------------------------------------
+    cout<<"\n[find_first]\n";
+
+    int pos1=seg.find_first(0,[&](ll x){
+        return x>=7;
+    });
+
+    cout<<"first prefix >=7 : "
+        <<pos1<<"\n";
+
+
+
+    //------------------------------------------------
+    // ■ find_last
+    //
+    // 最後に suffix >= K
+    //------------------------------------------------
+    cout<<"\n[find_last]\n";
+
+    int pos2=seg.find_last(A.size(),[&](ll x){
+        return x>=7;
+    });
+
+    cout<<"last suffix >=7 : "
+        <<pos2<<"\n";
+
+
+    //------------------------------------------------
+    // ■ all_prod
+    //------------------------------------------------
+    cout<<"\n[all]\n";
+    cout<<"total = "
+        <<seg.all_prod()<<"\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,400 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// odd[i]  : iを中心とする回文半径(中心を含む)
+//           回文長 = odd[i]*2-1
+//
+// even[i] : i-1,i間を中心とする回文半径
+//           回文長 = even[i]*2
+//
+// 計算量 O(N)
+pair<vector<int>,vector<int>> manacher_raw(const string& S){
+    int N=sizei(S);
+
+    vector<int> odd(N),even(N);
+
+    // odd
+    for(int l=0,r=-1,i=0;i<N;i++){
+        int k=(i>r?1:min(odd[l+r-i],r-i+1));
+        while(0<=i-k&&i+k<N&&S[i-k]==S[i+k])k++;
+        odd[i]=k--;
+        if(i+k>r){
+            l=i-k;
+            r=i+k;
+        }
+    }
+
+    // even
+    for(int l=0,r=-1,i=0;i<N;i++){
+        int k=(i>r?0:min(even[l+r-i+1],r-i+1));
+        while(0<=i-k-1&&i+k<N&&S[i-k-1]==S[i+k])k++;
+        even[i]=k--;
+        if(i+k>r){
+            l=i-k-1;
+            r=i+k;
+        }
+    }
+
+    return {odd,even};
+}
+
+// Manacher Algorithm
+//
+// 構築 O(N)
+//
+// odd_radius[i]  : iを中心とする奇数長回文の半径
+// even_radius[i] : i-1,i間を中心とする偶数長回文の半径
+// odd_length[i]  : 奇数長回文の最大長
+// even_length[i] : 偶数長回文の最大長
+//
+// is_palindrome(l,r) : S[l,r]が回文か判定 O(1)
+struct Manacher{
+    vector<int> odd_radius;
+    vector<int> even_radius;
+
+    vector<int> odd_length;
+    vector<int> even_length;
+
+    Manacher(const string& S){
+        tie(odd_radius,even_radius)=manacher_raw(S);
+
+        int N=sizei(S);
+        odd_length.resize(N);
+        even_length.resize(N);
+
+        rep(i,N){
+            odd_length[i]=odd_radius[i]*2-1;
+            even_length[i]=even_radius[i]*2;
+        }
+    }
+
+    // S[l,r]が回文か
+    bool is_palindrome(int l,int r)const{
+        int len=r-l+1;
+        if(len&1){
+            int c=(l+r)/2;
+            return odd_radius[c]>=len/2+1;
+        }else{
+            int c=(l+r+1)/2;
+            return even_radius[c]>=len/2;
+        }
+    }
+};
+
+bool is_palindrome_naive(const string& S,int l,int r){
+    while(l<r){
+        if(S[l]!=S[r])return false;
+        l++;
+        r--;
+    }
+    return true;
+}
+
+void random_test_manacher(){
+    mt19937 rng(random_device{}());
+
+    for(int tc=0;tc<100000;tc++){
+        int N=uniform_int_distribution<int>(0,20)(rng);
+
+        string S;
+        for(int i=0;i<N;i++){
+            S.push_back(char('a'+uniform_int_distribution<int>(0,2)(rng)));
+        }
+
+        Manacher man(S);
+
+        // is_palindrome
+        for(int l=0;l<N;l++){
+            for(int r=l;r<N;r++){
+                bool ans1=man.is_palindrome(l,r);
+                bool ans2=is_palindrome_naive(S,l,r);
+
+                if(ans1!=ans2){
+                    cerr<<"is_palindrome failed\n";
+                    cerr<<"S = "<<S<<"\n";
+                    cerr<<"l = "<<l<<" r = "<<r<<"\n";
+                    assert(false);
+                }
+            }
+        }
+
+        // odd
+        for(int c=0;c<N;c++){
+            int rad=0;
+            while(c-rad>=0&&c+rad<N&&S[c-rad]==S[c+rad])rad++;
+
+            if(man.odd_radius[c]!=rad){
+                cerr<<"odd_radius failed\n";
+                cerr<<"S = "<<S<<"\n";
+                cerr<<"center = "<<c<<"\n";
+                cerr<<"expected = "<<rad<<"\n";
+                cerr<<"actual = "<<man.odd_radius[c]<<"\n";
+                assert(false);
+            }
+
+            if(man.odd_length[c]!=rad*2-1){
+                cerr<<"odd_length failed\n";
+                cerr<<"S = "<<S<<"\n";
+                cerr<<"center = "<<c<<"\n";
+                assert(false);
+            }
+        }
+
+        // even
+        for(int c=0;c<N;c++){
+            int rad=0;
+            while(c-rad-1>=0&&c+rad<N&&S[c-rad-1]==S[c+rad])rad++;
+
+            if(man.even_radius[c]!=rad){
+                cerr<<"even_radius failed\n";
+                cerr<<"S = "<<S<<"\n";
+                cerr<<"center = "<<c<<"\n";
+                cerr<<"expected = "<<rad<<"\n";
+                cerr<<"actual = "<<man.even_radius[c]<<"\n";
+                assert(false);
+            }
+
+            if(man.even_length[c]!=rad*2){
+                cerr<<"even_length failed\n";
+                cerr<<"S = "<<S<<"\n";
+                cerr<<"center = "<<c<<"\n";
+                assert(false);
+            }
+        }
+    }
+
+    cerr<<"ALL TEST PASSED\n";
+}
+
+// odd_radius[i] >= k
+//     → S[i-k+1 ～ i+k-1] が回文
+//
+// even_radius[i] >= k
+//     → S[i-k ～ i+k-1] が回文
+//
+// is_palindrome(l,r)
+//     → S[l,r] が回文か O(1)
+void debug_manacher(const string& S){
+    Manacher man(S);
+
+    cout<<"文字列: "<<S<<"\n\n";
+
+    cout<<"奇数長回文\n";
+    cout<<"中心  半径  長さ\n";
+    rep(i,sizei(S)){
+        cout<<setw(4)<<i
+            <<setw(6)<<man.odd_radius[i]
+            <<setw(6)<<man.odd_length[i]
+            <<"\n";
+    }
+
+    cout<<"\n偶数長回文\n";
+    cout<<"中心(左|右)  半径  長さ\n";
+    rep(i,sizei(S)){
+        cout<<setw(5)<<i-1<<"|"<<i
+            <<setw(6)<<man.even_radius[i]
+            <<setw(6)<<man.even_length[i]
+            <<"\n";
+    }
+
+    cout<<"\n回文となる区間一覧\n";
+    rep(l,sizei(S)){
+        rep(r,l,sizei(S)){
+            if(man.is_palindrome(l,r)){
+                cout<<"["<<l<<","<<r<<"] : "
+                    <<S.substr(l,r-l+1)
+                    <<"\n";
+            }
+        }
+    }
+}
+
+void solv(){
+    random_test_manacher();
+    debug_manacher("abacaba");
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

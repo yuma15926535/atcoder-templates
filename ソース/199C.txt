@@ -1,0 +1,42 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N;
+bool flip;
+//flipを参照してindexに変換
+int geti(int index){
+    if(flip)return index-1;
+    if(index>N)return index-N-1;
+    return index+N-1;
+}
+
+int main()
+{
+    int Q;
+    string S;
+    cin>>N>>S>>Q;
+    flip=true;
+    rep(i,0,Q){
+        int q,a,b;
+        cin>>q>>a>>b;
+        if(q==1)swap(S[geti(a)],S[geti(b)]);
+        //boolを反転
+        else flip^=true;
+    }
+    string front=S.substr(0,N),back=S.substr(N);
+    //flipを参照して出力
+    if(flip)cout<<front<<back<<"\n";
+    else cout<<back<<front<<"\n";
+    return 0;
+}

@@ -1,0 +1,45 @@
+// =============================================================================
+//  ワイルドカードつきの一致・ずらしごとの不一致の数・k 個以下の不一致で一致（畳み込み NTT）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 一致・出現（パターン検索）
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  中で NTT（mod 998244353）を使う（math_v2 には依存しない）。text の長さ N、pat の長さ M。ずらし i は 0〜N-M（pat を text[i, i+M) に重ねる）
+//  wild は text・pat のどちらにあっても任意の 1 文字と一致する。列は string でも数の列でもよい（数の列で wild を使うときは値を渡す）
+//  wild のない普通の一致は 02_pattern_match の find_all（O(N + M) で速い）
+//
+//  機能一覧                                                                       計算量
+//    mismatch_counts(text, pat, wild)      ずらしごとの不一致の数（wild を省くとワイルドカードなし）         O(σ' (N + M) log(N + M))
+//    match_with_k_mismatches(text, pat, k, wild)   不一致が k 以下のずらしの一覧                         同上
+//    wildcard_match(text, pat, wild = '?') wild を任意の 1 文字として一致するずらしの一覧（乱数を使う）      O((N + M) log(N + M))
+//    （σ' は pat に出てくる異なる値の数。値の種類が多いと遅い）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    wc_test::random_test()  … すべてのずらしで 1 文字ずつ比べる愚直解と全機能を突き合わせるランダムテスト
+//    wc_test::benchmark()    … 速度計測
+//    wc_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

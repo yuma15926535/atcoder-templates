@@ -1,0 +1,1159 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+==================================================
+ Wavelet Tree（静的区間クエリ）
+==================================================
+
+【概要】
+値で分割するセグ木のような構造。
+各ノードで「左に行く個数の累積(mid)」を持つことで、
+区間クエリを O(log σ) で処理できる。
+
+【できること】
+- kth(l, r, k)              : k番目（0-index）
+- count(l, r, x)            : xの個数
+- count_leq(l, r, x)        : x以下の個数
+- count_less(l, r, x)       : x未満の個数
+- count_range(l, r, a, b)   : [a,b] の個数
+- prev_value(l, r, x)       : 最大の ≤ x
+- next_value(l, r, x)       : 最小の ≥ x
+- range_kth(l, r, a, b, k)  : [a,b] 内でk番目
+
+【計算量】
+- build : O(n log σ)
+- query : O(log σ)
+
+【前提・仕様】
+- 配列は静的（更新なし）
+- 区間は [l, r)
+- kth は 0-index
+- 座圧は内部で自動処理
+
+【重要ポイント】
+- mid[i] = [0,i) のうち「左に行く個数」
+- 右側に行くときは index を変換する：
+    left_l  = mid[l]
+    right_l = l - mid[l]
+- nulloptの例外処理：if(res)でelseに行く。結果は*resで使う。
+
+【用途】
+- 区間kth
+- 区間freq
+- 値域制限クエリ
+
+【注意】
+- 動的更新は不可
+- distinct数には向かない（Moの方が強い）
+==================================================
+*/
+template<typename T>
+struct WaveletTree {
+    struct Node {
+        int lo, hi;
+        vector<int> mid; // 左に行く個数の累積
+        Node *l = nullptr, *r = nullptr;
+
+        Node(int lo, int hi): lo(lo), hi(hi) {}
+    };
+
+    Node* root;
+    vector<T> xs; // 復元用
+
+    // build：値域 [lo,hi] で再帰構築
+    // mid[i] = [0,i) のうち左に行く個数
+    Node* build(vector<int>& a, int lo, int hi) {
+        Node* node = new Node(lo, hi);
+        int n = a.size();
+
+        node->mid.resize(n + 1);
+        node->mid[0] = 0;
+
+        if (lo == hi) {
+            for (int i = 0; i < n; i++) {
+                node->mid[i+1] = node->mid[i] + 1;
+            }
+            return node;
+        }
+
+        int midv = (lo + hi) >> 1;
+
+        vector<int> left, right;
+        left.reserve(n);
+        right.reserve(n);
+
+        for (int i = 0; i < n; i++) {
+            if (a[i] <= midv) {
+                left.push_back(a[i]);
+                node->mid[i+1] = node->mid[i] + 1;
+            } else {
+                right.push_back(a[i]);
+                node->mid[i+1] = node->mid[i];
+            }
+        }
+
+        if (!left.empty()) node->l = build(left, lo, midv);
+        if (!right.empty()) node->r = build(right, midv+1, hi);
+
+        return node;
+    }
+
+    // ---- constructor (vector<T>) ----
+    WaveletTree(const vector<T>& a) {
+        xs = a;
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+
+        vector<int> comp(a.size());
+        for (int i = 0; i < (int)a.size(); i++) {
+            comp[i] = lower_bound(xs.begin(), xs.end(), a[i]) - xs.begin();
+        }
+
+        root = build(comp, 0, (int)xs.size()-1);
+    }
+
+    // ---- constructor (string) ----
+    WaveletTree(const string& s) {
+        vector<char> a(s.begin(), s.end());
+        *this = WaveletTree<char>(a);
+    }
+
+    int count(Node* node, int l, int r, int x) {
+        if (!node || l >= r) return 0;
+
+        if (node->lo == node->hi) {
+            return r - l;
+        }
+
+        int midv = (node->lo + node->hi) >> 1;
+
+        int left_l = node->mid[l];
+        int left_r = node->mid[r];
+
+        if (x <= midv) {
+            return count(node->l, left_l, left_r, x);
+        } else {
+            int right_l = l - left_l;
+            int right_r = r - left_r;
+            return count(node->r, right_l, right_r, x);
+        }
+    }
+
+    int kth(Node* node, int l, int r, int k) {
+        if (node->lo == node->hi) {
+            return node->lo;
+        }
+
+        int left_l = node->mid[l];
+        int left_r = node->mid[r];
+        int left_cnt = left_r - left_l;
+
+        if (k < left_cnt) {
+            return kth(node->l, left_l, left_r, k);
+        } else {
+            int right_l = l - left_l;
+            int right_r = r - left_r;
+            return kth(node->r, right_l, right_r, k - left_cnt);
+        }
+    }
+
+    int count_leq(Node* node, int l, int r, int x) {
+        if (!node || l >= r) return 0;
+
+        // 範囲外
+        if (x < node->lo) return 0;
+
+        // 全部OK
+        if (node->hi <= x) return r - l;
+
+        int left_l = node->mid[l];
+        int left_r = node->mid[r];
+
+        int res = 0;
+
+        if (node->l) {
+            res += count_leq(node->l, left_l, left_r, x);
+        }
+
+        if (node->r) {
+            int right_l = l - left_l;
+            int right_r = r - left_r;
+            res += count_leq(node->r, right_l, right_r, x);
+        }
+
+        return res;
+    }
+
+    // count(l,r,x)：xの個数（存在しない場合は0）
+    int count(int l, int r, T x) {
+        int id = lower_bound(xs.begin(), xs.end(), x) - xs.begin();
+
+        if (id == (int)xs.size() || xs[id] != x) return 0;
+
+        return count(root, l, r, id);
+    }
+
+    // kth(l,r,k)：k番目（0-index）
+    // 範囲外は例外
+    T kth(int l, int r, int k) {
+        int len = r - l;
+        if (k < 0 || k >= len) {
+            throw out_of_range("kth: k out of range");
+        }
+
+        int id = kth(root, l, r, k);
+        return xs[id];
+    }
+
+    // range_kth：区間 [a,b] に制限したkth
+    // base + k で通常kthに変換
+    // 0-index
+    optional<T> range_kth(int l, int r, T a, T b, int k) {
+        int cnt = count_range(l, r, a, b);
+        if (k < 0 || k >= cnt) return nullopt;
+
+        int base = 0;
+        auto it = lower_bound(xs.begin(), xs.end(), a);
+        if (it != xs.begin()) {
+            T prev = *(it - 1);
+            base = count_leq(l, r, prev);
+        }
+
+        return kth(l, r, base + k);
+    }
+
+    // count_leq(l,r,x)：x以下の個数（upper_bound使用）
+    int count_leq(int l, int r, T x) {
+        if (xs.empty()) return 0;
+
+        int id = upper_bound(xs.begin(), xs.end(), x) - xs.begin() - 1;
+
+        if (id < 0) return 0;
+
+        return count_leq(root, l, r, id);
+    }
+
+    // count_less(l,r,x)：x未満の個数（lower_bound→1つ前）
+    int count_less(int l, int r, T x) {
+        auto it = lower_bound(xs.begin(), xs.end(), x);
+        if (it == xs.begin()) return 0;
+        T prev = *(it - 1);
+        return count_leq(l, r, prev);
+    }
+
+    // count_range(l,r,a,b)：[a,b] の個数
+    // = count_leq(b) - count_less(a)
+    int count_range(int l, int r, T a, T b) {
+        if (l >= r) return 0;
+        if (a > b) return 0;
+
+        int right = count_leq(l, r, b);
+
+        int left = 0;
+        auto it = lower_bound(xs.begin(), xs.end(), a);
+        if (it != xs.begin()) {
+            T prev = *(it - 1);
+            left = count_leq(l, r, prev);
+        }
+
+        return right - left;
+    }
+
+    // prev_value：最大の ≤ x（なければnullopt）
+    optional<T> prev_value(int l, int r, T x) {
+        int cnt = count_leq(l, r, x);
+        if (cnt == 0) return nullopt;
+        return kth(l, r, cnt - 1);
+    }
+
+    // next_value：最小の ≥ x（なければnullopt）
+    optional<T> next_value(int l, int r, T x) {
+        int less = 0;
+
+        auto it = lower_bound(xs.begin(), xs.end(), x);
+        if (it != xs.begin()) {
+            T prev = *(it - 1);
+            less = count_leq(l, r, prev);
+        }
+
+        int len = r - l;
+        if (less == len) return nullopt;
+
+        return kth(l, r, less);
+    }
+};
+
+template<typename T>
+bool check_node(typename WaveletTree<T>::Node* node) {
+    if (!node) return true;
+
+    int n = node->mid.size() - 1;
+
+    // mid[0] == 0
+    if (node->mid[0] != 0) return false;
+
+    // 単調増加
+    for (int i = 0; i < n; i++) {
+        if (node->mid[i] > node->mid[i+1]) return false;
+    }
+
+    // 範囲チェック
+    if (node->lo == node->hi) {
+        // 全部左に行くはず
+        if (node->mid[n] != n) return false;
+    } else {
+        int left_size = node->mid[n];
+        int right_size = n - left_size;
+
+        if (node->l) {
+            if ((int)node->l->mid.size() - 1 != left_size) return false;
+        }
+        if (node->r) {
+            if ((int)node->r->mid.size() - 1 != right_size) return false;
+        }
+    }
+
+    return check_node<T>(node->l) && check_node<T>(node->r);
+}
+
+template<typename T>
+int naive_count(const vector<T>& a, int l, int r, T x) {
+    int cnt = 0;
+    for (int i = l; i < r; i++) {
+        if (a[i] == x) cnt++;
+    }
+    return cnt;
+}
+
+template<typename T>
+T naive_kth(vector<T> a, int l, int r, int k) {
+    vector<T> b;
+    for (int i = l; i < r; i++) b.push_back(a[i]);
+    sort(b.begin(), b.end());
+    return b[k];
+}
+
+template<typename T>
+int naive_count_leq(const vector<T>& a, int l, int r, T x) {
+    int cnt = 0;
+    for (int i = l; i < r; i++) {
+        if (a[i] <= x) cnt++;
+    }
+    return cnt;
+}
+
+template<typename T>
+int naive_count_range(const vector<T>& a, int l, int r, T x, T y) {
+    int cnt = 0;
+    for (int i = l; i < r; i++) {
+        if (x <= a[i] && a[i] <= y) cnt++;
+    }
+    return cnt;
+}
+
+template<typename T>
+optional<T> naive_prev(const vector<T>& a, int l, int r, T x) {
+    optional<T> res;
+    for (int i = l; i < r; i++) {
+        if (a[i] <= x) {
+            if (!res || a[i] > *res) res = a[i];
+        }
+    }
+    return res;
+}
+
+template<typename T>
+optional<T> naive_next(const vector<T>& a, int l, int r, T x) {
+    optional<T> res;
+    for (int i = l; i < r; i++) {
+        if (a[i] >= x) {
+            if (!res || a[i] < *res) res = a[i];
+        }
+    }
+    return res;
+}
+
+template<typename T>
+int naive_count_less(const vector<T>& a, int l, int r, T x) {
+    int cnt = 0;
+    for (int i = l; i < r; i++) {
+        if (a[i] < x) cnt++;
+    }
+    return cnt;
+}
+
+template<typename T>
+optional<T> naive_range_kth(vector<T> a, int l, int r, T x, T y, int k) {
+    vector<T> b;
+    for (int i = l; i < r; i++) {
+        if (x <= a[i] && a[i] <= y) b.push_back(a[i]);
+    }
+    if (k < 0 || k >= (int)b.size()) return nullopt;
+    sort(b.begin(), b.end());
+    return b[k];
+}
+
+void random_test_build() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        vector<int> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = rand() % 20;
+        }
+
+        WaveletTree<int> wt(a);
+
+        if (!check_node<int>(wt.root)) {
+            cout << "ERROR\n";
+            for (auto x : a) cout << x << " ";
+            cout << endl;
+            return;
+        }
+    }
+    cout << "OK\n";
+}
+
+void random_test_string() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            s += char('a' + rand() % 5);
+        }
+
+        WaveletTree<char> wt(s);
+
+        if (!check_node<char>(wt.root)) {
+            cout << "ERROR string\n";
+            cout << s << endl;
+            return;
+        }
+    }
+    cout << "OK string\n";
+}
+
+void random_test_count() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        vector<int> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = rand() % 10;
+        }
+
+        WaveletTree<int> wt(a);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++; // [l,r)
+
+            int x = rand() % 12; // 存在しない値も含む
+
+            int expected = naive_count(a, l, r, x);
+            int actual = wt.count(l, r, x);
+
+            if (expected != actual) {
+                cout << "ERROR\n";
+                cout << "array: ";
+                for (auto v : a) cout << v << " ";
+                cout << "\n";
+                cout << "l r x = " << l << " " << r << " " << x << "\n";
+                cout << "expected = " << expected << " actual = " << actual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "OK count\n";
+}
+
+void random_test_count_string() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            s += char('a' + rand() % 5);
+        }
+
+        vector<char> a(s.begin(), s.end());
+        WaveletTree<char> wt(s);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            char x = char('a' + rand() % 7);
+
+            int expected = naive_count(a, l, r, x);
+            int actual = wt.count(l, r, x);
+
+            if (expected != actual) {
+                cout << "ERROR string\n";
+                cout << s << "\n";
+                cout << "l r x = " << l << " " << r << " " << x << "\n";
+                cout << "expected = " << expected << " actual = " << actual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "OK count string\n";
+}
+
+void random_test_kth() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        vector<int> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = rand() % 20;
+        }
+
+        WaveletTree<int> wt(a);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            int len = r - l;
+            int k = rand() % len;
+
+            int expected = naive_kth(a, l, r, k);
+            int actual = wt.kth(l, r, k);
+
+            if (expected != actual) {
+                cout << "ERROR kth\n";
+                cout << "array: ";
+                for (auto v : a) cout << v << " ";
+                cout << "\n";
+
+                cout << "l r k = " << l << " " << r << " " << k << "\n";
+                cout << "expected = " << expected << " actual = " << actual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "OK kth\n";
+}
+
+void random_test_kth_string() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            s += char('a' + rand() % 5);
+        }
+
+        vector<char> a(s.begin(), s.end());
+        WaveletTree<char> wt(s);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            int len = r - l;
+            int k = rand() % len;
+
+            char expected = naive_kth(a, l, r, k);
+            char actual = wt.kth(l, r, k);
+
+            if (expected != actual) {
+                cout << "ERROR kth string\n";
+                cout << s << "\n";
+
+                cout << "l r k = " << l << " " << r << " " << k << "\n";
+                cout << "expected = " << expected << " actual = " << actual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "OK kth string\n";
+}
+
+void random_test_count_leq() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        vector<int> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = rand() % 20;
+        }
+
+        WaveletTree<int> wt(a);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            int x = rand() % 25 - 2; // 負や範囲外も含める
+
+            int expected = naive_count_leq(a, l, r, x);
+            int actual = wt.count_leq(l, r, x);
+
+            if (expected != actual) {
+                cout << "ERROR count_leq\n";
+                cout << "array: ";
+                for (auto v : a) cout << v << " ";
+                cout << "\n";
+
+                cout << "l r x = " << l << " " << r << " " << x << "\n";
+                cout << "expected = " << expected << " actual = " << actual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "OK count_leq\n";
+}
+
+void random_test_count_leq_string() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            s += char('a' + rand() % 5);
+        }
+
+        vector<char> a(s.begin(), s.end());
+        WaveletTree<char> wt(s);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            char x = char('a' + (rand() % 7 - 1)); // 範囲外も含む
+
+            int expected = naive_count_leq(a, l, r, x);
+            int actual = wt.count_leq(l, r, x);
+
+            if (expected != actual) {
+                cout << "ERROR count_leq string\n";
+                cout << s << "\n";
+
+                cout << "l r x = " << l << " " << r << " " << x << "\n";
+                cout << "expected = " << expected << " actual = " << actual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "OK count_leq string\n";
+}
+
+void random_test_range_prev_next() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        vector<int> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = rand() % 20;
+        }
+
+        WaveletTree<int> wt(a);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            int x = rand() % 25 - 5;
+            int y = rand() % 25 - 5;
+            if (x > y) swap(x, y);
+
+            // count_range
+            int e1 = naive_count_range(a, l, r, x, y);
+            int a1 = wt.count_range(l, r, x, y);
+            if (e1 != a1) {
+                cout << "ERROR range\n";
+                return;
+            }
+
+            // prev
+            auto e2 = naive_prev(a, l, r, x);
+            auto a2 = wt.prev_value(l, r, x);
+            if (e2 != a2) {
+                cout << "ERROR prev\n";
+                return;
+            }
+
+            // next
+            auto e3 = naive_next(a, l, r, x);
+            auto a3 = wt.next_value(l, r, x);
+            if (e3 != a3) {
+                cout << "ERROR next\n";
+                return;
+            }
+        }
+    }
+    cout << "OK range/prev/next\n";
+}
+
+void random_test_range_prev_next_string() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            s += char('a' + rand() % 5);
+        }
+
+        vector<char> a(s.begin(), s.end());
+        WaveletTree<char> wt(s);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            char x = char('a' + rand() % 7);
+            char y = char('a' + rand() % 7);
+            if (x > y) swap(x, y);
+
+            auto e1 = naive_count_range(a, l, r, x, y);
+            auto a1 = wt.count_range(l, r, x, y);
+
+            if (e1 != a1) {
+                cout << "ERROR range string\n";
+                return;
+            }
+
+            auto e2 = naive_prev(a, l, r, x);
+            auto a2 = wt.prev_value(l, r, x);
+
+            if (e2 != a2) {
+                cout << "ERROR prev string\n";
+                return;
+            }
+
+            auto e3 = naive_next(a, l, r, x);
+            auto a3 = wt.next_value(l, r, x);
+
+            if (e3 != a3) {
+                cout << "ERROR next string\n";
+                return;
+            }
+        }
+    }
+    cout << "OK range/prev/next string\n";
+}
+
+void random_test_count_less_range_kth() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        vector<int> a(n);
+        for (int i = 0; i < n; i++) {
+            a[i] = rand() % 20;
+        }
+
+        WaveletTree<int> wt(a);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            int x = rand() % 25 - 5;
+            int y = rand() % 25 - 5;
+            if (x > y) swap(x, y);
+
+            // --- count_less ---
+            int e1 = naive_count_less(a, l, r, x);
+            int a1 = wt.count_less(l, r, x);
+
+            if (e1 != a1) {
+                cout << "ERROR count_less\n";
+                return;
+            }
+
+            // --- range_kth ---
+            int cnt = naive_count_range(a, l, r, x, y);
+            int k = (cnt == 0 ? 0 : rand() % (cnt + 2) - 1); // 敢えて範囲外も入れる
+
+            auto e2 = naive_range_kth(a, l, r, x, y, k);
+            auto a2 = wt.range_kth(l, r, x, y, k);
+
+            if (e2 != a2) {
+                cout << "ERROR range_kth\n";
+                cout << "array: ";
+                for (auto v : a) cout << v << " ";
+                cout << "\n";
+
+                cout << "l r x y k = "
+                     << l << " " << r << " "
+                     << x << " " << y << " "
+                     << k << "\n";
+
+                if (e2) cout << "expected = " << *e2 << "\n";
+                else cout << "expected = null\n";
+
+                if (a2) cout << "actual = " << *a2 << "\n";
+                else cout << "actual = null\n";
+
+                return;
+            }
+
+            // --- 整合性チェック（重要） ---
+            int less = wt.count_less(l, r, x);
+            int leq  = wt.count_leq(l, r, x);
+
+            if (!(less <= leq)) {
+                cout << "ERROR consistency less<=leq\n";
+                return;
+            }
+
+            int range_cnt = wt.count_range(l, r, x, y);
+            int check = wt.count_leq(l, r, y) - wt.count_less(l, r, x);
+
+            if (range_cnt != check) {
+                cout << "ERROR consistency range\n";
+                return;
+            }
+        }
+    }
+    cout << "OK count_less & range_kth\n";
+}
+
+void random_test_count_less_range_kth_string() {
+    for (int t = 0; t < 1000; t++) {
+        int n = rand() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            s += char('a' + rand() % 5);
+        }
+
+        vector<char> a(s.begin(), s.end());
+        WaveletTree<char> wt(s);
+
+        for (int q = 0; q < 200; q++) {
+            int l = rand() % n;
+            int r = rand() % n;
+            if (l > r) swap(l, r);
+            r++;
+
+            char x = char('a' + rand() % 7);
+            char y = char('a' + rand() % 7);
+            if (x > y) swap(x, y);
+
+            // count_less
+            int e1 = naive_count_less(a, l, r, x);
+            int a1 = wt.count_less(l, r, x);
+            if (e1 != a1) {
+                cout << "ERROR count_less string\n";
+                return;
+            }
+
+            // range_kth
+            int cnt = naive_count_range(a, l, r, x, y);
+            int k = (cnt == 0 ? 0 : rand() % (cnt + 2) - 1);
+
+            auto e2 = naive_range_kth(a, l, r, x, y, k);
+            auto a2 = wt.range_kth(l, r, x, y, k);
+
+            if (e2 != a2) {
+                cout << "ERROR range_kth string\n";
+                return;
+            }
+        }
+    }
+    cout << "OK count_less & range_kth string\n";
+}
+
+void demo_wavelet_tree() {
+    vector<int> a = {5, 1, 4, 2, 3, 2, 5};
+    WaveletTree<int> wt(a);
+
+    int l = 1, r = 6; // [1,6) = {1,4,2,3,2}
+
+    cout << "array: ";
+    for (auto x : a) cout << x << " ";
+    cout << "\n";
+
+    cout << "range = [" << l << "," << r << ")\n";
+
+    // --- kth ---
+    cout << "kth:\n";
+    for (int k = 0; k < r-l; k++) {
+        cout << k << " -> " << wt.kth(l,r,k) << "\n";
+    }
+
+    // --- count ---
+    cout << "count(2) = " << wt.count(l,r,2) << "\n";
+
+    // --- leq / less ---
+    cout << "count_leq(3) = " << wt.count_leq(l,r,3) << "\n";
+    cout << "count_less(3) = " << wt.count_less(l,r,3) << "\n";
+
+    // --- range ---
+    cout << "count_range(2,4) = " << wt.count_range(l,r,2,4) << "\n";
+
+    // --- prev / next ---
+    auto p = wt.prev_value(l,r,3);
+    auto n = wt.next_value(l,r,3);
+
+    cout << "prev(3) = " << (p ? to_string(*p) : "null") << "\n";
+    cout << "next(3) = " << (n ? to_string(*n) : "null") << "\n";
+
+    // --- range_kth ---
+    cout << "range_kth [2,4]:\n";
+    for (int k = 0; k < 10; k++) {
+        auto v = wt.range_kth(l,r,2,4,k);
+        if (!v) break;
+        cout << k << " -> " << *v << "\n";
+    }
+}
+
+void demo_wavelet_tree_string() {
+    string s = "bacbcab";
+    WaveletTree<char> wt(s);
+
+    int l = 1, r = 6; // [1,6) = "acbca"
+
+    cout << "string: " << s << "\n";
+    cout << "range = [" << l << "," << r << ") -> ";
+    for (int i = l; i < r; i++) cout << s[i];
+    cout << "\n";
+
+    // --- kth ---
+    cout << "kth:\n";
+    for (int k = 0; k < r - l; k++) {
+        cout << k << " -> " << wt.kth(l, r, k) << "\n";
+    }
+
+    // --- count ---
+    cout << "count('c') = " << wt.count(l, r, 'c') << "\n";
+
+    // --- leq / less ---
+    cout << "count_leq('c') = " << wt.count_leq(l, r, 'c') << "\n";
+    cout << "count_less('c') = " << wt.count_less(l, r, 'c') << "\n";
+
+    // --- range ---
+    cout << "count_range('b','c') = " << wt.count_range(l, r, 'b', 'c') << "\n";
+
+    // --- prev / next ---
+    auto p = wt.prev_value(l, r, 'c');
+    auto n = wt.next_value(l, r, 'c');
+
+    cout << "prev('c') = " << (p ? string(1, *p) : "null") << "\n";
+    cout << "next('c') = " << (n ? string(1, *n) : "null") << "\n";
+
+    // --- range_kth ---
+    cout << "range_kth ['b','c']:\n";
+    for (int k = 0; k < 10; k++) {
+        auto v = wt.range_kth(l, r, 'b', 'c', k);
+        if (!v) break;
+        cout << k << " -> " << *v << "\n";
+    }
+}
+
+void solv(){
+    random_test_build();
+    random_test_string();
+    random_test_count();
+    random_test_count_string();
+    random_test_kth();
+    random_test_kth_string();
+    random_test_count_leq();
+    random_test_count_leq_string();
+    random_test_range_prev_next();
+    random_test_range_prev_next_string();
+    random_test_count_less_range_kth();
+    random_test_count_less_range_kth_string();
+    demo_wavelet_tree();
+    demo_wavelet_tree_string();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

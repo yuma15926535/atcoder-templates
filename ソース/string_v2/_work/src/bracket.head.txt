@@ -1,0 +1,56 @@
+// =============================================================================
+//  括弧列（正しいか・対応・深さ・入れ子の木・対応する組を消す・足りない数・並べ替えてつなげる・区間の判定・書き換え・全列挙）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 07 括弧列
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  括弧の種類は文字列 pairs で渡す（既定 "()"。"()[]<>" なら 3 種類。偶数番目が開き、次がそれに対応する閉じ）
+//  括弧以外の文字は無視する（中身として扱う）。対応は「隣り合う同じ種類の開き・閉じを消すことを繰り返す」で一緒に消える組
+//  （1 種類）と書いたものは pairs の長さが 2 のときだけ使える（違えば止める）
+//
+//  機能一覧                                                                       計算量
+//    is_balanced(s, pairs)                 正しい括弧列か                                               O(N)
+//    match_brackets(s, pairs)              対応する括弧の位置（なければ -1）                              O(N)
+//    bracket_depths(s, pairs)              各位置を囲む組の数                                            O(N)
+//    bracket_parents(s, pairs)             各位置を囲む一番内側の組の開き括弧（入れ子を木に）               O(N)
+//    erase_matched_pairs(s, pairs)         対応する組を中身ごと消した残り（ABC307 D）                     O(N)
+//    BracketBalance{need_open, need_close} 対応しない閉じ / 開きの数。+ で連結、balanced()（1 種類）        O(1)
+//    balance_of(s, pairs)                  その計算（1 文字 balance_of(c) も）（1 種類）                   O(N)
+//    bracket_concat_order(vs, pairs)       並べ替えてつなげて正しくする順 BracketOrder{ok, order}（1 種類）   O(Σ|vs| + K log K)
+//    min_insertions_to_balance(s, pairs)   足す括弧の最小の数（1 種類）                                   O(N)
+//    fix_brackets(s, pairs)                最小の数を足して正しくしたもの（1 種類）                        O(N)
+//    count_balanced_substrings(s, pairs)   正しい括弧列の部分文字列の数                                   O(N)
+//    longest_balanced_substring(s, pairs)  最長のもの（StrSpan）                                         O(N)
+//    StaticBracket sb(s, pairs)            sb.is_balanced(l, r)（O(1)）/ sb.partner(i)                    前処理 O(N)
+//    BracketSegTree bt(s, pairs)           set(i, c) / flip(i) / get(i) / is_balanced(l, r) / balance(l, r) / all_balanced()（1 種類）  O(log N)
+//    for_each_balanced(n, f, pairs)        長さ n の正しい括弧列を辞書順（開き < 閉じ）に f(s)（1 種類）    O(個数 × n)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    brk_test::random_test()  … 隣り合う組を消す愚直解・全部の部分文字列・全部の並べ方と全機能を突き合わせるランダムテスト
+//    brk_test::benchmark()    … 速度計測
+//    brk_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

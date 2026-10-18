@@ -1,0 +1,468 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+struct LazyBidirectionalString {
+
+    // reverse で保持
+    string left;
+
+    // 通常順
+    string right;
+
+    // lazy reverse
+    bool rev = false;
+
+    // ===== lazy materialize =====
+
+    mutable string cache;
+    mutable bool dirty = true;
+
+    //--------------------------------------------------------
+    // constructor
+    //--------------------------------------------------------
+
+    //空文字で初期化
+    LazyBidirectionalString(){}
+
+    //初期化
+    LazyBidirectionalString(const string& s){
+        right = s;
+        dirty = true;
+    }
+
+    //--------------------------------------------------------
+    // size
+    //--------------------------------------------------------
+    int size() const {
+        return left.size() + right.size();
+    }
+
+    //--------------------------------------------------------
+    // empty
+    //--------------------------------------------------------
+    bool empty() const {
+        return size() == 0;
+    }
+
+    //--------------------------------------------------------
+    // reserve
+    //--------------------------------------------------------
+    void reserve(size_t n){
+        left.reserve(n);
+        right.reserve(n);
+    }
+
+    //--------------------------------------------------------
+    // prepend(char)
+    //--------------------------------------------------------
+    void prepend(char c){
+
+        dirty = true;
+
+        if(!rev) left.push_back(c);
+        else right.push_back(c);
+    }
+
+    //--------------------------------------------------------
+    // prepend(string)
+    //--------------------------------------------------------
+    void prepend(const string& s){
+
+        dirty = true;
+
+        if(!rev){
+            for(auto it = s.rbegin(); it != s.rend(); ++it)
+                left.push_back(*it);
+        }
+        else{
+            for(auto it = s.rbegin(); it != s.rend(); ++it)
+                right.push_back(*it);
+        }
+    }
+
+    //--------------------------------------------------------
+    // append(char)
+    //--------------------------------------------------------
+    void append(char c){
+
+        dirty = true;
+
+        if(!rev) right.push_back(c);
+        else left.push_back(c);
+    }
+
+    //--------------------------------------------------------
+    // append(string)
+    //--------------------------------------------------------
+    void append(const string& s){
+
+        dirty = true;
+
+        if(!rev){
+            right += s;
+        }
+        else{
+            left += s;
+        }
+    }
+
+    //--------------------------------------------------------
+    // reverse
+    //--------------------------------------------------------
+    void reverse(){
+        rev ^= 1;
+        dirty = true;
+    }
+
+    //--------------------------------------------------------
+    // cache rebuild
+    //--------------------------------------------------------
+    void build_cache() const {
+
+        if(!dirty) return;
+
+        cache.clear();
+        cache.reserve(size());
+
+        if(!rev){
+
+            for(auto it = left.rbegin(); it != left.rend(); ++it)
+                cache.push_back(*it);
+
+            cache += right;
+
+        }
+        else{
+
+            for(auto it = right.rbegin(); it != right.rend(); ++it)
+                cache.push_back(*it);
+
+            cache += left;
+        }
+
+        dirty = false;
+    }
+
+    //--------------------------------------------------------
+    // index access
+    //--------------------------------------------------------
+    char operator[](size_t i) const {
+
+        size_t L = left.size();
+        size_t R = right.size();
+
+        if(!rev){
+
+            if(i < L) return left[L - 1 - i];
+            else return right[i - L];
+
+        }else{
+
+            if(i < R) return right[R - 1 - i];
+            else return left[i - R];
+        }
+    }
+
+    //--------------------------------------------------------
+    // front
+    //--------------------------------------------------------
+    char front() const {
+        return (*this)[0];
+    }
+
+    //--------------------------------------------------------
+    // back
+    //--------------------------------------------------------
+    char back() const {
+        return (*this)[size() - 1];
+    }
+
+    //--------------------------------------------------------
+    // substr
+    //--------------------------------------------------------
+    string substr(size_t pos, size_t len) const {
+
+        size_t L = left.size();
+        size_t R = right.size();
+
+        string res;
+        res.reserve(len);
+
+        if(!rev){
+
+            // real = reverse(left) + right
+
+            if(pos < L){
+
+                size_t take = min(len, L - pos);
+
+                for(size_t i = 0; i < take; i++)
+                    res.push_back(left[L - 1 - (pos + i)]);
+
+                pos += take;
+                len -= take;
+            }
+
+            if(len){
+                res.append(right, pos - L, len);
+            }
+
+        }else{
+
+            // real = reverse(right) + left
+
+            if(pos < R){
+
+                size_t take = min(len, R - pos);
+
+                for(size_t i = 0; i < take; i++)
+                    res.push_back(right[R - 1 - (pos + i)]);
+
+                pos += take;
+                len -= take;
+            }
+
+            if(len){
+                res.append(left, pos - R, len);
+            }
+        }
+
+        return res;
+    }
+
+    //--------------------------------------------------------
+    // str
+    //--------------------------------------------------------
+    const string& str() const {
+
+        build_cache();
+        return cache;
+    }
+
+    //--------------------------------------------------------
+    // clear
+    //--------------------------------------------------------
+    void clear(){
+        left.clear();
+        right.clear();
+        rev = false;
+
+        cache.clear();
+        dirty = true;
+    }
+};
+
+struct Node {
+    int parent;
+    string add;
+};
+
+void solv(){
+    int N,Q;
+    cin>>N>>Q;
+    //参照と追加文字列
+    vector<Node> nodes;
+    nodes.push_back({-1, ""});
+    //各pcの参照node
+    vector<int> pc(N + 1, 0);
+    //サーバの参照node
+    int server = 0;
+    while(Q--){
+        int q,p;
+        cin>>q>>p;
+        if(q==1){
+            pc[p]=server;
+        }else if(q==2){
+            string s;
+            cin>>s;
+            nodes.push_back({pc[p],s});
+            pc[p]=sizei(nodes)-1;
+        }else{
+            server=pc[p];
+        }
+    }
+    LazyBidirectionalString ans;
+    int cur = server;
+    while (cur != 0) {
+        ans.prepend(nodes[cur].add);
+        cur = nodes[cur].parent;
+    }
+    cout << ans.str() << "\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

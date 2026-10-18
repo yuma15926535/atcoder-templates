@@ -1,0 +1,179 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ Sparse Table（静的区間クエリ・冪等演算専用）
+==================================================
+
+【用途】
+- 静的配列に対する区間クエリ
+- 演算が冪等（f(x, x) = x）であることが前提
+
+【代表的に使える演算】
+- min, max
+- gcd, lcm
+- bitwise AND / OR
+
+【できないこと】
+- 更新（値変更）
+- sum / product（冪等でない）
+
+【計算量】
+- 前処理: O(N log N)
+- クエリ: O(1)
+- メモリ: O(N log N)
+*/
+template <class T>
+struct SparseTable {
+    int n;                      // 要素数
+    int LOG;                    // log2(n) の最大
+    vector<vector<T>> st;       // st[k][i]: 長さ 2^k, 始点 i
+    vector<int> lg;             // lg[i] = floor(log2(i))
+
+    // ================================
+    // ★ 冪等演算（ここだけ差し替える）
+    // ================================
+    T op(const T& a, const T& b) const {
+        // return min(a, b);
+        // return max(a, b);
+        // return gcd(a, b);
+        // return a & b;
+        // return a | b;
+
+        return min(a, b);
+    }
+
+    SparseTable(const vector<T>& v) {
+        n = (int)v.size();
+        LOG = 1;
+        while ((1 << LOG) <= n) LOG++;
+
+        st.assign(LOG, vector<T>(n));
+        lg.assign(n + 1, 0);
+
+        for (int i = 2; i <= n; i++) {
+            lg[i] = lg[i >> 1] + 1;
+        }
+
+        for (int i = 0; i < n; i++) {
+            st[0][i] = v[i];
+        }
+
+        for (int k = 1; k < LOG; k++) {
+            for (int i = 0; i + (1 << k) <= n; i++) {
+                st[k][i] = op(
+                    st[k - 1][i],
+                    st[k - 1][i + (1 << (k - 1))]
+                );
+            }
+        }
+    }
+
+    // ================================
+    // 区間クエリ [l, r)
+    // ================================
+    T query(int l, int r) const {
+        int len = r - l;
+        int k = lg[len];
+        return op(
+            st[k][l],
+            st[k][r - (1 << k)]
+        );
+    }
+};
+
+void solv(){
+    vector<int> a = {5, 3, 7, 9, 6, 2};
+
+    cout << "=== Sparse Table（min）動作確認 ===\n\n";
+
+    // 配列表示
+    cout << "[元の配列]\n";
+    for (int i = 0; i < (int)a.size(); i++) {
+        cout << "  a[" << i << "] = " << a[i] << "\n";
+    }
+    cout << "\n";
+
+    SparseTable<int> st(a);
+
+    // 全区間チェック
+    cout << "[全区間の最小値チェック]\n";
+    bool ok = true;
+
+    int n = a.size();
+    for (int l = 0; l < n; l++) {
+        for (int r = l + 1; r <= n; r++) {
+            int sparse_ans = st.query(l, r);
+
+            // 愚直計算
+            int naive = a[l];
+            for (int i = l; i < r; i++) {
+                naive = min(naive, a[i]);
+            }
+
+            cout << "区間 [" << l << ", " << r << ") : { ";
+            for (int i = l; i < r; i++) {
+                cout << a[i] << " ";
+            }
+            cout << "} -> ";
+
+            cout << "SparseTable = " << sparse_ans
+                 << ", 愚直 = " << naive;
+
+            if (sparse_ans != naive) {
+                cout << " ❌ 不一致";
+                ok = false;
+            } else {
+                cout << " ✅ 一致";
+            }
+            cout << "\n";
+        }
+    }
+
+    cout << "\n";
+    if (ok) {
+        cout << "=== 結果: すべての区間で正しく最小値が求まっています ===\n";
+    } else {
+        cout << "=== 結果: 不一致が検出されました ===\n";
+    }
+
+    cout << "\n";
+
+    // 代表的なクエリ
+    cout << "[代表的なクエリ例]\n";
+    cout << "区間 [0, 3) の最小値 = " << st.query(0, 3) << "\n";
+    cout << "区間 [1, 5) の最小値 = " << st.query(1, 5) << "\n";
+    cout << "区間 [3, 6) の最小値 = " << st.query(3, 6) << "\n";
+    cout << "区間 [0, 6) の最小値 = " << st.query(0, 6) << "\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

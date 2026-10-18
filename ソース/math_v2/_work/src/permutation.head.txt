@@ -1,0 +1,49 @@
+// =============================================================================
+//  順列・組合せの番号（辞書順で何番目か・k 番目の並び・重複のある並び・転倒数・置換の偶奇）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 04 組合せ
+//  依存       : 00_int_common, 00_math_base, 00_modint, 04_binomial（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  番号（何番目か・k 番目）はすべて 0 から。列は vector でも string でもよい
+//  厳密な番号は Int128（cout << できる。収まらなければ止める）。大きいときは _mod（using mint = ModInt998; など）
+//
+//  機能一覧                                                                    計算量
+//    inversion_count(a)               転倒数：i < j かつ a_i > a_j の組の数（値は比べられれば何でも）     O(N log N)
+//    perm_parity(a)                   置換の偶奇（偶 0 / 奇 1。値がすべて異なる列。サイクルの数から）        O(N)〜O(N log N)
+//    perm_rank(p)                     値がすべて異なる列 p が、その並べ替え全体の辞書順で何番目か（n ≤ 33）  O(N log N)
+//    perm_rank_mod<mint>(p)           同じく mod で（n はいくつでも）
+//    perm_unrank(n, k)                0〜n−1 の順列で辞書順 k 番目のもの（0 ≤ k < n!）                    O(N log N)
+//    multiset_perm_rank(a)            同じ値があってよい列 a が、その並べ替え（同じものは区別しない）の何番目か  O(N log N)
+//    multiset_perm_rank_mod<mint>(a)  同じく mod で（mod は n より大きい素数）
+//    multiset_perm_unrank(a, k)       a の並べ替えで辞書順 k 番目のもの（"aabb" の 3 番目 → "abba"）        O(N × 値の種類)
+//    kth_combination(n, r, k)         {0..n−1} から r 個選ぶ組（小さい順の列）で辞書順 k 番目                O(n × min(r, 130))
+//    combination_rank(n, c)           組 c が辞書順で何番目か
+//  （次・前の順列は std::next_permutation / std::prev_permutation。並べ方の数・nCr は 04_binomial）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    perm_test::random_test()  … next_permutation で全部並べた愚直解との突き合わせ
+//    perm_test::benchmark()    … 速度計測
+//    perm_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

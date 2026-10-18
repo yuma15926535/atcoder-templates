@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N,M;
+vector<ll> L;
+//貪欲法で条件を満たすかを判定
+bool check(ll l){
+    ll row=1,len=0;
+    rep(i,0,N){
+        if(i==0)len=L[i];
+        else{
+            if(len+L[i]+1<=l)len+=L[i]+1;
+            else{
+                row++;
+                len=L[i];
+            }
+        }
+    }
+    return row<=M;
+}
+//答えを二分探索
+//解になるかをO(N)できる場合にO(NlogN)になるので間に合う
+//解か否かを貪欲法で判定できるものと相性がいいかも
+ll solv(){
+    ll left=0,right=1e15;
+    while(right-left>1){
+        ll mid=(right+left)/2;
+        if(check(mid))right=mid;
+        else left=mid;
+    }
+    return right;
+}
+ll out(ll l){
+    ll ret=0,len=0;
+    rep(i,0,N){
+        if(i==0)len=L[i];
+        else{
+            if(len+L[i]+1<=l)len+=L[i]+1;
+            else{
+                ret=max(ret,len);
+                len=L[i];
+            }
+        }
+    }
+    ret=max(ret,len);
+    return ret;
+}
+
+int main()
+{
+    cin>>N>>M;
+    L.resize(N);
+    rep(i,0,N)cin>>L[i];
+    cout<<out(solv())<<"\n";
+    return 0;
+}

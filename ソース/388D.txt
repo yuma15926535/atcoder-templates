@@ -1,0 +1,36 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N;
+    cin>>N;
+    //Bで加算分を計算
+    vector<ll> A(N),B(N+1,0);
+    rep(i,0,N)cin>>A[i];
+    //いもす法
+    rep(i,0,N){
+        if(i!=0){
+            B[i]+=B[i-1];
+            A[i]+=B[i];
+        }
+        ll n=min(A[i],N-1-i);
+        A[i]-=n;
+        B[i+1]++;
+        B[i+n+1]--;
+    }
+    rep(i,0,N)cout<<A[i]<<" ";
+    cout<<"\n";
+    return 0;
+}

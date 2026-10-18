@@ -1,0 +1,165 @@
+01_rolling_hash（ローリングハッシュ：部分文字列の一致を O(1)・LCP と辞書順の比較・つなげたもののハッシュ・2 次元・k 文字まで書き換えてよい回文）
+	説明
+		RollingHash H(s)：H.get(l, r) ／ get_len(l, len) ／ prefix(r) ／ suffix(l) ／ all()（StrHash を返す）／ H.same(l1, r1, l2, r2)（O(1)）
+		H.lcp(i, j) ／ H.lcp(i, T, j)（別の文字列の RollingHash とも）／ H.common_suffix(i, j) ／ H.compare(l1, r1, l2, r2)（-1 / 0 / 1）：O(log N)
+		H.find_all(pat) ／ H.count(pat)（pat は列でも StrHash でも）／ H.code(i) ／ H.size()
+		StrHash{value, len}：a + b（つなげる。途中に挿入・削除した文字列も作れる）／ a.repeat(k) ／ == ／ <（unordered_map<StrHash, V> にそのまま入る）
+		hash_of(s) ／ hash_of_char(c) ／ empty_hash()
+		RollingHash2D G(grid)：G.get(i1, j1, i2, j2)（行 [i1, i2) × 列 [j1, j2)）／ G.find_all(pat)（一致する左上の一覧）／ all()
+		center_palindrome_lengths_with_changes(s, k)（中心 2N−1 個ごとに、食い違う組が k 個以下の最長の長さ。O(N k log N)）
+	メモ
+		mod 2^61−1 の 1 本。基数は実行ごとの乱数で全部の文字列で共通（別の文字列の部分文字列どうし・つなげたものも比べられる）。衝突の確率は 1 回あたり約 N / 2^61
+		string も vector<int>・vector<long long>（負・10^18 級も）も渡せる
+		旧 RollingHashTest2 より get が少し速く、lcp は約 3 倍速い（N = 10^6）
+		連続する部分文字列の LCP・比較を大量に聞くなら 03_suffix_array（O(1)）
+		類題：ABC141 E（長さを二分探索して map）、ABC284 F（反転した文字列の RollingHash と比べる）、典型90 047（3 色を mod 3 の式にして対角線ごとに比べる）、ABC468 D（center_palindrome_lengths_with_changes(S, 1) で中心ごとに数える）
+	C:\atcoder_template\典型90\ソース\string_v2\01_rolling_hash.cpp
+02_pattern_match（一致・出現：Z・KMP・出現位置と回数・置き換え（なくなるまでの繰り返しも）・区間の出現・周期と境界・回転・無限の繰り返し・重なり・KMP オートマトン）
+	説明
+		z_array(s)（z[i] = s と s[i..) の LCP）／ prefix_function(s)（π）／ match_lengths(text, pat)（各 i で text[i..) と pat の LCP）
+		find_all(text, pat)（重なりも。昇順）／ count_occurrences ／ find_first(text, pat, from) ／ find_last ／ count_non_overlapping ／ replace_all(text, from, to)（1 回）
+		rewrite_until_stable(text, from, to)（いちばん左の from を to にすることを、現れなくなるまで）／ erase_until_stable(text, pat)
+		Occurrences occ(text, pat)：occ.count(l, r) ／ exists(l, r)（[l, r) に収まる出現）／ next(i) ／ prev(i) ／ positions()
+		all_borders(s) ／ min_period(s) ／ all_periods(s) ／ repetition_root(s)（s = t^k の最短の t）／ prefix_min_periods(s)
+		rotation_offsets(a, b)（a を左に k 回まわすと b になる k の一覧）／ is_rotation(a, b)
+		find_all_cyclic(text, pat)（text を無限に繰り返した中で pat が始まる位置。|pat| > |text| でも）
+		max_overlap(a, b)（a の接尾辞 = b の接頭辞の最大の長さ）
+		KmpAutomaton KA(pat, A)：KA.next(state, c) ／ accepting(state) ／ size()（pat を含まない文字列を数える DP に）
+	メモ
+		ACL の z_algorithm と名前を変えている（衝突しない）。z_array は ACL より約 2 倍速い（列をコピーしないため）
+		text と pat は string でも数の列でもよい（混ぜてもよい。1 文字も渡せる）。pat が空なら出現は 0〜|text| の全部
+		rewrite_until_stable は |to| < |from| なら必ず終わる（置き換えが起きて to が from を含むと止める）
+		類題：ABC257 G（match_lengths で各位置から飛べる長さ → 貪欲）、ABC150 F（XOR の差の列で rotation_offsets）、ABC135 F（find_all_cyclic を辺にして最長の鎖）、ABC430 E（rotation_offsets）、ABC343 G（含まれるものを除いて max_overlap で bit DP）、ABC394 C・ABC328 D・ABC454 D（rewrite_until_stable ／ erase_until_stable）、ABC477 C（Occurrences::exists）
+	C:\atcoder_template\典型90\ソース\string_v2\02_pattern_match.cpp
+03_suffix_array（接尾辞配列：SA-IS・LCP・O(1) の LCP と比較・出現回数・異なる部分文字列の数と k 番目・繰り返し・最長共通部分文字列）
+	説明
+		make_suffix_array(s) ／ make_lcp_array(s, sa)（ACL と同じ結果。数の列もそのまま）
+		SuffixArray SA(s)：sa ／ rank ／ lcp_adj（隣どうしの LCP）
+		SA.lcp(i, j) ／ SA.compare(l1, r1, l2, r2)：O(1)（初回に疎テーブル）
+		SA.find_range(pat) ／ count(pat) ／ find_all(pat) ／ count_occurrences(l, r)（s[l, r) の出現回数）／ occurrence_range(l, r)
+		SA.count_distinct_substrings() ／ distinct_substrings_by_length() ／ kth_substring(k)（StrSpan）／ substring_rank(l, r)
+		SA.kth_substring_with_dup(k) ／ count_substrings_with_dup()（位置が違えば別）
+		SA.longest_repeated() ／ longest_repeated_non_overlapping()（CommonSubstring{len, pos_a, pos_b}）
+		SA.sum_lcp_with_all()（各 i で Σ_j lcp(i, j)）／ sum_lcp_all_pairs()
+		SuffixArray::of_strings(vs)：複数の文字列をまとめて（owner(p) ／ offset(p) ／ position(t, off) ／ length_at(p)。部分文字列は文字列をまたがない）
+		longest_common_substring(a, b) ／ longest_common_substrings_all(a, b) ／ longest_common_substring_k(vs)
+	メモ
+		ACL の suffix_array ／ lcp_array と名前を変えている（using namespace atcoder; と一緒でも衝突しない）。速さは ACL と同じ（N = 10^6）
+		of_strings の区切りは sa に入る（owner = -1。offset は止まるので owner を先に確かめる）
+		k 番目は 0 から。部分文字列は StrSpan で返る（文字列は substr_of(s, sp)）
+		類題：ABC141 E（longest_repeated_non_overlapping）、ABC213 F（sum_lcp_with_all）、ABC272 F（S S '$' T T '~' の接尾辞配列で数える）、ABC280 Ex（of_strings ＋ kth_substring_with_dup）
+	C:\atcoder_template\典型90\ソース\string_v2\03_suffix_array.cpp
+04_palindrome（回文：区間の回文判定 O(1)・最長の回文・回文の数・回文の接頭辞と接尾辞・最短の回文にする・最長回文部分列・回文分割・回文の部分列の数・s 以下の回文の数）
+	説明
+		Palindromes P(s)：P.is_palindrome(l, r)（O(1)）／ radius_odd(i) ／ radius_even(i) ／ length_at_center(c) ／ span_at_center(c)
+		P.longest()（StrSpan。同じ長さなら左）／ count_all()（回文の部分文字列の数）／ longest_prefix_palindrome() ／ longest_suffix_palindrome() ／ longest_starting_at() ／ longest_ending_at()
+		center_palindrome_lengths(s)（中心 2N−1 個ごとの最長の長さ。Manacher の生の値）
+		min_palindrome_with_prefix(s)（s で始まる最短の回文）／ min_palindrome_with_suffix(s)
+		min_changes_to_palindrome(s) ／ can_rearrange_to_palindrome(s)
+		longest_palindromic_subsequence(s)（N ≤ 10^4）／ longest_palindromic_subsequence_length(s)
+		palindrome_partition_min(s)（回文に分ける最小の個数の分け方。vector<StrSpan>）
+		count_palindromic_subsequences<T>(s)（回文の部分列の数。T は mint・long long）
+		count_palindromes_leq<T>(s, A)（A の文字からなる長さ |s| の回文で s 以下のものの数）
+	メモ
+		範囲は [l, r)。「L 文字目から R 文字目」は is_palindrome(L - 1, R)
+		旧 ManacherTemplate と作るのは同じ速さで、is_palindrome は少し速い
+		異なる回文の種類・回文分割を N log N で：04_palindromic_tree。書き換えがあるとき：09_mutable_string。k 文字まで直してよい回文：01_rolling_hash の center_palindrome_lengths_with_changes
+		類題：ABC237 C（両端の a を数えて間が回文か）、ABC320 B（longest）、ABC398 F（min_palindrome_with_prefix）、ABC242 E（count_palindromes_leq<mint>(S, Alphabet::upper())）、ABC286 C（回転ごとに min_changes_to_palindrome）、ABC349 G（union-find でまとめて center_palindrome_lengths で確かめる）
+	C:\atcoder_template\典型90\ソース\string_v2\04_palindrome.cpp
+05_lex_order（辞書順・回転：つなげて辞書順最小・独自の文字の順・最小 / 最大の回転・列名の番号・長さ L 以下の文字列の番号・同じ長さでの番号・次の文字列）
+	説明
+		concat_order(vs)（全部をつなげて辞書順最小になる並べ方。a + b < b + a）／ min_concat(vs)
+		lex_less_by(order) ／ lex_less_by(A)（独自の文字の順の比較関数 LexLess。sort に渡す。.compare(a, b) は -1 / 0 / 1）
+		min_rotation(s) ／ max_rotation(s)（辞書順最小 / 最大の回転 s[k..] + s[..k] の k。同じなら最小の k）
+		bijective_to_string(n, A)（1 → a、26 → z、27 → aa）／ bijective_from_string(s, A)
+		dict_rank(s, max_len, A)（長さ 1〜max_len の全部の文字列を辞書順に並べたときの番号。0 から）／ dict_unrank(k, max_len, A)
+		next_string(s, A)（同じ長さで辞書順の次。最後なら空）
+		lex_rank_same_length<T>(s, A)（同じ長さの文字列で s より小さいものの数。T = mint で N = 10^6 でも）
+	メモ
+		Alphabet で文字の種類と順を決める（既定は英小文字。英大文字は Alphabet::upper()）
+		concat_order は O(N log N × 最長の長さ)（とても長い文字列が混ざると遅い）
+		類題：ABC225 F（concat_order の順に並べて後ろから DP）、ABC219 C（lex_less_by(X) で sort）、ABC171 C（bijective_to_string）、ABC285 C（bijective_from_string(S, Alphabet::upper())）、ABC223 B（min_rotation ／ max_rotation）
+		同じ文字の個数が決まった並べ替えの k 番目・順位は math_v2 04_permutation の multiset_perm_unrank ／ multiset_perm_rank（ABC202 D・ABC215 C）
+	C:\atcoder_template\典型90\ソース\string_v2\05_lex_order.cpp
+06_subsequence（部分列：次の出現の表・部分列の判定・何文字まで入るか・辞書順最小の部分列・部分列でない最短・部分列の数）
+	説明
+		NextTable nx(s, A)：nx.next(i, c) ／ prev(i, c)（O(1)）／ is_subsequence(t, from) ／ match_length(t, from) ／ match_end(t, from) ／ char_prefix()
+		prefix_match_lengths(s, t)（r[i] = t の先頭何文字までが s[0, i) の部分列か）／ suffix_match_lengths(s, t)
+		lex_smallest_subsequence(s, k) ／ lex_largest_subsequence(s, k)
+		shortest_non_subsequence(s, A)（部分列にならない最短の文字列。その中で辞書順最小）／ shortest_non_subsequence_ids(s, A)
+		count_subsequence_occurrences<T>(s, t)（t が部分列として現れる数）
+		count_distinct_subsequences<T>(s, include_empty, min_step)（異なる部分列の数。選ぶ位置の間を min_step 以上）
+		distinct_subsequences_by_length<T>(s)（長さごとの異なる部分列の数。O(N^2)）
+	メモ
+		「部分列」は飛び飛び。連続する「部分文字列」は 02・03。LCS・編集距離は 06_lcs_edit、LIS は 06_lis
+		数える関数は型 T を受け取る（using mint = ModInt998; で count_xxx<mint>(…)。long long なら答えが溢れたら止める）
+		類題：典型90 006（lex_smallest_subsequence）、典型90 008・ABC211 C（count_subsequence_occurrences<ModInt107>）、ABC214 F（count_distinct_subsequences(S, false, 2)）、ABC230 F（累積和の列で count_distinct_subsequences(P, true)）、ARC081 E（shortest_non_subsequence）、ABC324 E（prefix / suffix_match_lengths ＋ 二分探索）、ABC452 D（各開始位置から match_end）
+		当てはめた位置の一覧は 00_str_base の subsequence_positions(t, s)（ABC352 B）。位置で区別して条件つきの部分列を数えるのは末尾の文字を状態にした DP（ABC456 D）
+	C:\atcoder_template\典型90\ソース\string_v2\06_subsequence.cpp
+06_lcs_edit（最長共通部分列 LCS（ビット並列）・最短共通超列・編集距離（重み・操作の列・k 以内・1 回以内））
+	説明
+		lcs_length(a, b)（O(|a||b|/64)）／ lcs_restore(a, b)（1 つ。|a| × |b| が約 1.9×10^9 まで）
+		shortest_common_supersequence(a, b)（a と b を部分列に含む最短の列）
+		edit_distance(a, b, ins, del, sub)（費用は 0 以上。既定はすべて 1）
+		edit_script(a, b, ins, del, sub)（vector<EditOp{type, i, j}>。'=' そのまま・'S' 置換・'D' 削除・'I' 挿入）
+		edit_distance_bounded(a, b, k)（費用 1 の編集距離。k を超えるなら -1。O((|a| + |b|) k)）
+		within_one_edit(a, b)（1 回以下の操作で一致するか。O(N)）
+	メモ
+		連続する部分の最長共通は 03_suffix_array の longest_common_substring
+		列は string でも数の列でもよい（混ぜてもよい）
+		類題：EDPC F（lcs_restore）、ABC185 E（edit_distance(A, B)）、ABC324 C・ABC386 C（within_one_edit）、ABC386 F（edit_distance_bounded(S, T, K) >= 0）
+	C:\atcoder_template\典型90\ソース\string_v2\06_lcs_edit.cpp
+06_lis（最長増加部分列 LIS：長さ・復元・各位置で終わる / 始まる長さ・入りうる位置・数・減少・分割の最小数・2 次元）
+	説明
+		lis_length(a, strict) ／ lis_restore(a, strict)（添字の列）
+		lis_ending_at(a, strict) ／ lis_starting_at(a, strict)（各位置で終わる / 始まる最長の長さ）
+		lis_members(a, strict)（LisMembers{length, in_some, in_all}：どれかの LIS に入る / すべての LIS に入る）
+		count_lis<T>(a, strict)（LIS の数。添字の列として）
+		lds_length(a, strict) ／ min_increasing_cover(a, strict) ／ min_decreasing_cover(a, strict)（Dilworth）
+		lis_2d(ps)（(x, y) が両方とも狭義に増える最長の列。添字）
+	メモ
+		strict = true（既定）で狭義（<）、false で広義（≤。減らない）
+		列は vector<int>・vector<long long>（負・10^18 級も）でも string でもよい
+		狭義増加に分ける最小の数 = 最長の「減らない」部分列（min_increasing_cover がこれを計算する）
+		旧 A24 と同じ速さ（N = 10^6）
+		類題：ABC038 D（lis_2d）、ABC134 E（min_increasing_cover）、ABC354 F（lis_members の in_some）、ABC360 G（lis_ending_at ＋ lis_starting_at ＋ 値の BIT）
+	C:\atcoder_template\典型90\ソース\string_v2\06_lis.cpp
+07_bracket（括弧列：正しいか・対応・深さ・入れ子の木・組を消す・足りない数・並べ替えてつなげる・区間の判定（書き換えなし / あり）・? を決める方法の数・全列挙）
+	説明
+		is_balanced(s, pairs) ／ match_brackets(s, pairs) ／ bracket_depths(s, pairs) ／ bracket_parents(s, pairs) ／ erase_matched_pairs(s, pairs)
+		BracketBalance{need_open, need_close}：a + b（連結）／ balanced() ／ net() と balance_of(s) ／ balance_of(c)（1 文字）
+		bracket_concat_order(vs)（BracketOrder{ok, order}）／ min_insertions_to_balance(s) ／ fix_brackets(s)
+		count_balanced_substrings(s, pairs) ／ longest_balanced_substring(s, pairs)（StrSpan）
+		StaticBracket sb(s, pairs)：sb.is_balanced(l, r)（O(1)。何種類でも）／ sb.partner(i)
+		BracketSegTree bt(s)：set(i, c) ／ flip(i) ／ get(i) ／ is_balanced(l, r) ／ balance(l, r) ／ all_balanced() ／ to_string()（O(log N)）
+		for_each_balanced(n, f)（長さ n の正しい括弧列を辞書順（開き < 閉じ）に f(s)）
+		count_balanced_completions<T>(s, wild = '?', pairs)（wild を開き・閉じに決めて正しい括弧列にする方法の数。O(N^2)）
+	メモ
+		括弧の種類は pairs で渡す（既定 "()"。"()[]<>" なら 3 種類）。括弧以外の文字は無視する（中身として扱う）
+		BracketBalance・concat・min_insertions・fix・BracketSegTree・for_each_balanced は 1 種類の括弧だけ
+		類題：典型90 002（for_each_balanced）、ABC167 F（bracket_concat_order(S).ok）、ABC223 F（BracketSegTree の get ／ set で入れ替え）、ABC307 D（erase_matched_pairs）、ABC350 F（match_brackets と bracket_depths で歩く）、ABC394 D（is_balanced(S, "()[]<>")）、ABC428 C（BracketBalance を積む）、ABC312 D（count_balanced_completions<mint>）、ABC473 F（BracketSegTree(S, "AB").balance(l, r).need_open == 0：途中で閉じが多くならないか）
+	C:\atcoder_template\典型90\ソース\string_v2\07_bracket.cpp
+08_trie（Trie：文字列の多重集合・接頭辞の数・辞書順 k 番目・順位・LCP の最大と和・接頭辞で全部消す・ノードをたどる）
+	説明
+		Trie TR(A)：TR.insert(s, cnt)（ノードを返す）／ erase(s, cnt)（足りなければ何もせず false）／ erase_prefix(p)（消した数）／ clear()
+		TR.count(s) ／ contains(s) ／ count_prefix(p)（p で始まる数）／ count_prefixes_of(s)（s の接頭辞である数）／ size() ／ empty()
+		TR.kth(k) ／ kth_ids(k)（辞書順 k 番目。0 から）／ rank(s)（s より小さい数）／ words() ／ words_ids()
+		TR.max_lcp(s, exclude_self) ／ sum_lcp_with(s) ／ sum_lcp_pairs()
+		ノード：find(s) ／ path(s) ／ child(v, c) ／ child_by_id(v, id) ／ parent(v) ／ depth(v) ／ label(v) ／ pass_count(v) ／ end_count(v) ／ string_of(v) ／ preorder() ／ node_count() ／ root()
+	メモ
+		A は文字の種類（既定は英小文字。辞書順は A の番号の順）。子は 1 次元の配列（文字の合計 10^6・σ = 26 で約 100MB）
+		同じ文字列を何個でも入れられる。消してもノードは残る（数が 0 になるだけ）。ノード 0 が根
+		ノードに自分の値を持たせるときは、insert のあとに vector を node_count() に伸ばして path(s) の上で更新する
+		類題：ABC268 G（count_prefixes_of と count_prefix で期待値）、ABC287 E（max_lcp(S_i, true)）、ABC353 E（sum_lcp_pairs）、ABC377 G（ノードごとの最小値を path の上で）、ABC403 E（insert(X, 0) で印 ＋ erase_prefix）
+	C:\atcoder_template\典型90\ソース\string_v2\08_trie.cpp
+09_reversible_deque（前後に足せて O(1) で反転できる列 ReversibleDeque・回転と反転が O(1) の配列 RotatableArray）
+	説明
+		ReversibleDeque<T> d(s)：push_back(x) ／ push_front(x)（1 つ）／ push_back(s) ／ push_front(s)（列をそのままの順で。push_front(s) は s + 今の列）
+		d.pop_back() ／ pop_front()（取り出して返す）／ front() ／ back() ／ d[i]（書き換えも）／ reverse()（O(1)）／ reversed()
+		d.size() ／ empty() ／ clear() ／ reserve(n) ／ to_vector() ／ to_string() ／ substr(pos, len)
+		RotatableArray<T> ra(s)：rotate_left(k) ／ rotate_right(k)（k は負・N 以上も可）／ reverse()（どれも O(1)）／ ra[i] ／ get(i) ／ set(i, v) ／ size() ／ to_vector() ／ to_string()
+	メモ
+		T = char で文字列として使う（to_string・substr が string を返す）。T = int などの列にも使える
+		d.push_back(d.front()) のように自分の要素や自分自身を足してもよい
+		類題：ABC158 D（反転と前後への追加）、ABC237 D（後ろから見て前後に足す）、ABC199 C（rotate_left(N) で前半と後半の入れ替え）
+	C:\atcoder_template\典型90\ソース\string_v2\09_reversible_deque.cpp

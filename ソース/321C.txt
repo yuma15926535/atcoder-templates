@@ -1,0 +1,36 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    //狭義単調増加かつ各桁は9以下なので高々10^10考えればよい
+    //使う数を定めれば降順に並べて一意に決められる
+    //10桁を使うか否か決めるのでbit全探索
+    ll K;
+    cin>>K;
+    vector<ll> ans;
+    rep(i,0,1<<10){
+        ll x=0;
+        //9から0まで順に末尾に追加することで自動的に降順に並べられる
+        rrep(j,10,0)if(((i>>j)&1)==1){
+            x*=10;
+            x+=j;
+        }
+        ans.push_back(x);
+    }
+    sort(nall(ans));
+    //すべて選ばない+0のみ選ぶ場合に0が追加されるが定義に合わないので無視
+    cout<<ans[K+1]<<"\n";
+    return 0;
+}

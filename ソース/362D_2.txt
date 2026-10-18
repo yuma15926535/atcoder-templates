@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template <typename T> constexpr auto ssize(const T& container) -> std::ptrdiff_t {return static_cast<std::ptrdiff_t>(container.size());}
+
+int main(){
+    int N,M;
+    cin>>N>>M;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    vector G(N,vector<pair<int,ll>>());
+    rep(i,0,M){
+        int u,v,b;
+        cin>>u>>v>>b;
+        u--;v--;
+        G[u].emplace_back(v,b);
+        G[v].emplace_back(u,b);
+    }
+    vector<bool>visited(N,true);
+    //ダイクストラ法
+    //優先度付きキューpriority_queueに比較関数を渡す
+    //sortの比較関数とは戻り値を逆にする必要がある?
+    //structで渡す方法もある
+    auto comp=[&](pair<ll,int>a,pair<ll,int>b){return a.first>b.first;};
+    priority_queue<pair<ll,int>,vector<pair<ll,int>>,decltype(comp)>pq(comp);
+    vector<ll>dist(N,1e18);
+    dist[0]=A[0];
+    pq.emplace(A[0],0);
+    while(!pq.empty()){
+        auto [num,pos]=pq.top();
+        pq.pop();
+        if(visited[pos]){
+            visited[pos]=false;
+            for(auto [npos,nnum]:G[pos])if(visited[npos]){
+                dist[npos]=min(dist[npos],dist[pos]+A[npos]+nnum);
+                pq.emplace(dist[npos],npos);
+            }
+        }
+    }
+    rep(i,1,N)cout<<dist[i]<<" ";
+    cout<<"\n";
+    return 0;
+}

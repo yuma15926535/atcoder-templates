@@ -1,0 +1,19 @@
+00_str_base（文字列の基本：文字の種類 Alphabet・文字の数と位置・ランレングス・変換・比較・区切り・隣が同じにならない並べ替え）
+	説明
+		Alphabet::lower()（既定）／ upper() ／ digits() ／ letters() ／ alnum() ／ ascii() ／ bytes() ／ of("…") ／ ints(K) ／ ints(lo, hi) ／ A.with("@#")（文字を足す）
+		A.id(c)（範囲外は止める）／ contains(c) ／ value(i) ／ ch(i) ／ chars() ／ size()、to_ids(s, A) ／ from_ids(ids, A)（int・long long の列）、compress_values(a)（CompressedValues{ids, values}。.alphabet() が ints(K)）
+		count_chars(s, A)（vector<long long>）、CharPrefix cp(s, A)：count(l, r, c) ／ has ／ counts(l, r) ／ distinct(l, r) ／ next(i, c) ／ prev(i, c) ／ kth(c, k) ／ total(c)（O(1)。番号の版 count_id ／ next_id ／ prev_id ／ kth_id ／ total_id）
+		CharPositions cps(s, A)：next ／ prev ／ count ／ has（O(log N)）／ kth ／ total ／ positions(c) ／ occurrence_index(i)（メモリ O(N + σ)）
+		run_length(s)（RunBlock{value, len, start}。len・start は long long）／ run_length_decode(runs)
+		to_lower ／ to_upper ／ swap_case ／ caesar_shift(s, k, A)（どれも 1 文字の版も）、CharMap cm(A)：replace(c, d) ／ set(c, d) ／ cm(c) ／ apply(s) ／ compose(g) ／ table()
+		reversed ／ min_with_reverse ／ sorted_chars ／ repeat_string(s, k)
+		common_prefix_length(a, b) ／ common_suffix_length(a, b)（wild を渡すと ? 込みで）／ hamming_distance ／ is_subsequence(t, s) ／ subsequence_positions(t, s) ／ is_palindrome(s)
+		split(s, sep, skip_empty)（sep は 1 文字か文字列）／ join(vs, sep)（vector・set など。sep は文字列か 1 文字）／ strip ／ strip_left ／ strip_right(s, chars)（既定は空白・タブ・改行）
+		split_runs_by(s, same)（same(s[i-1], s[i]) が成り立つ間をまとめた区間）／ rearrange_no_adjacent_equal(s) ／ lex_smallest_no_adjacent_equal(s)（隣が同じにならない並べ替え。できなければ空）
+		StrSpan{l, r}（len() ／ empty()）／ substr_of(s, sp)
+	メモ
+		範囲は [l, r)。位置が「ない」ときは -1。string も vector<整数> も 1 文字も渡せる（要素は整数型だけ。"c" は 'c' に）
+		数（個数）は long long で返す（受け取る変数も ll に）。既定の文字の種類は英小文字（記号・大文字が混ざるなら bytes() か lower().with("…")）
+		CharPrefix のメモリは (N+1)σ 個の int（2×10^8 を超えると止める。そのときは CharPositions）
+		類題：ABC259 C・ABC329 C・典型90 084（run_length）、ABC342 C（CharMap）、ABC310 C（min_with_reverse）、ABC232 B（caesar_shift）、ABC219 C（Alphabet::of）、ABC380 D・ABC242 D・ABC450 E（巨大な文字列の型。デモ）、ABC459 D（rearrange_no_adjacent_equal）、ABC456 C（split_runs_by）、ABC287 D（common_prefix_length(S, T, '?')）、ABC352 B（subsequence_positions）、ABC367 B（strip_right）
+	C:\atcoder_template\典型90\ソース\string_v2\00_str_base.cpp

@@ -1,0 +1,128 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+// 座標圧縮（テンプレート）
+template<class T>
+struct CoordinateCompress {
+    vector<T> xs;
+
+    //座標圧縮対象
+    void add(const T& x) { xs.push_back(x); }
+    void add(const vector<T>& v) { for (auto &x : v) xs.push_back(x); }
+
+    //座標圧縮
+    void build() {
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+    }
+
+    //引数の座標圧縮後の値(0-index)
+    int get(const T& x) const {
+        return lower_bound(xs.begin(), xs.end(), x) - xs.begin();
+    }
+
+    //引数の座標圧縮後の値(0-index) 存在しなければ-1
+    int get_or_minus1(const T& x) const {
+        auto it = lower_bound(xs.begin(), xs.end(), x);
+        if (it == xs.end() || *it != x) return -1;
+        return it - xs.begin();
+    }
+
+    //実際の値から座標圧縮後の値
+    bool contains(const T& x) const {
+        return binary_search(xs.begin(), xs.end(), x);
+    }
+
+    //以上の最小の座標圧縮後の値
+    int lower_idx(const T& x) const {
+        return lower_bound(xs.begin(), xs.end(), x) - xs.begin();
+    }
+
+    //より大きい最小の座標圧縮後の値
+    int upper_idx(const T& x) const {
+        return upper_bound(xs.begin(), xs.end(), x) - xs.begin();
+    }
+
+    //座標圧縮後の値から実際の値
+    T rev(int i) const { return xs[i]; }
+
+    //座標圧縮後の値の範囲から実際の値の範囲長
+    T range_len(int l, int r) const {
+        return xs[r] - xs[l];
+    }
+
+    int size() const { return xs.size(); }
+};
+
+void solv(){
+    vector<long long> a = {100, 500, 100, -20};
+
+    CoordinateCompress<long long> cc;
+
+    // add（圧縮対象）
+    cc.add(a);
+
+    // build
+    cc.build();
+
+    cout << "=== original ===\n";
+    for (auto x : a) cout << x << " ";
+    cout << "\n\n";
+
+    cout << "=== compressed ===\n";
+    for (auto x : a) {
+        cout << cc.get(x) << " ";
+    }
+    cout << "\n\n";
+
+    cout << "=== rev (index -> value) ===\n";
+    for (int i = 0; i < cc.size(); i++) {
+        cout << i << " -> " << cc.rev(i) << "\n";
+    }
+    cout << "\n";
+
+    cout << "=== contains ===\n";
+    cout << "contains(100): " << cc.contains(100) << "\n";
+    cout << "contains(200): " << cc.contains(200) << "\n\n";
+
+    cout << "=== get_or_minus1 ===\n";
+    cout << "get(500): " << cc.get_or_minus1(500) << "\n";
+    cout << "get(200): " << cc.get_or_minus1(200) << "\n\n";
+
+    cout << "=== lower_idx / upper_idx ===\n";
+    cout << "lower_idx(100): " << cc.lower_idx(100) << "\n";
+    cout << "upper_idx(100): " << cc.upper_idx(100) << "\n\n";
+
+    cout << "=== range_len ===\n";
+    int l = cc.get(-20);
+    int r = cc.get(500);
+    cout << "range_len(-20, 500): " << cc.range_len(l, r) << "\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,37 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<int> A(N);
+    rep(i,0,N)cin>>A[i];
+    ll m=998244353;
+    //操作後左に追加するので処理する整数は先頭を記録しておけばもう一つはA[i]
+    vector<vector<ll>> dp(N,vector<ll>(10,0));
+    dp[0][A[0]]=1;
+    rep(i,1,N){
+        int a=A[i];
+        rep(j,0,10){
+            int d=dp[i-1][j];
+            dp[i][(a+j)%10]+=d;
+            dp[i][(a+j)%10]%=m;
+            dp[i][(a*j)%10]+=d;
+            dp[i][(a*j)%10]%=m;
+        }
+    }
+    rep(i,0,10)cout<<dp[N-1][i]<<"\n";
+    return 0;
+}

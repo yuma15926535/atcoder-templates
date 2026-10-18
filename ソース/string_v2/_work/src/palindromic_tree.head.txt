@@ -1,0 +1,48 @@
+// =============================================================================
+//  回文木（eertree：異なる回文・出現回数・各接頭辞の最長の回文接尾辞・回文への最小分割と分割数（N log N）・回文の包含）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 04 回文
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  異なる回文は N 個以下で、それぞれが 1 つのノード。ノード 0 は長さ -1 の根、ノード 1 は空文字列、2 以降が回文
+//  add(c) で 1 文字ずつ足せる（オンライン）。遷移は ノード数 × σ 個の int。区間の回文判定・最長の回文は 04_palindrome
+//  回文の包含：回文 v の中の回文は link(v)（最長の回文接尾辞）と parent(v)（両端を除いたもの）をたどると全部出てくる（ABC237 Ex）
+//
+//  機能一覧                                                                       計算量
+//    PalindromicTree pt(s, A) / pt.add(c)  作る / 1 文字足す（最長の回文接尾辞のノードを返す）              O(N σ) / O(1)（ならし）
+//    pt.count_distinct() / count_total()   異なる回文の数 / 回文の部分文字列（位置が違えば別）の数           O(1) / O(N)
+//    pt.occurrences()                      ノードごとの出現回数                                           O(N)
+//    pt.palindromes() / span(v)            異なる回文の最初の出現（StrSpan）                               O(N) / O(1)
+//    pt.min_partition() / min_partition_spans()   回文に分ける最小の個数 / 分け方                          O(N log N)
+//    pt.count_partitions<T>()              回文に分ける方法の数（T は mint・long long）                     O(N log N)
+//    ノード: size() / length() / len(v) / link(v) / parent(v) / next(v, c) / node_of_prefix(i) / first_end(v)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    pt_test::random_test()  … 全部の部分文字列を調べる愚直解・O(N^2) の DP と全機能を突き合わせるランダムテスト
+//    pt_test::benchmark()    … 速度計測
+//    pt_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

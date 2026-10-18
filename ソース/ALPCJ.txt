@@ -1,0 +1,142 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//セグメント木（遅延なし）
+//点更新、区間max
+struct SegTree {
+    using S = ll;   // ★ 要素の型
+
+    int n;
+    int sz;
+    vector<S> seg;
+
+    // ★ 単位元
+    S e() { return 0; }
+
+    // ★ マージ関数
+    S op(S a, S b) {
+        // return a + b;     // sum
+        // return min(a,b);
+        return max(a,b);
+    }
+
+    SegTree(int _n){
+        sz=_n;
+        n = 1;
+        while(n < sz) n <<= 1;
+        seg.assign(2*n, e());
+    }
+
+    void build(const vector<S>& v){
+        rep(i,0,sz) seg[i+n] = v[i];
+        rrep(i,n,1) seg[i] = op(seg[i<<1], seg[i<<1|1]);
+    }
+
+    // 点更新
+    void set_val(int i, S x){
+        i += n;
+        // ★ 更新
+        seg[i] = x;
+        while(i >>= 1){
+            seg[i] = op(seg[i<<1], seg[i<<1|1]);
+        }
+    }
+
+    // 区間取得 [l, r)
+    S query(int l, int r){
+        S L = e(), R = e();
+        for(l+=n, r+=n; l<r; l>>=1, r>>=1){
+            if(l&1) L = op(L, seg[l++]);
+            if(r&1) R = op(seg[--r], R);
+        }
+        return op(L, R);
+    }
+
+    // f(op(a[l..r))) == true となる最大の r を返す
+    //fとしてboolを返却する関数を渡す
+    //最小のrを返却したいならfalseとなる関数を渡す
+    template<class F>
+    int max_right(int l, F f){
+        if(l == sz) return sz;
+        S sm = e();
+        l += n;
+        do {
+            while((l & 1) == 0) l >>= 1;
+            if(!f(op(sm, seg[l]))){
+                // このノード内で壊れる
+                while(l < n){
+                    l <<= 1;
+                    if(f(op(sm, seg[l]))){
+                        sm = op(sm, seg[l]);
+                        l++;
+                    }
+                }
+                return l - n;
+            }
+            sm = op(sm, seg[l]);
+            l++;
+        } while((l & -l) != l);
+        return sz;
+    }
+
+    // f(op(a[l..r))) == true となる最小の l を返す
+    template<class F>
+    int min_left(int r, F f){
+        if(r == 0) return 0;
+        S sm = e();
+        r += n;
+        do {
+            r--;
+            while(r > 1 && (r & 1)) r >>= 1;
+            if(!f(op(seg[r], sm))){
+                while(r < n){
+                    r = r<<1 | 1;
+                    if(f(op(seg[r], sm))){
+                        sm = op(seg[r], sm);
+                        r--;
+                    }
+                }
+                return r + 1 - n;
+            }
+            sm = op(seg[r], sm);
+        } while((r & -r) != r);
+        return 0;
+    }
+};
+
+int main(){
+    BUFF;
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    SegTree sg(N);
+    sg.build(A);
+    rep(i,0,Q){
+        int t,a,b;
+        cin>>t>>a>>b;
+        if(t==1)sg.set_val(a-1,b);
+        else if(t==2)cout<<sg.query(a-1,b)<<'\n';
+        else cout<<sg.max_right(a-1,[&](ll e){return e<b;})+1<<'\n';
+    }
+    return 0;
+}

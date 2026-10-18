@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct xy{
+    ll x;
+    ll y;
+    ll id;
+    //ソート時間数を指定しなくてもいいようにデフォルトの関数を定義
+    //コメントアウトしても通る
+    bool operator<( const xy& right ) const {
+        if(x==right.x)return y<right.y;
+        return x<right.x;
+    }
+    //重複削除のために等号を定義
+    bool operator==( const xy& right ) const {
+        return id==right.id;
+    }
+};
+bool sx(xy p1,xy p2){
+    return p1.x-p2.x>0;
+}
+bool sy(xy p1,xy p2){
+    return p1.y-p2.y>0;
+}
+bool sxy(xy p1,xy p2){
+    if(p1.x==p2.x)return p1.y-p2.y>0;
+    return p1.x-p2.x>0;
+}
+bool sint(ll p1,ll p2){
+    return p1-p2>0;
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<xy> P(N),s;
+    vector<ll> ans;
+    rep(i,0,N){
+        xy p;
+        cin>>p.x>>p.y;
+        p.id=i;
+        P[i]=p;
+    }
+    //2番になりうる点のみを全探索
+    sort(nall(P),sx);
+    s.push_back(P[0]);
+    s.push_back(P[1]);
+    s.push_back(P[N-2]);
+    s.push_back(P[N-1]);
+    sort(nall(P),sy);
+    s.push_back(P[0]);
+    s.push_back(P[1]);
+    s.push_back(P[N-2]);
+    s.push_back(P[N-1]);
+    sort(nall(s),sxy);
+    //同じ点が含まれていると順番が出力が解答とずれるので重複削除
+    s.erase(unique(nall(s)),s.end());
+    //チェビシェフ距離を計算し降順ソート
+    rep(i,0,s.size())rep(j,0,s.size())if(i>j)ans.push_back(max(abs(s[i].x-s[j].x),abs(s[i].y-s[j].y)));
+    sort(nall(ans),sint);
+    cout<<ans[1]<<"\n";
+    return 0;
+}

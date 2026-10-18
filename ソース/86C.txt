@@ -1,0 +1,43 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct txy{
+    int t;
+    int x;
+    int y;
+};
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<txy> P(N);
+    rep(i,0,N){
+        txy p;
+        cin>>p.t>>p.x>>p.y;
+        P[i]=p;
+    }
+    //単体で到達可能かを調べる
+    for(txy p:P)if(abs(p.x)+abs(p.y)>p.t||(abs(p.x)+abs(p.y)+p.t)%2!=0){
+        NO;
+        return 0;
+    }
+    //前の点から次の点へ移動可能かを調べる
+    rep(i,0,N-1)if(abs(P[i+1].x-P[i].x)+abs(P[i+1].y-P[i].y)>P[i+1].t-P[i].t){
+        NO;
+        return 0;
+    }
+    YES;
+    return 0;
+}

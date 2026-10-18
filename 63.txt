@@ -1,0 +1,44 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int H,W;
+    cin>>H>>W;
+    vector<vector<int>> P(H,vector<int>(W));
+    rep(i,0,H)rep(j,0,W)cin>>P[i][j];
+    int ans=0;
+    //Hが小さいのでbit全探索
+    rep(i,1,1<<H){
+        //h:残す行
+        vector<int> h;
+        rep(j,0,H)if(((i>>j)&1)==1)h.push_back(j);
+        //m:hで残った行で列を固定して一つの数字しか表れない場合に記録
+        //mの最大値が横幅のっ最大値になる
+        map<int,int> m;
+        rep(j,0,W){
+            int num;
+            bool b=true;
+            for(int k:h){
+                if(k==*h.begin())num=P[k][j];
+                else if(num!=P[k][j])b=false;
+            }
+            if(b&&m.count(num))m[num]++;
+            else if(b)m[num]=1;
+        }
+        if(!m.empty())for(auto p:m)ans=max(ans,p.second*(int)h.size());
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

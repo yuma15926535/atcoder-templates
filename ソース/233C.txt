@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N;
+ll X,ans=0;
+vector<vector<ll>> v;
+//N重のループは再帰関数で
+//制約から全探索が可能
+void solv(ll pos,ll seki){
+    if(N==pos){
+        if(seki==X)ans++;
+        return;
+    }
+    for(ll a:v[pos]){
+        //オーバーフロー対策
+        if(seki>X/a)continue;
+        solv(pos+1,seki*a);
+    }
+}
+
+int main()
+{
+    cin>>N>>X;
+    v.resize(N);
+    rep(i,0,N){
+        int L;
+        cin>>L;
+        v[i].resize(L);
+        rep(j,0,L)cin>>v[i][j];
+    }
+    solv(0,1);
+    cout<<ans<<"\n";
+    return 0;
+}

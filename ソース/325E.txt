@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+struct dpb{
+    ll dis;
+    ll pos;
+};
+
+int main(){
+    int N;
+    ll A,B,C;
+    cin>>N>>A>>B>>C;
+    vector<vector<ll>>D(N,vector<ll>(N));
+    rep(i,0,N)rep(j,0,N)cin>>D[i][j];
+    auto comp=[&](dpb a,dpb b){return a.dis>b.dis;};
+    priority_queue<dpb,vector<dpb>,decltype(comp)>pq1(comp),pq2(comp);
+    vector<bool>rec1(N,true),rec2(N,true);
+    pq1.push(dpb{0, 0});
+    pq1.push(dpb{1LL<<60, 0});
+    pq2.push(dpb{1LL<<60, 0});
+    vector<ll>dist1(N,1e18),dist2(N,1e18);
+    dist1[0]=0;
+    //頂点を倍化させたダイクストラでも2つのの距離が決まるまで処理を続ける必要がある
+    while(rec1[N-1]||rec2[N-1]){
+        bool b=pq1.top().dis<=pq2.top().dis;
+        ll dis;
+        int pos;
+        if(b){
+            dis=pq1.top().dis;
+            pos=pq1.top().pos;
+            pq1.pop();
+        }else{
+            dis=pq2.top().dis;
+            pos=pq2.top().pos;
+            pq2.pop();
+        }
+        if((b&&(!rec1[pos]))||(!b&&(!rec2[pos])))continue;
+        else{
+            if(b)rec1[pos]=false;
+            else rec2[pos]=false;
+            if(b)dist1[pos]=dis;
+            else dist2[pos]=dis;
+            rep(i,0,N)if(rec1[i]||rec2[i]){
+                if(b&&rec1[i])pq1.push(dpb{dis+A*D[pos][i],i});
+                if(rec2[i])pq2.push(dpb{dis+B*D[pos][i]+C,i});
+            }
+        }
+    }
+    cout<<min(dist1[N-1],dist2[N-1])<<'\n';
+    return 0;
+}

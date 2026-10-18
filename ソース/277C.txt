@@ -1,0 +1,40 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+unordered_map<int,vector<int>> G;
+int ans=0;
+unordered_set<int> s;
+void dfs(int pos){
+    ans=max(ans,pos);
+    s.insert(pos);
+    if(G.count(pos))for(int next:G[pos])if(!s.count(next))dfs(next);
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    //頂点の範囲が広いのでmapでグラフを持つ
+    rep(i,0,N){
+        int a,b;
+        cin>>a>>b;
+        if(G.count(a))G[a].push_back(b);
+        else G[a]={b};
+        if(G.count(b))G[b].push_back(a);
+        else G[b]={a};
+    }
+    dfs(1);
+    cout<<ans<<"\n";
+    return 0;
+}

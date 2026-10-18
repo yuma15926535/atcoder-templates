@@ -1,0 +1,638 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+==================================================
+ 2×2 行列テンプレート（列ベクトル作用）
+==================================================
+
+【概要】
+2×2 行列を扱う軽量テンプレ。
+列ベクトル v = (x, y)^T に対して A * v を計算する設計。
+
+    A = [a00 a01]
+        [a10 a11]
+
+    A * (x, y)^T =
+        (a00*x + a01*y,
+         a10*x + a11*y)
+
+【用途（重要）】
+・フィボナッチ数列（超頻出）
+・線形漸化式（dpの高速化）
+・状態遷移の高速化（遷移が線形な場合）
+・グラフやDPの「1ステップ遷移」をまとめてk回適用
+
+【計算量】
+・行列積：O(1)
+・累乗：O(log n)
+
+【提供機能】
+・identity()      : 単位行列
+・apply(v)        : ベクトルへの作用
+・operator*       : 行列積
+・pow(A, n)       : 二分累乗
+・det()           : 行列式
+・inv()           : 逆行列（※前提あり）
+
+【逆行列の注意】
+inv() は以下を前提：
+・det ≠ 0
+・T が割り算可能（= 体）
+  → modintの場合は「modが素数」である必要あり
+
+【Tに要求するもの】
+T は以下を満たす必要あり：
+・+, -, *, /
+・単項マイナス（-a）
+・0, 1 からの構築
+・（modintなら）inv() が内部で使えること
+
+【典型例（フィボナッチ）】
+    A = [1 1]
+        [1 0]
+
+    A^n * (F1, F0) = (F_{n+1}, F_n)
+
+【注意】
+・オーバーフロー（ll使用時）
+・modintでない場合の逆行列の存在条件
+・powはexp>=0前提
+
+==================================================
+*/
+template<class T>
+struct Mat2 {
+    T a00, a01, a10, a11;
+
+    Mat2(T a00=0, T a01=0, T a10=0, T a11=0)
+        : a00(a00), a01(a01), a10(a10), a11(a11) {}
+
+    static Mat2<T> identity() {
+        return Mat2(T(1), T(0), T(0), T(1));
+    }
+
+    pair<T,T> apply(pair<T,T> v) const {
+        T x = v.first, y = v.second;
+        return {
+            a00 * x + a01 * y,
+            a10 * x + a11 * y
+        };
+    }
+
+    Mat2<T> operator*(const Mat2<T>& o) const {
+        return Mat2(
+            a00 * o.a00 + a01 * o.a10,
+            a00 * o.a01 + a01 * o.a11,
+            a10 * o.a00 + a11 * o.a10,
+            a10 * o.a01 + a11 * o.a11
+        );
+    }
+
+    static Mat2<T> pow(Mat2<T> base, long long exp) {
+        Mat2<T> res = identity();
+        while (exp > 0) {
+            if (exp & 1) res = res * base;
+            base = base * base;
+            exp >>= 1;
+        }
+        return res;
+    }
+
+    T det() const {
+        return a00 * a11 - a01 * a10;
+    }
+
+    Mat2<T> inv() const {
+        T d = det();
+        // 今回の前提：d = ±1（= 必ず割り切れる & 非0）
+        // 念のため防御
+        assert(d != T(0));
+
+        return Mat2(
+            a11 / d, -a01 / d,
+            -a10 / d, a00 / d
+        );
+    }
+};
+
+long long rand_ll(long long l, long long r) {
+    static std::mt19937_64 rng(1);
+    std::uniform_int_distribution<long long> dist(l, r);
+    return dist(rng);
+}
+
+Mat2<ll> rand_mat2(long long l=-10, long long r=10) {
+    return Mat2<ll>(
+        rand_ll(l, r), rand_ll(l, r),
+        rand_ll(l, r), rand_ll(l, r)
+    );
+}
+
+pair<long long,long long> rand_vec(long long l=-10, long long r=10) {
+    return {rand_ll(l, r), rand_ll(l, r)};
+}
+
+bool eq_mat(const Mat2<ll>& A, const Mat2<ll>& B) {
+    return A.a00==B.a00 && A.a01==B.a01 &&
+           A.a10==B.a10 && A.a11==B.a11;
+}
+
+bool eq_vec(pair<long long,long long> a, pair<long long,long long> b) {
+    return a.first==b.first && a.second==b.second;
+}
+
+Mat2<ll> brute_pow(Mat2<ll> A, int k) {
+    Mat2<ll> res = Mat2<ll>::identity();
+    for (int i = 0; i < k; i++) {
+        res = res * A;
+    }
+    return res;
+}
+
+Mat2<ll> rand_invertible_mat2(int steps = 5) {
+    Mat2<ll> A = Mat2<ll>::identity();
+
+    for (int i = 0; i < steps; i++) {
+        int op = rand_ll(0, 2);
+
+        if (op == 0) {
+            // 行swap
+            swap(A.a00, A.a10);
+            swap(A.a01, A.a11);
+        } else if (op == 1) {
+            // row1 += k * row2
+            long long k = rand_ll(-3, 3);
+            A.a00 += k * A.a10;
+            A.a01 += k * A.a11;
+        } else {
+            // row2 += k * row1
+            long long k = rand_ll(-3, 3);
+            A.a10 += k * A.a00;
+            A.a11 += k * A.a01;
+        }
+    }
+
+    // 念のためチェック
+    long long d = A.det();
+    assert(d == 1 || d == -1);
+
+    return A;
+}
+
+void random_test_mat2_step1(int iter = 100000) {
+    for (int t = 0; t < iter; t++) {
+        long long x = rand_ll(-1000, 1000);
+        long long y = rand_ll(-1000, 1000);
+
+        pair<long long,long long> v = {x, y};
+
+        // identity test
+        Mat2<ll> I = Mat2<ll>::identity();
+        auto res = I.apply(v);
+
+        assert(res.first == x);
+        assert(res.second == y);
+
+        // random matrix test（手計算一致）
+        long long a00 = rand_ll(-100, 100);
+        long long a01 = rand_ll(-100, 100);
+        long long a10 = rand_ll(-100, 100);
+        long long a11 = rand_ll(-100, 100);
+
+        Mat2<ll> A(a00, a01, a10, a11);
+
+        auto r = A.apply(v);
+
+        long long ex0 = a00 * x + a01 * y;
+        long long ex1 = a10 * x + a11 * y;
+
+        assert(r.first == ex0);
+        assert(r.second == ex1);
+    }
+
+    cerr << "Step1 OK" << endl;
+}
+
+void random_test_mat2_step2(int iter = 100000) {
+    for (int t = 0; t < iter; t++) {
+        Mat2<ll> A = rand_mat2();
+        Mat2<ll> B = rand_mat2();
+        Mat2<ll> C = rand_mat2();
+        auto v = rand_vec();
+
+        // ① 最重要：A(Bv) == (AB)v
+        auto left = A.apply(B.apply(v));
+        auto right = (A * B).apply(v);
+        assert(eq_vec(left, right));
+
+        // ② 結合性
+        Mat2<ll> leftM = (A * B) * C;
+        Mat2<ll> rightM = A * (B * C);
+        assert(eq_mat(leftM, rightM));
+
+        // ③ identity
+        Mat2<ll> I = Mat2<ll>::identity();
+        assert(eq_mat(A * I, A));
+        assert(eq_mat(I * A, A));
+    }
+
+    cerr << "Step2 OK" << endl;
+}
+
+void random_test_mat2_step3(int iter = 100000) {
+    for (int t = 0; t < iter; t++) {
+        Mat2<ll> A = rand_mat2(-5, 5);  // 小さめ
+        auto v = rand_vec(-5, 5);
+
+        // ① A^0 = I
+        Mat2<ll> I = Mat2<ll>::identity();
+        assert(eq_mat(Mat2<ll>::pow(A, 0), I));
+
+        // ② A^1 = A
+        assert(eq_mat(Mat2<ll>::pow(A, 1), A));
+
+        // ③ 小さいkで愚直比較
+        int k = rand_ll(0, 10);
+
+        Mat2<ll> fast = Mat2<ll>::pow(A, k);
+        Mat2<ll> slow = brute_pow(A, k);
+
+        assert(eq_mat(fast, slow));
+
+        // ④ applyベース比較（かなり強い）
+        auto fast_v = fast.apply(v);
+
+        auto cur = v;
+        for (int i = 0; i < k; i++) {
+            cur = A.apply(cur);
+        }
+
+        assert(eq_vec(fast_v, cur));
+    }
+
+    cerr << "Step3 OK" << endl;
+}
+
+void random_test_mat2_step4(int iter = 100000) {
+    for (int t = 0; t < iter; t++) {
+        Mat2<ll> A = rand_mat2(-10, 10);
+        Mat2<ll> B = rand_mat2(-10, 10);
+
+        // ① det(AB) = det(A) * det(B)
+        long long lhs = (A * B).det();
+        long long rhs = A.det() * B.det();
+        assert(lhs == rhs);
+
+        // ② det(I) = 1
+        Mat2<ll> I = Mat2<ll>::identity();
+        assert(I.det() == 1);
+
+        // ③ det(0) = 0
+        Mat2<ll> Z(0, 0, 0, 0);
+        assert(Z.det() == 0);
+
+        // ④ det=0 のときの軽い確認
+        // （ランダムvに対して、写像でrank落ちる雰囲気チェック）
+        if (A.det() == 0) {
+            auto v1 = rand_vec(-5, 5);
+            auto v2 = rand_vec(-5, 5);
+
+            auto r1 = A.apply(v1);
+            auto r2 = A.apply(v2);
+
+            // 完全な判定はしないけど、同じになるケースが出やすい
+            // （弱いチェックとして置いておく）
+            // assertはしない（false negative防止）
+        }
+    }
+
+    cerr << "Step4 OK" << endl;
+}
+
+void random_test_mat2_step5(int iter = 100000) {
+    for (int t = 0; t < iter; t++) {
+        Mat2<ll> A = rand_invertible_mat2();
+        Mat2<ll> B = A.inv();
+
+        Mat2<ll> I = Mat2<ll>::identity();
+
+        // ① A * A^{-1} = I
+        assert(eq_mat(A * B, I));
+
+        // ② A^{-1} * A = I
+        assert(eq_mat(B * A, I));
+
+        // ③ inv(inv(A)) = A
+        Mat2<ll> C = B.inv();
+        assert(eq_mat(C, A));
+
+        // ④ det(A^{-1}) = 1 / det(A)
+        long long dA = A.det();
+        long long dB = B.det();
+        assert(dA * dB == 1); // ±1なのでOK
+    }
+
+    cerr << "Step5 OK" << endl;
+}
+
+void test_fibonacci_ll() {
+    using ll = long long;
+
+    // フィボ用行列
+    Mat2<ll> A(1, 1,
+               1, 0);
+
+    cout << "フィボナッチ数列（行列累乗で計算）" << '\n';
+
+    for (int n = 0; n <= 10; n++) {
+        // A^n
+        Mat2<ll> An = Mat2<ll>::pow(A, n);
+
+        // 初期ベクトル (F1, F0) = (1, 0)
+        pair<ll,ll> v = {1, 0};
+
+        // A^n * v = (F_{n+1}, F_n)
+        auto res = An.apply(v);
+
+        ll Fn = res.second;
+
+        cout << "F(" << n << ") = " << Fn << '\n';
+    }
+}
+
+template<class mint>
+Mat2<mint> rand_mat2_mint(long long l=-5, long long r=5) {
+    return Mat2<mint>(
+        mint(rand_ll(l, r)), mint(rand_ll(l, r)),
+        mint(rand_ll(l, r)), mint(rand_ll(l, r))
+    );
+}
+
+template<class mint>
+pair<mint,mint> rand_vec_mint(long long l=-5, long long r=5) {
+    return {mint(rand_ll(l, r)), mint(rand_ll(l, r))};
+}
+
+template<class mint>
+bool eq_mat_mint(const Mat2<mint>& A, const Mat2<mint>& B) {
+    return A.a00.val()==B.a00.val() &&
+           A.a01.val()==B.a01.val() &&
+           A.a10.val()==B.a10.val() &&
+           A.a11.val()==B.a11.val();
+}
+
+template<class mint>
+bool eq_vec_mint(pair<mint,mint> a, pair<mint,mint> b) {
+    return a.first.val()==b.first.val() &&
+           a.second.val()==b.second.val();
+}
+
+template<class mint>
+Mat2<mint> brute_pow_mint(Mat2<mint> A, int k) {
+    Mat2<mint> res = Mat2<mint>::identity();
+    for(int i=0;i<k;i++) res = res * A;
+    return res;
+}
+
+void random_test_mat2_acl(int iter = 100000) {
+    using mint = modint998244353;
+
+    for (int t = 0; t < iter; t++) {
+        auto A = rand_mat2_mint<mint>();
+        auto B = rand_mat2_mint<mint>();
+        auto C = rand_mat2_mint<mint>();
+        auto v = rand_vec_mint<mint>();
+
+        // Step2：作用の整合
+        assert(eq_vec_mint(
+            A.apply(B.apply(v)),
+            (A * B).apply(v)
+        ));
+
+        // 結合性
+        assert(eq_mat_mint(
+            (A * B) * C,
+            A * (B * C)
+        ));
+
+        // identity
+        auto I = Mat2<mint>::identity();
+        assert(eq_mat_mint(A * I, A));
+        assert(eq_mat_mint(I * A, A));
+
+        // Step3：pow
+        int k = rand_ll(0, 10);
+        auto fast = Mat2<mint>::pow(A, k);
+        auto slow = brute_pow_mint(A, k);
+        assert(eq_mat_mint(fast, slow));
+
+        // applyベース
+        auto fast_v = fast.apply(v);
+        auto cur = v;
+        for(int i=0;i<k;i++) cur = A.apply(cur);
+        assert(eq_vec_mint(fast_v, cur));
+
+        // Step4：det
+        assert((A * B).det().val() ==
+               (A.det() * B.det()).val());
+
+        // Step5：inv（det≠0）
+        if (A.det().val() != 0) {
+            auto invA = A.inv();
+            auto I2 = Mat2<mint>::identity();
+
+            assert(eq_mat_mint(A * invA, I2));
+            assert(eq_mat_mint(invA * A, I2));
+        }
+    }
+
+    cerr << "ACL modint test OK" << endl;
+}
+
+void solv(){
+    random_test_mat2_step1();
+    random_test_mat2_step2();
+    random_test_mat2_step3();
+    random_test_mat2_step4();
+    random_test_mat2_step5();
+    test_fibonacci_ll();
+    random_test_mat2_acl();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

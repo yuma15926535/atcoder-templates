@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+struct tws{
+    //T:時刻
+    //W:量
+    //S:抜ける期間
+    private:ll T,W,S;
+    public:tws(ll t,ll w,ll s):T(t),W(w),S(s){
+    }
+    ll getT(){
+        return T;
+    }
+    ll getW(){
+        return W;
+    }
+    ll getS(){
+        return S;
+    }
+};
+
+int main(){
+    auto cmp=[](ll a,ll b){return a<b;}; // 比較関数
+    // 比較関数の渡し方
+    //priority_queueに比較関数を渡す
+    //priority_queueはtopで値を取得するのでtrueが後から取得される
+    priority_queue<ll,vector<ll>,decltype(cmp)> pq(cmp); // コンストラクタで cmp を渡す
+    //mapに比較関数を渡す
+    //sortの順序と同じ
+    map<ll, int,decltype(cmp)> mp(cmp); // コンストラクタで cmp を渡す
+    //setに比較関数を渡す
+    //sortの順序と同じ
+    set<ll,decltype(cmp)> st(cmp); // コンストラクタで cmp を渡す
+    int N,M;
+    cin>>N>>M;
+    //そうめんイベント
+    vector<tws>v;
+    rep(i,0,M){
+        ll t,w,s;
+        cin>>t>>w>>s;
+        tws e(t,w,s);
+        v.emplace_back(e);
+    }
+    //列にいる人
+    PQ_g<int>retsu;
+    erep(i,1,N)retsu.push(i);
+    //戻ってくる時刻、人
+    PQ_g<pair<ll,int>>modori;
+    vector<ll>ans(N+1,0);
+    int idx=0;
+    while(idx<M){
+        if(!modori.empty()&&v[idx].getT()>=modori.top().first){
+            retsu.push(modori.top().second);
+            modori.pop();
+        }else{
+            if(retsu.empty())goto throwevent;
+            ans[retsu.top()]+=v[idx].getW();
+            modori.emplace(v[idx].getT()+v[idx].getS(),retsu.top());
+            retsu.pop();
+            throwevent:
+            idx++;
+        }
+    }
+    erep(i,1,N)cout<<ans[i]<<'\n';
+    return 0;
+}

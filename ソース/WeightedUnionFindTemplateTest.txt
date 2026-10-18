@@ -1,0 +1,567 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ Weighted Union-Find（ポテンシャル付きUnion-Find）
+------------------------------------------------------------
+【概要】
+各頂点 x に「ポテンシャル（重み）」を持たせた Union-Find。
+    weight(y) - weight(x) = w
+という差分関係を管理するデータ構造。
+------------------------------------------------------------
+【典型用途】
+差分制約
+    y - x = w
+位置関係
+    pos[y] - pos[x]
+AtCoder典型
+    ABC087D - People on a Line
+------------------------------------------------------------
+【計算量】
+find        : ほぼ O(1)
+unite       : ほぼ O(1)
+same        : ほぼ O(1)
+diff        : ほぼ O(1)
+weight      : ほぼ O(1)
+size        : ほぼ O(1)
+consistent  : ほぼ O(1)
+unite_check : ほぼ O(1)
+------------------------------------------------------------
+【内部データ】
+parent[x]
+    <0  : root
+          値は -size
+    >=0 : 親ノード
+diff_weight[x]
+    parent[x] との重み差
+    weight[x] - weight[parent[x]]
+------------------------------------------------------------
+【ポテンシャル定義】
+weight(x)
+    root から x までの累積重み
+diff(x,y)
+    weight(y) - weight(x)
+------------------------------------------------------------
+*/
+struct WeightedUnionFind {
+
+    vector<int> parent;
+    vector<long long> diff_weight;
+
+    WeightedUnionFind(int n) {
+        parent.assign(n, -1);
+        diff_weight.assign(n, 0);
+    }
+
+    /*
+    ------------------------------------------------------------
+    find(x)
+
+    x の root を取得する。
+    経路圧縮を行いながら diff_weight を更新する。
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    int find(int x) {
+
+        if(parent[x] < 0) return x;
+
+        int r = find(parent[x]);
+
+        diff_weight[x] += diff_weight[parent[x]];
+
+        return parent[x] = r;
+    }
+
+    /*
+    ------------------------------------------------------------
+    weight(x)
+
+    root から x までのポテンシャルを返す。
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    long long weight(int x) {
+
+        find(x);
+
+        return diff_weight[x];
+    }
+
+    /*
+    ------------------------------------------------------------
+    same(x,y)
+
+    x と y が同じ集合か
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    bool same(int x,int y){
+
+        return find(x) == find(y);
+    }
+
+    /*
+    ------------------------------------------------------------
+    diff(x,y)
+
+    weight(y) - weight(x)
+
+    ※連結でない場合は未定義
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    long long diff(int x,int y){
+
+        return weight(y) - weight(x);
+    }
+
+    /*
+    ------------------------------------------------------------
+    size(x)
+
+    x が属する集合のサイズを返す。
+
+    root の parent には -size が入っている。
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    int size(int x){
+
+        return -parent[find(x)];
+    }
+
+    /*
+    ------------------------------------------------------------
+    unite(x,y,w)
+
+    条件
+
+        weight(y) - weight(x) = w
+
+    となるように集合を結合する。
+
+    パターン②
+        矛盾チェックは行わない。
+
+    戻り値
+
+        true  : 新しく結合した
+        false : すでに連結
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    bool unite(int x,int y,long long w){
+
+        w += weight(x);
+        w -= weight(y);
+
+        x = find(x);
+        y = find(y);
+
+        if(x == y) return false;
+
+        if(parent[x] > parent[y]){
+            swap(x,y);
+            w = -w;
+        }
+
+        parent[x] += parent[y];
+        parent[y] = x;
+
+        diff_weight[y] = w;
+
+        return true;
+    }
+
+    /*
+    ------------------------------------------------------------
+    consistent(x,y,w)
+
+    条件
+
+        weight(y) - weight(x) = w
+
+    が矛盾しないか確認する。
+
+    戻り値
+
+        -1 : 未連結（まだ制約なし）
+         1 : 矛盾なし（条件と一致）
+         0 : 矛盾あり
+
+    計算量
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    int consistent(int x,int y,long long w){
+
+        if(!same(x,y)) return -1;
+
+        if(diff(x,y) == w) return 1;
+
+        return 0;
+    }
+
+    /*
+    ------------------------------------------------------------
+     unite_check(x, y, w)
+    3つのケースを内部で処理する。
+
+    ① 未連結
+        → unite(x,y,w) を実行
+        → true を返す
+
+    ② 連結 + 矛盾なし
+        → 既存の差分と一致
+        → true を返す
+
+    ③ 連結 + 矛盾
+        → diff(x,y) != w
+        → false を返す
+
+    【戻り値】
+    true  : 制約を追加しても矛盾なし
+    false : 矛盾が発生
+
+    【計算量】
+        ほぼ O(1)
+    ------------------------------------------------------------
+    */
+    bool unite_check(int x,int y,long long w){
+
+        if(same(x,y)){
+
+            return diff(x,y) == w;
+        }
+
+        unite(x,y,w);
+
+        return true;
+    }
+};
+
+/*
+============================================================
+ 基本動作デモ
+============================================================
+*/
+void demo_basic(){
+
+    cout<<"===== WeightedUnionFind 基本動作 =====\n\n";
+
+    WeightedUnionFind uf(5);
+
+    cout<<"0 と 1 を結合 (1 - 0 = 3)\n";
+    uf.unite(0,1,3);
+
+    cout<<"1 と 2 を結合 (2 - 1 = 2)\n";
+    uf.unite(1,2,2);
+
+    cout<<"\n現在の重み\n";
+
+    cout<<"weight(0) = "<<uf.weight(0)<<endl;
+    cout<<"weight(1) = "<<uf.weight(1)<<endl;
+    cout<<"weight(2) = "<<uf.weight(2)<<endl;
+
+    cout<<"\n差分\n";
+
+    cout<<"1 - 0 = "<<uf.diff(0,1)<<endl;
+    cout<<"2 - 0 = "<<uf.diff(0,2)<<endl;
+    cout<<"0 - 2 = "<<uf.diff(2,0)<<endl;
+
+    cout<<"\n連結判定\n";
+
+    cout<<"same(0,2) = "<<uf.same(0,2)<<endl;
+    cout<<"same(0,4) = "<<uf.same(0,4)<<endl;
+
+    cout<<"\nサイズ\n";
+
+    cout<<"size(0) = "<<uf.size(0)<<endl;
+
+    cout<<"\nconsistent(0,2,5) = "<<uf.consistent(0,2,5)<<endl;
+    cout<<"consistent(0,2,4) = "<<uf.consistent(0,2,4)<<endl;
+
+    cout<<"\n0 と 4 を結合 (4 - 0 = 10)\n";
+    uf.unite_check(0,4,10);
+    cout<<"same(0,4) = "<<uf.same(0,4)<<endl;
+
+    cout<<"\n\n";
+}
+
+/*
+============================================================
+ 典型問題① 差分制約（People on a Line 型）
+============================================================
+*/
+void demo_constraint(){
+
+    cout<<"===== 典型① 差分制約 =====\n\n";
+
+    WeightedUnionFind uf(4);
+
+    cout<<"制約: 1 - 0 = 3\n";
+    uf.unite(0,1,3);
+
+    cout<<"制約: 2 - 1 = 4\n";
+    uf.unite(1,2,4);
+
+    cout<<"制約: 3 - 2 = 5\n";
+    uf.unite(2,3,5);
+
+    cout<<"\n結果\n";
+
+    cout<<"3 - 0 = "<<uf.diff(0,3)<<endl;
+
+    cout<<"\n\n";
+}
+
+/*
+============================================================
+ 典型問題② 座標差管理
+============================================================
+*/
+void demo_coordinate(){
+
+    cout<<"===== 典型② 座標差管理 =====\n\n";
+
+    WeightedUnionFind uf(3);
+
+    cout<<"pos[1] - pos[0] = 10\n";
+    uf.unite(0,1,10);
+
+    cout<<"pos[2] - pos[1] = -4\n";
+    uf.unite(1,2,-4);
+
+    cout<<"\npos[2] - pos[0] = "<<uf.diff(0,2)<<endl;
+
+    cout<<"\n\n";
+}
+
+/*
+============================================================
+ 典型問題③ 矛盾検出
+============================================================
+*/
+void demo_contradiction(){
+
+    cout<<"===== 典型③ 矛盾検出 =====\n\n";
+
+    WeightedUnionFind uf(3);
+
+    cout<<"制約: 1 - 0 = 3\n";
+    uf.unite(0,1,3);
+
+    cout<<"制約: 2 - 1 = 2\n";
+    uf.unite(1,2,2);
+
+    cout<<"制約: 2 - 0 = 10 を確認\n";
+
+    int res = uf.consistent(0,2,10);
+
+    if(res==1) cout<<"矛盾なし\n";
+    if(res==0) cout<<"矛盾あり\n";
+    if(res==-1) cout<<"未連結\n";
+
+    cout<<"\n正しい値は\n";
+
+    cout<<"2 - 0 = "<<uf.diff(0,2)<<endl;
+
+    cout<<"\n\n";
+}
+
+void solv(){
+    demo_basic();
+    demo_constraint();
+    demo_coordinate();
+    demo_contradiction();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

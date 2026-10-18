@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main(){
+    int N,M;
+    cin>>N>>M;
+    vector<vector<int>>G(N);
+    rep(i,0,M){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    vector<bool>visited(N,true);
+    ll ans=0;
+    //BFSで連結成分の頂点の個数と辺の本数を数える
+    rep(i,0,N)if(visited[i]){
+        queue<int>q;
+        q.push(i);
+        visited[i]=false;
+        ll v=1,e=G[i].size();
+        while(!q.empty()){
+            int pos=q.front();
+            q.pop();
+            for(int nxt:G[pos])if(visited[nxt]){
+                visited[nxt]=false;
+                q.push(nxt);
+                v++;
+                e+=G[nxt].size();
+            }
+        }
+        ans+=v*(v-1)/2-e/2;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

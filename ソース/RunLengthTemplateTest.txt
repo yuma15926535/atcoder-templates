@@ -1,0 +1,126 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ ランレングス圧縮（数列版）
+==================================================
+
+【機能】
+連続して同じ値が現れる区間を (値, 個数) のペアに圧縮する。
+
+例:
+a = [1,1,1,2,2,3,1,1]
+→ [(1,3),(2,2),(3,1),(1,2)]
+
+【計算量】
+O(N)
+
+【注意】
+- 値の大小比較は不要（== のみ）
+- 空配列にも対応
+*/
+template<class T>
+vector<pair<T,long long>> run_length(const vector<T>& a) {
+    vector<pair<T,long long>> res;
+    for (const auto& x : a) {
+        if (res.empty() || res.back().first != x) {
+            res.emplace_back(x, 1);
+        } else {
+            res.back().second++;
+        }
+    }
+    return res;
+}
+/*
+==================================================
+ ランレングス圧縮（string版）
+==================================================
+
+【機能】
+文字列を連続する同一文字ごとに (文字, 個数) に圧縮する。
+
+例:
+s = "aaabbccccd"
+→ [('a',3),('b',2),('c',4),('d',1)]
+
+【計算量】
+O(|s|)
+
+【注意】
+- 空文字列にも対応
+*/
+vector<pair<char,int>> run_length(const string& s) {
+    vector<pair<char,int>> res;
+    for (char c : s) {
+        if (res.empty() || res.back().first != c) {
+            res.emplace_back(c, 1);
+        } else {
+            res.back().second++;
+        }
+    }
+    return res;
+}
+
+void solv(){
+    // ==============================
+    // ① 数列版 ランレングス圧縮
+    // ==============================
+    vector<int> a = {1,1,1,2,2,3,1,1};
+
+    auto rle_a = run_length(a);
+
+    cout << "=== 数列 RLE ===\n";
+    cout << "input: ";
+    for (int x : a) cout << x << " ";
+    cout << "\ncompressed:\n";
+    for (auto [v, cnt] : rle_a) {
+        cout << "(" << v << ", " << cnt << ") ";
+    }
+    cout << "\n\n";
+
+    // ==============================
+    // ② string版 ランレングス圧縮
+    // ==============================
+    string s = "aaabbccccd";
+
+    auto rle_s = run_length(s);
+
+    cout << "=== string RLE ===\n";
+    cout << "input: " << s << "\n";
+    cout << "compressed:\n";
+    for (auto [c, cnt] : rle_s) {
+        cout << "('" << c << "', " << cnt << ") ";
+    }
+    cout << "\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

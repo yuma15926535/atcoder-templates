@@ -1,0 +1,1073 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ Range / Rect + RangeSplit
+------------------------------------------------------------
+ 格子点・整数区間の分割をまとめたテンプレート
+
+ 【構造体】
+ Range : 1次元区間 [l,r]
+ Rect  : 2次元矩形 [x1,x2] × [y1,y2]
+
+ exist : 区間 / 矩形が存在するか
+ count : 含まれる整数 / 格子点の個数
+
+ 【分割関数】
+
+ 1D
+  sign_split      : x<0 | x=0 | x>0
+  cut_by_range    : 外部・内部・外部
+
+ 2D
+  quadrant_split  : 象限分割 (4)
+  sign_grid_split : 符号9分割 (3×3)
+  split_by_x_axis : y<0 | y=0 | y>0
+  split_by_y_axis : x<0 | x=0 | x>0
+
+ すべて順序固定 array で返却
+============================================================
+*/
+
+struct Range {
+    long long l, r;
+    bool exist;
+
+    Range() : l(0), r(-1), exist(false) {}
+    Range(long long l, long long r)
+        : l(l), r(r), exist(l <= r) {}
+
+    long long count() const {
+        return exist ? (r - l + 1) : 0;
+    }
+};
+
+struct Rect {
+    long long x1, x2, y1, y2;
+    bool exist;
+
+    Rect() : x1(0), x2(-1), y1(0), y2(-1), exist(false) {}
+    Rect(long long x1,long long x2,long long y1,long long y2)
+        : x1(x1), x2(x2), y1(y1), y2(y2),
+          exist(x1 <= x2 && y1 <= y2) {}
+
+    long long count() const {
+        return exist ? (x2 - x1 + 1) * (y2 - y1 + 1) : 0;
+    }
+};
+
+struct RangeSplit {
+
+    /*
+    ------------------------------------------------------------
+     1D: sign_split
+     x<0 | x=0 | x>0 に分割
+     return order:
+     [0] x<0
+     [1] x=0
+     [2] x>0
+    ------------------------------------------------------------
+    */
+    static array<Range,3> sign_split(Range r) {
+
+        array<Range,3> res;
+
+        res[0] = Range(r.l, min(r.r, -1LL));
+        res[1] = Range(max(r.l, 0LL), min(r.r, 0LL));
+        res[2] = Range(max(r.l, 1LL), r.r);
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     1D: cut_by_range
+     base を cut で分割
+
+     return order:
+     [0] 左外部
+     [1] 内部
+     [2] 右外部
+    ------------------------------------------------------------
+    */
+    static array<Range,3> cut_by_range(Range base, Range cut) {
+
+        array<Range,3> res;
+
+        res[0] = Range(base.l, min(base.r, cut.l - 1));
+        res[1] = Range(max(base.l, cut.l), min(base.r, cut.r));
+        res[2] = Range(max(base.l, cut.r + 1), base.r);
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: quadrant_split
+     象限分割
+
+     return order:
+     [0] x>=0 , y>=0  (第1象限)
+     [1] x<0  , y>=0  (第2象限)
+     [2] x<0  , y<0   (第3象限)
+     [3] x>=0 , y<0   (第4象限)
+    ------------------------------------------------------------
+    */
+    static array<Rect,4> quadrant_split(Rect r) {
+
+        array<Rect,4> res;
+
+        res[0] = Rect(max(r.x1,0LL), r.x2,
+                      max(r.y1,0LL), r.y2);
+
+        res[1] = Rect(r.x1, min(r.x2,-1LL),
+                      max(r.y1,0LL), r.y2);
+
+        res[2] = Rect(r.x1, min(r.x2,-1LL),
+                      r.y1, min(r.y2,-1LL));
+
+        res[3] = Rect(max(r.x1,0LL), r.x2,
+                      r.y1, min(r.y2,-1LL));
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: sign_grid_split
+     x<0 | x=0 | x>0
+     y<0 | y=0 | y>0
+     の 3×3 = 9分割
+
+     index:
+     0 (-,-)
+     1 (-,0)
+     2 (-,+)
+     3 (0,-)
+     4 (0,0)
+     5 (0,+)
+     6 (+,-)
+     7 (+,0)
+     8 (+,+)
+    ------------------------------------------------------------
+    */
+    static array<Rect,9> sign_grid_split(Rect r) {
+
+        array<Rect,9> res;
+
+        Range xs[3] = {
+            Range(r.x1, min(r.x2,-1LL)),
+            Range(max(r.x1,0LL), min(r.x2,0LL)),
+            Range(max(r.x1,1LL), r.x2)
+        };
+
+        Range ys[3] = {
+            Range(r.y1, min(r.y2,-1LL)),
+            Range(max(r.y1,0LL), min(r.y2,0LL)),
+            Range(max(r.y1,1LL), r.y2)
+        };
+
+        int idx = 0;
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                res[idx++] = Rect(xs[i].l, xs[i].r,
+                                  ys[j].l, ys[j].r);
+            }
+        }
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: split_by_x_axis
+     y<0 | y=0 | y>0
+
+     return order:
+     [0] y<0
+     [1] y=0
+     [2] y>0
+    ------------------------------------------------------------
+    */
+    static array<Rect,3> split_by_x_axis(Rect r) {
+
+        array<Rect,3> res;
+
+        res[0] = Rect(r.x1, r.x2, r.y1, min(r.y2,-1LL));
+        res[1] = Rect(r.x1, r.x2,
+                      max(r.y1,0LL), min(r.y2,0LL));
+        res[2] = Rect(r.x1, r.x2, max(r.y1,1LL), r.y2);
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: split_by_y_axis
+     x<0 | x=0 | x>0
+
+     return order:
+     [0] x<0
+     [1] x=0
+     [2] x>0
+    ------------------------------------------------------------
+    */
+    static array<Rect,3> split_by_y_axis(Rect r) {
+
+        array<Rect,3> res;
+
+        res[0] = Rect(r.x1, min(r.x2,-1LL), r.y1, r.y2);
+        res[1] = Rect(max(r.x1,0LL), min(r.x2,0LL), r.y1, r.y2);
+        res[2] = Rect(max(r.x1,1LL), r.x2, r.y1, r.y2);
+
+        return res;
+    }
+};
+
+
+/*
+============================================================
+ 表示用
+============================================================
+*/
+
+void print_range(Range r){
+
+    if(!r.exist){
+        cout<<"存在しない\n";
+        return;
+    }
+
+    cout<<"["<<r.l<<","<<r.r<<"]  個数="<<r.count()<<"\n";
+}
+
+void print_rect(Rect r){
+
+    if(!r.exist){
+        cout<<"存在しない\n";
+        return;
+    }
+
+    cout<<"x:["<<r.x1<<","<<r.x2<<"] "
+        <<"y:["<<r.y1<<","<<r.y2<<"] "
+        <<"格子点="<<r.count()<<"\n";
+}
+
+void solv(){
+    cout<<"==============================\n";
+    cout<<"Range sign_split 動作確認\n";
+    cout<<"==============================\n";
+
+    Range r(-5,5);
+
+    auto a = RangeSplit::sign_split(r);
+
+    cout<<"入力区間 [-5,5]\n";
+
+    cout<<"x<0 : "; print_range(a[0]);
+    cout<<"x=0 : "; print_range(a[1]);
+    cout<<"x>0 : "; print_range(a[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"Range cut_by_range 動作確認\n";
+    cout<<"==============================\n";
+
+    Range base(-5,10);
+    Range cut(0,3);
+
+    auto b = RangeSplit::cut_by_range(base,cut);
+
+    cout<<"base [-5,10]\n";
+    cout<<"cut  [0,3]\n";
+
+    cout<<"左外部 : "; print_range(b[0]);
+    cout<<"内部   : "; print_range(b[1]);
+    cout<<"右外部 : "; print_range(b[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"Rect quadrant_split 動作確認\n";
+    cout<<"==============================\n";
+
+    Rect rec(-3,4,-2,5);
+
+    auto q = RangeSplit::quadrant_split(rec);
+
+    cout<<"入力矩形 x[-3,4] y[-2,5]\n";
+
+    cout<<"第1象限 : "; print_rect(q[0]);
+    cout<<"第2象限 : "; print_rect(q[1]);
+    cout<<"第3象限 : "; print_rect(q[2]);
+    cout<<"第4象限 : "; print_rect(q[3]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"Rect sign_grid_split 動作確認\n";
+    cout<<"==============================\n";
+
+    auto g = RangeSplit::sign_grid_split(rec);
+
+    for(int i=0;i<9;i++){
+        cout<<"領域 "<<i<<" : ";
+        print_rect(g[i]);
+    }
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"x軸分割 動作確認\n";
+    cout<<"==============================\n";
+
+    auto xs = RangeSplit::split_by_x_axis(rec);
+
+    cout<<"y<0 : "; print_rect(xs[0]);
+    cout<<"y=0 : "; print_rect(xs[1]);
+    cout<<"y>0 : "; print_rect(xs[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"y軸分割 動作確認\n";
+    cout<<"==============================\n";
+
+    auto ys = RangeSplit::split_by_y_axis(rec);
+
+    cout<<"x<0 : "; print_rect(ys[0]);
+    cout<<"x=0 : "; print_rect(ys[1]);
+    cout<<"x>0 : "; print_rect(ys[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"境界ケース確認\n";
+    cout<<"==============================\n";
+
+    Rect origin(0,0,0,0);
+
+    auto t = RangeSplit::sign_grid_split(origin);
+
+    cout<<"原点のみの矩形\n";
+
+    for(int i=0;i<9;i++){
+        cout<<"領域 "<<i<<" : ";
+        print_rect(t[i]);
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ Range / Rect + RangeSplit
+------------------------------------------------------------
+ 格子点・整数区間の分割をまとめたテンプレート
+
+ 【構造体】
+ Range : 1次元区間 [l,r]
+ Rect  : 2次元矩形 [x1,x2] × [y1,y2]
+
+ exist : 区間 / 矩形が存在するか
+ count : 含まれる整数 / 格子点の個数
+
+ 【分割関数】
+
+ 1D
+  sign_split      : x<0 | x=0 | x>0
+  cut_by_range    : 外部・内部・外部
+
+ 2D
+  quadrant_split  : 象限分割 (4)
+  sign_grid_split : 符号9分割 (3×3)
+  split_by_x_axis : y<0 | y=0 | y>0
+  split_by_y_axis : x<0 | x=0 | x>0
+
+ すべて順序固定 array で返却
+============================================================
+*/
+
+struct Range {
+    long long l, r;
+    bool exist;
+
+    Range() : l(0), r(-1), exist(false) {}
+    Range(long long l, long long r)
+        : l(l), r(r), exist(l <= r) {}
+
+    long long count() const {
+        return exist ? (r - l + 1) : 0;
+    }
+};
+
+struct Rect {
+    long long x1, x2, y1, y2;
+    bool exist;
+
+    Rect() : x1(0), x2(-1), y1(0), y2(-1), exist(false) {}
+    Rect(long long x1,long long x2,long long y1,long long y2)
+        : x1(x1), x2(x2), y1(y1), y2(y2),
+          exist(x1 <= x2 && y1 <= y2) {}
+
+    long long count() const {
+        return exist ? (x2 - x1 + 1) * (y2 - y1 + 1) : 0;
+    }
+};
+
+struct RangeSplit {
+
+    /*
+    ------------------------------------------------------------
+     1D: sign_split
+     x<0 | x=0 | x>0 に分割
+     return order:
+     [0] x<0
+     [1] x=0
+     [2] x>0
+    ------------------------------------------------------------
+    */
+    static array<Range,3> sign_split(Range r) {
+
+        array<Range,3> res;
+
+        res[0] = Range(r.l, min(r.r, -1LL));
+        res[1] = Range(max(r.l, 0LL), min(r.r, 0LL));
+        res[2] = Range(max(r.l, 1LL), r.r);
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     1D: cut_by_range
+     base を cut で分割
+
+     return order:
+     [0] 左外部
+     [1] 内部
+     [2] 右外部
+    ------------------------------------------------------------
+    */
+    static array<Range,3> cut_by_range(Range base, Range cut) {
+
+        array<Range,3> res;
+
+        res[0] = Range(base.l, min(base.r, cut.l - 1));
+        res[1] = Range(max(base.l, cut.l), min(base.r, cut.r));
+        res[2] = Range(max(base.l, cut.r + 1), base.r);
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: quadrant_split
+     象限分割
+
+     return order:
+     [0] x>=0 , y>=0  (第1象限)
+     [1] x<0  , y>=0  (第2象限)
+     [2] x<0  , y<0   (第3象限)
+     [3] x>=0 , y<0   (第4象限)
+    ------------------------------------------------------------
+    */
+    static array<Rect,4> quadrant_split(Rect r) {
+
+        array<Rect,4> res;
+
+        res[0] = Rect(max(r.x1,0LL), r.x2,
+                      max(r.y1,0LL), r.y2);
+
+        res[1] = Rect(r.x1, min(r.x2,-1LL),
+                      max(r.y1,0LL), r.y2);
+
+        res[2] = Rect(r.x1, min(r.x2,-1LL),
+                      r.y1, min(r.y2,-1LL));
+
+        res[3] = Rect(max(r.x1,0LL), r.x2,
+                      r.y1, min(r.y2,-1LL));
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: sign_grid_split
+     x<0 | x=0 | x>0
+     y<0 | y=0 | y>0
+     の 3×3 = 9分割
+
+     index:
+     0 (-,-)
+     1 (-,0)
+     2 (-,+)
+     3 (0,-)
+     4 (0,0)
+     5 (0,+)
+     6 (+,-)
+     7 (+,0)
+     8 (+,+)
+    ------------------------------------------------------------
+    */
+    static array<Rect,9> sign_grid_split(Rect r) {
+
+        array<Rect,9> res;
+
+        Range xs[3] = {
+            Range(r.x1, min(r.x2,-1LL)),
+            Range(max(r.x1,0LL), min(r.x2,0LL)),
+            Range(max(r.x1,1LL), r.x2)
+        };
+
+        Range ys[3] = {
+            Range(r.y1, min(r.y2,-1LL)),
+            Range(max(r.y1,0LL), min(r.y2,0LL)),
+            Range(max(r.y1,1LL), r.y2)
+        };
+
+        int idx = 0;
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                res[idx++] = Rect(xs[i].l, xs[i].r,
+                                  ys[j].l, ys[j].r);
+            }
+        }
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: split_by_x_axis
+     y<0 | y=0 | y>0
+
+     return order:
+     [0] y<0
+     [1] y=0
+     [2] y>0
+    ------------------------------------------------------------
+    */
+    static array<Rect,3> split_by_x_axis(Rect r) {
+
+        array<Rect,3> res;
+
+        res[0] = Rect(r.x1, r.x2, r.y1, min(r.y2,-1LL));
+        res[1] = Rect(r.x1, r.x2,
+                      max(r.y1,0LL), min(r.y2,0LL));
+        res[2] = Rect(r.x1, r.x2, max(r.y1,1LL), r.y2);
+
+        return res;
+    }
+
+    /*
+    ------------------------------------------------------------
+     2D: split_by_y_axis
+     x<0 | x=0 | x>0
+
+     return order:
+     [0] x<0
+     [1] x=0
+     [2] x>0
+    ------------------------------------------------------------
+    */
+    static array<Rect,3> split_by_y_axis(Rect r) {
+
+        array<Rect,3> res;
+
+        res[0] = Rect(r.x1, min(r.x2,-1LL), r.y1, r.y2);
+        res[1] = Rect(max(r.x1,0LL), min(r.x2,0LL), r.y1, r.y2);
+        res[2] = Rect(max(r.x1,1LL), r.x2, r.y1, r.y2);
+
+        return res;
+    }
+};
+
+
+/*
+============================================================
+ 表示用
+============================================================
+*/
+
+void print_range(Range r){
+
+    if(!r.exist){
+        cout<<"存在しない\n";
+        return;
+    }
+
+    cout<<"["<<r.l<<","<<r.r<<"]  個数="<<r.count()<<"\n";
+}
+
+void print_rect(Rect r){
+
+    if(!r.exist){
+        cout<<"存在しない\n";
+        return;
+    }
+
+    cout<<"x:["<<r.x1<<","<<r.x2<<"] "
+        <<"y:["<<r.y1<<","<<r.y2<<"] "
+        <<"格子点="<<r.count()<<"\n";
+}
+
+void solv(){
+    cout<<"==============================\n";
+    cout<<"Range sign_split 動作確認\n";
+    cout<<"==============================\n";
+
+    Range r(-5,5);
+
+    auto a = RangeSplit::sign_split(r);
+
+    cout<<"入力区間 [-5,5]\n";
+
+    cout<<"x<0 : "; print_range(a[0]);
+    cout<<"x=0 : "; print_range(a[1]);
+    cout<<"x>0 : "; print_range(a[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"Range cut_by_range 動作確認\n";
+    cout<<"==============================\n";
+
+    Range base(-5,10);
+    Range cut(0,3);
+
+    auto b = RangeSplit::cut_by_range(base,cut);
+
+    cout<<"base [-5,10]\n";
+    cout<<"cut  [0,3]\n";
+
+    cout<<"左外部 : "; print_range(b[0]);
+    cout<<"内部   : "; print_range(b[1]);
+    cout<<"右外部 : "; print_range(b[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"Rect quadrant_split 動作確認\n";
+    cout<<"==============================\n";
+
+    Rect rec(-3,4,-2,5);
+
+    auto q = RangeSplit::quadrant_split(rec);
+
+    cout<<"入力矩形 x[-3,4] y[-2,5]\n";
+
+    cout<<"第1象限 : "; print_rect(q[0]);
+    cout<<"第2象限 : "; print_rect(q[1]);
+    cout<<"第3象限 : "; print_rect(q[2]);
+    cout<<"第4象限 : "; print_rect(q[3]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"Rect sign_grid_split 動作確認\n";
+    cout<<"==============================\n";
+
+    auto g = RangeSplit::sign_grid_split(rec);
+
+    for(int i=0;i<9;i++){
+        cout<<"領域 "<<i<<" : ";
+        print_rect(g[i]);
+    }
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"x軸分割 動作確認\n";
+    cout<<"==============================\n";
+
+    auto xs = RangeSplit::split_by_x_axis(rec);
+
+    cout<<"y<0 : "; print_rect(xs[0]);
+    cout<<"y=0 : "; print_rect(xs[1]);
+    cout<<"y>0 : "; print_rect(xs[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"y軸分割 動作確認\n";
+    cout<<"==============================\n";
+
+    auto ys = RangeSplit::split_by_y_axis(rec);
+
+    cout<<"x<0 : "; print_rect(ys[0]);
+    cout<<"x=0 : "; print_rect(ys[1]);
+    cout<<"x>0 : "; print_rect(ys[2]);
+
+
+
+    cout<<"\n==============================\n";
+    cout<<"境界ケース確認\n";
+    cout<<"==============================\n";
+
+    Rect origin(0,0,0,0);
+
+    auto t = RangeSplit::sign_grid_split(origin);
+
+    cout<<"原点のみの矩形\n";
+
+    for(int i=0;i<9;i++){
+        cout<<"領域 "<<i<<" : ";
+        print_rect(t[i]);
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

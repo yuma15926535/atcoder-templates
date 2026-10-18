@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct abcd{
+    pair<int,int> p1;
+    pair<int,int> p2;
+};
+
+int main()
+{
+    int N,S,T;
+    cin>>N>>S>>T;
+    vector<int> i(N);
+    vector<abcd> v(N);
+    rep(j,0,N){
+        int a,b,c,d;
+        cin>>a>>b>>c>>d;
+        v[j]={{a,b},{c,d}};
+        i[j]=j;
+    }
+    double ans=1e9*2;
+    do{
+        vector<abcd> x(N),y(N);
+        rep(j,0,N)x[j]=v[i[j]];
+        rep(j,0,1<<N){
+            double d=0;
+            rep(k,0,N){
+                if((j>>k)&1)y[k]={x[k].p2,x[k].p1};
+                else y[k]=x[k];
+            }
+            d+=sqrt(y[0].p1.first*y[0].p1.first+y[0].p1.second*y[0].p1.second)/S;
+            rep(k,0,N)d+=sqrt((y[k].p1.first-y[k].p2.first)*(y[k].p1.first-y[k].p2.first)+
+            (y[k].p1.second-y[k].p2.second)*(y[k].p1.second-y[k].p2.second))/T;
+            rep(k,1,N)d+=sqrt((y[k].p1.first-y[k-1].p2.first)*(y[k].p1.first-y[k-1].p2.first)+
+            (y[k].p1.second-y[k-1].p2.second)*(y[k].p1.second-y[k-1].p2.second))/S;
+            ans=min(ans,d);
+        }
+    }while(next_p(i));
+    //整数部分を桁数に含めず指定
+    cout<<fixed<<setprecision(12)<<ans<<"\n";
+    return 0;
+}

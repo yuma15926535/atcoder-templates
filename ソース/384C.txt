@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct cp{
+    int p;
+    char f;
+};
+
+int main()
+{
+    vector<cp> v(5);
+    //昇順、降順を組み合わせたソート
+    //点数は降順、名前は昇順にソートするので名前に変換をかます
+    //点数を(-1)倍することでも可能
+    //stable_sortを使った安定ソートを使うことも可能
+    char f='E';
+    rep(i,0,5){
+        int p;
+        cin>>p;
+        cp &q=v[i];
+        q.f=f;q.p=p;
+        f-=1;
+    }
+    priority_queue<pair<int,string>> pq;
+    rep(i,1,1<<5){
+        string s="";
+        int point=0;
+        rep(j,0,5)if(((i>>j)&1)==1){
+            s+=v[j].f;
+            point+=v[j].p;
+        }
+        pq.push(make_pair(point,s));
+    }
+    rep(i,0,31){
+        string s=pq.top().second;
+        for(char &c:s){
+            if(c=='A'){
+                c='E';
+                continue;
+            }
+            if(c=='B'){
+                c='D';
+                continue;
+            }
+            if(c=='D'){
+                c='B';
+                continue;
+            }
+            if(c=='E'){
+                c='A';
+                continue;
+            }
+        }
+        cout<<s<<"\n";
+        pq.pop();
+    }
+    return 0;
+}

@@ -1,0 +1,250 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+
+// IndexedBitSet（テンプレート）
+// - 動的サイズ
+// - rank / select / next_one / prev_one を高速化
+// - 単一ビット更新のみ許可（安全設計）
+//
+// 内部構造:
+//   bits[i] : 64bit ブロック
+//   fw[i]   : 各ブロックの popcount を管理する Fenwick Tree
+//
+// 計算量:
+//   set / flip / get      : O(1)
+//   popcount              : O(log n)
+//   rank / select          : O(log n)
+//   next_one / prev_one    : O(log n)
+struct IndexedBitSet {
+    using ull = unsigned long long;
+    static constexpr int B = 64;
+
+    int n;                  // ビット長
+    int m;                  // ull の個数
+    vector<ull> bits;       // 実ビット
+    vector<int> fw;         // Fenwick Tree（1-indexed）
+
+    /*======================
+      Fenwick Tree
+    ======================*/
+    // fw[i] += v
+    void fw_add(int i, int v) {
+        for (++i; i <= m; i += i & -i) fw[i] += v;
+    }
+
+    // fw[0..i] の和
+    int fw_sum(int i) const {
+        int s = 0;
+        for (++i; i > 0; i -= i & -i) s += fw[i];
+        return s;
+    }
+
+    /*======================
+      初期化
+    ======================*/
+    IndexedBitSet(int n = 0) { init(n); }
+
+    void init(int n_) {
+        n = n_;
+        m = (n + B - 1) / B;
+        bits.assign(m, 0);
+        fw.assign(m + 1, 0);
+    }
+
+    /*======================
+      単一ビット操作
+    ======================*/
+
+    bool get(int idx) const {
+        int b = idx / B;
+        int o = idx % B;
+        return (bits[b] >> o) & 1ULL;
+    }
+
+    // idx を bit (0 or 1) に設定
+    void set(int idx, int bit = 1) {
+        int b = idx / B;
+        int o = idx % B;
+        bool cur = (bits[b] >> o) & 1ULL;
+        if (cur == bit) return;
+
+        if (bit) bits[b] |= (1ULL << o);
+        else     bits[b] &= ~(1ULL << o);
+
+        fw_add(b, bit ? +1 : -1);
+    }
+
+    // idx を反転
+    void flip(int idx) {
+        int b = idx / B;
+        int o = idx % B;
+        bool cur = (bits[b] >> o) & 1ULL;
+
+        bits[b] ^= (1ULL << o);
+        fw_add(b, cur ? -1 : +1);
+    }
+
+    /*======================
+      全体情報
+    ======================*/
+    // 全体の 1 の個数
+    int popcount() const {
+        return fw_sum(m - 1);
+    }
+
+    /*======================
+      rank / select
+    ======================*/
+    // rank(idx): [0, idx) に含まれる 1 の個数
+    int rank(int idx) const {
+        if (idx <= 0) return 0;
+        if (idx >= n) return popcount();
+
+        int b = idx / B;
+        int o = idx % B;
+        int res = 0;
+
+        if (b > 0) res += fw_sum(b - 1);
+
+        if (o > 0) {
+            ull mask = (1ULL << o) - 1;
+            res += __builtin_popcountll(bits[b] & mask);
+        }
+        return res;
+    }
+
+    // select(k): k 番目の 1 の位置（0-indexed）
+    // 存在しない場合は -1
+    int select(int k) const {
+        if (k < 0 || k >= popcount()) return -1;
+
+        int pos = 0;
+        int sum = 0;
+
+        // Fenwick Tree 上で二分探索
+        for (int pw = 1 << __lg(m); pw > 0; pw >>= 1) {
+            if (pos + pw <= m && sum + fw[pos + pw] <= k) {
+                sum += fw[pos + pw];
+                pos += pw;
+            }
+        }
+
+        // pos は word index
+        ull x = bits[pos];
+        int need = k - sum;
+
+        while (need--) x &= x - 1;
+        return pos * B + __builtin_ctzll(x);
+    }
+
+    /*======================
+      next / prev
+    ======================*/
+    // idx 以上で最初に立っている 1
+    int next_one(int idx) const {
+        int k = rank(idx);
+        return select(k);
+    }
+
+    // idx 以下で最後に立っている 1
+    int prev_one(int idx) const {
+        int k = rank(idx + 1) - 1;
+        return k >= 0 ? select(k) : -1;
+    }
+
+    /*======================
+      可視化
+    ======================*/
+    string to_string() const {
+        string s;
+        s.reserve(n);
+        for (int i = 0; i < n; i++) {
+            s.push_back(get(i) ? '1' : '0');
+        }
+        return s;
+    }
+};
+
+void solv(){
+    cout << "==============================\n";
+    cout << " IndexedBitSet 動作確認\n";
+    cout << "==============================\n";
+
+    IndexedBitSet bs(10);
+
+    cout << "\n[初期状態]\n";
+    cout << "popcount = " << bs.popcount() << "\n";
+
+    cout << "\n[set 操作]\n";
+    bs.set(2, 1);
+    bs.set(5, 1);
+    bs.set(7, 1);
+    cout << "2,5,7 を 1 にセット\n";
+    cout << "popcount = " << bs.popcount() << "\n";
+
+    cout << "\n[get 操作]\n";
+    for(int i = 0; i < 10; i++) {
+        cout << "index " << i << " : " << bs.get(i) << "\n";
+    }
+
+    cout << "\n[rank 操作]\n";
+    for(int i = 0; i <= 10; i++) {
+        cout << "rank(" << i << ") = " << bs.rank(i) << "\n";
+    }
+
+    cout << "\n[select 操作]\n";
+    for(int k = 0; k < bs.popcount(); k++) {
+        cout << "select(" << k << ") = " << bs.select(k) << "\n";
+    }
+
+    cout << "\n[next_one / prev_one]\n";
+    for(int i = 0; i < 10; i++) {
+        cout << "index " << i
+             << " : next = " << bs.next_one(i)
+             << ", prev = " << bs.prev_one(i) << "\n";
+    }
+
+    cout << "\n[flip 操作]\n";
+    cout << "index 5 を flip\n";
+    bs.flip(5);
+    cout << "popcount = " << bs.popcount() << "\n";
+
+    cout << "\n[最終状態]\n";
+    for(int i = 0; i < 10; i++) {
+        cout << "index " << i << " : " << bs.get(i) << "\n";
+    }
+
+    cout << "\n==============================\n";
+    cout << " 動作確認 完了\n";
+    cout << "==============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

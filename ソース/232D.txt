@@ -1,0 +1,36 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W,ans;
+vector<string> C;
+vector<vector<bool>> visited;
+void dfs(int h,int w){
+    ans=max(ans,h+w);
+    visited[h][w]=true;
+    if(h+1<H&&(!visited[h+1][w])&&C[h+1][w]=='.')dfs(h+1,w);
+    if(w+1<W&&(!visited[h][w+1])&&C[h][w+1]=='.')dfs(h,w+1);
+}
+
+int main()
+{
+    //H,Wは小さいがかぶりが多すぎるのでvisitedを使わないとTLE
+    cin>>H>>W;
+    C.resize(H);
+    rep(i,0,H)cin>>C[i];
+    ans=0;
+    visited.resize(H,vector<bool>(W,false));
+    dfs(0,0);
+    cout<<ans+1<<"\n";
+    return 0;
+}

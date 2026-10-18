@@ -1,0 +1,380 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+//////////////////////////////////////////////////////////////
+// FastModInt (定数mod)
+//////////////////////////////////////////////////////////////
+template<uint32_t MOD>
+struct FastModInt {
+
+    using u32 = uint32_t;
+    using u64 = uint64_t;
+
+    struct Barrett {
+        u32 m;
+        u64 im;
+        Barrett(u32 m):m(m),im((u64)(-1)/m+1){}
+        u32 reduce(u64 z) const{
+            u64 x=(__uint128_t(z)*im)>>64;
+            u32 v=z-x*m;
+            if(v>=m) v+=m;
+            return v;
+        }
+    };
+
+    static Barrett& bt(){
+        static Barrett b(MOD);
+        return b;
+    }
+
+    u32 v;
+
+    FastModInt():v(0){}
+    template<class T>
+    FastModInt(T x){
+        long long y=x%(long long)MOD;
+        if(y<0)y+=MOD;
+        v=y;
+    }
+
+    u32 val() const{return v;}
+
+    FastModInt& operator+=(const FastModInt& o){
+        v+=o.v; if(v>=MOD)v-=MOD; return *this;
+    }
+    FastModInt& operator-=(const FastModInt& o){
+        if(v<o.v)v+=MOD; v-=o.v; return *this;
+    }
+    FastModInt& operator*=(const FastModInt& o){
+        v=bt().reduce((u64)v*o.v); return *this;
+    }
+    FastModInt& operator/=(const FastModInt& o){
+        return *this*=o.inv();
+    }
+
+    template<class T> FastModInt& operator+=(T x){return *this+=FastModInt(x);}
+    template<class T> FastModInt& operator-=(T x){return *this-=FastModInt(x);}
+    template<class T> FastModInt& operator*=(T x){return *this*=FastModInt(x);}
+    template<class T> FastModInt& operator/=(T x){return *this/=FastModInt(x);}
+
+    FastModInt pow(long long e) const{
+        FastModInt r=1,x=*this;
+        while(e){
+            if(e&1) r*=x;
+            x*=x;
+            e>>=1;
+        }
+        return r;
+    }
+
+    FastModInt inv() const{
+        return pow(MOD-2);
+    }
+
+    FastModInt& operator++(){*this+=1;return *this;}
+    FastModInt operator++(int){auto t=*this;++*this;return t;}
+    FastModInt& operator--(){*this-=1;return *this;}
+    FastModInt operator--(int){auto t=*this;--*this;return t;}
+
+    friend FastModInt operator+(FastModInt a,const FastModInt& b){return a+=b;}
+    friend FastModInt operator-(FastModInt a,const FastModInt& b){return a-=b;}
+    friend FastModInt operator*(FastModInt a,const FastModInt& b){return a*=b;}
+    friend FastModInt operator/(FastModInt a,const FastModInt& b){return a/=b;}
+
+    friend ostream& operator<<(ostream& os,const FastModInt& x){
+        return os<<x.v;
+    }
+};
+
+//////////////////////////////////////////////////////////////
+// DynBarrettModInt (動的mod)
+//////////////////////////////////////////////////////////////
+struct DynBarrettModInt {
+
+    using u32=uint32_t;
+    using u64=uint64_t;
+
+    struct Barrett{
+        u32 m; u64 im;
+        void set(u32 mod){m=mod;im=(u64)(-1)/mod+1;}
+        u32 reduce(u64 z) const{
+            u64 x=(__uint128_t(z)*im)>>64;
+            u32 v=z-x*m;
+            if(v>=m)v+=m;
+            return v;
+        }
+    };
+
+    static Barrett& bt(){static Barrett b;return b;}
+    static void set_mod(u32 m){bt().set(m);}
+    static u32 mod(){return bt().m;}
+
+    u32 v;
+
+    DynBarrettModInt():v(0){}
+    template<class T>
+    DynBarrettModInt(T x){
+        long long y=x%(long long)mod();
+        if(y<0)y+=mod();
+        v=y;
+    }
+
+    u32 val() const{return v;}
+
+    DynBarrettModInt& operator+=(const DynBarrettModInt& o){
+        v+=o.v;if(v>=mod())v-=mod();return *this;
+    }
+    DynBarrettModInt& operator-=(const DynBarrettModInt& o){
+        if(v<o.v)v+=mod();v-=o.v;return *this;
+    }
+    DynBarrettModInt& operator*=(const DynBarrettModInt& o){
+        v=bt().reduce((u64)v*o.v);return *this;
+    }
+    DynBarrettModInt& operator/=(const DynBarrettModInt& o){
+        return *this*=o.inv();
+    }
+
+    template<class T> DynBarrettModInt& operator+=(T x){return *this+=DynBarrettModInt(x);}
+    template<class T> DynBarrettModInt& operator-=(T x){return *this-=DynBarrettModInt(x);}
+    template<class T> DynBarrettModInt& operator*=(T x){return *this*=DynBarrettModInt(x);}
+    template<class T> DynBarrettModInt& operator/=(T x){return *this/=DynBarrettModInt(x);}
+
+    DynBarrettModInt pow(long long e) const{
+        DynBarrettModInt r=1,x=*this;
+        while(e){
+            if(e&1) r*=x;
+            x*=x;
+            e>>=1;
+        }
+        return r;
+    }
+
+    DynBarrettModInt inv() const{
+        return pow(mod()-2);
+    }
+
+    DynBarrettModInt& operator++(){*this+=1;return *this;}
+    DynBarrettModInt operator++(int){auto t=*this;++*this;return t;}
+    DynBarrettModInt& operator--(){*this-=1;return *this;}
+    DynBarrettModInt operator--(int){auto t=*this;--*this;return t;}
+
+    friend DynBarrettModInt operator+(DynBarrettModInt a,const DynBarrettModInt& b){return a+=b;}
+    friend DynBarrettModInt operator-(DynBarrettModInt a,const DynBarrettModInt& b){return a-=b;}
+    friend DynBarrettModInt operator*(DynBarrettModInt a,const DynBarrettModInt& b){return a*=b;}
+    friend DynBarrettModInt operator/(DynBarrettModInt a,const DynBarrettModInt& b){return a/=b;}
+
+    friend ostream& operator<<(ostream& os,const DynBarrettModInt& x){
+        return os<<x.v;
+    }
+};
+
+void solv(){
+    cout<<"=============================\n";
+    cout<<"  modint 全演算 動作確認\n";
+    cout<<"=============================\n\n";
+
+    //------------------------------------------------
+    // 静的mod（FastModInt）
+    //------------------------------------------------
+
+    cout<<"--- FastModInt (静的mod) ---\n";
+
+    using SM = FastModInt<1000000007>;
+
+    SM a = 123456789;
+    SM b = 987654321;
+
+    cout<<"a = "<<a<<"\n";
+    cout<<"b = "<<b<<"\n";
+
+    cout<<"\n[基本演算]\n";
+    cout<<"a + b = "<<a+b<<"\n";
+    cout<<"a - b = "<<a-b<<"\n";
+    cout<<"a * b = "<<a*b<<"\n";
+    cout<<"a / b = "<<a/b<<"\n";
+
+    cout<<"\n[pow / inv]\n";
+    cout<<"pow(a,10) = "<<a.pow(10)<<"\n";
+    cout<<"inv(a) = "<<a.inv()<<"\n";
+
+    cout<<"\n[++ / --]\n";
+    SM x = a;
+    cout<<"初期 x = "<<x<<"\n";
+    cout<<"前置++ = "<<++x<<"\n";
+    cout<<"後置++ = "<<x++<<" → 現在 "<<x<<"\n";
+    cout<<"前置-- = "<<--x<<"\n";
+    cout<<"後置-- = "<<x--<<" → 現在 "<<x<<"\n";
+
+    cout<<"\n[整数混在]\n";
+    cout<<"a + 5 = "<<a+5<<"\n";
+    cout<<"5 + a = "<<5+a<<"\n";
+    cout<<"a - 100 = "<<a-100<<"\n";
+    cout<<"a * 3 = "<<a*3<<"\n";
+    cout<<"a / 7 = "<<a/7<<"\n";
+
+    cout<<"\n[チェーン演算]\n";
+    cout<<"(a+3)*(b-2)/5 = "<<(a+3)*(b-2)/5<<"\n";
+
+    cout<<"\n[正規化確認]\n";
+    cout<<"SM(-123) = "<<SM(-123)<<"\n";
+    cout<<"SM(1e18) = "<<SM(1000000000000000000LL)<<"\n";
+
+
+    //------------------------------------------------
+    // 動的mod（DynBarrettModInt）
+    //------------------------------------------------
+
+    cout<<"\n--- DynBarrettModInt (動的mod) ---\n";
+
+    DynBarrettModInt::set_mod(1000000007);
+
+    DynBarrettModInt p = 555555555;
+    DynBarrettModInt q = 333333333;
+
+    cout<<"p = "<<p<<"\n";
+    cout<<"q = "<<q<<"\n";
+
+    cout<<"\n[基本演算]\n";
+    cout<<"p + q = "<<p+q<<"\n";
+    cout<<"p - q = "<<p-q<<"\n";
+    cout<<"p * q = "<<p*q<<"\n";
+    cout<<"p / q = "<<p/q<<"\n";
+
+    cout<<"\n[pow / inv]\n";
+    cout<<"pow(p,10) = "<<p.pow(10)<<"\n";
+    cout<<"inv(p) = "<<p.inv()<<"\n";
+
+    cout<<"\n[++ / --]\n";
+    DynBarrettModInt y = p;
+    cout<<"初期 y = "<<y<<"\n";
+    cout<<"前置++ = "<<++y<<"\n";
+    cout<<"後置++ = "<<y++<<" → 現在 "<<y<<"\n";
+    cout<<"前置-- = "<<--y<<"\n";
+    cout<<"後置-- = "<<y--<<" → 現在 "<<y<<"\n";
+
+    cout<<"\n[整数混在]\n";
+    cout<<"p + 7 = "<<p+7<<"\n";
+    cout<<"7 + p = "<<7+p<<"\n";
+    cout<<"p - 50 = "<<p-50<<"\n";
+    cout<<"p * 9 = "<<p*9<<"\n";
+    cout<<"p / 11 = "<<p/11<<"\n";
+
+    cout<<"\n[チェーン演算]\n";
+    cout<<"(p+8)*(q-3)/6 = "<<(p+8)*(q-3)/6<<"\n";
+
+    cout<<"\n[正規化確認]\n";
+    cout<<"Dyn(-999) = "<<DynBarrettModInt(-999)<<"\n";
+    cout<<"Dyn(1e18) = "<<DynBarrettModInt(1000000000000000000LL)<<"\n";
+
+
+    //------------------------------------------------
+    cout<<"\n=============================\n";
+    cout<<"✅ 全演算の動作確認 完了\n";
+    cout<<"=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

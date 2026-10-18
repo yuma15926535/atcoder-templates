@@ -1,0 +1,1261 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+==================================================
+ 線形篩ベース 数論全部入りテンプレ（SPF）
+==================================================
+
+【概要】
+最小素因数（SPF）をベースに、数論でよく使う情報をすべて前計算する構造体。
+
+【前計算でできること（O(N)）】
+- spf[i]     : i の最小素因数
+- primes     : 素数列（昇順）
+- is_prime   : 素数判定
+- pi[i]      : i 以下の素数の個数
+
+- phi[i]     : オイラーのトーシェント関数 φ(i)
+- mu[i]      : メビウス関数 μ(i)
+
+- Omega[i]   : 素因数の総数（重複あり）
+- omega[i]   : 異なる素因数の個数
+
+- d[i]       : 約数の個数
+- sigma[i]   : 約数の総和
+
+- sqfree[i]  : 平方根をつけた際に中に残る
+- sqpart[i]  : 平方根をつけた際に外に出る
+
+【計算量】
+- 構築：O(N)
+- クエリ：O(1) または O(log N)
+
+【制約目安】
+- N ≦ 1e7 程度（メモリに注意）
+
+【用途】
+- 素因数分解
+- 約数系
+- φ, μ
+- 包除原理
+- gcd畳み込み
+など数論問題ほぼ全対応
+
+【注意】
+- 1-indexed（1から使う）
+- x は必ず 1 <= x <= n の範囲で使うこと
+*/
+struct SPF {
+    int n;
+    vector<int> spf;
+    vector<int> primes;
+    vector<bool> is_prime;
+    vector<int> pi;
+    vector<int> phi;
+    vector<int> mu;
+    vector<int> Omega;
+    vector<int> omega;
+    vector<int> d;
+    vector<long long> sigma;
+    vector<int> sqfree;
+    vector<int> sqpart;
+
+    vector<int> cnt;
+    vector<int> p_pow;
+    vector<long long> sigma_p;
+
+    SPF(int n): n(n), spf(n+1), is_prime(n+1, false), pi(n+1, 0), phi(n+1, 0), mu(n+1, 0) {
+        build();
+    }
+
+    void build() {
+        spf[0] = 0;
+        spf[1] = 1;
+        phi[1] = 1;
+        mu[1] = 1;
+        d.assign(n+1, 0);
+        sigma.assign(n+1, 0);
+        cnt.assign(n+1, 0);
+        p_pow.assign(n+1, 0);
+        sigma_p.assign(n+1, 0);
+        d[1] = 1;
+        sigma[1] = 1;
+        cnt[1] = 0;
+        p_pow[1] = 1;
+        sigma_p[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            if (spf[i] == 0) {
+                spf[i] = i;
+                primes.push_back(i);
+                phi[i] = i - 1;
+                mu[i] = -1;
+
+                d[i] = 2;
+                sigma[i] = 1 + i;
+
+                cnt[i] = 1;
+                p_pow[i] = i;
+                sigma_p[i] = 1 + i;
+            }
+            for (int p : primes) {
+                if (p > spf[i] || 1LL * i * p > n) break;
+                spf[i * p] = p;
+                if (p == spf[i]) {
+                    phi[i * p] = phi[i] * p;
+                    mu[i * p] = 0;
+
+                    cnt[i * p] = cnt[i] + 1;
+                    p_pow[i * p] = p_pow[i] * p;
+                    sigma_p[i * p] = sigma_p[i] + p_pow[i * p];
+
+                    d[i * p] = d[i] / (cnt[i] + 1) * (cnt[i * p] + 1);
+                    sigma[i * p] = sigma[i] / sigma_p[i] * sigma_p[i * p];
+                    break;
+                } else {
+                    phi[i * p] = phi[i] * (p - 1);
+                    mu[i * p] = -mu[i];
+
+                    cnt[i * p] = 1;
+                    p_pow[i * p] = p;
+                    sigma_p[i * p] = 1 + p;
+
+                    d[i * p] = d[i] * 2;
+                    sigma[i * p] = sigma[i] * (1 + p);
+                }
+            }
+        }
+
+        is_prime[0] = is_prime[1] = false;
+        for (int i = 2; i <= n; i++) {
+            is_prime[i] = (spf[i] == i);
+        }
+
+        for (int i = 1; i <= n; i++) {
+            pi[i] = pi[i-1] + (is_prime[i] ? 1 : 0);
+        }
+
+        Omega.assign(n+1, 0);
+        omega.assign(n+1, 0);
+        Omega[1] = 0;
+        omega[1] = 0;
+        for (int i = 2; i <= n; i++) {
+            int p = spf[i];
+            int m = i / p;
+
+            // 総数（重複込み）
+            Omega[i] = Omega[m] + 1;
+
+            // 異なる素因数数
+            if (m % p == 0) {
+                omega[i] = omega[m];
+            } else {
+                omega[i] = omega[m] + 1;
+            }
+        }
+
+        sqfree.assign(n+1, 0);
+        sqpart.assign(n+1, 0);
+        sqfree[1] = 1;
+        sqpart[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            int p = spf[i];
+            int m = i / p;
+
+            if (m % p == 0) {
+                // p^2 ができるケース
+                sqfree[i] = sqfree[m / p];
+                sqpart[i] = sqpart[m / p] * p;
+            } else {
+                // 新しい素因数
+                sqfree[i] = sqfree[m] * p;
+                sqpart[i] = sqpart[m];
+            }
+        }
+    }
+
+    // 素因数分解
+    // x を素因数分解し、(素数, 指数) のペアを返す
+    // 例: 12 → {(2,2), (3,1)}
+    // 計算量: O(log x)
+    vector<pair<int,int>> factorize(int x) const {
+        vector<pair<int,int>> res;
+        while (x > 1) {
+            int p = spf[x];
+            int cnt = 0;
+            while (x % p == 0) {
+                x /= p;
+                cnt++;
+            }
+            res.emplace_back(p, cnt);
+        }
+        return res;
+    }
+
+    // 約数列挙
+    // x の約数をすべて列挙する（順序は未保証）
+    // 計算量: O(約数の個数)
+    vector<int> divisors(int x) const {
+        auto f = factorize(x);
+
+        vector<int> res = {1};
+        for (auto [p, c] : f) {
+            int sz = res.size();
+            long long mul = 1;
+            for (int e = 1; e <= c; e++) {
+                mul *= p;
+                for (int i = 0; i < sz; i++) {
+                    res.push_back(res[i] * mul);
+                }
+            }
+        }
+        return res;
+    }
+
+    // 素数判定
+    // x が素数なら true、そうでなければ false を返す
+    // 計算量: O(1)
+    bool isPrime(int x) const {
+        return is_prime[x];
+    }
+
+    // 素数の個数
+    // 1 以上 x 以下の素数の個数を返す
+    // 計算量: O(1)
+    int primeCount(int x) const {
+        return pi[x];
+    }
+
+    // k 番目の素数
+    // primes[k] を返す（0-index）
+    // 例: k=0 → 2, k=1 → 3
+    // 計算量: O(1)
+    int kthPrime(int k) const {
+        return primes[k]; // 0-index
+    }
+
+    // オイラーのトーシェント関数 φ(x)
+    // 1 以上 x 以下で x と互いに素な整数の個数を返す
+    // 計算量: O(1)
+    int totient(int x) const {
+        return phi[x];
+    }
+
+    // メビウス関数 μ(x)
+    // - 平方因子あり → 0
+    // - 素因数の個数が偶数 → 1
+    // - 素因数の個数が奇数 → -1
+    // 計算量: O(1)
+    int mobius(int x) const {
+        return mu[x];
+    }
+
+    // 約数の個数
+    // x の約数の個数を返す
+    // 計算量: O(1)
+    int divisorCount(int x) const {
+        return d[x];
+    }
+
+    // 約数の総和
+    // x の約数の合計値を返す
+    // 計算量: O(1)
+    long long divisorSum(int x) const {
+        return sigma[x];
+    }
+
+    // 異なる素因数の個数
+    // x を素因数分解したときの異なる素数の個数を返す
+    // 例: 12=2^2*3 → 2
+    // 計算量: O(1)
+    int omegaCount(int x) const {
+        return omega[x];
+    }
+
+    // 素因数の総数（重複あり）
+    // x を素因数分解したときの指数の合計を返す
+    // 例: 12=2^2*3 → 3
+    // 計算量: O(1)
+    int OmegaCount(int x) const {
+        return Omega[x];
+    }
+
+    // 最小素因数
+    // x の最小の素因数を返す
+    // 計算量: O(1)
+    int lpf(int x) const {
+        return spf[x];
+    }
+
+    // 区間の素数個数
+    // [l, r] に含まれる素数の個数を返す
+    // 計算量: O(1)
+    int range_prime_count(int l, int r) const {
+        if (l > r) return 0;
+        l = max(l, 1);
+        r = min(r, n);
+        if (l > r) return 0;
+        return pi[r] - pi[l-1];
+    }
+
+    // 平方因子を持たないか判定
+    // x が平方因子を持たなければ true（square-free）
+    // 計算量: O(1)
+    bool isSquareFree(int x) const {
+        return mu[x] != 0;
+    }
+
+    // 互いに素なペア数
+    // 1 ≤ i, j ≤ n において gcd(i, j) = 1 となる組の数を返す
+    // 計算量: O(n)
+    long long count_coprime_pairs(int n) const {
+        long long res = 0;
+        for (int d = 1; d <= n; d++) {
+            long long t = n / d;
+            res += (long long)mu[d] * t * t;
+        }
+        return res;
+    }
+
+    // 引数を平方根内に入れた際の(外,中)のペアを返却
+    // 計算量: O(1)
+    pair<int,int> sqrt_decompose_fast(int x) const {
+        return {sqpart[x], sqfree[x]};
+    }
+
+    // 完全平方数判定
+    // 計算量: O(1)
+    bool is_square(int x) const {
+        return sqfree[x] == 1;
+    }
+};
+
+vector<pair<int,int>> factorize_naive(int x) {
+    vector<pair<int,int>> res;
+    for (int p = 2; p * p <= x; p++) {
+        if (x % p == 0) {
+            int cnt = 0;
+            while (x % p == 0) {
+                x /= p;
+                cnt++;
+            }
+            res.emplace_back(p, cnt);
+        }
+    }
+    if (x > 1) res.emplace_back(x, 1);
+    return res;
+}
+
+bool equal_factor(vector<pair<int,int>> a, vector<pair<int,int>> b) {
+    sort(a.begin(), a.end());
+    sort(b.begin(), b.end());
+    return a == b;
+}
+
+bool is_prime_naive(int x) {
+    if (x <= 1) return false;
+    for (int i = 2; i * i <= x; i++) {
+        if (x % i == 0) return false;
+    }
+    return true;
+}
+
+int phi_naive(int n) {
+    int cnt = 0;
+    for (int i = 1; i <= n; i++) {
+        if (gcd(i, n) == 1) cnt++;
+    }
+    return cnt;
+}
+
+int mu_naive(int x) {
+    int cnt = 0;
+    for (int p = 2; p * p <= x; p++) {
+        if (x % p == 0) {
+            int c = 0;
+            while (x % p == 0) {
+                x /= p;
+                c++;
+            }
+            if (c >= 2) return 0; // 平方因子
+            cnt++;
+        }
+    }
+    if (x > 1) cnt++;
+    return (cnt % 2 == 0 ? 1 : -1);
+}
+
+int count_coprime_pairs_naive(int n) {
+    int cnt = 0;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (gcd(i,j) == 1) cnt++;
+        }
+    }
+    return cnt;
+}
+
+void random_test_spf() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    for (int t = 0; t < 5000; t++) {
+        int x = uniform_int_distribution<int>(1, N)(rng);
+
+        auto f1 = spf.factorize(x);
+        auto f2 = factorize_naive(x);
+
+        if (!equal_factor(f1, f2)) {
+            cout << "NG\n";
+            cout << "x = " << x << "\n";
+
+            cout << "spf: ";
+            for (auto [p, c] : f1) cout << "(" << p << "," << c << ") ";
+            cout << "\n";
+
+            cout << "naive: ";
+            for (auto [p, c] : f2) cout << "(" << p << "," << c << ") ";
+            cout << "\n";
+
+            exit(0);
+        }
+
+        // 掛け戻しチェック（重要）
+        long long y = 1;
+        for (auto [p, c] : f1) {
+            for (int i = 0; i < c; i++) y *= p;
+        }
+        if (y != x) {
+            cout << "REBUILD NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf1() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    // ① is_prime の検証
+    for (int i = 1; i <= N; i++) {
+        bool a = spf.is_prime[i];
+        bool b = is_prime_naive(i);
+        if (a != b) {
+            cout << "is_prime NG\n";
+            cout << "i = " << i << "\n";
+            cout << "spf = " << a << ", naive = " << b << "\n";
+            exit(0);
+        }
+    }
+
+    // ② primes 配列の検証
+    vector<int> primes_naive;
+    for (int i = 2; i <= N; i++) {
+        if (is_prime_naive(i)) primes_naive.push_back(i);
+    }
+
+    if (spf.primes != primes_naive) {
+        cout << "primes NG\n";
+
+        cout << "spf: ";
+        for (int x : spf.primes) cout << x << " ";
+        cout << "\n";
+
+        cout << "naive: ";
+        for (int x : primes_naive) cout << x << " ";
+        cout << "\n";
+
+        exit(0);
+    }
+
+    // ③ ランダムチェック（保険）
+    for (int t = 0; t < 3000; t++) {
+        int x = uniform_int_distribution<int>(1, N)(rng);
+
+        if (spf.is_prime[x] != is_prime_naive(x)) {
+            cout << "random NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf2() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    // ① pi の単調性チェック
+    for (int i = 1; i <= N; i++) {
+        if (spf.pi[i] < spf.pi[i-1]) {
+            cout << "pi monotonic NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+    }
+
+    // ② is_primeとの整合性
+    for (int i = 1; i <= N; i++) {
+        int expected = spf.pi[i-1] + (spf.is_prime[i] ? 1 : 0);
+        if (spf.pi[i] != expected) {
+            cout << "pi recurrence NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+    }
+
+    // ③ primesとの一致（重要）
+    for (int t = 0; t < 3000; t++) {
+        int x = uniform_int_distribution<int>(1, N)(rng);
+
+        int cnt = upper_bound(spf.primes.begin(), spf.primes.end(), x) - spf.primes.begin();
+
+        if (spf.pi[x] != cnt) {
+            cout << "pi vs primes NG\n";
+            cout << "x = " << x << "\n";
+            cout << "pi[x] = " << spf.pi[x] << ", cnt = " << cnt << "\n";
+            exit(0);
+        }
+    }
+
+    // ④ ナイーブチェック（小さい範囲）
+    for (int x = 1; x <= 2000; x++) {
+        int cnt = 0;
+        for (int i = 1; i <= x; i++) {
+            if (is_prime_naive(i)) cnt++;
+        }
+        if (spf.pi[x] != cnt) {
+            cout << "naive NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf3() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    // ① 再帰関係チェック
+    for (int i = 2; i <= N; i++) {
+        int p = spf.spf[i];
+        int m = i / p;
+
+        if (spf.Omega[i] != spf.Omega[m] + 1) {
+            cout << "Omega recurrence NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+
+        int expected = (m % p == 0) ? spf.omega[m] : spf.omega[m] + 1;
+        if (spf.omega[i] != expected) {
+            cout << "omega recurrence NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+    }
+
+    // ② factorizeとの一致（重要）
+    for (int t = 0; t < 3000; t++) {
+        int x = uniform_int_distribution<int>(1, N)(rng);
+
+        auto f = spf.factorize(x);
+
+        int sum = 0;
+        int distinct = 0;
+        for (auto [p, c] : f) {
+            sum += c;
+            distinct++;
+        }
+
+        if (spf.Omega[x] != sum) {
+            cout << "Omega vs factorize NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+
+        if (spf.omega[x] != distinct) {
+            cout << "omega vs factorize NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    // ③ ナイーブ（小さい範囲）
+    for (int x = 1; x <= 2000; x++) {
+        int tmp = x;
+        int sum = 0;
+        int distinct = 0;
+
+        for (int p = 2; p * p <= tmp; p++) {
+            if (tmp % p == 0) {
+                int cnt = 0;
+                while (tmp % p == 0) {
+                    tmp /= p;
+                    cnt++;
+                }
+                sum += cnt;
+                distinct++;
+            }
+        }
+        if (tmp > 1) {
+            sum++;
+            distinct++;
+        }
+
+        if (spf.Omega[x] != sum || spf.omega[x] != distinct) {
+            cout << "naive NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf4() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    // ① 基本性質
+    for (int i = 1; i <= N; i++) {
+        if (i == 1) {
+            if (spf.phi[i] != 1) {
+                cout << "phi[1] NG\n";
+                exit(0);
+            }
+        } else {
+            if (spf.phi[i] <= 0 || spf.phi[i] >= i) {
+                cout << "range NG\n";
+                cout << "i = " << i << "\n";
+                exit(0);
+            }
+        }
+    }
+
+    // ② 素数チェック
+    for (int p : spf.primes) {
+        if (spf.phi[p] != p - 1) {
+            cout << "prime phi NG\n";
+            cout << "p = " << p << "\n";
+            exit(0);
+        }
+    }
+
+    // ③ ランダムチェック（ナイーブ）
+    for (int t = 0; t < 2000; t++) {
+        int x = uniform_int_distribution<int>(1, 2000)(rng);
+
+        int a = spf.phi[x];
+        int b = phi_naive(x);
+
+        if (a != b) {
+            cout << "naive NG\n";
+            cout << "x = " << x << "\n";
+            cout << "phi = " << a << ", naive = " << b << "\n";
+            exit(0);
+        }
+    }
+
+    // ④ 積性チェック（軽く）
+    for (int t = 0; t < 2000; t++) {
+        int a = uniform_int_distribution<int>(1, 1000)(rng);
+        int b = uniform_int_distribution<int>(1, 1000)(rng);
+
+        if (gcd(a, b) == 1 && 1LL * a * b <= N) {
+            if (spf.phi[a * b] != spf.phi[a] * spf.phi[b]) {
+                cout << "multiplicative NG\n";
+                cout << "a=" << a << " b=" << b << "\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf5() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    // ① 値域チェック
+    for (int i = 1; i <= N; i++) {
+        if (!(spf.mu[i] == -1 || spf.mu[i] == 0 || spf.mu[i] == 1)) {
+            cout << "range NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+    }
+
+    // ② 平方因子チェック（spfベース）
+    for (int t = 0; t < 3000; t++) {
+        int x = uniform_int_distribution<int>(1, N)(rng);
+
+        auto f = spf.factorize(x);
+        bool square = false;
+        int k = 0;
+
+        for (auto [p, c] : f) {
+            if (c >= 2) square = true;
+            k++;
+        }
+
+        int expected;
+        if (square) expected = 0;
+        else expected = (k % 2 == 0 ? 1 : -1);
+
+        if (spf.mu[x] != expected) {
+            cout << "factorize NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    // ③ ナイーブチェック（小さい範囲）
+    for (int x = 1; x <= 2000; x++) {
+        if (spf.mu[x] != mu_naive(x)) {
+            cout << "naive NG\n";
+            cout << "x = " << x << "\n";
+            cout << "mu = " << spf.mu[x] << "\n";
+            exit(0);
+        }
+    }
+
+    // ④ 約数和チェック（重要）
+    // sum_{d|n} mu[d] = (n==1 ? 1 : 0)
+    for (int x = 1; x <= 2000; x++) {
+        int sum = 0;
+        for (int d = 1; d <= x; d++) {
+            if (x % d == 0) sum += spf.mu[d];
+        }
+        int expected = (x == 1 ? 1 : 0);
+        if (sum != expected) {
+            cout << "mobius identity NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+vector<int> divisors_naive(int x) {
+    vector<int> res;
+    for (int i = 1; i * i <= x; i++) {
+        if (x % i == 0) {
+            res.push_back(i);
+            if (i * i != x) res.push_back(x / i);
+        }
+    }
+    sort(res.begin(), res.end());
+    return res;
+}
+
+void random_test_spf6() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    // ① 基本チェック
+    if (spf.d[1] != 1 || spf.sigma[1] != 1) {
+        cout << "base NG\n";
+        exit(0);
+    }
+
+    // ② 再帰チェック（軽く）
+    for (int i = 2; i <= N; i++) {
+        if (spf.d[i] <= 0) {
+            cout << "d NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+        if (spf.sigma[i] < 1) {
+            cout << "sigma NG\n";
+            cout << "i = " << i << "\n";
+            exit(0);
+        }
+    }
+
+    // ③ ナイーブ一致（重要）
+    for (int t = 0; t < 2000; t++) {
+        int x = uniform_int_distribution<int>(1, 2000)(rng);
+
+        auto dv = divisors_naive(x);
+
+        int d_expected = dv.size();
+        long long s_expected = 0;
+        for (int v : dv) s_expected += v;
+
+        if (spf.d[x] != d_expected) {
+            cout << "d naive NG\n";
+            cout << "x = " << x << "\n";
+            cout << "d = " << spf.d[x] << ", expected = " << d_expected << "\n";
+            exit(0);
+        }
+
+        if (spf.sigma[x] != s_expected) {
+            cout << "sigma naive NG\n";
+            cout << "x = " << x << "\n";
+            cout << "sigma = " << spf.sigma[x] << ", expected = " << s_expected << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf7() {
+    mt19937 rng(123456);
+
+    int N = 100000;
+    SPF spf(N);
+
+    for (int t = 0; t < 2000; t++) {
+        int x = uniform_int_distribution<int>(1, 2000)(rng);
+
+        auto a = spf.divisors(x);
+        auto b = divisors_naive(x);
+
+        // ソート
+        sort(a.begin(), a.end());
+
+        // ① ナイーブ一致（最重要）
+        if (a != b) {
+            cout << "divisors NG\n";
+            cout << "x = " << x << "\n";
+
+            cout << "spf: ";
+            for (int v : a) cout << v << " ";
+            cout << "\n";
+
+            cout << "naive: ";
+            for (int v : b) cout << v << " ";
+            cout << "\n";
+
+            exit(0);
+        }
+
+        // ② 重複チェック
+        for (int i = 1; i < (int)a.size(); i++) {
+            if (a[i] == a[i-1]) {
+                cout << "duplicate NG\n";
+                cout << "x = " << x << "\n";
+                exit(0);
+            }
+        }
+
+        // ③ 割り切れるか
+        for (int v : a) {
+            if (x % v != 0) {
+                cout << "not divisor NG\n";
+                cout << "x = " << x << ", v = " << v << "\n";
+                exit(0);
+            }
+        }
+
+        // ④ d[x]一致
+        if ((int)a.size() != spf.divisorCount(x)) {
+            cout << "d mismatch NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+
+        // ⑤ sigma[x]一致
+        long long sum = 0;
+        for (int v : a) sum += v;
+
+        if (sum != spf.divisorSum(x)) {
+            cout << "sigma mismatch NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test_spf_vs_spf2_step6() {
+    mt19937 rng(123456);
+
+    int N = 5000;
+    SPF spf2(N);
+
+    // ===== range_prime_count =====
+    for (int t = 0; t < 2000; t++) {
+        int l = uniform_int_distribution<int>(1, N)(rng);
+        int r = uniform_int_distribution<int>(1, N)(rng);
+        if (l > r) swap(l, r);
+
+        int cnt = 0;
+        for (int i = l; i <= r; i++) {
+            if (spf2.isPrime(i)) cnt++;
+        }
+
+        if (cnt != spf2.range_prime_count(l, r)) {
+            cout << "range_prime_count NG\n";
+            exit(0);
+        }
+    }
+
+    // ===== isSquareFree =====
+    for (int x = 1; x <= N; x++) {
+        bool ok = true;
+        for (int p = 2; p * p <= x; p++) {
+            if (x % (p*p) == 0) ok = false;
+        }
+
+        if (spf2.isSquareFree(x) != ok) {
+            cout << "squarefree NG\n";
+            cout << "x = " << x << "\n";
+            exit(0);
+        }
+    }
+
+    // ===== gcd_convolution補助 =====
+    for (int n = 1; n <= 200; n++) {
+        long long a = spf2.count_coprime_pairs(n);
+        long long b = count_coprime_pairs_naive(n);
+
+        if (a != b) {
+            cout << "coprime_pairs NG\n";
+            cout << "n = " << n << "\n";
+            cout << "a = " << a << ", b = " << b << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void test_sqrt_decompose_full(int N = 1000000, int TEST = 100000) {
+    // SPF構築
+    SPF spf(N);
+
+    std::mt19937 rng(123456);
+
+    for (int t = 0; t < TEST; t++) {
+        int x = rng() % N + 1;
+
+        long long out = spf.sqpart[x];
+        long long in  = spf.sqfree[x];
+
+        // ① 分解チェック
+        if (out * out * in != x) {
+            std::cout << "NG: decomposition failed\n";
+            std::cout << "x=" << x << "\n";
+            std::cout << "out=" << out << " in=" << in << "\n";
+            std::cout << "out^2 * in=" << out * out * in << "\n";
+            assert(false);
+        }
+
+        // ② sqfree が square-free か
+        auto f = spf.factorize(in);
+        for (auto [p, c] : f) {
+            if (c >= 2) {
+                std::cout << "NG: sqfree is not square-free\n";
+                std::cout << "x=" << x << " in=" << in << "\n";
+                assert(false);
+            }
+        }
+
+        // ③ 完全平方数判定
+        bool is_sq = (in == 1);
+
+        long long r = (long long)std::sqrt((long double)x);
+        while (r * r < x) r++;
+        while (r * r > x) r--;
+
+        bool correct = (r * r == x);
+
+        if (is_sq != correct) {
+            std::cout << "NG: square check failed\n";
+            std::cout << "x=" << x << "\n";
+            std::cout << "spf says=" << is_sq << "\n";
+            std::cout << "actual=" << correct << "\n";
+            assert(false);
+        }
+    }
+
+    // 追加：小さい範囲で全探索（ガチ検証）
+    for (int x = 1; x <= std::min(N, 100000); x++) {
+        long long out = spf.sqpart[x];
+        long long in  = spf.sqfree[x];
+
+        if (out * out * in != x) {
+            std::cout << "NG (full check): x=" << x << "\n";
+            assert(false);
+        }
+    }
+
+    std::cout << "ALL TEST OK\n";
+}
+
+void demo_spf() {
+    SPF sv(100);
+
+    int x = 36;
+
+    cout << "==== 基本情報 ====\n";
+    cout << "x = " << x << "\n";
+
+    cout << "素数判定: " << (sv.isPrime(x) ? "素数" : "素数ではない") << "\n";
+    cout << "最小素因数: " << sv.lpf(x) << "\n";
+
+    cout << "\n==== 素因数分解 ====\n";
+    auto f = sv.factorize(x);
+    for (auto [p, c] : f) {
+        cout << p << "^" << c << " ";
+    }
+    cout << "\n";
+
+    cout << "\n==== 約数 ====\n";
+    auto dv = sv.divisors(x);
+    sort(dv.begin(), dv.end());
+    for (int v : dv) cout << v << " ";
+    cout << "\n";
+
+    cout << "約数の個数: " << sv.divisorCount(x) << "\n";
+    cout << "約数の総和: " << sv.divisorSum(x) << "\n";
+
+    cout << "\n==== 数論関数 ====\n";
+    cout << "φ(x): " << sv.totient(x) << "\n";
+    cout << "μ(x): " << sv.mobius(x) << "\n";
+
+    cout << "異なる素因数の個数: " << sv.omegaCount(x) << "\n";
+    cout << "素因数の総数: " << sv.OmegaCount(x) << "\n";
+
+    cout << "\n==== 素数系 ====\n";
+    cout << "100以下の素数の個数: " << sv.primeCount(100) << "\n";
+    cout << "10番目の素数（0-index）: " << sv.kthPrime(10) << "\n";
+
+    cout << "区間[10,50]の素数個数: "
+         << sv.range_prime_count(10, 50) << "\n";
+
+    cout << "\n==== その他 ====\n";
+    cout << "平方因子なし判定: "
+         << (sv.isSquareFree(x) ? "Yes" : "No") << "\n";
+
+    cout << "互いに素なペア数（n=20）: "
+         << sv.count_coprime_pairs(20) << "\n";
+
+    cout << "平方根をつける（n=20）: "
+         << sv.sqrt_decompose_fast(20).first << "√" << sv.sqrt_decompose_fast(20).second << "\n";
+
+    cout << "完全平方数判定（n=20）: "
+         << (sv.is_square(20) ? "Yes" : "No") << "\n";
+
+    cout << "完全平方数判定（n=25）: "
+         << (sv.is_square(25) ? "Yes" : "No") << "\n";
+
+    cout << "====================\n";
+}
+
+void solv(){
+    random_test_spf();
+    random_test_spf1();
+    random_test_spf2();
+    random_test_spf3();
+    random_test_spf4();
+    random_test_spf5();
+    random_test_spf6();
+    random_test_spf7();
+    random_test_spf_vs_spf2_step6();
+    test_sqrt_decompose_full();
+    demo_spf();
+    return;
+}
+
+int main(){
+    //BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,793 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief Rolling Hash（2^61-1）
+ *
+ * 文字列の部分文字列ハッシュを O(1) で取得する。
+ * 部分文字列比較・LCP・辞書順比較・ハッシュ連結に対応。
+ *
+ * Time Complexity:
+ *   構築           : O(N)
+ *   get系          : O(1)
+ *   concat         : O(1)
+ *   lcp            : O(log N)
+ *   less_than      : O(log N)
+ */
+struct RollingHash {
+    using ull = unsigned long long;
+    static constexpr ull mod = (1ULL << 61) - 1;
+
+    /**
+     * @brief ハッシュ情報
+     *
+     * value : ハッシュ値
+     * left  : 元文字列での開始位置（0-index）
+     * right : 元文字列での終了位置（0-index, 半開区間）
+     * len   : 部分文字列長
+     *
+     * ※ concat() で生成した Hash は len のみ有効で、
+     *    left==-1 の場合は元文字列に対応しない Hash を表す。
+     */
+    struct Hash {
+        ull value;
+        int left;
+        int right;
+        int len;
+
+        operator ull() const { return value; }
+
+        bool operator==(const Hash& rhs) const {
+            return value == rhs.value;
+        }
+
+        bool operator!=(const Hash& rhs) const {
+            return value != rhs.value;
+        }
+
+        bool operator<(const Hash& rhs) const {
+            return value < rhs.value;
+        }
+    };
+
+    static ull base;
+    static bool initialized;
+    static vector<ull> power;
+
+    vector<ull> h;
+
+    /**
+     * @brief base をランダムに初期化
+     *
+     * 初回のみ呼ばれ、base と power を初期化する。
+     * コンストラクタで呼ばれるため個別での実行不要
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    static void init() {
+        if (initialized) return;
+        initialized = true;
+
+        mt19937_64 rng(
+            chrono::steady_clock::now().time_since_epoch().count()
+        );
+        base = uniform_int_distribution<ull>(
+            100000000ULL,
+            1000000000ULL
+        )(rng);
+
+        power = {1};
+    }
+
+    /**
+     * @brief 文字列から Rolling Hash を構築
+     *
+     * @param s 元文字列
+     *
+     * Time Complexity:
+     *   O(N)
+     */
+    RollingHash(const string& s) {
+        init();
+
+        int n = (int)s.size();
+        ensure_power(n);
+
+        h.assign(n + 1, 0);
+
+        for (int i = 0; i < n; i++) {
+            h[i + 1] = add(
+                mul(h[i], base),
+                (ull)(unsigned char)s[i] + 1
+            );
+        }
+    }
+
+    /**
+     * @brief 文字列長を取得
+     *
+     * @return 文字列長
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    int size() const {
+        return (int)h.size() - 1;
+    }
+
+    /**
+     * @brief 部分文字列 [l,r) のハッシュを取得
+     *
+     * @param l 開始位置（0-index）
+     * @param r 終了位置（0-index, 半開区間）
+     * @return Hash
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    Hash get(int l, int r) const {
+        return {
+            add(h[r], mod - mul(h[l], power[r - l])),
+            l,
+            r,
+            r - l
+        };
+    }
+
+    /**
+     * @brief 長さ指定で部分文字列のハッシュを取得
+     *
+     * s[l,l+len) のハッシュを返す。
+     *
+     * @param l 開始位置
+     * @param len 長さ
+     * @return Hash
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    Hash get_len(int l, int len) const {
+        return get(l, l + len);
+    }
+
+    /**
+     * @brief 接尾辞のハッシュを取得
+     *
+     * s[l,n) のハッシュを返す。
+     *
+     * @param l 開始位置
+     * @return Hash
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    Hash get_from(int l = 0) const {
+        return get(l, size());
+    }
+
+    /**
+     * @brief 空文字列のハッシュを取得
+     *
+     * concat() の単位元として利用できる。
+     *
+     * @return Hash
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    static Hash empty_hash() {
+        return {
+            0,
+            -1,
+            -1,
+            0
+        };
+    }
+
+    /**
+     * @brief 2つのハッシュを連結
+     *
+     * a + b のハッシュを返す。
+     * 異なる RollingHash 同士でも利用可能。
+     *
+     * ※返却される Hash は len のみ有効で、
+     *   left==-1 のため元文字列には対応しない。
+     *
+     * @param a 前半
+     * @param b 後半
+     * @return Hash
+     *
+     * Time Complexity:
+     *   O(1)
+     */
+    static Hash concat(const Hash& a, const Hash& b) {
+        ensure_power(b.len);
+
+        return {
+            add(
+                mul(a.value, power[b.len]),
+                b.value
+            ),
+            -1,
+            -1,
+            a.len + b.len
+        };
+    }
+
+    /**
+     * @brief 最長共通接頭辞長（LCP）を取得
+     *
+     * a[i,n) と b[j,n) の LCP を返す。
+     *
+     * @param a 文字列A
+     * @param i 開始位置
+     * @param b 文字列B
+     * @param j 開始位置
+     * @return LCP長
+     *
+     * Time Complexity:
+     *   O(log N)
+     */
+    static int lcp(
+        const RollingHash& a, int i,
+        const RollingHash& b, int j
+    ) {
+        int low = 0;
+        int high = min(a.size() - i, b.size() - j) + 1;
+
+        while (high - low > 1) {
+            int mid = (low + high) / 2;
+
+            if (a.get(i, i + mid) == b.get(j, j + mid))
+                low = mid;
+            else
+                high = mid;
+        }
+
+        return low;
+    }
+
+    /**
+     * @brief 接尾辞同士を辞書順比較
+     *
+     * a[i,n) < b[j,n) なら true を返す。
+     *
+     * @param a 文字列A
+     * @param i 開始位置
+     * @param b 文字列B
+     * @param j 開始位置
+     * @return 比較結果
+     *
+     * Time Complexity:
+     *   O(log N)
+     */
+    static bool less_than(
+        const RollingHash& a, int i,
+        const RollingHash& b, int j
+    ) {
+        int l = lcp(a, i, b, j);
+
+        if (i + l == a.size() || j + l == b.size()) {
+            return (a.size() - i) < (b.size() - j);
+        }
+
+        return a.get(i + l, i + l + 1).value
+             < b.get(j + l, j + l + 1).value;
+    }
+
+    #ifdef LOCAL
+    /**
+     * @brief Hash の情報を表示（デバッグ用）
+     *
+     * ハッシュ値・区間・長さ・対応する部分文字列を表示する。
+     * 提出時（-DLOCAL なし）は何もしない。
+     *
+     * @param s 元文字列
+     * @param hash 表示する Hash
+     *
+     * Time Complexity:
+     *   O(len)
+     */
+    void print_hash(const string& s, const Hash& hash) const {
+        cout << DBG_COLOR;
+        cout << "hash  = " << hash.value << '\n';
+        cout << "left  = " << hash.left << '\n';
+        cout << "right = " << hash.right << '\n';
+        cout << "len   = " << hash.len << '\n';
+
+        if (hash.left == -1) {
+            cout << "str   = (concat 等により元文字列に対応しません)\n";
+        } else {
+            cout << "str   = "
+                 << s.substr(hash.left, hash.len) << '\n';
+        }
+
+        cout << DBG_RESET;
+    }
+    #else
+    /**
+     * @brief Hash の情報を表示（デバッグ用）
+     *
+     * ハッシュ値・区間・長さ・対応する部分文字列を表示する。
+     * 提出時（-DLOCAL なし）は何もしない。
+     *
+     * @param s 元文字列
+     * @param hash 表示する Hash
+     *
+     * Time Complexity:
+     *   O(len)
+     */
+    void print_hash(const string&, const Hash&) const {}
+    #endif
+
+    static ull mul(ull a, ull b) {
+        __uint128_t t = (__uint128_t)a * b;
+        t = (t >> 61) + (t & mod);
+        if (t >= mod) t -= mod;
+        return (ull)t;
+    }
+
+    static ull add(ull a, ull b) {
+        a += b;
+        if (a >= mod) a -= mod;
+        return a;
+    }
+
+    static void ensure_power(int n) {
+        while ((int)power.size() <= n) {
+            power.push_back(
+                mul(power.back(), base)
+            );
+        }
+    }
+};
+
+RollingHash::ull RollingHash::base;
+bool RollingHash::initialized = false;
+vector<RollingHash::ull> RollingHash::power;
+
+// ランダムテスト
+void test_RollingHashRandom() {
+    cout << "===== RollingHash ランダムテスト =====" << endl;
+
+    mt19937 rng(123456789);
+
+    const string CH = "abc";
+
+    rep(_, 5000) {
+
+        int n1 = rng() % 25;
+        int n2 = rng() % 25;
+
+        string s, t;
+
+        rep(i, n1) s += CH[rng() % CH.size()];
+        rep(i, n2) t += CH[rng() % CH.size()];
+
+        RollingHash rhs(s);
+        RollingHash rht(t);
+
+        // get(), get_len(), get_from()
+        rep(l, n1 + 1) {
+            rep(r, l, n1 + 1) {
+
+                auto h = rhs.get(l, r);
+
+                RollingHash naive(s.substr(l, r - l));
+
+                assert(h == naive.get_from());
+
+                auto h2 = rhs.get_len(l, r - l);
+
+                assert(h == h2);
+
+                auto h3 = rhs.get_from(l);
+
+                RollingHash naive2(s.substr(l));
+
+                assert(h3 == naive2.get_from());
+            }
+        }
+
+        // concat()
+        rep(l1, n1 + 1) {
+            rep(r1, l1, n1 + 1) {
+                auto a = rhs.get(l1, r1);
+
+                rep(l2, n2 + 1) {
+                    rep(r2, l2, n2 + 1) {
+
+                        auto b = rht.get(l2, r2);
+
+                        auto c = RollingHash::concat(a, b);
+
+                        RollingHash naive(
+                            s.substr(l1, r1 - l1) +
+                            t.substr(l2, r2 - l2)
+                        );
+
+                        assert(c == naive.get_from());
+                        assert(c.len == a.len + b.len);
+                    }
+                }
+            }
+        }
+
+        // empty_hash()
+        {
+            auto e = RollingHash::empty_hash();
+
+            auto all = rhs.get_from();
+
+            assert(RollingHash::concat(e, all) == all);
+            assert(RollingHash::concat(all, e) == all);
+        }
+
+        // lcp()
+        rep(i, n1 + 1) {
+            rep(j, n2 + 1) {
+
+                int naive = 0;
+
+                while (i + naive < n1 &&
+                       j + naive < n2 &&
+                       s[i + naive] == t[j + naive])
+                    naive++;
+
+                assert(
+                    RollingHash::lcp(rhs, i, rht, j)
+                    == naive
+                );
+            }
+        }
+
+        // less_than()
+        rep(i, n1 + 1) {
+            rep(j, n2 + 1) {
+
+                bool naive =
+                    s.substr(i) < t.substr(j);
+
+                assert(
+                    RollingHash::less_than(rhs, i, rht, j)
+                    == naive
+                );
+            }
+        }
+
+        // Hash演算子
+        rep(l, n1 + 1) {
+            rep(r, l, n1 + 1) {
+
+                auto h = rhs.get(l, r);
+
+                assert(h == h);
+                assert(!(h != h));
+
+                ull x = h;
+
+                assert(x == h.value);
+            }
+        }
+    }
+
+    cout << "RollingHash ランダムテスト OK" << endl;
+}
+
+void test_RollingHashConcatAssociative() {
+    cout << "===== RollingHash concat 結合則ランダムテスト =====" << endl;
+
+    mt19937 rng(123456789);
+
+    const string CH = "abc";
+
+    rep(_, 100000) {
+
+        auto make_string = [&](int n) {
+            string s;
+            rep(i, n) s += CH[rng() % CH.size()];
+            return s;
+        };
+
+        string s1 = make_string(rng() % 20);
+        string s2 = make_string(rng() % 20);
+        string s3 = make_string(rng() % 20);
+
+        RollingHash rh1(s1);
+        RollingHash rh2(s2);
+        RollingHash rh3(s3);
+
+        auto random_hash = [&](const RollingHash& rh) {
+            int n = rh.size();
+            int l = rng() % (n + 1);
+            int r = l + rng() % (n - l + 1);
+            return rh.get(l, r);
+        };
+
+        auto A = random_hash(rh1);
+        auto B = random_hash(rh2);
+        auto C = random_hash(rh3);
+
+        auto left = RollingHash::concat(
+            RollingHash::concat(A, B),
+            C
+        );
+
+        auto right = RollingHash::concat(
+            A,
+            RollingHash::concat(B, C)
+        );
+
+        assert(left == right);
+        assert(left.len == A.len + B.len + C.len);
+
+        // 念のため愚直とも比較
+        string naive =
+            s1.substr(A.left, A.len) +
+            s2.substr(B.left, B.len) +
+            s3.substr(C.left, C.len);
+
+        RollingHash rhs(naive);
+
+        assert(left == rhs.get_from());
+    }
+
+    cout << "concat 結合則ランダムテスト OK" << endl;
+}
+
+void test_RollingHash() {
+    cout << "===== RollingHash 動作確認 =====" << endl;
+
+    string s = "abracadabra";
+    string t = "cadabra";
+
+    RollingHash rhs(s);
+    RollingHash rht(t);
+
+    cout << "元文字列1 : " << s << endl;
+    cout << "元文字列2 : " << t << endl;
+    cout << endl;
+
+    auto h1 = rhs.get(0, 4);      // "abra"
+    auto h2 = rhs.get_len(7, 4);  // "abra"
+
+    cout << "get(0,4) == get_len(7,4) : "
+         << (h1 == h2 ? "はい" : "いいえ") << endl;
+
+    cout << "Hash の情報" << endl;
+    cout << "  left : " << h1.left << endl;
+    cout << "  right: " << h1.right << endl;
+    cout << "  len  : " << h1.len << endl;
+    rhs.print_hash(s, h1);
+    cout << endl;
+
+    auto suffix = rhs.get_from(4);
+
+    cout << "get_from(4)" << endl;
+    cout << "  len : " << suffix.len << endl;
+    rhs.print_hash(s, suffix);
+    cout << endl;
+
+    auto c = RollingHash::concat(
+        rhs.get(0, 4),   // "abra"
+        rht.get(0, 3)    // "cad"
+    );
+
+    cout << "concat(\"abra\", \"cad\")" << endl;
+    cout << "  len : " << c.len << endl;
+    rhs.print_hash(s, c);
+    cout << endl;
+
+    cout << "LCP(\"cadabra\", \"cadabra\") : "
+         << RollingHash::lcp(rhs, 4, rht, 0)
+         << endl;
+
+    cout << "辞書順比較" << endl;
+    cout << "  \"abracadabra\" < \"cadabra\" : "
+         << (RollingHash::less_than(rhs, 0, rht, 0) ? "はい" : "いいえ")
+         << endl;
+    cout << endl;
+
+    auto e = RollingHash::empty_hash();
+
+    cout << "empty_hash()" << endl;
+    cout << "  len : " << e.len << endl;
+    cout << "  empty + \"abra\" == \"abra\" : "
+         << (RollingHash::concat(e, h1) == h1 ? "はい" : "いいえ")
+         << endl;
+    cout << "  \"abra\" + empty == \"abra\" : "
+         << (RollingHash::concat(h1, e) == h1 ? "はい" : "いいえ")
+         << endl;
+}
+
+void solv(){
+    test_RollingHashRandom();
+    test_RollingHashConcatAssociative();
+    test_RollingHash();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

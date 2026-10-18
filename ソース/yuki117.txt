@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+
+//組み合わせ系の詰め合わせ
+//順列、組み合わせ、重複組み合わせ
+//問題
+//https://yukicoder.me/problems/no/117
+//解答
+//https://yukicoder.me/submissions/264054
+//解説
+//https://blog.hamayanhamayan.com/entry/2018/06/06/210256
+ll mod = 1000000007;
+//--------------------------------------------------------------------------------------------------
+ll f[2010101], rf[2010101];
+ll inv(ll x) {
+    ll res = 1;
+    ll k = mod - 2;
+    ll y = x;
+    while (k) {
+        if (k & 1) res = (res * y) % mod;
+        y = (y * y) % mod;
+        k /= 2;
+    }
+    return res;
+}
+void init() {
+    f[0] = 1;
+    rep(i, 1, 2010101) f[i] = (f[i - 1] * i) % mod;
+    rf[2010101 - 1] = inv(f[2010101 - 1]);
+    rrep(i, 2010101 - 2, 0) rf[i] = (rf[i + 1] * (i + 1)) % mod;
+}
+//---------------------------------------------------------------------------------------------------
+ll C(int n, int k) {
+    if (k < 0 || n < k) return 0;
+
+    ll a = f[n]; // = n!
+    ll b = rf[n - k]; // = (n-k)!
+    ll c = rf[k]; // = k!
+
+    ll bc = (b * c) % mod;
+
+    return (a * bc) % mod;
+}
+ll P(int n, int k) {
+    if (k < 0 || n < k) return 0;
+
+    ll a = f[n]; // = n!
+    ll b = rf[n - k]; // = (n-k)!
+    return (a * b) % mod;
+}
+ll H(int n, int k) {
+    if (n == 0 && k == 0) return 1;
+    return C(n + k - 1, k);
+}
+
+int main(){
+    init();
+
+    int T;
+    cin >> T;
+    rep(t, 0, T) {
+        string s; cin >> s;
+        char c; int a, b;
+        sscanf(s.c_str(), "%c(%d,%d)", &c, &a, &b);
+
+        int ans;
+        if (c == 'C') ans = C(a, b);
+        else if (c == 'P') ans = P(a, b);
+        else ans = H(a, b);
+        printf("%d\n", ans);
+    }
+    return 0;
+}

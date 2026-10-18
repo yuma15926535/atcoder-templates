@@ -1,0 +1,37 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    //負数も存在するときの和
+    //負数が存在するので尺取り法が使えない
+    //累積和をマップ管理で計算
+    int N;
+    ll K;
+    cin>>N>>K;
+    vector<ll> s(N+1,0);
+    ll ans=0;
+    map<ll,ll> m;
+    rep(i,0,N){
+        ll a;
+        cin>>a;
+        s[i+1]=s[i]+a;
+    }
+    erep(i,1,N){
+        m[s[i-1]]++;
+        ans+=m[s[i]-K];
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

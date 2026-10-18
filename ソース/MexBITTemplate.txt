@@ -1,0 +1,648 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief Mex BIT (欠番管理・mex取得 Fenwick Tree)
+ * 
+ * @details 集合に含まれない最小の非負整数 (mex) や、欠番（存在しない要素）の統計情報を高速に管理するデータ構造。
+ * 内部的には、値 x が「存在しない」(欠番である) 場合に 1、値 x が「存在する」場合に 0 を Fenwick Tree 上で管理する。
+ * 
+ * 注意点:
+ * - 管理する値の範囲は 0 以上 MAX 未満の整数 [0, MAX) となる。
+ * - mex() は欠番が存在すればその最小値を返し、すべて存在していれば MAX を返す。
+ * - 集合 (set) として扱うため、同一の値を複数回追加しても、状態は「存在する」(値 0) のまま変化しない。
+ * 
+ * 用途:
+ * - 動的に変化する集合に対する mex のオンラインクエリ
+ * - 指定範囲の欠番数取得、指定範囲での欠番探索
+ * 
+ * 計算量:
+ * - 構築: O(MAX)
+ * - 追加 (insert): O(log MAX)
+ * - 削除 (erase): O(log MAX)
+ * - 存在確認 (contains, is_missing): O(log MAX)
+ * - 最小欠番取得 (mex): O(log MAX)
+ * - 前後欠番探索 (next_missing, prev_missing): O(log MAX)
+ * - k番目欠番取得 (kth_missing): O(log MAX)
+ * - 区間内欠番数取得 (count_missing): O(log MAX)
+ * - 状態取得 (missing_count, exists_missing, full, size, empty): O(1)
+ * - 欠番一覧取得 (missing_values): O(MAX)
+ * - クリア (clear): O(MAX)
+ * 
+ * API一覧:
+ * - MexBIT(MAX)
+ * - insert(x), erase(x)
+ * - contains(x), is_missing(x)
+ * - mex(), next_missing(x), prev_missing(x), kth_missing(k)
+ * - count_missing(l, r), missing_count(), exists_missing(), full()
+ * - missing_values()
+ * - size(), empty(), clear()
+ */
+class MexBIT {
+private:
+    int max_val;
+    int missing_count_;
+    int size_;
+    std::vector<int> tree;
+
+    // 内部用の Fenwick Tree add
+    void add(int i, int x) {
+        for (int idx = i + 1; idx <= max_val; idx += idx & -idx) {
+            tree[idx] += x;
+        }
+    }
+
+    // 内部用の Fenwick Tree sum [0, r)
+    int sum(int r) const {
+        int s = 0;
+        for (int idx = r; idx > 0; idx -= idx & -idx) {
+            s += tree[idx];
+        }
+        return s;
+    }
+
+public:
+    /**
+     * @brief コンストラクタ
+     * @param MAX 管理する値の上限。値の範囲は [0, MAX) となる。
+     * @note 計算量: O(MAX) (初期状態はすべて欠番のため、全位置が1)
+     */
+    explicit MexBIT(int MAX) : max_val(MAX), missing_count_(MAX), size_(0), tree(MAX + 1, 0) {
+        std::vector<int> initial(MAX, 1);
+        for (int i = 0; i < MAX; ++i) {
+            tree[i + 1] = initial[i];
+        }
+        for (int i = 1; i <= MAX; ++i) {
+            int ni = i + (i & -i);
+            if (ni <= MAX) {
+                tree[ni] += tree[i];
+            }
+        }
+    }
+
+    /**
+     * @brief 存在する要素数を取得
+     * @return 存在する要素数
+     * @note 計算量: O(1)
+     */
+    int size() const {
+        return size_;
+    }
+
+    /**
+     * @brief 集合が空であるか判定
+     * @return 存在する要素数が0ならtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool empty() const {
+        return size_ == 0;
+    }
+
+    /**
+     * @brief 集合を空にする (すべて欠番に戻す)
+     * @note 計算量: O(MAX)
+     */
+    void clear() {
+        std::vector<int> initial(max_val, 1);
+        tree.assign(max_val + 1, 0);
+        for (int i = 0; i < max_val; ++i) {
+            tree[i + 1] = initial[i];
+        }
+        for (int i = 1; i <= max_val; ++i) {
+            int ni = i + (i & -i);
+            if (ni <= max_val) {
+                tree[ni] += tree[i];
+            }
+        }
+        missing_count_ = max_val;
+        size_ = 0;
+    }
+
+    /**
+     * @brief 値 x を集合に追加する
+     * @param x 追加する値
+     * @return 追加に成功したらtrue、既に存在しているか範囲外ならfalse
+     * @note 計算量: O(log MAX)
+     */
+    bool insert(int x) {
+        if (x < 0 || x >= max_val) return false;
+        if (!is_missing(x)) return false; // 既に存在する
+        add(x, -1); // 欠番状態から存在状態へ (1 -> 0 にするため -1)
+        missing_count_--;
+        size_++;
+        return true;
+    }
+
+    /**
+     * @brief 値 x を集合から削除する (欠番にする)
+     * @param x 削除する値
+     * @return 削除に成功したらtrue、元々存在しないか範囲外ならfalse
+     * @note 計算量: O(log MAX)
+     */
+    bool erase(int x) {
+        if (x < 0 || x >= max_val) return false;
+        if (is_missing(x)) return false; // すでに欠番
+        add(x, 1); // 存在状態から欠番状態へ (0 -> 1 にするため +1)
+        missing_count_++;
+        size_--;
+        return true;
+    }
+
+    /**
+     * @brief 値 x が集合に存在するか判定する
+     * @param x 判定する値
+     * @return 存在すればtrue、そうでなければfalse
+     * @note 計算量: O(log MAX)
+     */
+    bool contains(int x) const {
+        if (x < 0 || x >= max_val) return false;
+        return !is_missing(x);
+    }
+
+    /**
+     * @brief 値 x が欠番であるか判定する
+     * @param x 判定する値
+     * @return 欠番であればtrue、そうでなければfalse (範囲外はfalse)
+     * @note 計算量: O(log MAX)
+     */
+    bool is_missing(int x) const {
+        if (x < 0 || x >= max_val) return false;
+        // x の値は sum(x + 1) - sum(x)
+        int s = tree[x + 1];
+        int l = x & (x + 1);
+        for (int idx = x; idx > l; idx -= idx & -idx) {
+            s -= tree[idx];
+        }
+        return s == 1;
+    }
+
+    /**
+     * @brief 集合に含まれない最小の非負整数 (mex) を取得する
+     * @return mex 値。すべて埋まっている場合は MAX を返す
+     * @note 計算量: O(log MAX)
+     */
+    int mex() const {
+        if (missing_count_ == 0) return max_val;
+        return kth_missing(0);
+    }
+
+    /**
+     * @brief x より大きい最小の欠番を取得する
+     * @param x 境界値
+     * @return 欠番の値。存在しなければ -1
+     * @note 計算量: O(log MAX)
+     */
+    int next_missing(int x) const {
+        int cnt = count_missing(0, x + 1);
+        return kth_missing(cnt);
+    }
+
+    /**
+     * @brief x 未満最大の欠番を取得する
+     * @param x 境界値
+     * @return 欠番の値。存在しなければ -1
+     * @note 計算量: O(log MAX)
+     */
+    int prev_missing(int x) const {
+        int cnt = count_missing(0, x);
+        return kth_missing(cnt - 1);
+    }
+
+    /**
+     * @brief 欠番の中で 0-index で k 番目に小さい値を取得する
+     * @param k インデックス (0-index)
+     * @return k 番目の欠番。存在しなければ -1
+     * @note 計算量: O(log MAX)
+     */
+    int kth_missing(int k) const {
+        if (k < 0 || k >= missing_count_) return -1;
+        int idx = 0;
+        int val = k + 1;
+        int step = 1;
+        while (step * 2 <= max_val) step *= 2;
+        for (; step > 0; step /= 2) {
+            if (idx + step <= max_val && tree[idx + step] < val) {
+                val -= tree[idx + step];
+                idx += step;
+            }
+        }
+        return idx;
+    }
+
+    /**
+     * @brief 半開区間 [l, r) に含まれる欠番数を取得する
+     * @param l 左端
+     * @param r 右端
+     * @return 欠番数
+     * @note 計算量: O(log MAX)
+     */
+    int count_missing(int l, int r) const {
+        if (l >= r) return 0;
+        l = std::max(0, l);
+        r = std::min(max_val, r);
+        if (l >= r) return 0;
+        return sum(r) - sum(l);
+    }
+
+    /**
+     * @brief 全体の欠番数を取得する
+     * @return 全欠番数
+     * @note 計算量: O(1)
+     */
+    int missing_count() const {
+        return missing_count_;
+    }
+
+    /**
+     * @brief 欠番が1つ以上存在するか判定する
+     * @return 存在すればtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool exists_missing() const {
+        return missing_count_ > 0;
+    }
+
+    /**
+     * @brief 集合が完全に埋まっているか判定する
+     * @return 埋まっていればtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool full() const {
+        return missing_count_ == 0;
+    }
+
+    /**
+     * @brief 欠番一覧を昇順に並べた vector を取得する
+     * @return 欠番の昇順 vector
+     * @note 計算量: O(MAX)
+     */
+    std::vector<int> missing_values() const {
+        std::vector<int> res;
+        res.reserve(missing_count_);
+        for (int i = 0; i < max_val; ++i) {
+            if (is_missing(i)) {
+                res.push_back(i);
+            }
+        }
+        return res;
+    }
+};
+
+// 動作確認用テスト
+void test_MexBIT() {
+    std::cout << "--- test_MexBIT 開始 ---" << std::endl;
+
+    MexBIT bit(10); // [0, 10)
+
+    std::cout << "初期状態 (空集合):" << std::endl;
+    std::cout << "mex(): " << bit.mex() << " (期待値: 0)" << std::endl;
+    std::cout << "missing_count(): " << bit.missing_count() << " (期待値: 10)" << std::endl;
+    std::cout << "size(): " << bit.size() << " (期待値: 0)" << std::endl;
+    std::cout << "empty(): " << (bit.empty() ? "true" : "false") << " (期待値: true)" << std::endl;
+
+    bit.insert(0);
+    bit.insert(1);
+    bit.insert(3);
+    bit.insert(4);
+    std::cout << "追加: 0, 1, 3, 4" << std::endl;
+    std::cout << "mex(): " << bit.mex() << " (期待値: 2)" << std::endl;
+    std::cout << "size(): " << bit.size() << " (期待値: 4)" << std::endl;
+
+    std::cout << "contains(1): " << (bit.contains(1) ? "true" : "false") << " (期待値: true)" << std::endl;
+    std::cout << "contains(2): " << (bit.contains(2) ? "true" : "false") << " (期待値: false)" << std::endl;
+    std::cout << "is_missing(2): " << (bit.is_missing(2) ? "true" : "false") << " (期待値: true)" << std::endl;
+
+    std::cout << "next_missing(1): " << bit.next_missing(1) << " (期待値: 2)" << std::endl;
+    std::cout << "next_missing(2): " << bit.next_missing(2) << " (期待値: 5)" << std::endl;
+    std::cout << "prev_missing(3): " << bit.prev_missing(3) << " (期待値: 2)" << std::endl;
+
+    std::cout << "kth_missing(0): " << bit.kth_missing(0) << " (期待値: 2)" << std::endl;
+    std::cout << "kth_missing(1): " << bit.kth_missing(1) << " (期待値: 5)" << std::endl;
+
+    std::cout << "count_missing(0, 5): " << bit.count_missing(0, 5) << " (期待値: 1) (欠番は 2 のみ)" << std::endl;
+
+    std::cout << "missing_values(): ";
+    for (int x : bit.missing_values()) std::cout << x << " ";
+    std::cout << "(期待値: 2 5 6 7 8 9)" << std::endl;
+
+    bit.insert(2);
+    std::cout << "追加: 2" << std::endl;
+    std::cout << "mex(): " << bit.mex() << " (期待値: 5)" << std::endl;
+
+    bit.erase(1);
+    std::cout << "削除: 1" << std::endl;
+    std::cout << "mex(): " << bit.mex() << " (期待値: 1)" << std::endl;
+
+    bit.clear();
+    std::cout << "clear() 実行後の mex(): " << bit.mex() << " (期待値: 0)" << std::endl;
+
+    std::cout << "--- test_MexBIT 終了 ---" << std::endl << std::endl;
+}
+
+// ランダムテスト
+void random_test_MexBIT() {
+    std::cout << "--- random_test_MexBIT 開始 ---" << std::endl;
+
+    std::mt19937 mt(42);
+    int MAX = 300;
+    int queries = 5000;
+
+    MexBIT bit(MAX);
+    std::set<int> naive;
+
+    std::uniform_int_distribution<int> op_dist(0, 6);
+    std::uniform_int_distribution<int> val_dist(-20, MAX + 20);
+
+    for (int q = 0; q < queries; ++q) {
+        int op = op_dist(mt);
+        int x = val_dist(mt);
+
+        if (op == 0) {
+            // insert
+            bool b_res = bit.insert(x);
+            bool n_res = false;
+            if (x >= 0 && x < MAX && naive.count(x) == 0) {
+                naive.insert(x);
+                n_res = true;
+            }
+            assert(b_res == n_res);
+        } else if (op == 1) {
+            // erase
+            bool b_res = bit.erase(x);
+            bool n_res = false;
+            if (x >= 0 && x < MAX && naive.count(x) > 0) {
+                naive.erase(x);
+                n_res = true;
+            }
+            assert(b_res == n_res);
+        } else if (op == 2) {
+            // contains, is_missing
+            assert(bit.contains(x) == (naive.count(x) > 0));
+            if (x >= 0 && x < MAX) {
+                assert(bit.is_missing(x) == (naive.count(x) == 0));
+            } else {
+                assert(!bit.is_missing(x));
+            }
+        } else if (op == 3) {
+            // mex, kth_missing
+            int naive_mex = MAX;
+            for (int i = 0; i < MAX; ++i) {
+                if (naive.count(i) == 0) {
+                    naive_mex = i;
+                    break;
+                }
+            }
+            assert(bit.mex() == naive_mex);
+
+            std::vector<int> naive_miss;
+            for (int i = 0; i < MAX; ++i) {
+                if (naive.count(i) == 0) naive_miss.push_back(i);
+            }
+            if (naive_miss.empty()) {
+                assert(bit.kth_missing(0) == -1);
+            } else {
+                std::uniform_int_distribution<int> k_dist(0, (int)naive_miss.size() - 1);
+                int k = k_dist(mt);
+                assert(bit.kth_missing(k) == naive_miss[k]);
+            }
+        } else if (op == 4) {
+            // next_missing, prev_missing
+            std::vector<int> naive_miss;
+            for (int i = 0; i < MAX; ++i) {
+                if (naive.count(i) == 0) naive_miss.push_back(i);
+            }
+
+            int b_next = bit.next_missing(x);
+            int n_next = -1;
+            auto it_next = std::upper_bound(naive_miss.begin(), naive_miss.end(), x);
+            if (it_next != naive_miss.end()) n_next = *it_next;
+            assert(b_next == n_next);
+
+            int b_prev = bit.prev_missing(x);
+            int n_prev = -1;
+            auto it_prev = std::lower_bound(naive_miss.begin(), naive_miss.end(), x);
+            if (it_prev != naive_miss.begin()) {
+                n_prev = *(--it_prev);
+            }
+            assert(b_prev == n_prev);
+        } else if (op == 5) {
+            // count_missing
+            int y = val_dist(mt);
+            int l = x, r = y;
+            if (l > r) std::swap(l, r);
+            
+            int n_miss_cnt = 0;
+            for (int i = std::max(0, l); i < std::min(MAX, r); ++i) {
+                if (naive.count(i) == 0) n_miss_cnt++;
+            }
+            assert(bit.count_missing(l, r) == n_miss_cnt);
+        } else {
+            // size, empty, full, exists_missing, missing_count
+            assert(bit.size() == (int)naive.size());
+            assert(bit.empty() == naive.empty());
+            assert(bit.missing_count() == MAX - (int)naive.size());
+            assert(bit.exists_missing() == ((int)naive.size() < MAX));
+            assert(bit.full() == ((int)naive.size() == MAX));
+            
+            std::vector<int> b_miss = bit.missing_values();
+            std::vector<int> n_miss;
+            for (int i = 0; i < MAX; ++i) {
+                if (naive.count(i) == 0) n_miss.push_back(i);
+            }
+            assert(b_miss == n_miss);
+        }
+    }
+
+    std::cout << "OK" << std::endl;
+    std::cout << "--- random_test_MexBIT 終了 ---" << std::endl << std::endl;
+}
+
+void solv(){
+    test_MexBIT();
+    random_test_MexBIT();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

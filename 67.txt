@@ -1,0 +1,43 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+ll base8(string snum){
+    ll num=0;
+    rep(i,0,snum.size())num=num*8+(int)(snum[i]-'0');
+    return num;
+}
+
+string base9(ll num){
+    string snum="";
+    while(num>=9){
+        snum=(char)('0'+num%9)+snum;
+        num/=9;
+    }
+    snum=(char)('0'+num)+snum;
+    return snum;
+}
+
+int main()
+{
+    string snum;
+    long long K;
+    cin>>snum>>K;
+    //進数変換
+    rep(i,0,K){
+        snum=base9(base8(snum));
+        for(auto &c:snum)if(c=='8')c='5';
+    }
+    cout<<snum<<"\n";
+    return 0;
+}

@@ -1,0 +1,49 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct lri{
+    int l;
+    int r;
+};
+bool comple(lri a,lri b){
+    return a.l<b.l;
+}
+bool compri(lri a,lri b){
+    return a.r<b.r;
+}
+
+int main()
+{
+    //共通部分を持つ閉区間の組の数え上げ
+    int N;
+    cin>>N;
+    vector<lri> vl(N),vr(N);
+    rep(i,0,N){
+        int l,r;
+        cin>>l>>r;
+        vl[i]={l,r};
+        vr[i]={l,r};
+    }
+    sort(nall(vl),comple);
+    sort(nall(vr),compri);
+    //組数全体から共通部分を持つ組を引く
+    ll ans=((ll)N*(N-1))/2;
+    int ri=0;
+    rep(i,0,N){
+        while(ri+1<N&&vl[i].l>vr[ri+1].r)ri++;
+        if(vl[i].l>vr[ri].r)ans-=ri+1;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

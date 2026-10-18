@@ -1,0 +1,46 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template <typename T> constexpr auto ssize(const T& container) -> std::ptrdiff_t {return static_cast<std::ptrdiff_t>(container.size());}
+
+int main(){
+    int T;
+    cin>>T;
+    map<int,ll>m;
+    auto f=[&](auto f,int n)->ll{
+        if(m.count(n))return m[n];
+        if(n==0)return m[n]=1;
+        return m[n]=2*f(f,n-1);
+    };
+    rep(i,0,T){
+        ll a,s;
+        cin>>a>>s;
+        vector<bool>av(61,false);
+        erep(j,0,60)if((1LL<<j)&a)av[j]=true;
+        //aの1が立つ位は必ずx,yどちらでも1なのでsから2回引く
+        erep(j,0,60)if(av[j])s-=2*f(f,(int)j);
+        if(s<0){
+            NO;
+            continue;
+        }
+        vector<bool>sv(61,false);
+        erep(j,0,60)if((1LL<<j)&s)sv[j]=true;
+        //aの0が立つ位はx,yの少なくとも一方が0
+        //2進法に他ならない
+        //残ったsを2進法で表したとき1でありaでも1である場合false
+        bool b=true;
+        erep(j,0,60)if(av[j]&&sv[j])b=false;
+        if(b)YN;
+    }
+    return 0;
+}

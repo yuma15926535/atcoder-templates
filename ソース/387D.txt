@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W,sh,sw,gh,gw,inf=1e9,ans;
+vector<string> S;
+struct xy{
+    int x;
+    int y;
+    xy operator+(const xy &right){
+        xy r;
+        r.x=x+right.x;
+        r.y=y+right.y;
+        return r;
+    }
+};
+vector<vector<xy>> vdxy;
+int bfs(ll p){
+    vector<vector<int>> d(H,vector<int>(W,inf));
+    xy s;s.x=sh;s.y=sw;
+    queue<xy> q;
+    q.push(s);
+    d[sh][sw]=0;
+    while(!q.empty()){
+        s=q.front();
+        q.pop();
+        for(xy dxy:vdxy[(s.x+s.y+p)&1]){
+            xy nxy=s+dxy;
+            if(0<=nxy.x&&nxy.x<H&&0<=nxy.y&&nxy.y<W&&(S[nxy.x][nxy.y]!='#')&&d[nxy.x][nxy.y]==inf){
+                q.push(nxy);
+                d[nxy.x][nxy.y]=d[s.x][s.y]+1;
+            }
+        }
+    }
+    return d[gh][gw];
+}
+void solv(){
+    ans=inf;
+    rep(i,0,2)ans=min(ans,bfs(i));
+}
+
+int main()
+{
+    cin>>H>>W;
+    S.resize(H);
+    rep(i,0,H)cin>>S[i];
+    rep(i,0,H)rep(j,0,W)if(S[i][j]=='S'){sh=i;sw=j;}
+    else if(S[i][j]=='G'){gh=i;gw=j;}
+    vdxy.resize(2);
+    xy p;
+    p.x=1;p.y=0;
+    vdxy[0].push_back(p);
+    p.x=-1;
+    vdxy[0].push_back(p);
+    p.x=0;p.y=1;
+    vdxy[1].push_back(p);
+    p.y=-1;
+    vdxy[1].push_back(p);
+    solv();
+    if(ans==inf)cout<<-1<<"\n";
+    else cout<<ans<<"\n";
+    return 0;
+}

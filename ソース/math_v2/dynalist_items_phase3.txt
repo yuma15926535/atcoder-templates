@@ -1,0 +1,124 @@
+01_digits（桁・進数・回文数：桁和・n 進数・回文数の k 番目（10^18 を超えるものも）・数をつなげる・大きな数の文字列・繰り上がり・1〜N の桁の数え上げ）
+	説明
+		digits_of(n, base) ／ digit_sum(n, base) ／ num_digits(n, base) ／ from_digits(ds, base)（各桁は上の桁から。負の数は絶対値で）
+		to_base(n, base) ／ from_base(s, base)（2〜36 進と −2〜−36 進。10 以上の桁は A〜Z）／ from_base_cap(s, base, cap) ／ base_value_leq(s, base, limit)（36 を超える進数も。溢れない）
+		kth_palindrome(k)（0 番目が 0。文字列）／ palindrome_rank(n) ／ count_palindromes_up_to(n) ／ _below ／ _of_length(len) ／ ceil_palindrome(n) ／ floor_palindrome(n) ／ make_palindrome(half, odd) ／ is_palindrome_num(n, base)
+		10^18 を超える回文数（文字列）：ceil_palindrome_str(s) ／ floor_palindrome_str(s) ／ count_palindromes_up_to_str(s) ／ _below_str（Int128。75 桁まで）／ make_palindrome_str ／ is_palindrome_str
+		concat_value(a, b)（Int128）／ repeat_concat_value(x, k)（Int128）／ concat_mod(a, b, m) ／ repeat_concat_mod(x, k, m)（x を k 回つなげる）／ repunit_mod(k, m) ／ pow10_mod(k, m)
+		str_mod(s, m, base = 10)（2〜36 進でも）／ str_num_compare(a, b)（符号・先頭の 0 も）／ substr_value(s, l, r) ／ DigitPrefix P(s, m); P.value(l, r)（部分文字列の値 mod m を O(1)）
+		carry_to_string(c, base = 10)（下の桁からの係数を繰り上げて文字列に。大きな数の掛け算を畳み込みで）
+		digit_length_blocks(l, r)（桁数ごとの区間）／ total_digits_up_to(N) ／ count_digit_up_to(N, d) ／ digit_sum_total_up_to(N)（Int128）
+		numbers_from_digits(ds, max_len)（使える数字が決まった数を小さい順に）
+	メモ
+		k 番目は 0 から数える（ABC363 D の「N 番目」は kth_palindrome(N − 1)）
+		類題：ABC083 B（digit_sum）、ABC105 C（to_base(n, −2)）、ABC186 C（to_base(x, 8)）、ABC192 D（base_value_leq で二分探索）、ABC336 C（5 進数）、ABC357 D（repeat_concat_mod）、ABC363 D（kth_palindrome）、ABC114 C（numbers_from_digits）、典型90 067（from_base / to_base）、典型90 082（digit_length_blocks ＋ arith_sum_mod）
+	C:\atcoder_template\典型90\ソース\math_v2\01_digits.cpp
+02_factorize（1 つの大きな数（10^18 まで）の素数判定・素因数分解・約数・φ・μ、n! の素因数、累乗数の個数）
+	説明
+		is_prime(n)（決定的ミラー・ラビン）／ factorize(n)（ポラード・ロー。vector<PrimePower{p, e}> の p の昇順）／ factorize_trial(n)（試し割り。確かめ用）／ prime_factors(n)
+		divisors_of(n)（昇順）／ divisors_from_factors(fs) ／ for_each_divisor(fs, f) ／ count_divisors ／ sum_divisors（Int128）
+		euler_phi(n) ／ mobius(n) ／ omega(n) ／ big_omega(n)（異なる素因数・重複も数えた素因数の個数）／ largest_prime_factor ／ radical ／ square_free_decompose(n)（n = a²·b）／ is_square_free ／ is_prime_power
+		factorial_exponent(n, p)（n! が p で何回割れるか）／ factorial_max_power(n, k) ／ min_factorial_multiple(k)（k | n! となる最小の n）
+		is_perfect_power(n) ／ count_perfect_powers(N)（a^b（b ≥ 2）の形の数の個数）／ count_coprime_up_to(N, M) ／ lcm_mod_of(vs, m)（vs は vector<int> でも）
+	メモ
+		N 以下の数を何度も分解するなら 02_sieve の Sieve（このファイルも同梱されている）
+		多くの数の lcm を mod で求めるときは lcm_mod_of（mod を取りながら lcm を取ってはいけない）
+		類題：ABC169 D（factorize の指数）、ABC052 C、ABC180 C（divisors_of）、ABC190 D、ABC215 D、ABC254 D（square_free_decompose）、ABC280 D（min_factorial_multiple）、ABC284 D、ABC361 F（count_perfect_powers）、典型90 075・085
+	C:\atcoder_template\典型90\ソース\math_v2\02_factorize.cpp
+02_sieve（篩：N 以下の数の素因数分解・素数判定を何度も、φ・μ・約数の個数の表、素数の一覧、区間篩）
+	説明
+		Sieve S(N)（線形篩。N ≤ 5×10^7 程度・上限 10^8。N は long long でもよい）：S.is_prime(x) ／ S.spf(x) ／ S.primes()（vector<long long>。p * p も溢れない） ／ S.factorize(x) ／ S.prime_factors ／ S.divisors（昇順）／ S.count_divisors ／ S.sum_divisors
+		S.phi ／ S.mu ／ S.omega（異なる素因数の数）／ S.big_omega ／ S.largest_prime_factor ／ S.square_free_decompose ／ S.is_square_free
+		S.prime_count(x) ／ S.count_primes(l, r) ／ S.count_primes_closed(L, R) ／ S.kth_prime(k)（0 番目が 2）／ S.lcm_mod(vs, m)（N を超える数も受け付ける）
+		phi_table(N) ／ mu_table(N) ／ divisor_count_table(N) ／ divisor_sum_table(N) ／ omega_table(N)（線形篩 O(N)。10^7 で 0.1〜0.2 秒。0 ≤ N ≤ 10^8。外れたら止まる）
+		primes_up_to(N)（vector<long long>。N < 2^31。10^8 で約 0.3 秒）／ primes_up_to<int>(N)（メモリ半分）
+		segment_primes(l, r) ／ segment_primes_closed(L, R) ／ segment_factorize(l, r, f) ／ segment_factorize_closed（r ≤ 10^14、幅 ≤ 10^7 程度）
+	メモ
+		02_factorize を同梱している（is_prime・factorize・divisors_of なども使える）
+		類題：ABC084 D（S.is_prime で累積和）、ABC177 E（S.prime_factors で数える）、ABC300 D、ABC383 D、ABC400 E、ABC412 E（segment_primes）、典型90 030（omega_table）
+	C:\atcoder_template\典型90\ソース\math_v2\02_sieve.cpp
+03_mod_equation（合同式・一次不定方程式・中国剰余定理）
+	説明
+		linear_congruence(a, b, m)（a x ≡ b (mod m) → ModSolution{ok, r, m}：x ≡ r (mod m)）
+		linear_diophantine(a, b, c)（a x + b y = c → Diophantine{ok, x0, y0, dx, dy}：x = x0 + k·dx、y = y0 − k·dy。d.x(k) ／ d.y(k)）
+		diophantine_count(a, b, c, xl, xr, yl, yr) ／ diophantine_count_closed ／ diophantine_min_x(a, b, c, x_min)（範囲の中の解の数 ／ x ≥ x_min で最小の解）
+		crt_merge(r1, m1, r2, m2) ／ crt_all(rs, ms)（mod は互いに素でなくてよい。r は 0 以上で最小の解。lcm が long long を超えたら overflow = true）
+		garner(rs, ms, mod)（互いに素な mod での答えを別の mod で）
+	メモ
+		1 つの mod の逆元・倍数の個数は 00_math_base（mod_inv ／ ceil_congruent ／ count_congruent）
+		周期的に繰り返す 2 つの区間が重なる最初の時刻（ABC193 E）は使い方デモの first_common_time の形で
+		類題：ABC186 E（linear_congruence(K, −S, N)）、ABC193 E（crt_merge を Y·Q 回）
+	C:\atcoder_template\典型90\ソース\math_v2\03_mod_equation.cpp
+04_binomial（二項係数：Binomial<mint> で nCr・nPr・nHr、n が大きい nCr、Lucas、合成数の mod、厳密な値、パスカルの三角形）
+	説明
+		Binomial<mint> B(N);（mod は素数。N を超える n が来たら表を伸ばす）B.C(n, r) ／ B.P ／ B.H（範囲外は 0）／ B.fact ／ B.inv_fact ／ B.inv
+		B.multinomial(ks) ／ B.catalan(n) ／ B.paths(x, y)（格子路）／ B.paths_not_crossing(x, y, k)（ずっと y ≤ x + k。鏡像法）
+		binom_large_n<mint>(n, r)（n ≤ 10^18、r が小さい。O(r)）
+		binom_lucas(n, r, p)（p は 10^7 以下の素数）／ binom_mod_any(n, r, m)（合成数の mod。素数べきの部分は 10^7 以下）
+		binom_exact(n, r)（厳密。溢れたら止まる）／ binom_cap(n, r, cap)
+		pascal_table<T>(N)（T は何でも。合成数の mod なら pascal_table<DynModInt>、long long は N ≤ 66）
+		BinomialPrefix<mint> P(max_n); P.move_to(n, m)（Σ_{i≤m} C(n, i) を n・m を ±1 して O(1)。Mo のアルゴリズムに）／ inc_n ／ dec_n ／ inc_m ／ dec_m ／ value
+	メモ
+		00_modint を同梱している（using mint = ModInt107; と書いてから Binomial<mint>）
+		類題：ABC110 D（B.H）、ABC132 D、ABC145 D（ナイトの移動）、ABC156 D（binom_large_n）、ABC167 E、ABC202 D（pascal_table で辞書順 K 番目）、ABC205 E（paths_not_crossing）、ABC425 E（pascal_table<DynModInt>）、ARC117 C（binom_lucas(·, ·, 3)）
+	C:\atcoder_template\典型90\ソース\math_v2\04_binomial.cpp
+05_matrix（行列：Matrix<T>（mint・long long・double・半環）、行列の累乗、漸化式の行列、小さい行列 MatrixFixed）
+	説明
+		Matrix<mint> A = {{1, 1}, {1, 0}}; ／ Matrix<T> A(n, m) ／ Matrix<T>::identity(n) ／ A(i, j) ／ A[i][j]
+		A + B ／ A - B ／ A * B ／ A * s ／ A.pow(e)（e ≤ 10^18）／ A.apply(v)（行列 × ベクトル）／ A.transpose() ／ A.trace() ／ cout << A
+		半環：Matrix<MinPlus<long long>>（ちょうど K 歩の最短路）／ MaxPlus（最長路）／ MinMax ／ MaxMin（通る辺の最大を最小に・最小を最大に）／ XorAnd（XOR と AND の漸化式）／ OrAnd（ちょうど K 歩で行けるか）
+		自作の半環：+ と * と static zero() ／ one() を持つ struct を書けば Matrix<自作> で使える
+		companion_matrix(c) ／ recurrence_nth_matrix(c, a, n)（a_i = Σ c_j a_{i−1−j} の a_n。半環でも）
+		MatrixFixed<T, K>（2×2・3×3 などを速く）：同じ演算 ＋ det() ／ inv() ／ try_inv()（mint・double）
+	メモ
+		00_modint を同梱している。long long は溢れたら止まる（数え上げは mint で）
+		N×N の行列式・逆行列・連立方程式は 05_linear_algebra（Phase 4）、項が多い漸化式は 06_linear_recurrence（Phase 4）
+		類題：EDPC R（隣接行列の K 乗の和）、ABC293 E（[[A, 1], [0, 1]]^X。Matrix<DynModInt>）、ABC009 D（XorAnd で recurrence_nth_matrix）
+	C:\atcoder_template\典型90\ソース\math_v2\05_matrix.cpp
+06_quotient（商の列挙・床関数の和：⌊N/i⌋ が同じ i をまとめる、Σ⌊N/i⌋、Σ⌊(a i + b)/m⌋・Σ (a i + b) mod m・Σ⌊⌋²、直線の下の格子点、万能ユークリッド）
+	説明
+		for_each_quotient(N, f)（f(q, l, r)：i ∈ [l, r) で ⌊N/i⌋ = q。2√N 個。f が false を返すと止まる）／ quotient_blocks(N) ／ quotient_blocks_ceil(N) ／ quotient_blocks2(N, M)
+		sum_floor_div(N)（Σ⌊N/i⌋）／ sum_i_floor_div(N)（Σ i⌊N/i⌋）／ sum_mod_i(N)（Σ N mod i）（Int128）
+		linear_floor_sum(n, m, a, b)（Σ_{i<n} ⌊(a i + b)/m⌋。a, b は負でも。Int128。引数の順は ACL の floor_sum と同じで範囲が広い）
+		linear_mod_sum(n, m, a, b)（Σ ((a i + b) mod m)）／ linear_floor_sum_ext<mint>(n, m, a, b)（FloorSumExt{sum, sum_i, sum_sq}：Σ⌊⌋・Σ i⌊⌋・Σ⌊⌋² を mod で）
+		universal_euclid(n, a, b, c, U, R)（万能ユークリッド：y = ⌊(a x + b)/c⌋ に沿って U・R を掛けた積。M は結合的な * と単位元 M()）
+		count_lattice_under_line(a, b, c)（a x + b y ≤ c となる x, y ≥ 0 の組の数）
+	メモ
+		N は LLONG_MAX 未満（区間の右端 N + 1 が long long に入るように）
+		類題：ABC230 E（sum_floor_div）、ABC172 D（for_each_quotient ＋ sum_range）、ABC044 D（⌊n/b⌋ が同じ区間で b を解く）、ACL Practice C（linear_floor_sum）、ABC372 G
+	C:\atcoder_template\典型90\ソース\math_v2\06_quotient.cpp
+06_series（べき乗和・ラグランジュ補間・次数の小さい多項式）
+	説明
+		sum_powers<mint>(n, k)（Σ_{i<n} i^k。O(k)）／ sum_powers<mint>(l, r, k) ／ sum_powers_closed<mint>(L, R, k)
+		arith_geom_sum(r, n)（Σ i·r^i。mod は何でもよい）
+		lagrange_interpolate(ys, x)（f(0)〜f(d) から f(x)。x は 10^18 でも。O(d)）／ lagrange_interpolate_at(xs, ys, x) ／ poly_from_points(xs, ys)（係数）
+		poly_eval(c, x) ／ poly_mul_naive(a, b) ／ poly_divmod(a, b)（PolyDivMod{q, r}。整数の係数でも）
+	メモ
+		00_modint を同梱している。補間は mod が点の数より大きい素数のとき
+		類題：ABC208 F（DP で f(0)〜f(K+M) を作って補間）、ARC033 D（lagrange_interpolate）、ABC245 D（poly_divmod(C, A).q）
+	C:\atcoder_template\典型90\ソース\math_v2\06_series.cpp
+08_fraction（分数：いつも既約・分母 > 0。誤差なしの四則演算・比較・切り捨て・小数表示・近い分数・あいだの最も簡単な分数・連分数）
+	説明
+		Fraction x(n, d) ／ Fraction x = n ／ x.num ／ x.den（long long。分子・分母が 10^18 を超えるなら Fraction128）
+		+ − × ÷ ／ == < など（誤差なし）／ compare(x, y) ／ sort で比率の順に並べる
+		x.floor() ／ x.ceil() ／ x.round() ／ x.sign() ／ x.abs() ／ x.reciprocal() ／ x.is_integer() ／ x.to_real() ／ x.to_decimal(k)（小数第 k 位まで切り捨て）
+		cout << x（"p/q"）／ cin >> x ／ Fraction::parse("−1.25") ／ unordered_map<Fraction, V>（std::hash あり）
+		best_rational_approx(p, q, max_den)（分母が max_den 以下でいちばん近い分数）／ rational_floor(p, q, max_den) ／ rational_ceil（以下で最大・以上で最小）
+		simplest_between(x, y)（x < r < y で分母が最小の r）／ continued_fraction(p, q) ／ from_continued_fraction(cf)（連分数）
+	メモ
+		途中は 128 ビットで計算し、結果が型に収まらなければメッセージを出して止まる
+		1 回だけ比べるなら 00_math_base の frac_compare でもよい
+		類題：ABC308 C（成功率 A/(A+B) で stable_sort）
+	C:\atcoder_template\典型90\ソース\math_v2\08_fraction.cpp
+09_bit（ビット：1 の数・位置、部分集合の列挙、グレイコード、0〜n の XOR・ビットの数、XOR の和）
+	説明
+		bit_count(x) ／ top_bit(x) ／ low_bit(x)（位置。0 なら −1）／ bit_length(x) ／ has_bit(x, i) ／ bit_indices(x) ／ for_each_bit(x, f) ／ bit_reverse(x, n) ／ mask_to_string(mask, n)
+		for_each_submask(mask, f, include_zero, include_self)（小さい順）／ for_each_supermask(mask, n, f)
+		for_each_mask_between(must, allowed, f)（必ず 1 と使ってよいビット）／ for_each_mask_between(must, allowed, k, f)（1 の数が k）／ for_each_subset_k(n, k, f)
+		gray_code(i) ／ gray_inverse(g)
+		xor_up_to(n) ／ xor_range(l, r) ／ xor_range_closed(L, R) ／ count_bit_up_to(n, k) ／ popcount_sum_up_to(n)
+		xor_pair_sum(a)（Σ_{i<j} a_i ⊕ a_j）／ subarray_xor_sum(a)（全部の区間の XOR の和）（Int128。a は vector<long long> でも vector<int> でも）
+	メモ
+		bit 全探索は使い方デモ（ABC197 C）の形で
+		類題：ABC269 C（for_each_submask）、ABC197 C、ABC121 D（xor_range_closed）、ABC147 D（xor_pair_sum）、ABC356 D（count_bit_up_to）、ABC365 E（subarray_xor_sum − Σa）、ABC238 D
+	C:\atcoder_template\典型90\ソース\math_v2\09_bit.cpp

@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+vector<int> h2,w2;
+//元の配列は残したままソート、重複を除いた配列を用意
+void start(vector<int> h,vector<int> w){
+    h2=h;w2=w;
+    sort(nall(h2));sort(nall(w2));
+    h2.erase(unique(nall(h2)),h2.end());
+    w2.erase(unique(nall(w2)),w2.end());
+}
+//二分探索で圧縮後の座標を取得
+int getx(int num){
+    if(h2[0]==num)return 1;
+    int left=0,right=(int)h2.size()-1;
+    while(right-left>1){
+        int mid=(right+left)/2;
+        if(num<=h2[mid])right=mid;
+        else left=mid;
+    }
+    return right+1;
+}
+int gety(int num){
+    if(w2[0]==num)return 1;
+    int left=0,right=(int)w2.size()-1;
+    while(right-left>1){
+        int mid=(right+left)/2;
+        if(num<=w2[mid])right=mid;
+        else left=mid;
+    }
+    return right+1;
+}
+
+int main()
+{
+    //座標圧縮
+    //行と列の操作は互いに独立している
+    int H,W,N;
+    cin>>H>>W>>N;
+    vector<int> h(N),w(N);
+    rep(i,0,N){
+        int a,b;
+        cin>>a>>b;
+        h[i]=a;w[i]=b;
+    }
+    start(h,w);
+    rep(i,0,N)cout<<getx(h[i])<<" "<<gety(w[i])<<"\n";
+    return 0;
+}

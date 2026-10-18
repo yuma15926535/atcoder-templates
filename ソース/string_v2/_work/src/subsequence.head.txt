@@ -1,0 +1,54 @@
+// =============================================================================
+//  部分列（次の出現の表・部分列の判定・何文字まで入るか・辞書順最小の部分列・部分列でない最短・部分列の数）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 06 部分列
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  「部分列」は飛び飛びに選んだもの（順番はそのまま）。連続する「部分文字列」は 02_pattern_match・03_suffix_array
+//  LCS・編集距離は 06_lcs_edit、LIS は 06_lis
+//  数える関数は型 T を受け取る（math_v2 の using mint = ModInt998; で count_xxx<mint>(…)。long long なら溢れたら止める）
+//
+//  機能一覧                                                                       計算量
+//    NextTable nx(s, A)                    次 / 前の出現の表（中は CharPrefix。メモリ (N+1)σ 個の int）   O(Nσ)
+//      nx.next(i, c) / prev(i, c)          i 以上で最初の c / i より前で最後の c（なければ -1）           O(1)
+//      nx.is_subsequence(t, from)          t が s[from..) の部分列か                                     O(|t|)
+//      nx.match_length(t, from)            t の先頭が何文字まで入るか（貪欲）                             O(|t|)
+//      nx.match_end(t, from)               t を貪欲に当てはめた最後の文字の次の位置（入らなければ -1）     O(|t|)
+//    prefix_match_lengths(s, t)            r[i] = t の先頭何文字までが s[0, i) の部分列か（長さ |s|+1）    O(|s|)
+//    suffix_match_lengths(s, t)            r[i] = t の末尾何文字までが s[i, N) の部分列か（長さ |s|+1）    O(|s|)
+//    lex_smallest_subsequence(s, k) / lex_largest_subsequence(s, k)   長さ k の辞書順最小 / 最大の部分列   O(N)
+//    shortest_non_subsequence(s, A)        部分列にならない最短の文字列（その中で辞書順最小）             O(Nσ)
+//    shortest_non_subsequence_ids(s, A)    同じものを番号の列で（数の列のとき）
+//    count_subsequence_occurrences<T>(s, t)   t が部分列として現れる数（位置の選び方）                    O(|s||t|)
+//    count_distinct_subsequences<T>(s, include_empty, min_step)   異なる部分列の数（位置の間を min_step 以上）  O(N log N)
+//    distinct_subsequences_by_length<T>(s)    長さごとの異なる部分列の数                                  O(N^2)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    subq_test::random_test()  … 全部の部分列を作る愚直解と全機能を突き合わせるランダムテスト
+//    subq_test::benchmark()    … 速度計測
+//    subq_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

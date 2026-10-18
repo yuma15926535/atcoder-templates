@@ -1,0 +1,40 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template <typename T> constexpr auto ssize(const T& container) -> std::ptrdiff_t {return static_cast<std::ptrdiff_t>(container.size());}
+
+int main(){
+    int N,K;
+    cin>>N>>K;
+    vector<int>A(K);
+    rep(i,0,K)cin>>A[i];
+    vector<int>dp(N+1,-1e9);
+    //DPを再帰関数で
+    //再帰関数でDPを
+    //メモ化再帰をDPで行うイメージ
+    //先手で石n個残っている場合の得点を返却
+    auto dfs=[&](int n,auto dfs)->ll{
+        if(dp[n]!=-1e9)return dp[n];
+        if(n==0)return 0;
+        ll ret=0;
+        for(int a:A){
+            if(n-a<0)break;
+            //A[0]=1より必ず石0個までゲームが続く
+            //後手でdfs(n-a,dfs)取るのでn-dfsで更新
+            ret=max(ret,n-dfs(n-a,dfs));
+        }
+        return dp[n]=ret;
+    };
+    cout<<dfs(N,dfs)<<"\n";
+    return 0;
+}

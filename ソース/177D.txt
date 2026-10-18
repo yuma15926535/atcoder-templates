@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct UnionFind {
+    //自身が親であれば、その集合に属する頂点数に-1を掛けたもの(連結成分の大きさを取得できる)
+    //そうでなければ親のid
+    vector<int> r;
+
+    UnionFind(int N) {
+        r = vector<int>(N, -1);
+    }
+
+    int root(int x) {
+        if (r[x] < 0) return x;
+        return r[x] = root(r[x]);
+    }
+
+    bool unite(int x, int y) {
+        x = root(x);
+        y = root(y);
+        if (x == y) return false;
+        if (r[x] > r[y]) swap(x, y);
+        r[x] += r[y];
+        r[y] = x;
+        return true;
+    }
+
+    int size(int x) {
+        return -r[root(x)];
+    }
+};
+
+
+int main() {
+    int N, M;
+    cin >> N >> M;
+
+    //友達集合を作る
+    UnionFind UF(N);
+    rep(i,0,M)
+    {
+        int A, B;
+        cin >> A >> B;
+        A -= 1; B -= 1;
+        UF.unite(A, B);
+    }
+
+    //最大の友達集合を求める
+    int ans = 0;
+    rep(i,0,N)
+    {
+        ans = max(ans, UF.size(i));
+    }
+
+    cout << ans << endl;
+}

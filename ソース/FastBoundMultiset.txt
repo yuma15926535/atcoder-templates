@@ -1,0 +1,323 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+===========================================================
+  FastBoundMultiset（イテレータを隠蔽した二分探索主軸のmultiset）
+  iterator を隠蔽した高速 multiset ラッパー
+
+  --- 境界検索 ---
+  ge(x) : x以上の最小値
+  gt(x) : xより大きい最小値
+  le(x) : x以下の最大値
+  lt(x) : xより小さい最大値
+
+  --- 高速取得 ---
+  get_min() : 最小値
+  get_max() : 最大値
+
+  --- カウント ---
+  count_fast(x) : x の個数 (O(log N))
+
+  戻り値:
+    成功 → true + out
+    失敗 → false
+
+  計算量:
+    insert / erase / 検索 全て O(log N)
+    min/max O(1)
+
+  iterator は外に出ない
+===========================================================
+*/
+template<class T>
+struct FastBoundMultiset {
+private:
+    multiset<T> ms;
+
+public:
+
+    // =========================
+    // 基本操作
+    // =========================
+
+    void insert(const T& x) {
+        ms.insert(x);
+    }
+
+    void erase_one(const T& x) {
+        auto it = ms.find(x);
+        if (it != ms.end()) ms.erase(it);
+    }
+
+    int size() const { return ms.size(); }
+    bool empty() const { return ms.empty(); }
+
+    // =========================
+    // x以上 (>=)
+    // =========================
+    bool ge(const T& x, T& out) const {
+        auto it = ms.lower_bound(x);
+        if (it == ms.end()) return false;
+        out = *it;
+        return true;
+    }
+
+    // =========================
+    // xより大きい (>)
+    // =========================
+    bool gt(const T& x, T& out) const {
+        auto it = ms.upper_bound(x);
+        if (it == ms.end()) return false;
+        out = *it;
+        return true;
+    }
+
+    // =========================
+    // x以下 (<=)
+    // =========================
+    bool le(const T& x, T& out) const {
+        auto it = ms.upper_bound(x);
+        if (it == ms.begin()) return false;
+        --it;
+        out = *it;
+        return true;
+    }
+
+    // =========================
+    // xより小さい (<)
+    // =========================
+    bool lt(const T& x, T& out) const {
+        auto it = ms.lower_bound(x);
+        if (it == ms.begin()) return false;
+        --it;
+        out = *it;
+        return true;
+    }
+
+    // =========================
+    // 最小値 O(1)
+    // =========================
+    bool get_min(T& out) const {
+        if (ms.empty()) return false;
+        out = *ms.begin();
+        return true;
+    }
+
+    // =========================
+    // 最大値 O(1)
+    // =========================
+    bool get_max(T& out) const {
+        if (ms.empty()) return false;
+        out = *ms.rbegin();
+        return true;
+    }
+
+    // =========================
+    // 高速 count
+    // O(log N)
+    // =========================
+    int count_fast(const T& x) const {
+        auto l = ms.lower_bound(x);
+        if (l == ms.end() || *l != x) return 0;
+        auto r = ms.upper_bound(x);
+        return distance(l, r);
+    }
+
+    // =========================
+    // 高速 存在判定
+    // O(log N)
+    // =========================
+    bool contains(const T& x) const {
+        return ms.find(x) != ms.end();
+    }
+
+    // =========================
+    // 高速 範囲要素存在判定
+    // 判定範囲:[l,r]
+    // O(log N)
+    // =========================
+    bool exists_range(const T& l, const T& r) const {
+        auto it = ms.lower_bound(l);
+        return it != ms.end() && *it <= r;
+    }
+};
+
+void solv(){
+    cout << "=============================\n";
+    cout << " FastBoundMultiset 動作確認\n";
+    cout << "=============================\n\n";
+
+    FastBoundMultiset<int> s;
+
+    cout << "▼ 要素を追加\n";
+    vector<int> init = {5, 10, 10, 3, 8};
+    for(int x : init) {
+        s.insert(x);
+        cout << "  挿入: " << x << "\n";
+    }
+    cout << "\n";
+
+    int v;
+
+    cout << "▼ 最小値 / 最大値\n";
+    if(s.get_min(v)) cout << "  最小値: " << v << "\n";
+    else cout << "  最小値: なし\n";
+
+    if(s.get_max(v)) cout << "  最大値: " << v << "\n";
+    else cout << "  最大値: なし\n";
+
+    cout << "\n";
+
+    int q = 9;
+    cout << "▼ 境界検索 (基準値 = " << q << ")\n";
+
+    if(s.ge(q,v)) cout << "  " << q << "以上: " << v << "\n";
+    else cout << "  " << q << "以上: なし\n";
+
+    if(s.gt(q,v)) cout << "  " << q << "より大きい: " << v << "\n";
+    else cout << "  " << q << "より大きい: なし\n";
+
+    if(s.le(q,v)) cout << "  " << q << "以下: " << v << "\n";
+    else cout << "  " << q << "以下: なし\n";
+
+    if(s.lt(q,v)) cout << "  " << q << "より小さい: " << v << "\n";
+    else cout << "  " << q << "より小さい: なし\n";
+
+    cout << "\n";
+
+    cout << "▼ 個数カウント\n";
+    cout << "  値10の個数: " << s.count_fast(10) << "\n";
+    cout << "  値7の個数: " << s.count_fast(7) << "\n";
+
+    cout << "\n";
+
+    cout << "▼ 要素削除\n";
+    s.erase_one(10);
+    cout << "  10を1個削除\n";
+    cout << "  値10の個数: " << s.count_fast(10) << "\n";
+
+    cout << "\n";
+
+    cout << "▼ 存在確認\n";
+    cout << "  10の存在確認: " << (s.contains(10)?"存在します":"存在しません") << "\n";
+    cout << "  7の存在確認: " << (s.contains(7)?"存在します":"存在しません") << "\n";
+
+    cout << "\n";
+
+    cout << "▼ 範囲要素存在判定確認\n";
+    cout << "  [9,10]の要素存在確認: " << (s.exists_range(9,10)?"存在します":"存在しません") << "\n";
+    cout << "  [11,100]の要素存在確認: " << (s.exists_range(11,100)?"存在します":"存在しません") << "\n";
+
+    cout << "\n";
+
+    cout << "=============================\n";
+    cout << " 動作確認終了\n";
+    cout << "=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo
+
+struct UnionFind
+{
+    //各頂点の親を表す配列
+    //-1の場合は自身が親
+    vector<int> P;
+    UnionFind() {}
+    UnionFind(int n){
+        P.resize(n,-1);
+    }
+
+    int find(int x){
+        if(P[x]==-1)return x;
+        else return P[x]=find(P[x]);
+    }
+
+    void unite(int x,int y){
+        x=find(x);
+        y=find(y);
+        if(x!=y)P[x]=y;
+    }
+};
+struct Edge {
+    long long u;
+    long long v;
+    long long cost;
+};
+bool comp_e(const Edge &e1, const Edge &e2) { return e1.cost < e2.cost; } // 辺を直接比較するための関数
+
+/* Kruskal :クラスカル法で minimum spanning tree (最小全域木)を求める構造体
+    入力: 辺のvector, 頂点数V
+    最小全域木の重みの総和: sum
+    計算量: O(|E|log|V|)
+*/
+struct Kruskal {
+    UnionFind uft;
+    long long sum;  // 最小全域木の重みの総和
+    vector<Edge> edges;
+    int V;
+    Kruskal(const vector<Edge> &edges_, int V_) : edges(edges_), V(V_) { init(); }
+    void init() {
+        sort(edges.begin(), edges.end(), comp_e); // 辺の重みでソート
+        uft = UnionFind(V);
+        sum = 0;
+        for (auto e : edges) {
+            if (uft.find(e.u)!=uft.find(e.v)) { // 閉路にならなければ加える
+                uft.unite(e.u, e.v);
+                sum += e.cost;
+            }
+        }
+    }
+};
+
+int main(){
+    int N,M;
+    cin>>N>>M;
+    vector<Edge> edges(M);
+    rep(i,0,M){
+        ll a,b,c;
+        cin>>a>>b>>c;
+        a--;b--;
+        Edge e = {a, b, c};
+        edges[i] = e;
+    }
+    Kruskal krs(edges, N);
+    cout << krs.sum << endl;
+    return 0;
+}

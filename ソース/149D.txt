@@ -1,0 +1,44 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main(){
+    int N,K;
+    cin>>N>>K;
+    vector<int>score(3);
+    rep(i,0,3)cin>>score[i];
+    string T;
+    cin>>T;
+    vector<string>subT(K,"");
+    //modDP
+    rep(i,0,N)subT[i%K]+=T[i];
+    ll ans=0;
+    map<char,int>m;
+    m['r']=2;
+    m['s']=0;
+    m['p']=1;
+    //K個前に出した手のみが影響する
+    rep(i,0,K){
+        int sz=subT[i].size();
+        vector<vector<ll>>dp(sz+1,vector<ll>(3,0));
+        rep(j,0,sz)rep(k,0,3)rep(l,0,3){
+            if(k==l)continue;
+            int s=0;
+            if(m[subT[i][j]]==k)s=score[k];
+            dp[j+1][k]=max(dp[j+1][k],dp[j][l]+s);
+        }
+        ans+=max({dp[sz][0],dp[sz][1],dp[sz][2]});
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

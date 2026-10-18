@@ -1,0 +1,378 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+    Range Assign Point Get
+
+    1次元配列に対する
+        ・区間代入
+        ・1点取得
+    を行う Segment Tree。
+
+    ・0-indexed
+    ・区間は半開区間 [l, r)
+    ・set(l, r, x) : 区間 [l, r) を x に代入
+    ・get(p)       : A[p] を取得
+
+    計算量
+        set : O(log N)
+        get : O(log N)
+
+    push を行わず、更新時刻を保持することで
+    根から葉まで最新の更新を取得する。
+*/
+struct RangeAssignPointGet {
+    using ll = long long;
+
+    int n;
+    int now = 0;
+    vector<ll> val;
+    vector<int> tim;
+
+    //要素数N、値xで初期化
+    RangeAssignPointGet(int N, ll x) {
+        n = 1;
+        while (n < N) n <<= 1;
+        val.assign(n << 1, 0);
+        tim.assign(n << 1, -1);
+        val[1] = x;
+        tim[1] = 0;
+    }
+
+    //数列aで初期化
+    RangeAssignPointGet(const vector<ll>& a) {
+        int N = a.size();
+        n = 1;
+        while (n < N) n <<= 1;
+        val.assign(n << 1, 0);
+        tim.assign(n << 1, -1);
+        for (int i = 0; i < N; i++) {
+            val[n + i] = a[i];
+            tim[n + i] = 0;
+        }
+    }
+
+    void set(int l, int r, ll x) {
+        ++now;
+        set(l, r, x, 1, 0, n);
+    }
+
+    ll get(int p) const {
+        int best = -1;
+        ll res = 0;
+
+        int k = 1;
+        int L = 0, R = n;
+
+        while (true) {
+            if (tim[k] > best) {
+                best = tim[k];
+                res = val[k];
+            }
+            if (k >= n) break;
+
+            int M = (L + R) >> 1;
+            if (p < M) {
+                k <<= 1;
+                R = M;
+            } else {
+                k = k << 1 | 1;
+                L = M;
+            }
+        }
+
+        return res;
+    }
+
+private:
+    void set(int a, int b, ll x, int k, int l, int r) {
+        if (r <= a || b <= l) return;
+        if (a <= l && r <= b) {
+            val[k] = x;
+            tim[k] = now;
+            return;
+        }
+        int m = (l + r) >> 1;
+        set(a, b, x, k << 1, l, m);
+        set(a, b, x, k << 1 | 1, m, r);
+    }
+};
+
+void random_test() {
+    mt19937 rng(0x31415926);
+
+    auto test = [&](int N, bool use_vector) {
+        vector<ll> a(N);
+
+        if (use_vector) {
+            for (int i = 0; i < N; i++) {
+                a[i] = uniform_int_distribution<ll>(-100, 100)(rng);
+            }
+        }
+
+        RangeAssignPointGet seg =
+            use_vector ? RangeAssignPointGet(a)
+                       : RangeAssignPointGet(N, 0);
+
+        if (!use_vector) {
+            fill(a.begin(), a.end(), 0);
+        }
+
+        for (int t = 0; t < 5000; t++) {
+
+            if (uniform_int_distribution<int>(0, 1)(rng)) {
+                int l = uniform_int_distribution<int>(0, N - 1)(rng);
+                int r = uniform_int_distribution<int>(l, N)(rng);
+                ll x = uniform_int_distribution<ll>(-100, 100)(rng);
+
+                seg.set(l, r, x);
+
+                for (int i = l; i < r; i++) a[i] = x;
+            } else {
+                int p = uniform_int_distribution<int>(0, N - 1)(rng);
+
+                ll ans1 = seg.get(p);
+                ll ans2 = a[p];
+
+                if (ans1 != ans2) {
+                    cerr << "WA\n";
+                    cerr << "N = " << N << '\n';
+                    cerr << "vector_init = " << use_vector << '\n';
+                    cerr << "p = " << p << '\n';
+                    cerr << "seg = " << ans1 << '\n';
+                    cerr << "naive = " << ans2 << '\n';
+                    exit(0);
+                }
+            }
+        }
+    };
+
+    for (int N = 1; N <= 100; N++) {
+        for (int rep = 0; rep < 200; rep++) {
+            test(N, false);
+            test(N, true);
+        }
+    }
+
+    cerr << "OK\n";
+}
+
+void test() {
+    cout << "----- Constructor(N, x) -----\n";
+    RangeAssignPointGet seg1(8, 0);
+
+    seg1.set(2, 6, 5);
+    cout << seg1.get(1) << ' '; // 0
+    cout << seg1.get(2) << ' '; // 5
+    cout << seg1.get(5) << ' '; // 5
+    cout << seg1.get(6) << '\n';// 0
+
+    seg1.set(4, 8, 9);
+    cout << seg1.get(3) << ' '; // 5
+    cout << seg1.get(4) << ' '; // 9
+    cout << seg1.get(7) << '\n';// 9
+
+    cout << "----- Constructor(vector) -----\n";
+    vector<ll> a = {1, 2, 3, 4, 5};
+    RangeAssignPointGet seg2(a);
+
+    cout << seg2.get(0) << ' '; // 1
+    cout << seg2.get(4) << '\n';// 5
+
+    seg2.set(1, 4, 7);
+    cout << seg2.get(0) << ' '; // 1
+    cout << seg2.get(1) << ' '; // 7
+    cout << seg2.get(2) << ' '; // 7
+    cout << seg2.get(3) << ' '; // 7
+    cout << seg2.get(4) << '\n';// 5
+}
+
+void solv(){
+    random_test();
+    test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

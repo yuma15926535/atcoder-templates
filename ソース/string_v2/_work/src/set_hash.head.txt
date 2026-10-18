@@ -1,0 +1,46 @@
+// =============================================================================
+//  集合・多重集合のハッシュ（値ごとの乱数の和。先頭からの集合・区間の多重集合・足し引きできる集合 / 多重集合）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 01 ハッシュ
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  値ごとに乱数（実行ごとに変わる）を割り当て、集合は「異なる値の乱数の和」、多重集合は「個数 × 乱数の和」を mod 2^61 - 1 で持つ
+//  「並べ替えて同じか」「集合として同じか」を O(1) で比べる。違うのに等しくなる確率は 1 回あたり約 2^-61
+//  列は vector<int>・vector<long long>（負・10^18 級も）でも string でもよい。文字列の集合は hash_of(s).value（01_rolling_hash）を値にする
+//
+//  機能一覧                                                                       計算量
+//    value_hash(x)                         値 x の乱数（[1, 2^61 - 1)）                                     O(1)
+//    prefix_set_hashes(a)                  r[i] = a[0, i) に現れる値の集合のハッシュ（長さ N + 1）            O(N)（平均）
+//    prefix_multiset_hashes(a)             r[i] = a[0, i) の多重集合のハッシュ（長さ N + 1）                  O(N)
+//    MultisetPrefix mp(a)                  mp.get(l, r)（a[l, r) の多重集合のハッシュ）/ mp.same(l1, r1, l2, r2)   O(1)
+//    MultisetHash h                        h.add(x, k) / remove(x, k) / merge(o) / ==（value, count を持つ）     O(1)
+//    SetHash h                             h.add(x) / remove(x) / count(x) / distinct() / ==（個数を持つ）       O(1)（平均）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    shash_test::random_test()  … std::set・並べ替えた列と全機能を突き合わせるランダムテスト
+//    shash_test::benchmark()    … 速度計測
+//    shash_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <utility>
+#include <vector>

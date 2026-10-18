@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N,M,H,K;
+string S;
+struct xy{
+    int x;
+    int y;
+    xy operator+=(const xy &right){
+        x+=right.x;
+        y+=right.y;
+        return *this;
+    }
+    //setの要素に構造体を用いる場合は比較演算子を定義
+    bool operator<( const xy& right ) const {
+        if(x==right.x)return y<right.y;
+        return x<right.x;
+    }
+};
+set<xy> s;
+bool solv(){
+    int index=0;
+    map<char,xy> m;
+    m['R']={1,0};
+    m['L']={-1,0};
+    m['U']={0,1};
+    m['D']={0,-1};
+    xy now={0,0};
+    while(index<N){
+        H--;
+        now+=m[S[index]];
+        if(H<0)return false;
+        if(s.count(now)&&H<K){
+            H=K;
+            s.erase(now);
+        }
+        index++;
+    }
+    return true;
+}
+
+int main()
+{
+    cin>>N>>M>>H>>K>>S;
+    rep(i,0,M){
+        int x,y;
+        cin>>x>>y;
+        s.insert({x,y});
+    }
+    if(solv())YN;
+    return 0;
+}

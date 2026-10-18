@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct xyr{
+    ll x;
+    ll y;
+    ll r;
+};
+//2円が交わるかを判定
+bool link(xyr a,xyr b){
+    //内部にある場合
+    if((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)<(a.r-b.r)*(a.r-b.r))return false;
+    //外部にある場合
+    if((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)>(a.r+b.r)*(a.r+b.r))return false;
+    return true;
+}
+
+int main(){
+    int N,sx,sy,tx,ty;
+    cin>>N>>sx>>sy>>tx>>ty;
+    vector<xyr>v(N);
+    rep(i,0,N){
+        ll x,y,r;
+        cin>>x>>y>>r;
+        v[i]={x,y,r};
+    }
+    int si,ti;
+    for(si=0;si<N;si++){
+        if((v[si].x-sx)*(v[si].x-sx)+(v[si].y-sy)*(v[si].y-sy)==v[si].r*v[si].r)break;
+    }
+    for(ti=0;ti<N;ti++){
+        if((v[ti].x-tx)*(v[ti].x-tx)+(v[ti].y-ty)*(v[ti].y-ty)==v[ti].r*v[ti].r)break;
+    }
+    vector<vector<int>>G(N);
+    rep(i,0,N)rep(j,i+1,N)if(link(v[i],v[j])){
+        G[i].push_back(j);
+        G[j].push_back(i);
+    }
+    queue<int>q;
+    q.push(si);
+    vector<int>visited(N,true);
+    visited[si]=false;
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        for(int nxt:G[pos])if(visited[nxt]){
+            q.push(nxt);
+            visited[nxt]=false;
+        }
+    }
+    if(!visited[ti])YN;
+    return 0;
+}

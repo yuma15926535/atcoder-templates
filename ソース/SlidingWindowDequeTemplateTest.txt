@@ -1,0 +1,521 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================
+// 尺取り + monotonic queue（min / max 両方管理 + 予測付き）
+//
+// ・区間 [l, r] を内部で管理
+// ・min / max / 左端 / 右端 を O(1) 取得
+// ・if_push_right で「追加した場合の極値」を O(1) で予測
+// ・全体計算量 O(N)
+//
+// 【想定用途】
+// ・max - min ≤ K 系
+// ・区間条件判定を壊さずに先読みしたいとき
+//
+// ============================================================
+struct SlidingWindow {
+    deque<int> dq_min, dq_max; // index管理（値じゃない）
+    vector<long long> &A;
+
+    int l = 0, r = -1; // 現在の区間 [l, r]
+
+    SlidingWindow(vector<long long> &A) : A(A) {}
+
+    // --------------------------------------------------------
+    // 右に1つ追加（実際に構造を更新）
+    // --------------------------------------------------------
+    void push_right() {
+        r++;
+
+        // --- 最小値管理（単調増加）---
+        while (!dq_min.empty() && A[dq_min.back()] >= A[r]) {
+            dq_min.pop_back();
+        }
+        dq_min.push_back(r);
+
+        // --- 最大値管理（単調減少）---
+        while (!dq_max.empty() && A[dq_max.back()] <= A[r]) {
+            dq_max.pop_back();
+        }
+        dq_max.push_back(r);
+    }
+
+    // --------------------------------------------------------
+    // 左を1つ削除（尺取りで l を進めるとき）
+    // --------------------------------------------------------
+    void pop_left() {
+        if (l > r) return;
+
+        // 範囲外になる index を削除
+        if (!dq_min.empty() && dq_min.front() == l) dq_min.pop_front();
+        if (!dq_max.empty() && dq_max.front() == l) dq_max.pop_front();
+
+        l++;
+    }
+
+    // --------------------------------------------------------
+    // 【重要】もし次を追加したらどうなるか（構造は触らない）
+    // 戻り値：{新しいmin, 新しいmax}
+    // --------------------------------------------------------
+    pair<long long,long long> if_push_right(int next_r) {
+        // 空ならその値がそのまま
+        if (empty()) {
+            return {A[next_r], A[next_r]};
+        }
+
+        long long mn = min(get_min(), A[next_r]);
+        long long mx = max(get_max(), A[next_r]);
+
+        return {mn, mx};
+    }
+
+    // --------------------------------------------------------
+    // O(1)取得系
+    // --------------------------------------------------------
+
+    // 現在の最小値
+    long long get_min() {
+        return A[dq_min.front()];
+    }
+
+    // 現在の最大値
+    long long get_max() {
+        return A[dq_max.front()];
+    }
+
+    // 左端の値
+    long long get_left() {
+        return A[l];
+    }
+
+    // 右端の値
+    long long get_right() {
+        return A[r];
+    }
+
+    // index取得
+    int left_index() { return l; }
+    int right_index() { return r; }
+
+    // 区間サイズ
+    int size() { return r - l + 1; }
+
+    // 空判定
+    bool empty() { return l > r; }
+};
+
+// ============================================================
+// 正解側（multiset + deque）
+// ============================================================
+
+struct Naive {
+    deque<ll> dq;
+    multiset<ll> st;
+
+    void push_right(ll x) {
+        dq.push_back(x);
+        st.insert(x);
+    }
+
+    void pop_left() {
+        if (dq.empty()) return;
+        ll x = dq.front();
+        dq.pop_front();
+        st.erase(st.find(x));
+    }
+
+    ll get_min() { return *st.begin(); }
+    ll get_max() { return *st.rbegin(); }
+    ll get_left() { return dq.front(); }
+    ll get_right() { return dq.back(); }
+
+    bool empty() { return dq.empty(); }
+};
+
+// ============================================================
+// ランダムテスト
+// ============================================================
+
+void random_test() {
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+    for (int t = 0; t < 100000; t++) {
+        int N = rng() % 20 + 1;
+
+        vector<ll> A(N);
+        for (int i = 0; i < N; i++) {
+            A[i] = (rng() % 21) - 10;
+        }
+
+        SlidingWindow sw(A);
+        Naive nv;
+
+        int r = -1;
+
+        for (int step = 0; step < 100; step++) {
+            int op = rng() % 2;
+
+            // push
+            if (op == 0 && r + 1 < N) {
+                r++;
+                sw.push_right();
+                nv.push_right(A[r]);
+            }
+            // pop
+            else {
+                sw.pop_left();
+                nv.pop_left();
+            }
+
+            // 状態比較
+            if (sw.empty() != nv.empty()) {
+                cout << "empty 不一致\n";
+                return;
+            }
+
+            if (sw.empty()) continue;
+
+            if (sw.get_min() != nv.get_min()) {
+                cout << "min 不一致\n";
+                return;
+            }
+
+            if (sw.get_max() != nv.get_max()) {
+                cout << "max 不一致\n";
+                return;
+            }
+
+            if (sw.get_left() != nv.get_left()) {
+                cout << "left 不一致\n";
+                return;
+            }
+
+            if (sw.get_right() != nv.get_right()) {
+                cout << "right 不一致\n";
+                return;
+            }
+        }
+    }
+
+    cout << "全テストOK\n";
+}
+
+void random_test2() {
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+    for (int t = 0; t < 100000; t++) {
+        int N = rng() % 20 + 1;
+
+        vector<ll> A(N);
+        for (int i = 0; i < N; i++) {
+            A[i] = (rng() % 21) - 10;
+        }
+
+        SlidingWindow sw(A);
+        Naive nv;
+
+        int r = -1;
+
+        for (int step = 0; step < 100; step++) {
+            int op = rng() % 2;
+
+            // ============================
+            // push（if_push検証込み）
+            // ============================
+            if (op == 0 && r + 1 < N) {
+
+                // --- 事前に予測 ---
+                auto pred = sw.if_push_right(r + 1);
+
+                // --- 実際にpush ---
+                r++;
+                sw.push_right();
+                nv.push_right(A[r]);
+
+                // --- 予測 vs 実際 ---
+                if (pred.first != nv.get_min()) {
+                    cout << "if_push min 不一致\n";
+                    return;
+                }
+                if (pred.second != nv.get_max()) {
+                    cout << "if_push max 不一致\n";
+                    return;
+                }
+            }
+            // ============================
+            // pop
+            // ============================
+            else {
+                sw.pop_left();
+                nv.pop_left();
+            }
+
+            // ============================
+            // 状態比較
+            // ============================
+
+            if (sw.empty() != nv.empty()) {
+                cout << "empty 不一致\n";
+                return;
+            }
+
+            if (sw.empty()) continue;
+
+            if (sw.get_min() != nv.get_min()) {
+                cout << "min 不一致\n";
+                return;
+            }
+
+            if (sw.get_max() != nv.get_max()) {
+                cout << "max 不一致\n";
+                return;
+            }
+
+            if (sw.get_left() != nv.get_left()) {
+                cout << "left 不一致\n";
+                return;
+            }
+
+            if (sw.get_right() != nv.get_right()) {
+                cout << "right 不一致\n";
+                return;
+            }
+        }
+    }
+
+    cout << "全テストOK\n";
+}
+
+void print_state(SlidingWindow &sw) {
+    if (sw.empty()) {
+        cout << "現在の区間：空\n";
+        return;
+    }
+
+    cout << "現在の区間 [" << sw.l << ", " << sw.r << "]\n";
+    cout << "左端値 = " << sw.get_left() << "\n";
+    cout << "右端値 = " << sw.get_right() << "\n";
+    cout << "最小値 = " << sw.get_min() << "\n";
+    cout << "最大値 = " << sw.get_max() << "\n";
+}
+
+void solv(){
+    random_test();
+    random_test2();
+    vector<ll> A = {5, 2, 4, 1, 3};
+    int N = A.size();
+
+    cout << "配列：";
+    for (auto x : A) cout << x << " ";
+    cout << "\n\n";
+
+    SlidingWindow sw(A);
+
+    // 右に伸ばすデモ
+    for (int i = 0; i < N; i++) {
+        cout << "-----------------------------\n";
+        cout << "次に " << A[i] << " を追加する\n";
+
+        // 予測
+        auto [mn, mx] = sw.if_push_right(i);
+        cout << "追加した場合の予測：\n";
+        cout << "最小値 = " << mn << ", 最大値 = " << mx << "\n";
+
+        // 実際に追加
+        sw.push_right();
+
+        cout << "実際に追加後：\n";
+        print_state(sw);
+    }
+
+    cout << "\n=============================\n";
+    cout << "左を削りながら確認\n";
+    cout << "=============================\n";
+
+    while (!sw.empty()) {
+        cout << "-----------------------------\n";
+        cout << "左端 " << sw.get_left() << " を削除\n";
+
+        sw.pop_left();
+
+        print_state(sw);
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

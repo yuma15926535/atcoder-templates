@@ -1,0 +1,56 @@
+// =============================================================================
+//  篩（Sieve：N 以下の数の素因数分解・素数判定を何度も、φ・μ・約数の個数などの表、素数の一覧、区間篩）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 素数・約数
+//  依存       : 00_int_common, 00_math_base, 02_factorize（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  Sieve S(N) は N を超える数も受け付ける（02_factorize の is_prime / factorize に任せる。このファイルに入っている）
+//
+//  機能一覧                                                                    計算量
+//    Sieve S(N)                       線形篩（最小の素因数の表）。N ≤ 5×10^7 程度（メモリ 4N バイト。上限 10^8）   O(N)
+//      S.is_prime(x) / S.spf(x)       素数か / 最小の素因数（x ≤ N なら O(1)）
+//      S.primes()                     N 以下の素数（昇順の vector<long long>。p * p も溢れない）
+//      S.factorize(x)                 素因数分解 vector<PrimePower>（x ≤ N なら O(log x)）
+//      S.prime_factors(x) / S.divisors(x)          異なる素因数 / 約数（昇順）
+//      S.count_divisors(x) / S.sum_divisors(x)     約数の個数 / 約数の和（Int128）
+//      S.phi(x) / S.mu(x) / S.omega(x) / S.big_omega(x)   φ / μ / 異なる素因数の数 / 素因数の数（重複も）
+//      S.largest_prime_factor(x) / S.square_free_decompose(x) / S.is_square_free(x)
+//      S.prime_count(x)               x 以下の素数の数（x ≤ N）                                     O(log N)
+//      S.count_primes(l, r) / S.count_primes_closed(L, R)   [l, r) / [L, R] の素数の数（r ≤ N + 1）
+//      S.kth_prime(k)                 小さい方から k 番目の素数（0 番目が 2）
+//      S.lcm_mod(vs, m)               多くの数の lcm を mod m で（vector<int> も可）
+//    （以下の表は 0 ≤ N ≤ 10^8。添字がそのまま x）
+//    phi_table(N) / mu_table(N)       0〜N の φ / μ の表                                            O(N)
+//    divisor_count_table(N) / divisor_sum_table(N)    0〜N の約数の個数 / 約数の和の表（線形篩）          O(N)
+//    omega_table(N)                   0〜N の異なる素因数の数の表                                    O(N)
+//    （表はどれも 10^7 で 0.1〜0.2 秒、10^8 で 1〜2 秒。10^8 のときメモリは phi_table・divisor_sum_table が約 900MB、ほかは約 500MB）
+//    primes_up_to(N)                  N 以下の素数 vector<long long>（N < 2^31。区間ごとのエラトステネス。10^8 で約 0.3 秒）
+//    primes_up_to<int>(N)             同じものを vector<int> で（メモリ半分。N = 10^9 なら 5×10^7 個で 200MB）
+//    segment_primes(l, r) / segment_primes_closed(L, R)     [l, r) / [L, R] の素数（r ≤ 10^14、幅 ≤ 10^7 程度）
+//    segment_factorize(l, r, f) / segment_factorize_closed(L, R, f)
+//                                     [l, r) の各数 x を小さい順に f(x, 素因数分解) へ渡す（幅 ≤ 10^7 程度）
+//    （1 つの大きな数の素数判定・素因数分解は 02_factorize：is_prime / factorize / divisors_of など。このファイルに入っている）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    sieve_test::random_test()  … 愚直な篩・試し割りとの突き合わせ
+//    sieve_test::benchmark()    … 速度計測
+//    sieve_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

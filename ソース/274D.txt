@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int N,x,y;
+    cin>>N>>x>>y;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    //計算量
+    vector<bool>dp1(2e4+5,false);
+    vector<bool>dp2(2e4+5,false);
+    vector<bool>dp(2e4+5,false);
+    int base=1e4+2;
+    dp1[base+A[0]]=true;
+    dp2[base]=true;
+    rep(i,1,N){
+        dp.assign(2e4+5,false);
+        if(i%2){
+            rep(j,0,2e4+5)if(dp2[j]){
+                dp[j-A[i]]=true;
+                dp[j+A[i]]=true;
+            }
+            dp2=dp;
+        }else{
+            rep(j,0,2e4+5)if(dp1[j]){
+                dp[j-A[i]]=true;
+                dp[j+A[i]]=true;
+            }
+            dp1=dp;
+        }
+    }
+    if(dp1[x+base]&&dp2[y+base])YN;
+    return 0;
+}

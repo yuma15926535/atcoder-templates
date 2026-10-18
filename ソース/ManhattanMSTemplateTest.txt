@@ -1,0 +1,269 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ マンハッタン距離テンプレ（multiset対応・動的版）
+==================================================
+45度回転して座標を内部で持つことにより
+・点集合の最大マンハッタン距離
+・ある点からの最遠距離
+・ひし形範囲判定
+をO(1)で処理できる。(初期化O(NlogN))
+==================================================
+*/
+
+struct ManhattanMS {
+    // 元の点（復元用）
+    vector<pair<ll,ll>> pts;
+
+    // (値, index) を保持
+    multiset<pair<ll,int>> us;
+    multiset<pair<ll,int>> vs;
+
+    //------------------------------------------------
+    // コンストラクタ（空）
+    //------------------------------------------------
+    ManhattanMS(){}
+
+    //------------------------------------------------
+    // コンストラクタ（初期点集合）
+    //------------------------------------------------
+    ManhattanMS(const vector<pair<ll,ll>>& init){
+        for(auto [x,y] : init) add_point(x,y);
+    }
+
+    //------------------------------------------------
+    // 点追加
+    //------------------------------------------------
+    void add_point(ll x,ll y){
+        int id = pts.size();
+        pts.push_back({x,y});
+
+        us.insert({x+y,id});
+        vs.insert({x-y,id});
+    }
+
+    //------------------------------------------------
+    // 点削除
+    //------------------------------------------------
+    void erase_point(int id){
+        auto [x,y] = pts[id];
+
+        us.erase(us.find({x+y,id}));
+        vs.erase(vs.find({x-y,id}));
+    }
+
+    //------------------------------------------------
+    // 点集合の最大マンハッタン距離
+    //------------------------------------------------
+    ll max_dist() const{
+        if(us.empty()) return 0;
+
+        ll du = prev(us.end())->first - us.begin()->first;
+        ll dv = prev(vs.end())->first - vs.begin()->first;
+
+        return max(du,dv);
+    }
+
+    //------------------------------------------------
+    // 最大距離ペア復元
+    //------------------------------------------------
+    pair<pair<ll,ll>,pair<ll,ll>> max_pair() const{
+        ll du = prev(us.end())->first - us.begin()->first;
+        ll dv = prev(vs.end())->first - vs.begin()->first;
+
+        if(du>=dv)
+            return {
+                pts[us.begin()->second],
+                pts[prev(us.end())->second]
+            };
+        else
+            return {
+                pts[vs.begin()->second],
+                pts[prev(vs.end())->second]
+            };
+    }
+
+    //------------------------------------------------
+    // 任意点からの最遠距離
+    //------------------------------------------------
+    ll farthest_dist(ll x,ll y) const{
+        if(us.empty()) return 0;
+
+        ll uu=x+y, vv=x-y;
+
+        ll best=0;
+
+        best=max(best,llabs(uu-us.begin()->first));
+        best=max(best,llabs(uu-prev(us.end())->first));
+        best=max(best,llabs(vv-vs.begin()->first));
+        best=max(best,llabs(vv-prev(vs.end())->first));
+
+        return best;
+    }
+
+    //------------------------------------------------
+    // 任意点からの最遠点復元
+    //------------------------------------------------
+    pair<ll,ll> farthest_point(ll x,ll y) const{
+        ll uu=x+y, vv=x-y;
+
+        vector<pair<ll,int>> cand;
+
+        cand.push_back({
+            llabs(uu-us.begin()->first),
+            us.begin()->second
+        });
+
+        cand.push_back({
+            llabs(uu-prev(us.end())->first),
+            prev(us.end())->second
+        });
+
+        cand.push_back({
+            llabs(vv-vs.begin()->first),
+            vs.begin()->second
+        });
+
+        cand.push_back({
+            llabs(vv-prev(vs.end())->first),
+            prev(vs.end())->second
+        });
+
+        auto best=max_element(cand.begin(),cand.end());
+
+        return pts[best->second];
+    }
+
+    //------------------------------------------------
+    // ひし形範囲判定（静的関数）
+    //------------------------------------------------
+    /*
+        中心 (cx,cy) からマンハッタン距離 D 以内か判定。
+    */
+    static bool in_diamond(
+        ll cx,ll cy,
+        ll D,
+        ll x,ll y
+    ){
+        ll u=x+y;
+        ll v=x-y;
+        ll u0=cx+cy;
+        ll v0=cx-cy;
+
+        return max(llabs(u-u0), llabs(v-v0))<=D;
+    }
+};
+
+void solv(){
+    cout<<"=============================\n";
+    cout<<" multiset版 動作確認\n";
+    cout<<"=============================\n\n";
+
+    vector<pair<long long,long long>> init={
+        {1,5},
+        {4,2},
+        {3,7},
+        {0,0},
+        {6,1}
+    };
+
+    ManhattanMS man(init);
+
+    cout<<"【初期点】\n";
+    for(int i=0;i<init.size();i++){
+        cout<<"ID "<<i<<" : ("
+            <<init[i].first<<","
+            <<init[i].second<<")\n";
+    }
+
+    cout<<"\n-----------------------------\n";
+
+    cout<<"■ 最大マンハッタン距離\n";
+    cout<<"距離 = "<<man.max_dist()<<"\n";
+
+    auto mp=man.max_pair();
+    cout<<"ペア = ("<<mp.first.first<<","<<mp.first.second
+        <<") と ("<<mp.second.first<<","<<mp.second.second<<")\n";
+
+    cout<<"\n-----------------------------\n";
+
+    long long qx=2,qy=3;
+
+    cout<<"■ 任意点 ("<<qx<<","<<qy<<") からの最遠距離\n";
+    cout<<"距離 = "<<man.farthest_dist(qx,qy)<<"\n";
+
+    auto fp=man.farthest_point(qx,qy);
+
+    cout<<"最遠点 = ("<<fp.first<<","<<fp.second<<")\n";
+
+    cout<<"\n-----------------------------\n";
+
+    cout<<"■ 点削除テスト（ID=3 → (0,0) を削除）\n";
+
+    man.erase_point(3);
+
+    cout<<"削除後 最大距離 = "<<man.max_dist()<<"\n";
+
+    auto mp2=man.max_pair();
+
+    cout<<"削除後ペア = ("
+        <<mp2.first.first<<","<<mp2.first.second
+        <<") と ("
+        <<mp2.second.first<<","<<mp2.second.second<<")\n";
+
+    cout<<"\n-----------------------------\n";
+
+    cout<<"■ ひし形範囲判定\n";
+
+    long long cx=3,cy=3,D=3;
+
+    vector<pair<long long,long long>> test={
+        {3,6},
+        {5,5},
+        {0,0}
+    };
+
+    for(auto [x,y]:test){
+        cout<<"("<<x<<","<<y<<") → ";
+        if(ManhattanMS::in_diamond(cx,cy,D,x,y))
+            cout<<"範囲内\n";
+        else
+            cout<<"範囲外\n";
+    }
+
+    cout<<"\n=============================\n";
+    cout<<" 動作確認終了\n";
+    cout<<"=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

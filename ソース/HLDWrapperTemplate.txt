@@ -1,0 +1,958 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+//https://atcoder.jp/contests/abc440/tasks/abc440_d
+
+struct EulerTourBase {
+    int N;
+    std::vector<std::vector<int>> g;
+
+    std::vector<int> par;
+    std::vector<int> dep;
+    std::vector<int> tin;
+    std::vector<int> tout;
+    std::vector<int> rev;
+    std::vector<int> euler;
+    std::vector<int> first;
+    std::vector<int> euler_lca;
+    std::vector<int> depth_lca;
+
+    EulerTourBase(int n) : N(n), g(n), par(n, -1), dep(n, 0), tin(n, -1), tout(n, -1), first(n, -1) {
+        rev.reserve(n);
+        euler.reserve(2 * n);
+        euler_lca.reserve(2 * n);
+        depth_lca.reserve(2 * n);
+    }
+
+    void add_edge(int u, int v) {
+        g[u].push_back(v);
+        g[v].push_back(u);
+    }
+
+    void build(int root = 0) {
+        std::fill(par.begin(), par.end(), -1);
+        std::fill(dep.begin(), dep.end(), 0);
+        std::fill(tin.begin(), tin.end(), -1);
+        std::fill(tout.begin(), tout.end(), -1);
+        std::fill(first.begin(), first.end(), -1);
+        rev.clear();
+        euler.clear();
+        euler_lca.clear();
+        depth_lca.clear();
+
+        int timer = 0;
+        auto dfs = [&](auto self, int u, int p) -> void {
+            par[u] = p;
+            dep[u] = (p == -1 ? 0 : dep[p] + 1);
+            tin[u] = timer++;
+            rev.push_back(u);
+
+            euler.push_back(u);
+
+            first[u] = euler_lca.size();
+            euler_lca.push_back(u);
+            depth_lca.push_back(dep[u]);
+
+            for (int v : g[u]) {
+                if (v == p) continue;
+                self(self, v, u);
+                euler_lca.push_back(u);
+                depth_lca.push_back(dep[u]);
+            }
+
+            tout[u] = timer;
+            euler.push_back(~u);
+        };
+        dfs(dfs, root, -1);
+    }
+
+    int parent(int v) const {
+        return par[v];
+    }
+
+    int depth(int v) const {
+        return dep[v];
+    }
+
+    std::pair<int, int> subtree_range(int v) const {
+        return {tin[v], tout[v]};
+    }
+
+    int subtree_size(int v) const {
+        return tout[v] - tin[v];
+    }
+
+    int vertex_at(int pos) const {
+        return rev[pos];
+    }
+
+    bool is_ancestor(int u, int v) const {
+        return tin[u] <= tin[v] && tout[v] <= tout[u];
+    }
+
+    const std::vector<int>& get_first() const { return first; }
+    const std::vector<int>& get_euler_lca() const { return euler_lca; }
+    const std::vector<int>& get_depth_lca() const { return depth_lca; }
+};
+
+struct HLD {
+    const EulerTourBase* et;
+    std::vector<int> size;
+    std::vector<int> heavy;
+    std::vector<int> head;
+    std::vector<int> in;
+    std::vector<int> out;
+    std::vector<int> rev;
+
+    HLD(const EulerTourBase* et) : et(et) {
+        int n = et->N;
+        size.resize(n);
+        heavy.assign(n, -1);
+        head.assign(n, -1);
+        in.assign(n, -1);
+        out.assign(n, -1);
+        rev.resize(n);
+
+        int root = -1;
+        for (int i = 0; i < n; ++i) {
+            size[i] = et->subtree_size(i);
+            if (et->parent(i) == -1) {
+                root = i;
+            }
+            int max_sz = -1;
+            for (int v : et->g[i]) {
+                if (v == et->parent(i)) continue;
+                if (size[v] > max_sz) {
+                    max_sz = size[v];
+                    heavy[i] = v;
+                }
+            }
+        }
+
+        int cur_time = 0;
+        auto dfs = [&](auto self, int u, int h) -> void {
+            head[u] = h;
+            in[u] = cur_time++;
+            rev[in[u]] = u;
+            if (heavy[u] != -1) {
+                self(self, heavy[u], h);
+            }
+            for (int v : et->g[u]) {
+                if (v == et->parent(u) || v == heavy[u]) continue;
+                self(self, v, v);
+            }
+            out[u] = cur_time;
+        };
+        if (root != -1) {
+            dfs(dfs, root, root);
+        }
+    }
+
+    int lca(int u, int v) const {
+        while (true) {
+            if (in[u] > in[v]) std::swap(u, v);
+            if (head[u] == head[v]) return u;
+            v = et->parent(head[v]);
+        }
+    }
+
+    std::vector<std::pair<int, int>> path_segments(int u, int v) const {
+        std::vector<std::pair<int, int>> left, right;
+        while (true) {
+            if (head[u] == head[v]) {
+                if (in[u] <= in[v]) {
+                    right.push_back({in[u], in[v] + 1});
+                } else {
+                    left.push_back({in[v], in[u] + 1});
+                }
+                break;
+            }
+            if (in[head[u]] > in[head[v]]) {
+                left.push_back({in[head[u]], in[u] + 1});
+                u = et->parent(head[u]);
+            } else {
+                right.push_back({in[head[v]], in[v] + 1});
+                v = et->parent(head[v]);
+            }
+        }
+        std::reverse(right.begin(), right.end());
+        std::vector<std::pair<int, int>> res;
+        res.reserve(left.size() + right.size());
+        for (auto& p : left) res.push_back(p);
+        for (auto& p : right) res.push_back(p);
+        return res;
+    }
+};
+
+/*
+=====================================================
+★ ノード情報（問題ごとに変更）
+=====================================================
+*/
+
+struct S {
+    ll sum;
+    int len;
+};
+
+/*
+=====================================================
+★ 更新情報（問題ごとに変更）
+=====================================================
+*/
+
+using F = ll;
+
+/*
+=====================================================
+★ 演算定義
+=====================================================
+*/
+
+// ノード結合
+S combine(S a, S b) {
+    return {a.sum + b.sum, a.len + b.len};
+}
+
+// 更新適用
+S apply(F f, S x) {
+    x.sum += f * x.len;
+    return x;
+}
+
+/*
+composition(f, g)
+
+意味：
+既存更新 g の後に
+新しい更新 f を適用
+
+つまり：
+
+new_lazy = f ∘ g
+
+加算なら単純に足す
+*/
+F compose(F f, F g) {
+    return f + g;
+}
+
+S idS() { return {0,0}; }
+F idF() { return 0; }
+
+/*
+=====================================================
+Lazy SegTree 本体
+=====================================================
+*/
+
+struct LazySegTree {
+    int n;
+    std::vector<S> seg;
+    std::vector<F> lazy;
+
+    LazySegTree(const std::vector<ll>& v) {
+        int sz = v.size();
+        n = 1;
+        while (n < sz) n <<= 1;
+
+        seg.assign(2*n, idS());
+        lazy.assign(2*n, idF());
+
+        for (int i = 0; i < sz; i++)
+            seg[n+i] = {v[i],1};
+        for (int i = sz; i < n; i++)
+            seg[n+i] = {0,1};
+
+        for (int i = n-1; i > 0; i--)
+            seg[i] = combine(seg[i<<1], seg[i<<1|1]);
+    }
+
+    // ========================
+    // lazy伝播
+    // ========================
+    void push(int k) {
+        if (lazy[k] == idF()) return;
+
+        apply_node(k<<1, lazy[k]);
+        apply_node(k<<1|1, lazy[k]);
+
+        lazy[k] = idF();
+    }
+
+    void apply_node(int k, F f) {
+        seg[k] = apply(f, seg[k]);
+        if (k < n)
+            lazy[k] = compose(f, lazy[k]);
+    }
+
+    // ========================
+    // 区間更新
+    // ========================
+    void range_apply(int l, int r, F f, int k, int a, int b) {
+        if (r <= a || b <= l) return;
+        if (l <= a && b <= r) {
+            apply_node(k, f);
+            return;
+        }
+
+        push(k);
+
+        int mid = (a+b)/2;
+        range_apply(l,r,f,k<<1,a,mid);
+        range_apply(l,r,f,k<<1|1,mid,b);
+
+        seg[k] = combine(seg[k<<1], seg[k<<1|1]);
+    }
+
+    void range_apply(int l, int r, F f) {
+        range_apply(l,r,f,1,0,n);
+    }
+
+    // ========================
+    // 区間取得
+    // ========================
+    S range(int l, int r, int k, int a, int b) {
+        if (r <= a || b <= l) return idS();
+        if (l <= a && b <= r) return seg[k];
+
+        push(k);
+
+        int mid = (a+b)/2;
+        return combine(
+            range(l,r,k<<1,a,mid),
+            range(l,r,k<<1|1,mid,b)
+        );
+    }
+
+    ll range(int l, int r) {
+        return range(l,r,1,0,n).sum;
+    }
+
+    // ========================
+    // prefix探索
+    // ========================
+    int ge(ll x, int k, ll acc, int a, int b) {
+        if (b-a == 1) return a;
+
+        push(k);
+
+        int mid = (a+b)/2;
+
+        if (acc + seg[k<<1].sum >= x)
+            return ge(x,k<<1,acc,a,mid);
+        else
+            return ge(x,k<<1|1,acc+seg[k<<1].sum,mid,b);
+    }
+
+    int ge(ll x) {
+        if (seg[1].sum < x) return n;
+        return ge(x,1,0,0,n);
+    }
+
+    int gt(ll x){ return ge(x+1); }
+    int le(ll x){ return ge(x+1)-1; }
+    int lt(ll x){ return ge(x)-1; }
+};
+
+template <typename Seg, typename T = long long>
+struct HLDWrapper {
+    const HLD* hld;
+    Seg* seg;
+
+    HLDWrapper(const HLD* hld, Seg* seg) : hld(hld), seg(seg) {}
+
+    // デフォルトの query_path (加算・区間和用)
+    T query_path(int u, int v) {
+        auto segments = hld->path_segments(u, v);
+        T res = 0;
+        for (const auto& seg_range : segments) {
+            res += seg->range(seg_range.first, seg_range.second);
+        }
+        return res;
+    }
+
+    // カスタム結合操作と初期値を使用する汎用 query_path
+    template <typename Op>
+    T query_path(int u, int v, Op op, T identity) {
+        auto segments = hld->path_segments(u, v);
+        T res = identity;
+        for (const auto& seg_range : segments) {
+            res = op(res, seg->range(seg_range.first, seg_range.second));
+        }
+        return res;
+    }
+
+    template <typename F>
+    void apply_path(int u, int v, F f) {
+        auto segments = hld->path_segments(u, v);
+        for (const auto& seg_range : segments) {
+            seg->range_apply(seg_range.first, seg_range.second, f);
+        }
+    }
+};
+
+// ランダムな木を生成する
+vector<vector<int>> generate_random_tree(int N, mt19937& rng) {
+    vector<vector<int>> g(N);
+    for (int i = 1; i < N; ++i) {
+        int p = uniform_int_distribution<int>(0, i - 1)(rng);
+        g[p].push_back(i);
+        g[i].push_back(p);
+    }
+    return g;
+}
+
+// 愚直なDFSによる木情報の構築
+struct BruteTree {
+    int N;
+    vector<vector<int>> g;
+    int root;
+
+    vector<int> par;
+    vector<int> dep;
+    vector<int> tin;
+    vector<int> tout;
+    vector<int> rev;
+    vector<set<int>> ancestors;
+    vector<vector<int>> subtree_verts;
+
+    BruteTree(int n, const vector<vector<int>>& graph, int r) 
+        : N(n), g(graph), root(r), par(n, -1), dep(n, 0), tin(n, -1), tout(n, -1), ancestors(n), subtree_verts(n) {}
+
+    void run() {
+        int timer = 0;
+        vector<int> path;
+        auto dfs = [&](auto self, int u, int p) -> void {
+            par[u] = p;
+            dep[u] = (p == -1 ? 0 : dep[p] + 1);
+            tin[u] = timer++;
+            rev.push_back(u);
+
+            path.push_back(u);
+            for (int anc : path) {
+                ancestors[u].insert(anc);
+            }
+
+            subtree_verts[u].push_back(u);
+
+            for (int v : g[u]) {
+                if (v == p) continue;
+                self(self, v, u);
+                for (int x : subtree_verts[v]) {
+                    subtree_verts[u].push_back(x);
+                }
+            }
+            tout[u] = timer;
+            path.pop_back();
+        };
+        dfs(dfs, root, -1);
+    }
+};
+
+// 愚直なパス・LCA探索器
+struct BruteHelper {
+    int N;
+    vector<vector<int>> g;
+    int root;
+    vector<int> par;
+    vector<int> dep;
+
+    BruteHelper(int n, const vector<vector<int>>& graph, int r)
+        : N(n), g(graph), root(r), par(n, -1), dep(n, 0) {}
+
+    void run() {
+        auto dfs = [&](auto self, int u, int p, int d) -> void {
+            par[u] = p;
+            dep[u] = d;
+            for (int v : g[u]) {
+                if (v == p) continue;
+                self(self, v, u, d + 1);
+            }
+        };
+        dfs(dfs, root, -1, 0);
+    }
+
+    int lca(int u, int v) const {
+        int du = dep[u];
+        int dv = dep[v];
+        while (du > dv) { u = par[u]; du--; }
+        while (dv > du) { v = par[v]; dv--; }
+        while (u != v) {
+            u = par[u];
+            v = par[v];
+        }
+        return u;
+    }
+
+    // u から v への単純パスの頂点集合を返す
+    set<int> get_simple_path(int u, int v) const {
+        vector<int> path;
+        auto dfs = [&](auto self, int curr, int p, int target) -> bool {
+            path.push_back(curr);
+            if (curr == target) return true;
+            for (int next : g[curr]) {
+                if (next == p) continue;
+                if (self(self, next, curr, target)) return true;
+            }
+            path.pop_back();
+            return false;
+        };
+        dfs(dfs, u, -1, v);
+        return set<int>(path.begin(), path.end());
+    }
+};
+
+// 愚直なパス探索
+struct BrutePathHelper {
+    int N;
+    vector<vector<int>> g;
+
+    BrutePathHelper(int n, const vector<vector<int>>& graph) : N(n), g(graph) {}
+
+    vector<int> get_simple_path(int u, int v) const {
+        vector<int> path;
+        auto dfs = [&](auto self, int curr, int p, int target) -> bool {
+            path.push_back(curr);
+            if (curr == target) return true;
+            for (int next : g[curr]) {
+                if (next == p) continue;
+                if (self(self, next, curr, target)) return true;
+            }
+            path.pop_back();
+            return false;
+        };
+        dfs(dfs, u, -1, v);
+        return path;
+    }
+};
+
+void run_random_tests() {
+    mt19937 rng(1337);
+
+    const int NUM_TESTS = 1000;
+    const int MAX_N = 100;
+
+    for (int t = 0; t < NUM_TESTS; ++t) {
+        int N = uniform_int_distribution<int>(1, MAX_N)(rng);
+        auto g = generate_random_tree(N, rng);
+        int root = uniform_int_distribution<int>(0, N - 1)(rng);
+
+        EulerTourBase et(N);
+        for (int u = 0; u < N; ++u) {
+            for (int v : g[u]) {
+                if (u < v) {
+                    et.add_edge(u, v);
+                }
+            }
+        }
+        et.build(root);
+
+        BruteTree brute(N, g, root);
+        brute.run();
+
+        for (int i = 0; i < N; ++i) {
+            // 1. parent の比較
+            assert(et.parent(i) == brute.par[i]);
+
+            // 2. depth の比較
+            assert(et.depth(i) == brute.dep[i]);
+
+            // 3. subtree_range / subtree_size の比較
+            auto range = et.subtree_range(i);
+            int size = et.subtree_size(i);
+            assert(size == (int)brute.subtree_verts[i].size());
+            assert(range.second - range.first == size);
+
+            vector<int> actual_subtree;
+            for (int pos = range.first; pos < range.second; ++pos) {
+                actual_subtree.push_back(et.vertex_at(pos));
+            }
+            assert(actual_subtree == brute.subtree_verts[i]);
+
+            // 4. tin/rev の整合性
+            assert(et.vertex_at(et.tin[i]) == i);
+            assert(et.rev[et.tin[i]] == i);
+            int v_at_pos = et.vertex_at(i);
+            assert(et.tin[v_at_pos] == i);
+
+            // 5. is_ancestor の比較
+            for (int j = 0; j < N; ++j) {
+                bool expected_ancestor = (brute.ancestors[j].count(i) > 0);
+                assert(et.is_ancestor(i, j) == expected_ancestor);
+            }
+        }
+
+        // LCA用オイラーツアーの整合性チェック
+        const auto& elca = et.get_euler_lca();
+        const auto& dlca = et.get_depth_lca();
+        const auto& first = et.get_first();
+
+        if (N == 1) {
+            assert(elca.size() == 1);
+            assert(dlca.size() == 1);
+            assert(elca[0] == root);
+            assert(dlca[0] == 0);
+            assert(first[root] == 0);
+        } else {
+            assert((int)elca.size() == 2 * N - 1);
+            assert((int)dlca.size() == 2 * N - 1);
+            for (int i = 0; i < N; ++i) {
+                assert(first[i] >= 0 && first[i] < (int)elca.size());
+                assert(elca[first[i]] == i);
+                for (int pos = 0; pos < first[i]; ++pos) {
+                    assert(elca[pos] != i);
+                }
+            }
+            for (int pos = 0; pos < (int)elca.size(); ++pos) {
+                int u = elca[pos];
+                assert(dlca[pos] == et.depth(u));
+            }
+            for (int pos = 0; pos < (int)elca.size() - 1; ++pos) {
+                int u = elca[pos];
+                int v = elca[pos + 1];
+                bool has_edge = false;
+                for (int neighbor : g[u]) {
+                    if (neighbor == v) has_edge = true;
+                }
+                assert(has_edge || u == v);
+                assert(abs(dlca[pos] - dlca[pos + 1]) == 1);
+            }
+        }
+    }
+
+    cerr << "Step1 Random Test Passed\n";
+}
+
+void run_random_tests4() {
+    mt19937 rng(12345);
+
+    const int NUM_TESTS = 1000;
+    const int MAX_N = 100;
+    const int NUM_QUERIES = 100;
+
+    for (int t = 0; t < NUM_TESTS; ++t) {
+        int N = uniform_int_distribution<int>(1, MAX_N)(rng);
+        auto g = generate_random_tree(N, rng);
+        int root = uniform_int_distribution<int>(0, N - 1)(rng);
+
+        EulerTourBase et(N);
+        for (int u = 0; u < N; ++u) {
+            for (int v : g[u]) {
+                if (u < v) {
+                    et.add_edge(u, v);
+                }
+            }
+        }
+        et.build(root);
+
+        HLD hld(&et);
+
+        BruteHelper brute(N, g, root);
+        brute.run();
+
+        assert((int)hld.size.size() == N);
+        assert((int)hld.heavy.size() == N);
+        assert((int)hld.head.size() == N);
+        assert((int)hld.in.size() == N);
+        assert((int)hld.out.size() == N);
+        assert((int)hld.rev.size() == N);
+
+        for (int i = 0; i < N; ++i) {
+            assert(hld.rev[hld.in[i]] == i);
+        }
+
+        for (int q = 0; q < NUM_QUERIES; ++q) {
+            int u = uniform_int_distribution<int>(0, N - 1)(rng);
+            int v = uniform_int_distribution<int>(0, N - 1)(rng);
+
+            int act_lca = hld.lca(u, v);
+            int exp_lca = brute.lca(u, v);
+            assert(act_lca == exp_lca);
+
+            auto segments = hld.path_segments(u, v);
+            set<int> exp_path_verts = brute.get_simple_path(u, v);
+
+            set<int> act_path_verts;
+            int total_length = 0;
+            for (auto& seg : segments) {
+                int l = seg.first;
+                int r = seg.second;
+                assert(l <= r);
+                total_length += (r - l);
+                for (int pos = l; pos < r; ++pos) {
+                    int w = hld.rev[pos];
+                    act_path_verts.insert(w);
+                }
+            }
+
+            assert((int)act_path_verts.size() == total_length);
+            assert(act_path_verts == exp_path_verts);
+        }
+    }
+
+    cerr << "Step4 Random Test Passed\n";
+}
+
+void run_random_tests5() {
+    mt19937 rng(54321);
+
+    const int NUM_TESTS = 300;
+    const int MAX_N = 100;
+    const int NUM_QUERIES = 200;
+
+    for (int t = 0; t < NUM_TESTS; ++t) {
+        int N = uniform_int_distribution<int>(1, MAX_N)(rng);
+        auto g = generate_random_tree(N, rng);
+        int root = uniform_int_distribution<int>(0, N - 1)(rng);
+
+        EulerTourBase et(N);
+        for (int u = 0; u < N; ++u) {
+            for (int v : g[u]) {
+                if (u < v) {
+                    et.add_edge(u, v);
+                }
+            }
+        }
+        et.build(root);
+
+        HLD hld(&et);
+
+        // 初期値
+        vector<ll> initial_values(N);
+        for (int i = 0; i < N; ++i) {
+            initial_values[i] = uniform_int_distribution<ll>(-1000, 1000)(rng);
+        }
+
+        // HLDのインデックス順で初期配列を構築
+        vector<ll> base(N);
+        for (int i = 0; i < N; ++i) {
+            base[hld.in[i]] = initial_values[i];
+        }
+
+        LazySegTree seg(base);
+        HLDWrapper<LazySegTree> wrapper(&hld, &seg);
+
+        vector<ll> brute = initial_values;
+        BrutePathHelper helper(N, g);
+
+        for (int q = 0; q < NUM_QUERIES; ++q) {
+            int type = uniform_int_distribution<int>(0, 1)(rng);
+            int u = uniform_int_distribution<int>(0, N - 1)(rng);
+            int v = uniform_int_distribution<int>(0, N - 1)(rng);
+
+            auto path = helper.get_simple_path(u, v);
+
+            if (type == 0) {
+                // query_path
+                ll act = wrapper.query_path(u, v);
+                ll exp = 0;
+                for (int w : path) {
+                    exp += brute[w];
+                }
+                assert(act == exp);
+            }
+            else {
+                // apply_path
+                ll f = uniform_int_distribution<ll>(-50, 50)(rng);
+                wrapper.apply_path(u, v, f);
+                for (int w : path) {
+                    brute[w] += f;
+                }
+            }
+        }
+    }
+
+    cerr << "Step5 Random Test Passed\n";
+}
+
+void solv(){
+    run_random_tests();
+    run_random_tests4();
+    run_random_tests5();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

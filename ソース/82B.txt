@@ -1,0 +1,36 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+bool solv(string s,string t){
+    //stringのままsort
+    sort(nall(s));
+    sort(rall(t));
+    //辞書順で比較
+    if(s==t)return false;
+    int l=min(s.size(),t.size());
+    rep(i,0,l){
+        if(s[i]>t[i])return false;
+        else if(s[i]<t[i])return true;
+    }
+    if(s.size()>t.size())return false;
+    return true;
+}
+
+int main()
+{
+    string s,t;
+    cin>>s>>t;
+    if(solv(s,t))YN;
+    return 0;
+}

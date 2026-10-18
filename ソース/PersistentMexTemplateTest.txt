@@ -1,0 +1,537 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+==================================================
+ 永続セグメント木（区間mex）
+==================================================
+
+【概要】
+配列に対して「区間 [l, r) のmex（最小未出現値）」を高速に求める。
+
+【できること】
+・任意区間の mex を O(log N) で取得
+・過去の状態も保持（永続）
+
+--------------------------------------------------
+
+【仕組み（超重要）】
+
+各値 v について：
+  last_pos[v] = 「最後に出現した位置」
+
+をセグ木で管理する
+
+ノードには：
+  val = 区間内の last_pos の最小値
+
+を持つ
+
+--------------------------------------------------
+
+【クエリの考え方】
+
+区間 [l, r) の mex を求めたいとき：
+
+「その値 v が区間内に存在しない」条件は
+
+  last_pos[v] < l
+
+つまり：
+
+  最初に last_pos[v] < l を満たす v を探す
+
+→ これが mex
+
+--------------------------------------------------
+
+【構築】
+
+roots[i] = prefix [0, i) の状態
+
+要素 a[i] を追加するとき：
+  last_pos[a[i]] = i に更新
+
+--------------------------------------------------
+
+【計算量】
+
+構築：O(N log N)
+クエリ：O(log N)
+
+--------------------------------------------------
+
+【注意】
+
+・値は 0 以上の整数である必要あり
+・mex は最大で maxv+1 になる可能性があるため
+  セグ木サイズは maxv+1 を用意する
+
+・区間は半開区間 [l, r)
+
+--------------------------------------------------
+
+【他構造との違い】
+
+・kth系：頻度を管理（順序）
+・mex系：最終出現位置を管理（存在判定）
+
+→ 完全に別物なので混同しない
+
+==================================================
+*/
+struct PersistentMex {
+    struct Node {
+        int val;
+        Node *l, *r;
+        Node(int v, Node* l=nullptr, Node* r=nullptr)
+            : val(v), l(l), r(r) {}
+    };
+
+    int n;
+    vector<Node*> roots;
+
+    Node* build(int l, int r) {
+        if (l + 1 == r) return new Node(-1);
+        int mid = (l + r) >> 1;
+        Node* left = build(l, mid);
+        Node* right = build(mid, r);
+        return new Node(-1, left, right);
+    }
+
+    Node* update(Node* node, int l, int r, int pos, int val) {
+        if (l + 1 == r) {
+            return new Node(val);
+        }
+        int mid = (l + r) >> 1;
+        if (pos < mid) {
+            Node* nl = update(node->l, l, mid, pos, val);
+            return new Node(min(nl->val, node->r->val), nl, node->r);
+        } else {
+            Node* nr = update(node->r, mid, r, pos, val);
+            return new Node(min(node->l->val, nr->val), node->l, nr);
+        }
+    }
+
+    // mex取得
+    int mex(Node* node, int l, int r, int ql) {
+        if (l + 1 == r) return l;
+
+        int mid = (l + r) >> 1;
+
+        if (node->l->val < ql) {
+            return mex(node->l, l, mid, ql);
+        } else {
+            return mex(node->r, mid, r, ql);
+        }
+    }
+
+    // 構築
+    void build_from_array(const vector<int>& a, int maxv) {
+        n = maxv + 1;
+
+        roots.clear();
+        roots.push_back(build(0, n));
+
+        vector<int> last(n, -1);
+
+        for (int i = 0; i < (int)a.size(); i++) {
+            int v = a[i];
+            last[v] = i;
+            Node* new_root = update(roots.back(), 0, n, v, i);
+            roots.push_back(new_root);
+        }
+    }
+
+    // 区間 [l, r) のmex
+    int query_mex(int l, int r) {
+        return mex(roots[r], 0, n, l);
+    }
+};
+
+mt19937 rng(0);
+
+void random_test_mex() {
+    const int N = 50;
+    const int Q = 1000;
+    const int MAXV = 50;
+
+    vector<int> a(N);
+    for (int i = 0; i < N; i++) {
+        a[i] = rng() % MAXV;
+    }
+
+    PersistentMex pm;
+    pm.build_from_array(a, MAXV);
+
+    for (int q = 0; q < Q; q++) {
+        int l = rng() % N;
+        int r = rng() % N;
+        if (l > r) swap(l, r);
+        r++; // [l, r)
+
+        int res = pm.query_mex(l, r);
+
+        // naive mex
+        vector<bool> used(MAXV + 2, false);
+        for (int i = l; i < r; i++) {
+            if (a[i] <= MAXV) used[a[i]] = true;
+        }
+
+        int naive = 0;
+        while (used[naive]) naive++;
+
+        if (res != naive) {
+            cout << "Mismatch!\n";
+            cout << "l r = " << l << " " << r << "\n";
+
+            cout << "区間: ";
+            for (int i = l; i < r; i++) cout << a[i] << " ";
+            cout << "\n";
+
+            cout << "seg = " << res << " naive = " << naive << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "mex OK\n";
+}
+
+void random_test_mex_with_append() {
+    const int N = 50;
+    const int MAXV = 50;
+    const int SZ = MAXV + 5;
+
+    mt19937 rng(0);
+
+    vector<int> a;
+    PersistentMex pm;
+    pm.n = SZ;
+
+    // 初期（空）
+    pm.roots.clear();
+    pm.roots.push_back(pm.build(0, SZ));
+
+    vector<int> last(MAXV+1, -1);
+
+    for (int step = 0; step < N; step++) {
+        int v = rng() % MAXV;
+        a.push_back(v);
+
+        last[v] = step;
+
+        // 永続更新
+        PersistentMex::Node* new_root = pm.update(pm.roots.back(), 0, MAXV+1, v, step);
+        pm.roots.push_back(new_root);
+
+        // ランダム区間テスト
+        for (int t = 0; t < 20; t++) {
+            int l = rng() % (step+1);
+            int r = rng() % (step+1);
+            if (l > r) swap(l, r);
+            r++;
+
+            int res = pm.query_mex(l, r);
+
+            // naive
+            vector<bool> used(MAXV+2, false);
+            for (int i = l; i < r; i++) {
+                used[a[i]] = true;
+            }
+
+            int naive = 0;
+            while (used[naive]) naive++;
+
+            if (res != naive) {
+                cout << "Mismatch!\n";
+                cout << "l r = " << l << " " << r << "\n";
+
+                cout << "配列: ";
+                for (int x : a) cout << x << " ";
+                cout << "\n";
+
+                cout << "seg = " << res << " naive = " << naive << "\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "mex append OK\n";
+}
+
+void demo_mex() {
+    cout << "==== 区間mexの動作確認 ====\n";
+
+    vector<int> a = {1, 0, 2, 1, 3};
+
+    cout << "配列: ";
+    for (int x : a) cout << x << " ";
+    cout << "\n";
+
+    PersistentMex pm;
+    pm.build_from_array(a, 5);
+
+    int l = 1, r = 5;
+
+    cout << "\n区間 [" << l << "," << r << ") を考える\n";
+
+    cout << "部分配列: ";
+    for (int i = l; i < r; i++) cout << a[i] << " ";
+    cout << "\n";
+
+    int mex = pm.query_mex(l, r);
+    cout << "mex: " << mex << "\n";
+
+    cout << "==== 確認終了 ====\n";
+}
+
+void demo_mex_with_append() {
+    cout << "==== 永続セグ木（mex・append更新）動作確認 ====\n";
+
+    const int MAXV = 10;
+    const int SZ = MAXV + 5;
+
+    vector<int> a;
+
+    PersistentMex pm;
+    pm.n = SZ;
+    pm.roots.clear();
+    pm.roots.push_back(pm.build(0, SZ));
+
+    cout << "\n初期状態：空配列\n";
+
+    // 追加する値（固定にして分かりやすく）
+    vector<int> add_seq = {1, 0, 2, 1, 3};
+
+    for (int step = 0; step < (int)add_seq.size(); step++) {
+        int v = add_seq[step];
+
+        cout << "\n--- step " << step << " ---\n";
+        cout << "値 " << v << " を末尾に追加\n";
+
+        a.push_back(v);
+
+        // 永続更新（append）
+        auto new_root = pm.update(pm.roots.back(), 0, SZ, v, step);
+        pm.roots.push_back(new_root);
+
+        // 現在の配列表示
+        cout << "現在の配列: ";
+        for (int x : a) cout << x << " ";
+        cout << "\n";
+
+        // 全体mex
+        int mex_all = pm.query_mex(0, a.size());
+        cout << "全体のmex: " << mex_all << "\n";
+
+        // いくつか区間mexを確認
+        cout << "区間mex確認:\n";
+
+        for (int l = 0; l < (int)a.size(); l++) {
+            int r = a.size();
+
+            int res = pm.query_mex(l, r);
+
+            // naive
+            vector<bool> used(MAXV+5, false);
+            for (int i = l; i < r; i++) used[a[i]] = true;
+
+            int naive = 0;
+            while (used[naive]) naive++;
+
+            cout << "  [" << l << "," << r << ") ";
+            cout << "mex = " << res;
+
+            if (res != naive) {
+                cout << "  ← ミス！ (naive=" << naive << ")";
+            }
+            cout << "\n";
+        }
+    }
+
+    cout << "\n==== 確認終了 ====\n";
+}
+
+void solv(){
+    random_test_mex();
+    random_test_mex_with_append();
+    demo_mex();
+    demo_mex_with_append();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

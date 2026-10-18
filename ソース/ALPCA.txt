@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//素集合データ構造
+//Union-Find
+struct DSU {
+    vector<int> parent, sz;
+
+    DSU(int n) : parent(n), sz(n, 1) {
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    //引数の点g属する集合の代表元を返却
+    int find(int x) {
+        if (parent[x] == x) return x;
+        return parent[x] = find(parent[x]);
+    }
+
+    //引数が属する集合同士を結合
+    //戻り値がfalse⇔すでにつながっている(閉路検出が可能)
+    bool unite(int x, int y) {
+        x = find(x);
+        y = find(y);
+        if (x == y) return false;
+
+        // union by size
+        if (sz[x] < sz[y]) swap(x, y);
+        parent[y] = x;
+        sz[x] += sz[y];
+        return true;
+    }
+
+    //xとyの連結判定
+    bool same(int x, int y) {
+        return find(x) == find(y);
+    }
+
+    //xの属する集合のサイズを返却
+    int size(int x) {
+        return sz[find(x)];
+    }
+};
+
+int main(){
+    BUFF;
+    int N,Q;
+    cin>>N>>Q;
+    DSU dsu(N);
+    rep(_,0,Q){
+        int t,u,v;
+        cin>>t>>u>>v;
+        if(t)cout<<(dsu.same(u,v)?1:0)<<'\n';
+        else dsu.unite(u,v);
+    }
+    return 0;
+}

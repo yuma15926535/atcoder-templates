@@ -1,0 +1,699 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief 大小関係のあるキーと値を管理するMap
+ *
+ * キーに対応する値の管理に加え、
+ * prev / prev_eq / next / next_eq による前後検索を提供する。
+ *
+ * キー型は long long 固定。
+ *
+ * 計算量:
+ *   add         : O(logN)
+ *   set         : O(logN)
+ *   erase       : O(logN)
+ *   contains    : O(logN)
+ *   get         : O(logN)
+ *   prev        : O(logN)
+ *   prev_eq     : O(logN)
+ *   next        : O(logN)
+ *   next_eq     : O(logN)
+ *   min         : O(1)
+ *   max         : O(1)
+ *   size        : O(1)
+ *   empty       : O(1)
+ *   clear       : O(N)
+ */
+template <class T>
+struct PrevNextMap {
+    /**
+     * @brief キーと値を取得するための構造体
+     *
+     * exist == false の場合は検索失敗を表す。
+     */
+    struct Node {
+        bool exist = false;
+        ll key = 0;
+        T value{};
+    };
+
+private:
+    map<ll, T> mp;
+
+public:
+    //==================================================
+    // Constructor
+    //==================================================
+
+    PrevNextMap() = default;
+
+    //==================================================
+    // Update
+    //==================================================
+
+    /**
+     * @brief キーを追加する（存在する場合は上書き）
+     *
+     * @param key キー
+     * @param value 値
+     *
+     * 計算量: O(logN)
+     */
+    void add(ll key, const T& value) {
+        mp[key] = value;
+    }
+
+    /**
+     * @brief 値を更新する
+     *
+     * キーが存在する場合のみ更新する。
+     *
+     * @param key キー
+     * @param value 新しい値
+     * @return 更新に成功したか
+     *
+     * 計算量: O(logN)
+     */
+    bool set(ll key, const T& value) {
+        auto it = mp.find(key);
+        if (it == mp.end()) return false;
+        it->second = value;
+        return true;
+    }
+
+    /**
+     * @brief キーを削除する
+     *
+     * @param key キー
+     * @return 削除できたか
+     *
+     * 計算量: O(logN)
+     */
+    bool erase(ll key) {
+        return mp.erase(key) > 0;
+    }
+
+    //==================================================
+    // Search
+    //==================================================
+
+    /**
+     * @brief キーが存在するか判定する
+     *
+     * @param key キー
+     * @return 存在するか
+     *
+     * 計算量: O(logN)
+     */
+    bool contains(ll key) const {
+        return mp.find(key) != mp.end();
+    }
+
+    /**
+     * @brief 指定キーの値を取得する
+     *
+     * @param key キー
+     * @return 対応するNode
+     *
+     * exist == false の場合は存在しない。
+     *
+     * 計算量: O(logN)
+     */
+    Node get(ll key) const {
+        auto it = mp.find(key);
+        if (it == mp.end()) return {};
+
+        return {true, it->first, it->second};
+    }
+
+    /**
+     * @brief 指定キー未満の最大のキーを取得する
+     *
+     * @param key キー
+     * @return 条件を満たすNode
+     *
+     * exist == false の場合は存在しない。
+     *
+     * 計算量: O(logN)
+     */
+    Node prev(ll key) const {
+        auto it = mp.lower_bound(key);
+        if (it == mp.begin()) return {};
+
+        --it;
+        return {true, it->first, it->second};
+    }
+
+     /**
+      * @brief 指定キー以下の最大のキーを取得する
+      *
+      * @param key キー
+      * @return 条件を満たすNode
+      *
+      * exist == false の場合は存在しない。
+      *
+      * 計算量: O(logN)
+      */
+    Node prev_eq(ll key) const {
+        auto it = mp.upper_bound(key);
+        if (it == mp.begin()) return {};
+
+        --it;
+        return {true, it->first, it->second};
+    }
+
+    /**
+     * @brief 指定キーより大きい最小のキーを取得する
+     *
+     * @param key キー
+     * @return 条件を満たすNode
+     *
+     * exist == false の場合は存在しない。
+     *
+     * 計算量: O(logN)
+     */
+    Node next(ll key) const {
+        auto it = mp.upper_bound(key);
+        if (it == mp.end()) return {};
+
+        return {true, it->first, it->second};
+    }
+
+    /**
+     * @brief 指定キー以上の最小のキーを取得する
+     *
+     * @param key キー
+     * @return 条件を満たすNode
+     *
+     * exist == false の場合は存在しない。
+     *
+     * 計算量: O(logN)
+     */
+    Node next_eq(ll key) const {
+        auto it = mp.lower_bound(key);
+        if (it == mp.end()) return {};
+
+        return {true, it->first, it->second};
+    }
+
+    /**
+     * @brief 最小のキーを取得する
+     *
+     * @return 最小キーのNode
+     *
+     * exist == false の場合は要素が存在しない。
+     *
+     * 計算量: O(1)
+     */
+    Node min() const {
+        if (mp.empty()) return {};
+
+        auto it = mp.begin();
+        return {true, it->first, it->second};
+    }
+
+    /**
+     * @brief 最大のキーを取得する
+     *
+     * @return 最大キーのNode
+     *
+     * exist == false の場合は要素が存在しない。
+     *
+     * 計算量: O(1)
+     */
+    Node max() const {
+        if (mp.empty()) return {};
+
+        auto it = std::prev(mp.end());
+        return {true, it->first, it->second};
+    }
+
+    //==================================================
+    // Utility
+    //==================================================
+
+    /**
+     * @brief 要素数を取得する
+     *
+     * @return 要素数
+     *
+     * 計算量: O(1)
+     */
+    int size() const {
+        return (int)mp.size();
+    }
+
+    /**
+     * @brief 空か判定する
+     *
+     * @return 空ならtrue
+     *
+     * 計算量: O(1)
+     */
+    bool empty() const {
+        return mp.empty();
+    }
+
+    /**
+     * @brief 全要素を削除する
+     *
+     * 計算量: O(N)
+     */
+    void clear() {
+        mp.clear();
+    }
+};
+
+void random_test_PrevNextMap() {
+    cout << "===== PrevNextMap Random Test =====" << endl;
+
+    mt19937 rng(0);
+
+    PrevNextMap<int> a;
+    map<ll, int> b;
+
+    rep(_, 1000000) {
+        int op = rng() % 10;
+        ll key = rng() % 30 - 15;
+        int value = rng() % 1000;
+
+        if (op == 0) {
+            // add
+            a.add(key, value);
+            b[key] = value;
+        }
+        else if (op == 1) {
+            // set
+            bool r1 = a.set(key, value);
+
+            bool r2 = false;
+            auto it = b.find(key);
+            if (it != b.end()) {
+                it->second = value;
+                r2 = true;
+            }
+
+            assert(r1 == r2);
+        }
+        else if (op == 2) {
+            // erase
+            bool r1 = a.erase(key);
+            bool r2 = b.erase(key);
+
+            assert(r1 == (bool)r2);
+        }
+        else if (op == 3) {
+            // contains
+            assert(a.contains(key) == (b.count(key) != 0));
+        }
+        else if (op == 4) {
+            // get
+            auto x = a.get(key);
+            auto it = b.find(key);
+
+            if (it == b.end()) {
+                assert(!x.exist);
+            }
+            else {
+                assert(x.exist);
+                assert(x.key == it->first);
+                assert(x.value == it->second);
+            }
+        }
+        else if (op == 5) {
+            // prev
+            auto x = a.prev(key);
+
+            auto it = b.lower_bound(key);
+            if (it == b.begin()) {
+                assert(!x.exist);
+            }
+            else {
+                --it;
+                assert(x.exist);
+                assert(x.key == it->first);
+                assert(x.value == it->second);
+            }
+        }
+        else if (op == 6) {
+            // prev_eq
+            auto x = a.prev_eq(key);
+
+            auto it = b.upper_bound(key);
+            if (it == b.begin()) {
+                assert(!x.exist);
+            }
+            else {
+                --it;
+                assert(x.exist);
+                assert(x.key == it->first);
+                assert(x.value == it->second);
+            }
+        }
+        else if (op == 7) {
+            // next
+            auto x = a.next(key);
+
+            auto it = b.upper_bound(key);
+            if (it == b.end()) {
+                assert(!x.exist);
+            }
+            else {
+                assert(x.exist);
+                assert(x.key == it->first);
+                assert(x.value == it->second);
+            }
+        }
+        else if (op == 8) {
+            // next_eq
+            auto x = a.next_eq(key);
+
+            auto it = b.lower_bound(key);
+            if (it == b.end()) {
+                assert(!x.exist);
+            }
+            else {
+                assert(x.exist);
+                assert(x.key == it->first);
+                assert(x.value == it->second);
+            }
+        }
+        else {
+            // utility
+            assert(a.size() == (int)b.size());
+            assert(a.empty() == b.empty());
+
+            auto mn = a.min();
+            auto mx = a.max();
+
+            if (b.empty()) {
+                assert(!mn.exist);
+                assert(!mx.exist);
+            }
+            else {
+                assert(mn.exist);
+                assert(mx.exist);
+
+                assert(mn.key == b.begin()->first);
+                assert(mn.value == b.begin()->second);
+
+                auto it = prev(b.end());
+                assert(mx.key == it->first);
+                assert(mx.value == it->second);
+            }
+
+            // ときどきclear
+            if (rng() % 20 == 0) {
+                a.clear();
+                b.clear();
+            }
+        }
+    }
+
+    cout << "ALL TEST PASSED" << endl;
+}
+
+void test_PrevNextMap() {
+    cout << "===== PrevNextMap 動作確認 =====" << endl;
+
+    PrevNextMap<string> mp;
+
+    mp.add(10, "A");
+    mp.add(30, "B");
+    mp.add(50, "C");
+    mp.add(70, "D");
+
+    auto print = [](const string& name, const auto& node) {
+        cout << name << " : ";
+        if (!node.exist) {
+            cout << "存在しません";
+        }
+        else {
+            cout << "key = " << node.key
+                 << ", value = " << node.value;
+        }
+        cout << endl;
+    };
+
+    cout << endl;
+    cout << "----- 初期状態 -----" << endl;
+    cout << "size     : " << mp.size() << endl;
+    cout << "empty    : " << (mp.empty() ? "true" : "false") << endl;
+
+    cout << endl;
+    cout << "----- get -----" << endl;
+    print("get(30)", mp.get(30));
+    print("get(40)", mp.get(40));
+
+    cout << endl;
+    cout << "----- prev -----" << endl;
+    print("prev(30)", mp.prev(30));
+    print("prev(31)", mp.prev(31));
+    print("prev(10)", mp.prev(10));
+
+    cout << endl;
+    cout << "----- prev_eq -----" << endl;
+    print("prev_eq(30)", mp.prev_eq(30));
+    print("prev_eq(31)", mp.prev_eq(31));
+    print("prev_eq(5)", mp.prev_eq(5));
+
+    cout << endl;
+    cout << "----- next -----" << endl;
+    print("next(30)", mp.next(30));
+    print("next(29)", mp.next(29));
+    print("next(70)", mp.next(70));
+
+    cout << endl;
+    cout << "----- next_eq -----" << endl;
+    print("next_eq(30)", mp.next_eq(30));
+    print("next_eq(29)", mp.next_eq(29));
+    print("next_eq(80)", mp.next_eq(80));
+
+    cout << endl;
+    cout << "----- min / max -----" << endl;
+    print("min()", mp.min());
+    print("max()", mp.max());
+
+    cout << endl;
+    cout << "----- contains -----" << endl;
+    cout << "contains(30) : " << (mp.contains(30) ? "true" : "false") << endl;
+    cout << "contains(40) : " << (mp.contains(40) ? "true" : "false") << endl;
+
+    cout << endl;
+    cout << "----- set -----" << endl;
+    cout << "set(30,\"X\") : " << (mp.set(30, "X") ? "true" : "false") << endl;
+    cout << "set(40,\"Y\") : " << (mp.set(40, "Y") ? "true" : "false") << endl;
+    print("get(30)", mp.get(30));
+
+    cout << endl;
+    cout << "----- add -----" << endl;
+    mp.add(30, "Z");
+    mp.add(40, "Y");
+    print("get(30)", mp.get(30));
+    print("get(40)", mp.get(40));
+
+    cout << endl;
+    cout << "----- erase -----" << endl;
+    cout << "erase(40) : " << (mp.erase(40) ? "true" : "false") << endl;
+    cout << "erase(40) : " << (mp.erase(40) ? "true" : "false") << endl;
+    print("get(40)", mp.get(40));
+
+    cout << endl;
+    cout << "----- clear -----" << endl;
+    mp.clear();
+    cout << "size     : " << mp.size() << endl;
+    cout << "empty    : " << (mp.empty() ? "true" : "false") << endl;
+    print("min()", mp.min());
+    print("max()", mp.max());
+}
+
+void solv(){
+    random_test_PrevNextMap();
+    test_PrevNextMap();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

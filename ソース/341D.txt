@@ -1,0 +1,33 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main(){
+    ll N,M,K;
+    cin>>N>>M>>K;
+    ll l=lcm(N,M);
+    //x以下の条件を満たす整数の個数とKを比較
+    //二分探索
+    auto solv=[&](ll x)->bool{
+        ll chk=x/N+x/M-x/l*2;
+        return chk>=K;
+    };
+    ll left=0,right=1e18;
+    while(right-left>1){
+        ll mid=(right+left)/2;
+        if(solv(mid))right=mid;
+        else left=mid;
+    }
+    cout<<right<<"\n";
+    return 0;
+}

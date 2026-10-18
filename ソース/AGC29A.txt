@@ -1,0 +1,31 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    string S;
+    cin>>S;
+    int B=0,len=S.size();
+    ll ans=0;
+    //左から白の石を白の石の右にまで移す操作
+    //白の位置をBとiで管理してansに加算
+    rep(i,0,len){
+        if(S[i]=='W'){
+            ans+=i-B;
+            B++;
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

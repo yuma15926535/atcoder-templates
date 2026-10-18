@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+bool dfs_cycle(int v, int p,const vector<vector<int>>& graph,vector<int>& state,vector<int>& parent,vector<int>& cycle,bool directed) {
+    state[v] = 1; // 探索中
+    parent[v] = p;
+
+    for (int to : graph[v]) {
+        // 無向グラフでは「親への戻り」は無視
+        if (!directed && to == p) continue;
+
+        if (state[to] == 0) {
+            if (dfs_cycle(to, v, graph, state, parent, cycle, directed)) {
+                return true;
+            }
+        }
+        else {
+            // 有向: 探索中(1)への戻り
+            // 無向: 訪問済み(1 or 2)かつ親でない
+            if ((directed && state[to] == 1) ||
+                (!directed && state[to] != 0)) {
+
+                // 閉路復元
+                cycle.push_back(to);
+                for (int cur = v; cur != to; cur = parent[cur]) {
+                    cycle.push_back(cur);
+                }
+                cycle.push_back(to);
+                reverse(cycle.begin(), cycle.end());
+                return true;
+            }
+        }
+    }
+
+    state[v] = 2; // 探索完了
+    return false;
+}
+
+// 有向・無向 両対応 閉路検出
+// 戻り値: 閉路の頂点列（存在しなければ空）
+vector<int> find_cycle(const vector<vector<int>>& graph, bool directed) {
+    int N = graph.size();
+    vector<int> state(N, 0), parent(N, -1), cycle;
+
+    for (int v = 0; v < N; v++) {
+        if (state[v] == 0) {
+            if (dfs_cycle(v, -1, graph, state, parent, cycle, directed)) {
+                return cycle;
+            }
+        }
+    }
+    return {};
+}
+
+// トポロジカルソート
+// graph: 有向グラフ（隣接リスト）
+// 戻り値: トポロジカル順序((辞書順最小)（DAGでない場合は空）
+vector<int> topological_sort(const vector<vector<int>>& graph) {
+    int N = graph.size();
+    vector<int> indeg(N, 0);
+
+    // 各頂点の入次数を数える
+    rep(in,0,N)for(int out:graph[in])indeg[out]++;
+
+    // 入次数が 0 の頂点をキューに入れる
+    // 普通のqueueにすると計算量が減る
+    PQ_g<int> q;
+    rep(i,0,N)if(indeg[i]==0)q.push(i);
+
+    vector<int> ret;
+
+    while (!q.empty()) {
+        int u = q.top();
+        q.pop();
+        ret.push_back(u);
+
+        // u から出る辺を削除するイメージ
+        for (int v : graph[u]) {
+            indeg[v]--;
+            if (indeg[v] == 0)q.push(v);
+        }
+    }
+
+    // すべての頂点が並ばなかったらサイクルあり
+    if ((int)ret.size() != N)return {}; // DAGでない
+
+    return ret;
+}
+
+int main(){
+    int N;
+    cin>>N;
+    vector<vector<int>>G(N);
+    rep(i,0,N){
+        int c;
+        cin>>c;
+        rep(j,0,c){
+            int p;
+            cin>>p;
+            G[i].push_back(p-1);
+        }
+    }
+    auto v=topological_sort(G);
+    reverse(nall(v));
+
+    queue<int>q;
+    q.push(0);
+    //BFSで0に必要な頂点のみを記録
+    vector<bool>visited(N,true);
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        for(int nxt:G[pos])if(visited[nxt]){
+            visited[nxt]=false;
+            q.push(nxt);
+        }
+    }
+
+    rep(i,0,N)if(!visited[v[i]])cout<<v[i]+1<<' ';
+    cout<<'\n';
+    return 0;
+}

@@ -1,0 +1,47 @@
+// =============================================================================
+//  最長共通部分列（LCS。ビット並列）と編集距離（重み・操作の列・k 以内・1 回以内）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 06 部分列
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  LCS は飛び飛びに選んだ「部分列」の最長共通（EDPC F）。連続する「部分文字列」の最長共通は 03_suffix_array の longest_common_substring
+//  列は string でも vector<int>・vector<long long> でもよい（混ぜてもよい）
+//
+//  機能一覧                                                                       計算量
+//    lcs_length(a, b)                      LCS の長さ（ビット並列）                                    O(|a||b|/64)
+//    lcs_restore(a, b)                     LCS を 1 つ（a の型で。|a||b| が約 1.9×10^9 まで。両方 4×10^4 くらい）  O(|a||b|/64)
+//    shortest_common_supersequence(a, b)   a と b を部分列に含む最短の列（長さ |a| + |b| - LCS）           O(|a||b|/64)
+//    edit_distance(a, b, ins, del, sub)    a を b にする最小の費用（挿入・削除・置換。0 以上。既定は 1）     O(|a||b|) 時間・O(|b|) メモリ
+//    edit_script(a, b, ins, del, sub)      その操作の列（EditOp{type, i, j}。'=' 'S' 'D' 'I'）             O(|a||b|)（|a||b| ≤ 2×10^8）
+//    edit_distance_bounded(a, b, k)        費用 1 の編集距離（k を超えるなら -1）                          O((|a| + |b|) k)
+//    within_one_edit(a, b)                 1 回以下の操作で一致するか                                    O(N)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    lcs_test::random_test()  … 普通の DP と全機能を突き合わせるランダムテスト
+//    lcs_test::benchmark()    … 速度計測
+//    lcs_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

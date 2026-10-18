@@ -1,0 +1,167 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ Difference Array（差分配列 / 1次元 Imos）
+==================================================
+
+【用途】
+- 区間加算・区間操作を高速に処理したいとき
+- すべての更新後に最終配列が欲しいとき
+
+【計算量】
+- add : O(1)
+- restore : O(N)
+
+【区間】
+- [l, r)（l以上 r未満）
+*/
+template <class T>
+struct DifferenceArray {
+    int n;
+    vector<T> diff;
+
+
+    DifferenceArray(int n_) : n(n_), diff(n + 1, T(0)) {}
+
+    // [l,r)にxを加算
+    void add(int l, int r, T x) {
+        diff[l] += x;
+        diff[r] -= x;
+    }
+
+    // 差分から元の配列を復元
+    vector<T> restore() const {
+        vector<T> a(n);
+        T cur = 0;
+        for (int i = 0; i < n; i++) {
+            cur += diff[i];
+            a[i] = cur;
+        }
+        return a;
+    }
+};
+
+/*
+==================================================
+ Two Pointers / Sliding Window（判定関数差し替え型）
+==================================================
+
+【用途】
+- 区間条件を満たす最大長 / 個数 / 区間数など
+- Sliding Window（制約付き window）も含む
+
+【計算量】
+- 全体で O(N)
+*/
+template <class T>
+struct TwoPointers {
+    const vector<T>& a;
+    int n;
+
+    // 現在の window [l, r)
+    int l, r;
+
+    // 状態（問題ごとに中身を変える）
+    // 例: sum, distinct_count, max_value など
+    // long long sum;
+    // long long ans;
+    // long long K;
+    ////最大値 − 最小値 ≤ K
+    ////deque<int> mx, mn; // index を持つ
+
+    TwoPointers(const vector<T>& a_) : a(a_), n((int)a_.size()), l(0), r(0) {
+        // 初期化
+        // sum = 0;
+    }
+
+    // r を 1 進めるときの更新
+    void add_right(int idx) {
+        // sum += a[idx];
+        ////while (!mx.empty() && a[mx.back()] <= a[idx]) mx.pop_back();
+        ////mx.push_back(idx);
+
+        ////while (!mn.empty() && a[mn.back()] >= a[idx]) mn.pop_back();
+        ////mn.push_back(idx);
+    }
+
+    // l を 1 進めるときの更新
+    void remove_left(int idx) {
+        // sum -= a[idx];
+        ////if (!mx.empty() && mx.front() == i) mx.pop_front();
+        ////if (!mn.empty() && mn.front() == i) mn.pop_front();
+    }
+
+    // 現在の window が条件を満たすか
+    bool ok() const {
+        // return sum <= K;
+        ////return a[mx.front()] - a[mn.front()] <= K;
+        return true;
+    }
+
+    // window が条件を満たしているときの答え反映
+    void apply_answer() {
+        // ans = max(ans, r - l);
+    }
+
+    // 実行
+    void run() {
+        for (l = 0; l < n; l++) {
+            // r を条件が壊れるまで伸ばす
+            while (r < n) {
+                add_right(r);
+                if (!ok()) {
+                    // 壊れたので戻す
+                    remove_left(r);
+                    break;
+                }
+                r++;
+            }
+
+            // [l, r) は条件を満たす最大 window
+            apply_answer();
+
+            // 次の l に進む前に左端を外す
+            if (l < r) {
+                remove_left(l);
+            } else {
+                // l == r のときは r も進める
+                r++;
+            }
+        }
+    }
+};
+
+void solv(){
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+struct GridRange {
+    int H, W;
+
+    GridRange(int h, int w) : H(h), W(w) {}
+
+    GridRange(const vector<string>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    template<class T>
+    GridRange(const vector<vector<T>>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    bool in(int x, int y) const {
+        return (0 <= x && x < H && 0 <= y && y < W);
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+struct Neighbors {
+    vector<pair<int,int>> d;
+
+    // 4近傍
+    static Neighbors four(){
+        return {{{1,0},{-1,0},{0,1},{0,-1}}};
+    }
+
+    // 8近傍
+    static Neighbors eight(){
+        return {{{1,0},{-1,0},{0,1},{0,-1},
+                 {1,1},{1,-1},{-1,1},{-1,-1}}};
+    }
+};
+
+vector<vector<ll>> warshall_floyd(
+    int N,
+    vector<vector<ll>> dist
+){
+    const ll INF = (1LL<<60);
+
+    for(int k = 0; k < N; k++){
+        for(int i = 0; i < N; i++){
+            if(dist[i][k] == INF) continue;
+            for(int j = 0; j < N; j++){
+                if(dist[k][j] == INF) continue;
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+            }
+        }
+    }
+    return dist;
+}
+
+void solv(){
+    int H,W;
+    cin>>H>>W;
+    vector<string>S(H);
+    rep(i,0,H)cin>>S[i];
+    GridRange gr(S);
+    auto to=Neighbors::four();
+    //ワーシャル・フロイド(全点)
+    vector<vector<ll>>dist(H*W,vector<ll>(H*W,(1LL<<60)));
+    rep(i,0,H)rep(j,0,W)if(S[i][j]=='.'){
+        dist[i*W+j][i*W+j]=0;
+        for(auto [dh,dw]:to.d)if(gr.in(i+dh,j+dw)&&S[i+dh][j+dw]=='.')dist[i*W+j][(i+dh)*W+j+dw]=1;
+    }
+    dist=warshall_floyd(H*W,dist);
+    ll ans=0;
+    rep(i,0,H)rep(j,0,W)rep(k,0,H)rep(l,0,W)if(S[i][j]=='.'&&S[k][l]=='.')chmax(ans,dist[i*W+j][k*W+l]);
+    cout<<ans<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

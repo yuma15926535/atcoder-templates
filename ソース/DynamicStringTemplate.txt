@@ -1,0 +1,1414 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================================
+// DynamicString  --  AtCoder用 "全部入り" 動的文字列テンプレート
+// ----------------------------------------------------------------------------
+// 実装方式 : Implicit Treap (1文字=1ノード) + 二重 Rolling Hash
+//            (forward hash と reverse hash を同時に管理し, reverse lazy 適用時
+//             に O(1) で入れ替えることで区間反転と両立させる)
+//
+// 区間は常に半開区間 [l, r), 添字はすべて 0-based で統一する。
+//
+// ---------------------------------------------------------------------------
+// 【API一覧と計算量】 (N = size())
+//
+//  size/empty/get/operator[]/front/back    O(log N) (size/emptyはO(1))
+//  set(i,c)                                O(log N)
+//  push_back/pop_back/push_front/pop_front O(log N)
+//  insert(i,c) / insert(i,string)          O(log N) / O(log N + |s|)
+//  erase(i) / erase(l,r)                   O(log N)
+//  substr(l,r) / to_string(l,r) / to_string() O(r-l) / O(N)
+//  replace(l,r,string s)                   O(log N + |s|)
+//  copy(l,r,pos)                           O(log N)  ([l,r)を複製してposに挿入)
+//  extract(l,r) / splice(pos,other,l,r)    O(log N)
+//  split(k) / merge / concat               O(log N)
+//  reverse(l,r) / rotate(l,r,k) / move(l,r,pos) / swap_range O(log N)
+//  assign(l,r,c)                           O(log N)  (区間を文字cで埋める)
+//
+//  --- Rolling Hash ---
+//  hash(l,r) / reverse_hash(l,r)           O(log N)
+//  equal(l1,r1,l2,r2)                      O(log N)
+//  compare(l1,r1,l2,r2)                    O(log^2 N)  (LCPの二分探索)
+//  lcp(i,j)                                O(log^2 N)
+//  is_palindrome(l,r)                      O(log N)
+//
+//  --- 検索 (文字集合を小さく仮定しない汎用フォールバック) ---
+//  count(l,r,c) / find_first(l,r,c) / find_last(l,r,c)  O(r-l)
+//  find(pattern) / contains(pattern) / count(pattern)   O(N+|pattern|)
+//     (Rabin-Karpハッシュによる素朴実装。下記「実装対象外」節参照)
+//
+//  --- debug ---
+//  dump()/print()/check()/validate()
+//
+// ---------------------------------------------------------------------------
+// 【Rolling Hashの設計】
+//   mod M = 2^61-1 (メルセンヌ素数) を1つ使い, 2種類の base (B1,B2) を
+//   実行時に乱数で選んで2本のハッシュを同時に計算する (いわゆる二重ハッシュ)。
+//   base を実行時乱数にすることで, 提出前に用意されたanti-hashケースに対する
+//   耐性を持たせている。
+//
+//   forward hash: fh(s) = sum_{i=0}^{|s|-1} s[i] * B^i  (先頭文字の指数が0)
+//   reverse hash: rh(s) = fh(reverse(s))
+//   連結則: fh(A+B) = fh(A) + B^|A| * fh(B),  rh(A+B) = rh(B) + B^|B| * rh(A)
+//
+//   区間反転(reverse)適用時は fh <-> rh を入れ替えるだけでO(1)更新できる。
+//   区間代入(assign(l,r,c))適用時は等比数列の和の公式
+//     sum_{i=0}^{L-1} c*B^i = c*(B^L-1)*inv(B-1) mod M
+//   によりO(1)で新しいhashを計算する ( inv(B-1) は起動時に前計算 )。
+//   定数文字列は反転しても同じなので、assign直後は fh==rh となる。
+//
+// 【実装対象外の機能とその理由】
+//   - count(l,r,c)/find_first/find_last の O(log N) 化
+//       : 一般に文字集合が大きい (ASCII全体など)場合, 各nodeに文字ごとの
+//         カウント配列を持たせるとメモリ使用量が (文字種類数)×N のオーダーに
+//         膨れ上がる。競技プログラミングでは文字集合が a-z 程度に限定される
+//         ことが多いが、本テンプレートは文字集合を仮定せず汎用的に使える
+//         ことを優先し、これらは O(len) の fallback とした。
+//         (文字集合が26種程度と分かっている場合は、Nodeに array<int,26> の
+//         文字別カウントを追加すれば同様の手法でO(log N)化できる。)
+//   - find(pattern)/count(pattern) の O(log N) や O(log^2 N) 化
+//       : 動的文字列に対する任意パターンの高速検索は Suffix Automaton /
+//         Suffix Array 等の静的構造が必要で, insert/erase/reverse/assign と
+//         両立する動的版は非常に重く実用的でない。本テンプレートは
+//         Rolling Hash を用いた O(N+|pattern|) の Rabin-Karp 実装のみ提供する。
+//   - Character Mapping (map(l,r,permutation)) の実装
+//       : 文字の置換をLazyとして正しく持つには, 各nodeで「文字cごとの
+//         位置重みつき出現和」(26種なら26個のaccumulator)を保持し, 置換
+//         適用時にそれらを並べ替える必要があり, hashとの整合性を保った
+//         実装は複雑になる。仕様書item54でも "実装が複雑になる場合は
+//         optional扱い" とされているため, 本テンプレートでは実装対象外
+//         とする (assign(l,r,c) による1文字埋めで代替可能なケースが多い)。
+//
+// 【Node pool】 DynamicSequence/DynamicBinarySequence と同じ static shared
+//              pool + free list方式。
+// 【コピー】 copy禁止, move許可。深いコピーは clone() で明示的に行う。
+// ============================================================================
+struct DynamicString {
+    using ull = unsigned long long;
+    static constexpr ull MOD = 2305843009213693951ULL; // 2^61 - 1
+
+    static ull mulmod(ull a, ull b) { return (ull)((__uint128_t)a * b % MOD); }
+    static ull addmod(ull a, ull b) { ull s = a + b; return s >= MOD ? s - MOD : s; }
+    static ull submod(ull a, ull b) { return a >= b ? a - b : a + MOD - b; }
+    static ull modpow(ull a, ull e) {
+        ull r = 1 % MOD; a %= MOD;
+        while (e) { if (e & 1) r = mulmod(r, a); a = mulmod(a, a); e >>= 1; }
+        return r;
+    }
+
+    static inline ull B1, B2, INV1, INV2; // 起動時に乱数initされる
+    static inline vector<ull> POW1{1}, POW2{1};
+    static inline bool inited = false;
+    static void init_hash() {
+        if (inited) return;
+        inited = true;
+        mt19937_64 seedrng((unsigned long long)chrono::steady_clock::now().time_since_epoch().count());
+        B1 = 256 + seedrng() % (MOD - 1000);
+        B2 = 256 + seedrng() % (MOD - 1000);
+        if (B1 == B2) B2++;
+        INV1 = modpow(submod(B1, 1), MOD - 2);
+        INV2 = modpow(submod(B2, 1), MOD - 2);
+    }
+    static void ensure_pow(int n) {
+        int old = (int)POW1.size();
+        if (old > n) return;
+        POW1.resize(n + 1); POW2.resize(n + 1);
+        for (int i = old; i <= n; i++) { POW1[i] = mulmod(POW1[i-1], B1); POW2[i] = mulmod(POW2[i-1], B2); }
+    }
+
+    struct Node {
+        int ch[2] = {-1, -1};
+        unsigned long long pri = 0;
+        int sz = 1;
+        char val = 0;
+        ull fh1 = 0, fh2 = 0, rh1 = 0, rh2 = 0;
+        bool rev = false;
+        bool has_assign = false;
+        char assign_val = 0;
+    };
+
+    static inline vector<Node> pool;
+    static inline vector<int> free_list;
+    static inline mt19937_64 rng{(unsigned long long)chrono::steady_clock::now().time_since_epoch().count() ^ 0x9e3779b97f4a7c15ULL};
+
+    int root = -1;
+
+    static int alloc_node(char c) {
+        init_hash();
+        int idx;
+        if (!free_list.empty()) { idx = free_list.back(); free_list.pop_back(); pool[idx] = Node(); }
+        else { pool.emplace_back(); idx = (int)pool.size() - 1; }
+        Node& nd = pool[idx];
+        nd.val = c;
+        nd.fh1 = nd.rh1 = (ull)(unsigned char)c;
+        nd.fh2 = nd.rh2 = (ull)(unsigned char)c;
+        nd.pri = rng();
+        return idx;
+    }
+    static void free_subtree(int t) {
+        if (t == -1) return;
+        free_subtree(pool[t].ch[0]);
+        free_subtree(pool[t].ch[1]);
+        free_list.push_back(t);
+    }
+    static int SZ(int t) { return t == -1 ? 0 : pool[t].sz; }
+
+    static void pull(int t) {
+        Node& nd = pool[t];
+        int lc = nd.ch[0], rc = nd.ch[1];
+        int Lsz = SZ(lc), Rsz = SZ(rc);
+        nd.sz = Lsz + 1 + Rsz;
+        ensure_pow(nd.sz);
+        ull lf1 = (lc == -1 ? 0 : pool[lc].fh1), lf2 = (lc == -1 ? 0 : pool[lc].fh2);
+        ull rf1 = (rc == -1 ? 0 : pool[rc].fh1), rf2 = (rc == -1 ? 0 : pool[rc].fh2);
+        ull lr1 = (lc == -1 ? 0 : pool[lc].rh1), lr2 = (lc == -1 ? 0 : pool[lc].rh2);
+        ull rr1 = (rc == -1 ? 0 : pool[rc].rh1), rr2 = (rc == -1 ? 0 : pool[rc].rh2);
+        ull v = (ull)(unsigned char)nd.val;
+
+        nd.fh1 = addmod(lf1, addmod(mulmod(POW1[Lsz], v), mulmod(POW1[Lsz+1], rf1)));
+        nd.fh2 = addmod(lf2, addmod(mulmod(POW2[Lsz], v), mulmod(POW2[Lsz+1], rf2)));
+        nd.rh1 = addmod(rr1, addmod(mulmod(POW1[Rsz], v), mulmod(POW1[Rsz+1], lr1)));
+        nd.rh2 = addmod(rr2, addmod(mulmod(POW2[Rsz], v), mulmod(POW2[Rsz+1], lr2)));
+    }
+
+    static void apply_assign(int t, char c) {
+        Node& nd = pool[t];
+        int n = nd.sz;
+        ensure_pow(n);
+        ull v = (ull)(unsigned char)c;
+        ull g1 = mulmod(v, mulmod(submod(POW1[n], 1), INV1));
+        ull g2 = mulmod(v, mulmod(submod(POW2[n], 1), INV2));
+        nd.val = c;
+        nd.fh1 = nd.rh1 = g1;
+        nd.fh2 = nd.rh2 = g2;
+        nd.has_assign = true;
+        nd.assign_val = c;
+    }
+    static void apply_rev(int t) {
+        Node& nd = pool[t];
+        nd.rev = !nd.rev;
+        swap(nd.ch[0], nd.ch[1]);
+        swap(nd.fh1, nd.rh1);
+        swap(nd.fh2, nd.rh2);
+    }
+    static void push(int t) {
+        Node& nd = pool[t];
+        if (nd.rev) {
+            if (nd.ch[0] != -1) apply_rev(nd.ch[0]);
+            if (nd.ch[1] != -1) apply_rev(nd.ch[1]);
+            nd.rev = false;
+        }
+        if (nd.has_assign) {
+            if (nd.ch[0] != -1) apply_assign(nd.ch[0], nd.assign_val);
+            if (nd.ch[1] != -1) apply_assign(nd.ch[1], nd.assign_val);
+            nd.has_assign = false;
+        }
+    }
+
+    static pair<int,int> split(int t, int k) {
+        if (t == -1) return {-1, -1};
+        push(t);
+        int lc = pool[t].ch[0];
+        if (SZ(lc) >= k) { auto [a,b] = split(lc, k); pool[t].ch[0] = b; pull(t); return {a, t}; }
+        else { auto [a,b] = split(pool[t].ch[1], k - SZ(lc) - 1); pool[t].ch[1] = a; pull(t); return {t, b}; }
+    }
+    static int merge(int a, int b) {
+        if (a == -1) return b;
+        if (b == -1) return a;
+        if (pool[a].pri > pool[b].pri) { push(a); pool[a].ch[1] = merge(pool[a].ch[1], b); pull(a); return a; }
+        else { push(b); pool[b].ch[0] = merge(a, pool[b].ch[0]); pull(b); return b; }
+    }
+    static int build(const string& s, int l, int r) {
+        if (l >= r) return -1;
+        if (r - l == 1) return alloc_node(s[l]);
+        int mid = (l + r) / 2;
+        return merge(build(s, l, mid), build(s, mid, r));
+    }
+
+    DynamicString() = default;
+    explicit DynamicString(const string& s) { root = build(s, 0, (int)s.size()); }
+    DynamicString(const DynamicString&) = delete;
+    DynamicString& operator=(const DynamicString&) = delete;
+    DynamicString(DynamicString&& o) noexcept : root(o.root) { o.root = -1; }
+    DynamicString& operator=(DynamicString&& o) noexcept {
+        if (this != &o) { free_subtree(root); root = o.root; o.root = -1; }
+        return *this;
+    }
+    ~DynamicString() { free_subtree(root); }
+
+    DynamicString clone() const { DynamicString res; res.root = clone_subtree(root); return res; }
+    static int clone_subtree(int t) {
+        if (t == -1) return -1;
+        push(t);
+        int idx = alloc_node(pool[t].val);
+        pool[idx].pri = pool[t].pri;
+        pool[idx].ch[0] = clone_subtree(pool[t].ch[0]);
+        pool[idx].ch[1] = clone_subtree(pool[t].ch[1]);
+        pull(idx);
+        return idx;
+    }
+
+    int size() const { return SZ(root); }      // O(1)
+    bool empty() const { return root == -1; }   // O(1)
+
+    char get(int i) const { // O(log N)
+        assert(0 <= i && i < size());
+        int t = root;
+        while (true) {
+            push(t);
+            int lc = pool[t].ch[0], cs = SZ(lc);
+            if (i < cs) t = lc;
+            else if (i == cs) return pool[t].val;
+            else { i -= cs + 1; t = pool[t].ch[1]; }
+        }
+    }
+    char operator[](int i) const { return get(i); }
+    char front() const { assert(!empty()); return get(0); }
+    char back() const { assert(!empty()); return get(size()-1); }
+
+    void set(int i, char c) { assert(0<=i&&i<size()); set_impl(root,i,c); } // O(log N)
+    static void set_impl(int t, int i, char c) {
+        push(t);
+        int lc = pool[t].ch[0], cs = SZ(lc);
+        if (i < cs) set_impl(lc, i, c);
+        else if (i == cs) pool[t].val = c;
+        else set_impl(pool[t].ch[1], i - cs - 1, c);
+        pull(t);
+    }
+
+    void insert(int i, char c) { // O(log N)
+        assert(0<=i&&i<=size());
+        auto [a,b] = split(root, i);
+        int nd = alloc_node(c);
+        root = merge(merge(a, nd), b);
+    }
+    void insert(int i, const string& s) { // O(log N + |s|)
+        assert(0<=i&&i<=size());
+        if (s.empty()) return;
+        auto [a,b] = split(root, i);
+        int mid = build(s, 0, (int)s.size());
+        root = merge(merge(a, mid), b);
+    }
+    void erase(int i) { assert(0<=i&&i<size()); erase(i, i+1); } // O(log N)
+    void erase(int l, int r) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        if (l==r) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,r-l);
+        free_subtree(b);
+        root=merge(a,c);
+    }
+    void push_back(char c) { insert(size(), c); }
+    void pop_back() { assert(!empty()); erase(size()-1); }
+    void push_front(char c) { insert(0, c); }
+    void pop_front() { assert(!empty()); erase(0); }
+
+    // [l,r) を新しい文字列 s に置き換える。 O(log N + |s|)
+    void replace(int l, int r, const string& s) {
+        assert(0<=l&&l<=r&&r<=size());
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,r-l);
+        free_subtree(b);
+        int mid = build(s, 0, (int)s.size());
+        root = merge(merge(a, mid), c);
+    }
+
+    string to_string() const { return to_string(0, size()); } // O(N)
+    string to_string(int l, int r) const {                     // O(r-l)
+        assert(0<=l&&l<=r&&r<=size());
+        string res; res.reserve(r-l);
+        collect(root, l, r, res);
+        return res;
+    }
+    string substr(int l, int r) const { return to_string(l, r); } // O(r-l)
+    static void collect(int t, int l, int r, string& res) {
+        if (t==-1||l>=r) return;
+        push(t);
+        int lc = pool[t].ch[0], cs = SZ(lc);
+        if (l < cs) collect(lc, l, std::min(r,cs), res);
+        if (l <= cs && cs < r) res.push_back(pool[t].val);
+        if (r > cs+1) collect(pool[t].ch[1], std::max(0,l-cs-1), r-cs-1, res);
+    }
+
+    // ------------------------------------------------------------------
+    pair<DynamicString, DynamicString> split(int k) { // O(log N)
+        assert(0<=k&&k<=size());
+        auto [a,b] = split(root,k);
+        root=-1;
+        DynamicString L,R; L.root=a; R.root=b;
+        return {std::move(L), std::move(R)};
+    }
+    void merge(DynamicString& other) { root = merge(root, other.root); other.root=-1; } // O(log N)
+    static DynamicString merge(DynamicString& a, DynamicString& b) {
+        DynamicString res; res.root = merge(a.root,b.root); a.root=-1; b.root=-1; return res;
+    }
+    static DynamicString concat(vector<DynamicString>& seqs) {
+        DynamicString res; for (auto& s: seqs) res.merge(s); return res;
+    }
+
+    void reverse(int l, int r) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        if (r-l<=1) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,r-l);
+        if (b!=-1) apply_rev(b);
+        root=merge(merge(a,b),c);
+    }
+    void rotate(int l, int r, long long k) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        int len=r-l; if (len<=1) return;
+        k%=len; if(k<0) k+=len; if(k==0) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,len);
+        auto [b1,b2]=split(b, len-(int)k);
+        root = merge(merge(a, merge(b2,b1)), c);
+    }
+    void shift_right(int l,int r,long long k){ rotate(l,r,k); }
+    void shift_left(int l,int r,long long k){ rotate(l,r,-k); }
+
+    void move(int l, int r, int pos) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        int len=r-l; assert(0<=pos&&pos<=size()-len);
+        if (len==0) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,len);
+        int red = merge(a,c);
+        auto [r1,r2]=split(red,pos);
+        root = merge(merge(r1,b), r2);
+    }
+    void swap_range(int l1,int r1,int l2,int r2) { // O(log N)
+        assert(0<=l1&&l1<=r1); assert(0<=l2&&l2<=r2);
+        if (l1>l2){ std::swap(l1,l2); std::swap(r1,r2); }
+        assert(r1<=l2 && "swap_range: 区間が重複しています");
+        assert(r2<=size());
+        if (r1-l1==0 && r2-l2==0) return;
+        auto [a,rest1]=split(root,l1);
+        auto [seg1,rest2]=split(rest1,r1-l1);
+        auto [b,rest3]=split(rest2,l2-r1);
+        auto [seg2,c]=split(rest3,r2-l2);
+        root = merge(merge(merge(merge(a,seg2),b),seg1),c);
+    }
+    DynamicString extract(int l, int r) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,r-l);
+        root=merge(a,c);
+        DynamicString res; res.root=b; return res;
+    }
+    void splice(int pos, DynamicString& other, int l, int r) { // O(log N)
+        assert(0<=pos&&pos<=size());
+        assert(0<=l&&l<=r&&r<=other.size());
+        auto [oa,obc]=split(other.root,l);
+        auto [seg,oc]=split(obc,r-l);
+        other.root=merge(oa,oc);
+        auto [a,b]=split(root,pos);
+        root=merge(merge(a,seg),b);
+    }
+    // [l,r) を複製し, 自分の pos に挿入する (元の [l,r) はそのまま残る)。 O(log N)
+    void copy(int l, int r, int pos) {
+        assert(0<=l&&l<=r&&r<=size());
+        assert(0<=pos&&pos<=size());
+        string s = to_string(l, r);
+        insert(pos, s);
+    }
+
+    void assign(int l, int r, char c) { // O(log N)  [l,r) を文字cで埋める
+        assert(0<=l&&l<=r&&r<=size());
+        if (l==r) return;
+        auto [a,bc]=split(root,l);
+        auto [seg,c2]=split(bc,r-l);
+        if (seg!=-1) apply_assign(seg,c);
+        root=merge(merge(a,seg),c2);
+    }
+
+    // ==================================================================
+    // Rolling Hash
+    // ==================================================================
+    struct HashAcc {
+        bool has=false; int sz=0;
+        ull fh1=0,fh2=0,rh1=0,rh2=0;
+    };
+    static HashAcc single(int t) {
+        HashAcc r; r.has=true; Node& nd=pool[t];
+        r.sz=nd.sz; r.fh1=nd.fh1; r.fh2=nd.fh2; r.rh1=nd.rh1; r.rh2=nd.rh2;
+        return r;
+    }
+    static HashAcc combine(const HashAcc& L, char v, const HashAcc& R) {
+        int Lsz = L.has?L.sz:0, Rsz = R.has?R.sz:0;
+        ensure_pow(Lsz+1+Rsz);
+        HashAcc res; res.has=true; res.sz=Lsz+1+Rsz;
+        ull val=(ull)(unsigned char)v;
+        ull lf1=L.has?L.fh1:0, lf2=L.has?L.fh2:0, rf1=R.has?R.fh1:0, rf2=R.has?R.fh2:0;
+        ull lr1=L.has?L.rh1:0, lr2=L.has?L.rh2:0, rr1=R.has?R.rh1:0, rr2=R.has?R.rh2:0;
+        res.fh1 = addmod(lf1, addmod(mulmod(POW1[Lsz], val), mulmod(POW1[Lsz+1], rf1)));
+        res.fh2 = addmod(lf2, addmod(mulmod(POW2[Lsz], val), mulmod(POW2[Lsz+1], rf2)));
+        res.rh1 = addmod(rr1, addmod(mulmod(POW1[Rsz], val), mulmod(POW1[Rsz+1], lr1)));
+        res.rh2 = addmod(rr2, addmod(mulmod(POW2[Rsz], val), mulmod(POW2[Rsz+1], lr2)));
+        return res;
+    }
+    static HashAcc query(int t, int l, int r) {
+        if (t==-1||l>=r) return HashAcc{};
+        push(t);
+        int lc=pool[t].ch[0], cs=SZ(lc);
+        if (l<=0 && r>=SZ(t)) return single(t);
+        HashAcc L = (l<cs)? query(lc,l,std::min(r,cs)) : HashAcc{};
+        bool midpresent = (l<=cs && cs<r);
+        HashAcc R = (r>cs+1)? query(pool[t].ch[1], std::max(0,l-cs-1), r-cs-1) : HashAcc{};
+        if (!midpresent) {
+            if (L.has && !R.has) return L;
+            if (!L.has && R.has) return R;
+            return HashAcc{};
+        }
+        return combine(L, pool[t].val, R);
+    }
+    pair<ull,ull> hash(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); if(l==r) return {0,0}; auto a=query(root,l,r); return {a.fh1,a.fh2}; } // O(log N)
+    pair<ull,ull> reverse_hash(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); if(l==r) return {0,0}; auto a=query(root,l,r); return {a.rh1,a.rh2}; } // O(log N)
+
+    bool equal(int l1, int r1, int l2, int r2) const { // O(log N)
+        assert(0<=l1&&l1<=r1&&r1<=size());
+        assert(0<=l2&&l2<=r2&&r2<=size());
+        if (r1-l1 != r2-l2) return false;
+        return hash(l1,r1) == hash(l2,r2);
+    }
+    bool is_palindrome(int l, int r) const { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        if (l==r) return true;
+        auto a = query(root,l,r);
+        return a.fh1==a.rh1 && a.fh2==a.rh2;
+    }
+    // suffix(i) と suffix(j) の LCP。 O(log^2 N)
+    int lcp(int i, int j) const {
+        assert(0<=i&&i<size()); assert(0<=j&&j<size());
+        int maxlen = std::min(size()-i, size()-j);
+        int lo=0, hi=maxlen;
+        while (lo<hi) { int mid=(lo+hi+1)/2; if (equal(i,i+mid,j,j+mid)) lo=mid; else hi=mid-1; }
+        return lo;
+    }
+    // [l1,r1) と [l2,r2) を辞書順比較。 <0 / 0 / >0 を返す。 O(log^2 N)
+    int compare(int l1, int r1, int l2, int r2) const {
+        assert(0<=l1&&l1<=r1&&r1<=size());
+        assert(0<=l2&&l2<=r2&&r2<=size());
+        int len1=r1-l1, len2=r2-l2, mn=std::min(len1,len2);
+        int lo=0, hi=mn;
+        while (lo<hi) { int mid=(lo+hi+1)/2; if (equal(l1,l1+mid,l2,l2+mid)) lo=mid; else hi=mid-1; }
+        if (lo==mn) return (len1<len2)?-1:(len1>len2?1:0);
+        char c1=get(l1+lo), c2=get(l2+lo);
+        return (c1<c2)?-1:(c1>c2?1:0);
+    }
+
+    // ==================================================================
+    // 検索 (O(len) fallback。ヘッダコメント参照)
+    // ==================================================================
+    long long count(int l, int r, char c) const { // O(r-l)
+        assert(0<=l&&l<=r&&r<=size());
+        string s = to_string(l,r);
+        return std::count(s.begin(), s.end(), c);
+    }
+    int find_first(int l, int r, char c) const { // O(r-l) 見つからなければ r
+        assert(0<=l&&l<=r&&r<=size());
+        for (int i=l;i<r;i++) if (get(i)==c) return i;
+        return r;
+    }
+    int find_last(int l, int r, char c) const { // O(r-l) 見つからなければ l-1
+        assert(0<=l&&l<=r&&r<=size());
+        for (int i=r-1;i>=l;i--) if (get(i)==c) return i;
+        return l-1;
+    }
+
+    // Rabin-Karp による部分文字列検索。 O(N+|pattern|)
+    int find(const string& pattern) const { return find(0, size(), pattern); }
+    int find(int l, int r, const string& pattern) const {
+        assert(0<=l&&l<=r&&r<=size());
+        int m=(int)pattern.size();
+        if (m==0) return l;
+        if (m > r-l) return r;
+        ensure_pow(m);
+        ull ph1=0, ph2=0;
+        for (int i=0;i<m;i++) { ull v=(ull)(unsigned char)pattern[i]; ph1=addmod(ph1, mulmod(POW1[i], v)); ph2=addmod(ph2, mulmod(POW2[i], v)); }
+        for (int i=l; i+m<=r; i++) {
+            auto h = hash(i, i+m);
+            if (h.first==ph1 && h.second==ph2) return i;
+        }
+        return r;
+    }
+    bool contains(const string& pattern) const { return find(pattern) != size(); } // O(N+|pattern|)
+    long long count_pattern(const string& pattern) const { return count_pattern(0, size(), pattern); } // O(N+|pattern|)
+    long long count_pattern(int l, int r, const string& pattern) const {
+        assert(0<=l&&l<=r&&r<=size());
+        int m=(int)pattern.size();
+        if (m==0 || m>r-l) return 0;
+        ensure_pow(m);
+        ull ph1=0, ph2=0;
+        for (int i=0;i<m;i++) { ull v=(ull)(unsigned char)pattern[i]; ph1=addmod(ph1, mulmod(POW1[i], v)); ph2=addmod(ph2, mulmod(POW2[i], v)); }
+        long long cnt=0;
+        for (int i=l; i+m<=r; i++) {
+            auto h = hash(i, i+m);
+            if (h.first==ph1 && h.second==ph2) cnt++;
+        }
+        return cnt;
+    }
+
+    // ==================================================================
+    // Debug
+    // ==================================================================
+    void print() const { cerr << to_string() << "\n"; } // O(N)
+    void dump() const { dump_rec(root,0); } // O(N)
+    static void dump_rec(int t, int depth) {
+        if (t==-1) return;
+        push(t);
+        dump_rec(pool[t].ch[1], depth+1);
+        cerr << string(depth*2,' ') << pool[t].val << " (sz=" << pool[t].sz << ")\n";
+        dump_rec(pool[t].ch[0], depth+1);
+    }
+    bool validate() const {
+        bool ok = check_rec(root) >= 0;
+        // hashの再計算一致チェック (実際に文字列化して独立に計算した値と比較)
+        if (ok && !empty()) {
+            string s = to_string();
+            ull h1=0,h2=0; ensure_pow((int)s.size());
+            for (int i=0;i<(int)s.size();i++){ ull v=(ull)(unsigned char)s[i]; h1=addmod(h1,mulmod(POW1[i],v)); h2=addmod(h2,mulmod(POW2[i],v)); }
+            auto [gh1,gh2] = hash(0,(int)s.size());
+            assert(gh1==h1 && gh2==h2 && "hash mismatch");
+        }
+        return ok;
+    }
+    bool check() const { return validate(); }
+    static int check_rec(int t) {
+        if (t==-1) return 0;
+        push(t);
+        int lc=pool[t].ch[0], rc=pool[t].ch[1];
+        if (lc!=-1) assert(pool[t].pri>=pool[lc].pri);
+        if (rc!=-1) assert(pool[t].pri>=pool[rc].pri);
+        int lsz=check_rec(lc), rsz=check_rec(rc);
+        int expect=lsz+1+rsz;
+        assert(pool[t].sz==expect);
+        return expect;
+    }
+};
+
+// ============================================================================
+// 動作確認 / Random Stress Test
+// AtCoderに提出する際はこの #ifdef LOCAL ブロックごと削除してよい。
+// ============================================================================
+#ifdef LOCAL
+#include <cassert>
+
+static string brute_reverse_hash_check(const string& s) { return string(s.rbegin(), s.rend()); }
+
+void stress_test_string() {
+    mt19937 rng(31415926);
+    auto randchar = [&]() -> char { return 'a' + (char)(rng()%4); }; // 小さいアルファベットで衝突しやすい状況もテスト
+    int n0 = rng()%8;
+    string ref; for (int i=0;i<n0;i++) ref += randchar();
+    DynamicString ds(ref);
+
+    int OPS = 15000;
+    for (int op=0; op<OPS; op++) {
+        int type = rng()%13;
+        int n = (int)ref.size();
+        if (type==0) { char c=randchar(); ref.push_back(c); ds.push_back(c); }
+        else if (type==1 && n>0) { ref.pop_back(); ds.pop_back(); }
+        else if (type==2) { char c=randchar(); ref.insert(ref.begin(),c); ds.push_front(c); }
+        else if (type==3 && n>0) { ref.erase(ref.begin()); ds.pop_front(); }
+        else if (type==4) { int i=rng()%(n+1); char c=randchar(); ref.insert(ref.begin()+i,c); ds.insert(i,c); }
+        else if (type==5 && n>0) { int i=rng()%n; ref.erase(ref.begin()+i); ds.erase(i); }
+        else if (type==6 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); ref.erase(ref.begin()+l,ref.begin()+r); ds.erase(l,r); }
+        else if (type==7 && n>0) { int i=rng()%n; char c=randchar(); ref[i]=c; ds.set(i,c); }
+        else if (type==8 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); std::reverse(ref.begin()+l,ref.begin()+r); ds.reverse(l,r); }
+        else if (type==9 && n>0) {
+            int l=rng()%n,r=l+rng()%(n-l+1);
+            if (r>l) { long long k=(long long)(rng()%(2*(r-l)+1))-(r-l); long long kk=((k%(r-l))+(r-l))%(r-l);
+                std::rotate(ref.begin()+l, ref.begin()+(l+((r-l)-(int)kk)%(r-l)), ref.begin()+r); ds.rotate(l,r,k); }
+        }
+        else if (type==10 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); if(r>l){ char c=randchar(); for(int i=l;i<r;i++) ref[i]=c; ds.assign(l,r,c);} }
+        else if (type==11 && n>0) {
+            int l=rng()%n,r=l+rng()%(n-l+1); int len=r-l; int pos=rng()%(n-len+1);
+            string seg = ref.substr(l,len);
+            ref.erase(l,len); ref.insert(pos, seg);
+            ds.move(l,r,pos);
+        }
+        else if (type==12) { int i=rng()%(n+1); string s; int len=rng()%4; for(int k=0;k<len;k++) s+=randchar(); ref.insert(i,s); ds.insert(i,s); }
+
+        assert((int)ref.size() == ds.size());
+        assert(ds.to_string() == ref);
+        ds.validate();
+        if (!ref.empty()) {
+            int l = rng()%ref.size(), r = l + rng()%(ref.size()-l+1);
+            if (r>l) {
+                bool expect_pal = (ref.substr(l,r-l) == brute_reverse_hash_check(ref.substr(l,r-l)));
+                assert(ds.is_palindrome(l,r) == expect_pal);
+
+                int l2 = rng()%ref.size(), r2 = l2 + rng()%(ref.size()-l2+1);
+                if (r2>l2) {
+                    bool expect_eq = (ref.substr(l,r-l) == ref.substr(l2,r2-l2));
+                    assert(ds.equal(l,r,l2,r2) == expect_eq);
+                    int expect_cmp_raw = ref.substr(l,r-l).compare(ref.substr(l2,r2-l2));
+                    int expect_cmp = (expect_cmp_raw<0)?-1:(expect_cmp_raw>0?1:0);
+                    int got_cmp = ds.compare(l,r,l2,r2);
+                    assert((got_cmp<0)==(expect_cmp<0) && (got_cmp==0)==(expect_cmp==0) && (got_cmp>0)==(expect_cmp>0));
+                }
+                int i = rng()%ref.size(), j = rng()%ref.size();
+                int expect_lcp=0; while (i+expect_lcp<(int)ref.size() && j+expect_lcp<(int)ref.size() && ref[i+expect_lcp]==ref[j+expect_lcp]) expect_lcp++;
+                assert(ds.lcp(i,j) == expect_lcp);
+
+                char c = randchar();
+                assert(ds.count(l,r,c) == std::count(ref.begin()+l, ref.begin()+r, c));
+                int ff_expect = r; for(int k=l;k<r;k++) if(ref[k]==c){ff_expect=k;break;}
+                assert(ds.find_first(l,r,c) == ff_expect);
+            }
+        }
+    }
+    cerr << "[DynamicString] stress_test_string OK (" << OPS << " ops, final size=" << ref.size() << ")\n";
+}
+
+void stress_test_string_extra() {
+    // extract/splice/concat/replace/copy/find/count_pattern
+    {
+        DynamicString ds(string("abcdefgh"));
+        auto sub = ds.extract(2,5); // "cde"
+        assert(sub.to_string() == "cde");
+        assert(ds.to_string() == "abfgh");
+        ds.splice(1, sub, 0, 2); // insert "cd"
+        assert(ds.to_string() == "acdbfgh");
+        assert(sub.to_string() == "e");
+
+        vector<DynamicString> parts;
+        parts.push_back(DynamicString(string("ab")));
+        parts.push_back(DynamicString(string("cd")));
+        auto cc = DynamicString::concat(parts);
+        assert(cc.to_string() == "abcd");
+
+        DynamicString ds2(string("hello world"));
+        ds2.replace(6,11,string("there"));
+        assert(ds2.to_string() == "hello there");
+
+        DynamicString ds3(string("abcabcabc"));
+        assert(ds3.find(string("cab")) == 2);
+        assert(ds3.contains(string("xyz")) == false);
+        assert(ds3.count_pattern(string("abc")) == 3);
+
+        DynamicString ds4(string("xyz"));
+        ds4.copy(0,3,3); // "xyzxyz"
+        assert(ds4.to_string() == "xyzxyz");
+    }
+    cerr << "[DynamicString] stress_test_string_extra OK\n";
+}
+
+void test_DynamicString() {
+    cout << "=== DynamicString 動作確認 ===\n";
+
+    // ================================================================
+    // 1. 基本操作
+    // ================================================================
+    {
+        cout << "\n[1] 基本操作\n";
+
+        DynamicString s("abcde");
+
+        cout << "初期文字列: " << s.to_string() << "\n";
+        cout << "size: " << s.size() << "\n";
+        cout << "empty: " << (s.empty() ? "true" : "false") << "\n";
+
+        cout << "s[2]: " << s[2] << "\n";
+        cout << "front: " << s.front() << "\n";
+        cout << "back : " << s.back() << "\n";
+
+        s.set(2, 'X');
+        cout << "set(2,'X'): " << s.to_string() << "\n";
+
+        s.insert(2, 'Y');
+        cout << "insert(2,'Y'): " << s.to_string() << "\n";
+
+        s.insert(3, "123");
+        cout << "insert(3,\"123\"): " << s.to_string() << "\n";
+
+        s.erase(3);
+        cout << "erase(3): " << s.to_string() << "\n";
+
+        s.erase(2, 5);
+        cout << "erase(2,5): " << s.to_string() << "\n";
+
+        s.push_back('Z');
+        cout << "push_back('Z'): " << s.to_string() << "\n";
+
+        s.push_front('Q');
+        cout << "push_front('Q'): " << s.to_string() << "\n";
+
+        s.pop_back();
+        cout << "pop_back(): " << s.to_string() << "\n";
+
+        s.pop_front();
+        cout << "pop_front(): " << s.to_string() << "\n";
+
+        // [l,r) を置き換える
+        // 前提: 0 <= l <= r <= size()
+        s.replace(1, 3, "XYZ");
+        cout << "replace(1,3,\"XYZ\"): " << s.to_string() << "\n";
+
+        cout << "substr(1,4): " << s.substr(1, 4) << "\n";
+        cout << "to_string(1,4): " << s.to_string(1, 4) << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 2. reverse / rotate / shift
+    // ================================================================
+    {
+        cout << "\n[2] 区間操作\n";
+
+        DynamicString s("abcdef");
+
+        // [l,r) を反転
+        // 前提: 0 <= l <= r <= size()
+        s.reverse(1, 5);
+        cout << "reverse(1,5): " << s.to_string() << "\n";
+
+        // [l,r) を右に k 回転
+        // 前提: 0 <= l <= r <= size()
+        // k は負でもよい
+        s.rotate(1, 5, 2);
+        cout << "rotate(1,5,2): " << s.to_string() << "\n";
+
+        // [l,r) を左に k 回転
+        // 前提: 0 <= l <= r <= size()
+        s.shift_left(1, 5, 1);
+        cout << "shift_left(1,5,1): " << s.to_string() << "\n";
+
+        // [l,r) を右に k 回転
+        // 前提: 0 <= l <= r <= size()
+        s.shift_right(1, 5, 2);
+        cout << "shift_right(1,5,2): " << s.to_string() << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 3. assign
+    // ================================================================
+    {
+        cout << "\n[3] 区間代入\n";
+
+        DynamicString s("abcdefgh");
+
+        // [l,r) をすべて c にする
+        // 前提: 0 <= l <= r <= size()
+        s.assign(2, 6, 'X');
+
+        cout << "assign(2,6,'X'): " << s.to_string() << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 4. split / merge
+    // ================================================================
+    {
+        cout << "\n[4] split / merge\n";
+
+        DynamicString s("abcdefgh");
+
+        // k は 0 <= k <= size()
+        // 左: [0,k), 右: [k,size())
+        auto [L, R] = s.split(3);
+
+        cout << "split(3):\n";
+        cout << "  左 : " << L.to_string() << "\n";
+        cout << "  右 : " << R.to_string() << "\n";
+        cout << "  元 : " << s.to_string() << "\n";
+
+        // split 後は元の s が空になる
+        assert(s.empty());
+
+        // L の末尾に R を連結
+        // 前提: L と R の所有権を merge に渡す
+        L.merge(R);
+
+        cout << "L.merge(R): " << L.to_string() << "\n";
+        cout << "R は空: " << (R.empty() ? "true" : "false") << "\n";
+
+        assert(L.to_string() == "abcdefgh");
+        assert(R.empty());
+        assert(L.validate());
+    }
+
+    // ================================================================
+    // 5. static merge / concat
+    // ================================================================
+    {
+        cout << "\n[5] static merge / concat\n";
+
+        DynamicString a("abc");
+        DynamicString b("def");
+
+        // merge 後、a,b の所有権は res に移る
+        DynamicString c = DynamicString::merge(a, b);
+
+        cout << "merge(\"abc\",\"def\"): " << c.to_string() << "\n";
+        cout << "a は空: " << (a.empty() ? "true" : "false") << "\n";
+        cout << "b は空: " << (b.empty() ? "true" : "false") << "\n";
+
+        vector<DynamicString> v;
+        v.emplace_back("123");
+        v.emplace_back("456");
+        v.emplace_back("789");
+
+        // concat 後、各要素の所有権は res に移る
+        DynamicString d = DynamicString::concat(v);
+
+        cout << "concat: " << d.to_string() << "\n";
+
+        assert(c.to_string() == "abcdef");
+        assert(d.to_string() == "123456789");
+        assert(c.validate());
+        assert(d.validate());
+    }
+
+    // ================================================================
+    // 6. move
+    // ================================================================
+    {
+        cout << "\n[6] move\n";
+
+        DynamicString s("abcdefgh");
+
+        // [l,r) を一旦取り出し、残った文字列の pos に挿入
+        //
+        // 前提:
+        //   0 <= l <= r <= size()
+        //   0 <= pos <= size() - (r-l)
+        //
+        // pos は「区間を取り除いた後」の位置
+        s.move(2, 5, 0);
+
+        cout << "move(2,5,0): " << s.to_string() << "\n";
+
+        DynamicString t("abcdefgh");
+
+        // 後ろへ移動する例
+        t.move(1, 3, 5);
+
+        cout << "move(1,3,5): " << t.to_string() << "\n";
+
+        assert(s.validate());
+        assert(t.validate());
+    }
+
+    // ================================================================
+    // 7. swap_range
+    // ================================================================
+    {
+        cout << "\n[7] swap_range\n";
+
+        DynamicString s("ABCDEFGHIJ");
+
+        // 2つの区間を交換
+        //
+        // 前提:
+        //   0 <= l1 <= r1
+        //   0 <= l2 <= r2
+        //   区間は重ならない
+        //   実装上、l1 <= l2 に並べ替えられる
+        //
+        // [l1,r1) と [l2,r2) を交換
+        s.swap_range(1, 3, 6, 9);
+
+        cout << "swap_range(1,3,6,9): " << s.to_string() << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 8. extract / splice
+    // ================================================================
+    {
+        cout << "\n[8] extract / splice\n";
+
+        DynamicString s("abcdefgh");
+
+        // [l,r) を元の文字列から切り離して別の DynamicString として取得
+        //
+        // 前提: 0 <= l <= r <= size()
+        DynamicString x = s.extract(2, 6);
+
+        cout << "extract(2,6):\n";
+        cout << "  元  : " << s.to_string() << "\n";
+        cout << "  抽出: " << x.to_string() << "\n";
+
+        DynamicString a("123456");
+        DynamicString b("ABCDEFG");
+
+        // other の [l,r) を切り取り、自分の pos に挿入
+        //
+        // 前提:
+        //   0 <= pos <= size()
+        //   0 <= l <= r <= other.size()
+        //
+        // 挿入された区間は other から消える
+        a.splice(3, b, 1, 4);
+
+        cout << "splice(3, b, 1, 4):\n";
+        cout << "  a: " << a.to_string() << "\n";
+        cout << "  b: " << b.to_string() << "\n";
+
+        assert(s.validate());
+        assert(x.validate());
+        assert(a.validate());
+        assert(b.validate());
+    }
+
+    // ================================================================
+    // 9. copy
+    // ================================================================
+    {
+        cout << "\n[9] copy\n";
+
+        DynamicString s("abcdef");
+
+        // [l,r) を複製して pos に挿入
+        //
+        // 前提:
+        //   0 <= l <= r <= size()
+        //   0 <= pos <= size()
+        //
+        // 元の [l,r) は残る
+        s.copy(1, 4, 5);
+
+        cout << "copy(1,4,5): " << s.to_string() << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 10. Rolling Hash
+    // ================================================================
+    {
+        cout << "\n[10] Rolling Hash\n";
+
+        DynamicString s("abacaba");
+
+        auto h1 = s.hash(0, 3);
+        auto h2 = s.hash(4, 7);
+
+        cout << "hash(0,3) == hash(4,7): "
+             << (h1 == h2 ? "true" : "false") << "\n";
+
+        // 同じ文字列なら hash が一致する
+        assert(s.equal(0, 3, 4, 7));
+
+        // [l,r) が回文か
+        cout << "is_palindrome(0,7): "
+             << (s.is_palindrome(0, 7) ? "true" : "false") << "\n";
+
+        cout << "is_palindrome(0,3): "
+             << (s.is_palindrome(0, 3) ? "true" : "false") << "\n";
+
+        // suffix(i), suffix(j) の最長共通接頭辞
+        DynamicString t("abcabca");
+
+        cout << "lcp(0,3): " << t.lcp(0, 3) << "\n";
+
+        // 前提: i,j は文字の位置なので 0 <= i,j < size()
+        assert(t.lcp(0, 3) == 4);
+
+        // [l1,r1) と [l2,r2) を辞書順比較
+        // 戻り値: <0, ==0, >0
+        cout << "compare(0,3,3,6): "
+             << t.compare(0, 3, 3, 6) << "\n";
+
+        assert(s.validate());
+        assert(t.validate());
+    }
+
+    // ================================================================
+    // 11. count / find_first / find_last
+    // ================================================================
+    {
+        cout << "\n[11] 文字検索\n";
+
+        DynamicString s("abacabad");
+
+        // [l,r) 内の文字 c の個数
+        // 前提: 0 <= l <= r <= size()
+        cout << "count(0,8,'a'): "
+             << s.count(0, 8, 'a') << "\n";
+
+        // [l,r) の中で最初に c が現れる位置
+        // 見つからなければ r
+        cout << "find_first(0,8,'c'): "
+             << s.find_first(0, 8, 'c') << "\n";
+
+        // [l,r) の中で最後に c が現れる位置
+        // 見つからなければ l-1
+        cout << "find_last(0,8,'a'): "
+             << s.find_last(0, 8, 'a') << "\n";
+
+        assert(s.count(0, 8, 'a') == 4);
+        assert(s.find_first(0, 8, 'c') == 3);
+        assert(s.find_last(0, 8, 'a') == 6);
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 12. find / contains / count_pattern
+    // ================================================================
+    {
+        cout << "\n[12] 部分文字列検索\n";
+
+        DynamicString s("abcabcabc");
+
+        // pattern が空文字列なら l を返す
+        cout << "find(\"cab\"): "
+             << s.find("cab") << "\n";
+
+        // 見つからなければ size() を返す
+        cout << "find(\"xyz\"): "
+             << s.find("xyz") << "\n";
+
+        cout << "contains(\"abc\"): "
+             << (s.contains("abc") ? "true" : "false") << "\n";
+
+        cout << "contains(\"xyz\"): "
+             << (s.contains("xyz") ? "true" : "false") << "\n";
+
+        // pattern の重複出現も数える
+        cout << "count_pattern(\"abc\"): "
+             << s.count_pattern("abc") << "\n";
+
+        cout << "count_pattern(\"bca\"): "
+             << s.count_pattern("bca") << "\n";
+
+        assert(s.find("cab") == 2);
+        assert(s.find("xyz") == s.size());
+        assert(s.contains("abc"));
+        assert(!s.contains("xyz"));
+        assert(s.count_pattern("abc") == 3);
+        assert(s.count_pattern("bca") == 2);
+
+        // 範囲を限定した検索
+        // 前提: 0 <= l <= r <= size()
+        cout << "find(1,7,\"abc\"): "
+             << s.find(1, 7, "abc") << "\n";
+
+        cout << "count_pattern(1,8,\"abc\"): "
+             << s.count_pattern(1, 8, "abc") << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 13. clone
+    // ================================================================
+    {
+        cout << "\n[13] clone\n";
+
+        DynamicString s("abcdef");
+
+        // 独立した完全コピーを作る
+        DynamicString t = s.clone();
+
+        cout << "元  : " << s.to_string() << "\n";
+        cout << "clone: " << t.to_string() << "\n";
+
+        t.reverse(1, 5);
+
+        cout << "cloneだけreverse後:\n";
+        cout << "  元  : " << s.to_string() << "\n";
+        cout << "  clone: " << t.to_string() << "\n";
+
+        assert(s.to_string() == "abcdef");
+        assert(t.to_string() != s.to_string());
+
+        assert(s.validate());
+        assert(t.validate());
+    }
+
+    // ================================================================
+    // 14. 複合操作
+    // ================================================================
+    {
+        cout << "\n[14] 複合操作\n";
+
+        DynamicString s("0123456789");
+
+        cout << "初期: " << s.to_string() << "\n";
+
+        // 区間を反転
+        // 前提: 0 <= l <= r <= size()
+        s.reverse(2, 8);
+        cout << "reverse(2,8): " << s.to_string() << "\n";
+
+        // 区間を全て同じ文字にする
+        // 前提: 0 <= l <= r <= size()
+        s.assign(3, 6, 'X');
+        cout << "assign(3,6,'X'): " << s.to_string() << "\n";
+
+        // 区間を複製
+        // 前提: 0 <= l <= r <= size(), 0 <= pos <= size()
+        s.copy(2, 5, 0);
+        cout << "copy(2,5,0): " << s.to_string() << "\n";
+
+        // 区間を回転
+        // 前提: 0 <= l <= r <= size()
+        s.rotate(0, s.size(), 3);
+        cout << "rotate(0,size,3): " << s.to_string() << "\n";
+
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 15. 空文字列・境界値
+    // ================================================================
+    {
+        cout << "\n[15] 空文字列・境界値\n";
+
+        DynamicString s;
+
+        cout << "空文字列: \"" << s.to_string() << "\"\n";
+        cout << "size: " << s.size() << "\n";
+        cout << "empty: " << (s.empty() ? "true" : "false") << "\n";
+
+        // 空文字列への insert は可能
+        // 前提: 0 <= i <= size()
+        s.insert(0, 'A');
+        cout << "insert(0,'A'): " << s.to_string() << "\n";
+
+        // 末尾への insert
+        s.insert(s.size(), 'B');
+        cout << "insert(size,'B'): " << s.to_string() << "\n";
+
+        // 空区間への操作は何もしない
+        // 前提: 0 <= l <= r <= size()
+        s.erase(1, 1);
+        s.reverse(1, 1);
+        s.assign(1, 1, 'X');
+
+        cout << "空区間操作後: " << s.to_string() << "\n";
+
+        // 全体を削除
+        s.erase(0, s.size());
+        cout << "全削除後: \"" << s.to_string() << "\"\n";
+
+        assert(s.empty());
+        assert(s.validate());
+    }
+
+    // ================================================================
+    // 16. Debug
+    // ================================================================
+    {
+        cout << "\n[16] Debug\n";
+
+        DynamicString s("abcdef");
+
+        cout << "print():\n";
+        s.print();
+
+        cout << "dump():\n";
+        s.dump();
+
+        cout << "validate(): "
+             << (s.validate() ? "正常" : "異常") << "\n";
+
+        assert(s.check());
+    }
+
+    cout << "\n=== DynamicString 動作確認終了 ===\n";
+}
+#endif
+
+void solv(){
+    #ifdef LOCAL
+    stress_test_string();
+    stress_test_string_extra();
+    cerr << "ALL TESTS PASSED\n";
+    test_DynamicString();
+    #endif
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,285 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+// 二分探索（テンプレート）
+template <class T>
+struct BinarySearchArray {
+    int n;                       // 配列サイズ
+    const vector<T>& a;          // 対象となる数列（参照で保持）
+
+    /*
+     * コンストラクタ
+     * 数列 a を受け取り、二分探索の対象として保持する
+     */
+    BinarySearchArray(const vector<T>& a) : n((int)a.size()), a(a) {}
+
+    /*
+     * first_true（全体）
+     * f(i) == true となる最小の index を返す
+     * 探索区間は [0, n)
+     * true が存在しない場合は n を返す
+     */
+    int first_true(auto f) const {
+        return first_true(0, n, f);
+    }
+
+    /*
+     * first_true（区間版）
+     * 区間 [l, r) において f(i) == true となる最小の index を返す
+     * true が存在しない場合は r を返す
+     */
+    int first_true(int l, int r, auto f) const {
+        // lo は false が保証される位置
+        // hi は true が保証される位置
+        int lo = l - 1;
+        int hi = r;
+
+        // hi - lo == 1 になったら境界確定
+        while (hi - lo > 1) {
+            int mid = (lo + hi) / 2;
+            if (f(mid)) hi = mid;
+            else lo = mid;
+        }
+        return hi;
+    }
+
+    /*
+     * last_true（全体）
+     * f(i) == true となる最大の index を返す
+     * 探索区間は [0, n)
+     * true が存在しない場合は -1 を返す
+     */
+    int last_true(auto f) const {
+        return last_true(0, n, f);
+    }
+
+    /*
+     * last_true（区間版）
+     * 区間 [l, r) において f(i) == true となる最大の index を返す
+     * true が存在しない場合は l-1 を返す
+     */
+    int last_true(int l, int r, auto f) const {
+        int lo = l - 1;
+        int hi = r;
+
+        while (hi - lo > 1) {
+            int mid = (lo + hi) / 2;
+            if (f(mid)) lo = mid;
+            else hi = mid;
+        }
+        return lo;
+    }
+
+    /*
+     * exists
+    * 【注意】f(i) は区間内で単調であることが前提
+    * f(i) == true となる index が1つでも存在するかを判定
+    */
+    bool exists(auto f) const {
+        return exists(0, n, f);
+    }
+
+    /*
+     * exists（区間版）
+    * 【注意】f(i) は区間内で単調であることが前提
+    * f(i) == true となる index が1つでも存在するかを判定
+    */
+    bool exists(int l, int r, auto f) const {
+        int idx = first_true(l, r, f);
+        return idx < r;
+    }
+};
+
+void solv(){
+    vector<int> a = {1, 2, 2, 4, 6, 6, 6, 9};
+    BinarySearchArray<int> bs(a);
+
+    cout << "=== 元の配列 ===\n";
+    cout << "index : value\n";
+    for (int i = 0; i < (int)a.size(); i++) {
+        cout << i << " : " << a[i] << "\n";
+    }
+
+    cout << "\n=== first_true（全体）テスト ===\n";
+
+    {
+        cout << "[条件] a[i] >= 4\n";
+        int idx = bs.first_true([&](int i) {
+            return a[i] >= 4;
+        });
+        cout << "結果 index = " << idx << "（期待: 3）\n\n";
+    }
+
+    {
+        cout << "[条件] a[i] >= 10（存在しない）\n";
+        int idx = bs.first_true([&](int i) {
+            return a[i] >= 10;
+        });
+        cout << "結果 index = " << idx << "（期待: n = " << a.size() << "）\n\n";
+    }
+
+    {
+        cout << "[条件] a[i] >= 0（全て true）\n";
+        int idx = bs.first_true([&](int i) {
+            return a[i] >= 0;
+        });
+        cout << "結果 index = " << idx << "（期待: 0）\n\n";
+    }
+
+    cout << "=== last_true（全体）テスト ===\n";
+
+    {
+        cout << "[条件] a[i] <= 6\n";
+        int idx = bs.last_true([&](int i) {
+            return a[i] <= 6;
+        });
+        cout << "結果 index = " << idx << "（期待: 6）\n\n";
+    }
+
+    {
+        cout << "[条件] a[i] < 0（全て false）\n";
+        int idx = bs.last_true([&](int i) {
+            return a[i] < 0;
+        });
+        cout << "結果 index = " << idx << "（期待: -1）\n\n";
+    }
+
+    {
+        cout << "[条件] a[i] <= 100（全て true）\n";
+        int idx = bs.last_true([&](int i) {
+            return a[i] <= 100;
+        });
+        cout << "結果 index = " << idx << "（期待: " << a.size() - 1 << "）\n\n";
+    }
+
+    cout << "=== exists（全体）テスト ===\n";
+
+    {
+        cout << "[条件] a[i] == 4\n";
+        bool ok = bs.exists([&](int i) {
+            return a[i] == 4;
+        });
+        cout << "存在するか: " << (ok ? "YES" : "NO") << "（期待: YES）\n\n";
+    }
+
+    {
+        cout << "[条件] a[i] == 5\n";
+        bool ok = bs.exists([&](int i) {
+            return a[i] == 5;
+        });
+        cout << "存在するか: " << (ok ? "YES" : "NO") << "（期待: NO）\n\n";
+    }
+
+    cout << "=== 区間版 first_true テスト ===\n";
+
+    {
+        cout << "[区間] [2, 7), [条件] a[i] >= 6\n";
+        int idx = bs.first_true(2, 7, [&](int i) {
+            return a[i] >= 6;
+        });
+        cout << "結果 index = " << idx << "（期待: 4）\n\n";
+    }
+
+    {
+        cout << "[区間] [5, 8), [条件] a[i] >= 7\n";
+        int idx = bs.first_true(5, 8, [&](int i) {
+            return a[i] >= 7;
+        });
+        cout << "結果 index = " << idx << "（期待: 7）\n\n";
+    }
+
+    {
+        cout << "[区間] [5, 8), [条件] a[i] >= 10（存在しない）\n";
+        int idx = bs.first_true(5, 8, [&](int i) {
+            return a[i] >= 10;
+        });
+        cout << "結果 index = " << idx << "（期待: r = 8）\n\n";
+    }
+
+    cout << "=== 区間版 last_true テスト ===\n";
+
+    {
+        cout << "[区間] [1, 6), [条件] a[i] <= 4\n";
+        int idx = bs.last_true(1, 6, [&](int i) {
+            return a[i] <= 4;
+        });
+        cout << "結果 index = " << idx << "（期待: 3）\n\n";
+    }
+
+    {
+        cout << "[区間] [1, 6), [条件] a[i] < 0（全て false）\n";
+        int idx = bs.last_true(1, 6, [&](int i) {
+            return a[i] < 0;
+        });
+        cout << "結果 index = " << idx << "（期待: l-1 = 0）\n\n";
+    }
+
+    cout << "=== 区間版 exists テスト ===\n";
+    
+    {
+        cout << "[条件] a[i] >= 4（単調：false → true）\n";
+        bool ok = bs.exists([&](int i) {
+            return a[i] >= 4;
+        });
+        cout << "exists の結果: " << (ok ? "YES" : "NO") << "\n";
+        cout << "説明: 4以上の要素が存在するので YES が正しい\n\n";
+    }
+
+    {
+        cout << "[条件] a[i] >= 10（単調：すべて false）\n";
+        bool ok = bs.exists([&](int i) {
+            return a[i] >= 10;
+        });
+        cout << "exists の結果: " << (ok ? "YES" : "NO") << "\n";
+        cout << "説明: 条件を満たす要素が存在しないので NO が正しい\n\n";
+    }
+
+    {
+        cout << "[区間] [2, 7), [条件] a[i] >= 6（単調）\n";
+        bool ok = bs.exists(2, 7, [&](int i) {
+            return a[i] >= 6;
+        });
+        cout << "exists の結果: " << (ok ? "YES" : "NO") << "\n";
+        cout << "説明: index 4,5,6 が条件を満たすため YES\n\n";
+    }
+
+    {
+        cout << "[区間] [0, 3), [条件] a[i] >= 4（単調・全 false）\n";
+        bool ok = bs.exists(0, 3, [&](int i) {
+            return a[i] >= 4;
+        });
+        cout << "exists の結果: " << (ok ? "YES" : "NO") << "\n";
+        cout << "説明: 区間内に条件を満たす要素がないので NO\n\n";
+    }
+    cout << "=== すべての動作確認が完了しました ===\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

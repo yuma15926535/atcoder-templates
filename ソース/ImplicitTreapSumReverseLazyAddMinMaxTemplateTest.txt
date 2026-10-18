@@ -1,0 +1,2329 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * implicit Treap 完全版
+ * （動的配列 + 区間和 + 区間反転 + 区間加算 + 区間min/max）
+ * 
+ * 【概要】
+ * - 配列をTreapで表現する（順序はindexで管理する implicit 型）
+ * - keyは値としてのみ使用し、順序には関与しない
+ * - 各部分木に「サイズ・総和・最小値・最大値」を保持
+ * - lazy（加算）とrev（反転）で区間操作を遅延処理
+ * - 期待計算量：各操作 O(log N)
+ * 
+ * 【できること】
+ * - 動的配列（insert / erase / push / pop）
+ * - ランダムアクセス（kth）
+ * - 区間和（range_sum）
+ * - 区間反転（reverse）
+ * - 区間加算（range_add）
+ * - 区間最小・最大（range_min / range_max）
+ * 
+ * 【基本操作】
+ * - insert_at(pos, x) : 位置posに挿入（0-index）
+ * - erase_at(pos)     : 位置posを削除
+ * - kth(pos)          : 位置posの値取得
+ * 
+ * 【sum系】
+ * - sum(t)                : 部分木の総和
+ * - sum_k_first(t, k)     : 先頭k個の和
+ * - range_sum_safe(t,l,r) : 区間和（非破壊）
+ * 
+ * 【reverse系】
+ * - reverse(t,l,r)        : 区間反転（破壊的）
+ * - reverse_safe(t,l,r)   : 非破壊版
+ * 
+ * 【lazy(add)系】
+ * - apply(t,x)            : ノードに +x を適用
+ * - point_add(pos,x)      : 1点加算
+ * - range_add(l,r,x)      : 区間加算
+ * 
+ * 【min/max系】
+ * - mn(t), mx(t)          : 部分木の最小/最大
+ * - range_min(l,r)        : 区間最小
+ * - range_max(l,r)        : 区間最大
+ * 
+ * 【コア関数】
+ * - split_kth(t,k) : 左にk個 / 右に残り
+ * - merge(l,r)     : 2つの列を結合
+ * - update(t)      : size/sum/min/max 更新
+ * - push(t)        : lazy/rev を子へ伝播
+ * 
+ * 【重要ポイント】
+ * - indexはすべて0-index
+ * - push忘れは即バグ（merge / split / kth / inorder）
+ * - push順序：rev → lazy
+ * - apply時：sum += x * size, mn += x, mx += x
+ * - split後は必ずmergeで戻す
+ * 
+ * 【用途】
+ * - 動的配列 + 区間クエリ（和・更新・反転・min/max）
+ * - セグ木では扱いにくい「挿入・削除あり」問題
+ * 
+ * 【拡張】
+ * - range_assign（難）
+ * - affine変換（上級）
+ */
+struct Treap {
+    struct Node {
+        int key;
+        uint32_t pri;
+        int sz;
+        long long sum;
+        bool rev; // 反転フラグ
+        long long lazy; // 区間加算用
+        long long mn, mx;
+        Node *l, *r;
+
+        Node(int key, uint32_t pri)
+            : key(key), pri(pri), sz(1), sum(key), mn(key), mx(key), l(nullptr), r(nullptr), rev(false), lazy(0) {}
+    };
+
+    using NP = Node*;
+
+    // RNG（高速・衝突少）
+    mt19937 rng;
+
+    Treap() : rng(chrono::steady_clock::now().time_since_epoch().count()) {}
+
+    // ノード生成（priorityは乱数）
+    NP new_node(int key) {
+        return new Node(key, rng());
+    }
+
+    // 部分木サイズ取得（nullは0）
+    int size(NP t) const {
+        return t ? t->sz : 0;
+    }
+
+    void apply(NP t, long long x) {
+        if (!t) return;
+        t->key += x;
+        t->sum += x * size(t);
+        t->mn += x;
+        t->mx += x;
+        t->lazy += x;
+    }
+
+    // 部分木サイズを更新（子から再計算）
+    void update(NP t) {
+        if (!t) return;
+        t->sz = 1 + size(t->l) + size(t->r);
+        t->sum = t->key + sum(t->l) + sum(t->r);
+        t->mn = min({(long long)t->key, mn(t->l), mn(t->r)});
+        t->mx = max({(long long)t->key, mx(t->l), mx(t->r)});
+    }
+
+    // 2つのTreapをマージ（lの全要素 <= rの全要素が前提）
+    NP merge(NP l, NP r) {
+        if (!l || !r) return l ? l : r;
+
+        if (l->pri > r->pri) {
+            push(l);
+            l->r = merge(l->r, r);
+            update(l);
+            return l;
+        } else {
+            push(r);
+            r->l = merge(l, r->l);
+            update(r);
+            return r;
+        }
+    }
+
+    void push(NP t) {
+        if (!t) return;
+
+        // --- reverse ---
+        if (t->rev) {
+            swap(t->l, t->r);
+            if (t->l) t->l->rev ^= 1;
+            if (t->r) t->r->rev ^= 1;
+            t->rev = false;
+        }
+
+        // --- lazy（加算） ---
+        if (t->lazy != 0) {
+            if (t->l) apply(t->l, t->lazy);
+            if (t->r) apply(t->r, t->lazy);
+            t->lazy = 0;
+        }
+    }
+
+    // 左にk個、右に残り（0-index）
+    pair<NP, NP> split_kth(NP t, int k) {
+        if (!t) return {nullptr, nullptr};
+
+        push(t);
+
+        if (k <= size(t->l)) {
+            // 全部左部分木に含まれる
+            auto [l, r] = split_kth(t->l, k);
+            t->l = r;
+            update(t);
+            return {l, t};
+        } else {
+            // 自分と右にまたがる
+            auto [l, r] = split_kth(t->r, k - size(t->l) - 1);
+            t->r = l;
+            update(t);
+            return {t, r};
+        }
+    }
+
+    // 位置posに値xを挿入（0-index）
+    NP insert_at(NP root, int pos, int x) {
+        auto [l, r] = split_kth(root, pos);
+        return merge(merge(l, new_node(x)), r);
+    }
+
+    // 位置posの要素を削除（0-index）
+    NP erase_at(NP root, int pos) {
+        auto [a, bc] = split_kth(root, pos);
+        auto [b, c] = split_kth(bc, 1); // bが削除対象
+        // bは捨てる
+        return merge(a, c);
+    }
+
+    // 位置kの値を取得（0-index）
+    int kth(NP t, int k) {
+        if (!t) return -1; // 異常
+
+        push(t);
+
+        int left_size = size(t->l);
+
+        if (k < left_size) {
+            return kth(t->l, k);
+        } else if (k == left_size) {
+            return t->key;
+        } else {
+            return kth(t->r, k - left_size - 1);
+        }
+    }
+
+    NP push_back(NP root, int x) {
+        return insert_at(root, size(root), x);
+    }
+
+    NP push_front(NP root, int x) {
+        return insert_at(root, 0, x);
+    }
+
+    NP pop_back(NP root) {
+        if (!root) return root;
+        return erase_at(root, size(root) - 1);
+    }
+
+    NP pop_front(NP root) {
+        if (!root) return root;
+        return erase_at(root, 0);
+    }
+
+    long long sum(NP t) const {
+        return t ? t->sum : 0;
+    }
+
+    // 先頭からk個の和（0-index）
+    long long sum_k_first(NP t, int k) {
+        if (!t || k <= 0) return 0;
+
+        int left_size = size(t->l);
+
+        if (k <= left_size) {
+            return sum_k_first(t->l, k);
+        } else {
+            // 左部分木は全部使う
+            long long res = sum(t->l);
+
+            // 自分を使うか
+            if (k == left_size + 1) {
+                return res + t->key;
+            }
+
+            // 右に行く
+            return res + t->key + sum_k_first(t->r, k - left_size - 1);
+        }
+    }
+
+    // [l, r) の和（0-index）
+    long long range_sum(NP &t, int l, int r) {
+        if (l >= r) return 0;
+
+        // [0,l), [l,r), [r,n)
+        auto [a, bc] = split_kth(t, l);
+        auto [b, c] = split_kth(bc, r - l);
+
+        long long res = sum(b);
+
+        // 元に戻す（超重要）
+        t = merge(a, merge(b, c));
+
+        return res;
+    }
+
+    long long range_sum_safe(NP t, int l, int r) {
+        return range_sum(t, l, r);
+    }
+
+    // [l, r) を反転
+    void reverse(NP &t, int l, int r) {
+        if (l >= r) return;
+
+        auto [a, bc] = split_kth(t, l);
+        auto [b, c] = split_kth(bc, r - l);
+
+        if (b) b->rev ^= 1;
+
+        t = merge(a, merge(b, c));
+    }
+
+    void reverse_safe(NP t, int l, int r) {
+        reverse(t, l, r);
+    }
+
+    // 位置posに +x（0-index）
+    void point_add(NP &t, int pos, long long x) {
+        auto [a, bc] = split_kth(t, pos);
+        auto [b, c] = split_kth(bc, 1);
+
+        if (b) apply(b, x);
+
+        t = merge(a, merge(b, c));
+    }
+
+    // [l, r) に +x（0-index）
+    void range_add(NP &t, int l, int r, long long x) {
+        if (l >= r) return;
+
+        auto [a, bc] = split_kth(t, l);
+        auto [b, c] = split_kth(bc, r - l);
+
+        if (b) apply(b, x);
+
+        t = merge(a, merge(b, c));
+    }
+
+    // 部分木の最小値を取得（空なら +INF）
+    long long mn(NP t) const {
+        return t ? t->mn : (long long)4e18;
+    }
+
+    // 部分木の最大値を取得（空なら -INF）
+    long long mx(NP t) const {
+        return t ? t->mx : (long long)-4e18;
+    }
+
+    // 区間 [l, r) の最小値を取得（0-index）
+    // 内部でsplit→取得→mergeするため破壊的
+    long long range_min(NP &t, int l, int r) {
+        if (l >= r) return (long long)4e18;
+
+        auto [a, bc] = split_kth(t, l);
+        auto [b, c] = split_kth(bc, r - l);
+
+        long long res = mn(b);
+
+        t = merge(a, merge(b, c));
+        return res;
+    }
+
+    // 区間 [l, r) の最大値を取得（0-index）
+    // 内部でsplit→取得→mergeするため破壊的
+    long long range_max(NP &t, int l, int r) {
+        if (l >= r) return (long long)-4e18;
+
+        auto [a, bc] = split_kth(t, l);
+        auto [b, c] = split_kth(bc, r - l);
+
+        long long res = mx(b);
+
+        t = merge(a, merge(b, c));
+        return res;
+    }
+
+    // 中順走査（昇順配列に変換）
+    void inorder(NP t, vector<int>& v) {
+        if (!t) return;
+        push(t);
+        inorder(t->l, v);
+        v.push_back(t->key);
+        inorder(t->r, v);
+    }
+};
+
+void random_test_implicit_step1() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        vector<int> A;
+
+        int N = rng() % 20;
+        for (int i = 0; i < N; i++) {
+            A.push_back(rng() % 50);
+        }
+
+        // ★そのままの順序で構築（重要）
+        NP root = nullptr;
+        for (int x : A) {
+            root = tr.merge(root, tr.new_node(x));
+        }
+
+        // inorder確認
+        vector<int> res;
+        tr.inorder(root, res);
+        if (res != A) {
+            cout << "Step1: inorder NG\n";
+            exit(0);
+        }
+
+        // split_kth → merge を検証
+        for (int t = 0; t < 50; t++) {
+            int k = rng() % (N + 1);
+
+            auto [l, r] = tr.split_kth(root, k);
+
+            // 左右を配列で確認
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(A.begin(), A.begin() + k);
+            vector<int> expected_R(A.begin() + k, A.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step1: split_kth NG\n";
+                cout << "k=" << k << "\n";
+                exit(0);
+            }
+
+            // mergeで元に戻るか
+            root = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(root, res2);
+            if (res2 != A) {
+                cout << "Step1: merge restore NG\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step1 OK\n";
+}
+
+void random_test_implicit_step2() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int x = rng() % 50;
+            int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+            // Treap
+            root = tr.insert_at(root, pos, x);
+
+            // vector
+            vec.insert(vec.begin() + pos, x);
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step2: insert_at NG\n";
+                cout << "pos=" << pos << " x=" << x << "\n";
+                exit(0);
+            }
+
+            // split_kthチェック（念のため）
+            int k = rng() % (vec.size() + 1);
+            auto [l, r] = tr.split_kth(root, k);
+
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(vec.begin(), vec.begin() + k);
+            vector<int> expected_R(vec.begin() + k, vec.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step2: split_kth NG\n";
+                exit(0);
+            }
+
+            root = tr.merge(l, r);
+        }
+    }
+
+    cout << "random_test_implicit_step2 OK\n";
+}
+
+void random_test_implicit_step3() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+            } else {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+            }
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step3: sequence NG\n";
+                exit(0);
+            }
+
+            // split_kthチェック（念のため）
+            int k = vec.empty() ? 0 : rng() % (vec.size() + 1);
+            auto [l, r] = tr.split_kth(root, k);
+
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(vec.begin(), vec.begin() + k);
+            vector<int> expected_R(vec.begin() + k, vec.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step3: split_kth NG\n";
+                exit(0);
+            }
+
+            root = tr.merge(l, r);
+        }
+    }
+
+    cout << "random_test_implicit_step3 OK\n";
+}
+
+void random_test_implicit_step4() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+            } else {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+            }
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step4: sequence NG\n";
+                exit(0);
+            }
+
+            // kthチェック（ここが本体）
+            for (int i = 0; i < (int)vec.size(); i++) {
+                int expected = vec[i];
+                int got = tr.kth(root, i);
+
+                if (expected != got) {
+                    cout << "Step4: kth NG\n";
+                    cout << "i=" << i << "\n";
+                    exit(0);
+                }
+            }
+
+            // split_kthチェック
+            int k = vec.empty() ? 0 : rng() % (vec.size() + 1);
+            auto [l, r] = tr.split_kth(root, k);
+
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(vec.begin(), vec.begin() + k);
+            vector<int> expected_R(vec.begin() + k, vec.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step4: split_kth NG\n";
+                exit(0);
+            }
+
+            root = tr.merge(l, r);
+        }
+    }
+
+    cout << "random_test_implicit_step4 OK\n";
+}
+
+void demo_implicit_basic() {
+    Treap tr;
+    Treap::NP root = nullptr;
+
+    cout << "==============================\n";
+    cout << "implicit Treap（配列）動作確認\n";
+    cout << "==============================\n";
+
+    // --- push_back ---
+    cout << "\n--- push_back ---\n";
+    for (int x : {1, 2, 3}) {
+        cout << "push_back(" << x << ")\n";
+        root = tr.push_back(root, x);
+    }
+
+    vector<int> v;
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- push_front ---
+    cout << "\n--- push_front ---\n";
+    for (int x : {10, 20}) {
+        cout << "push_front(" << x << ")\n";
+        root = tr.push_front(root, x);
+    }
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- insert_at ---
+    cout << "\n--- insert_at ---\n";
+    cout << "insert_at(pos=2, val=99)\n";
+    root = tr.insert_at(root, 2, 99);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- kth ---
+    cout << "\n--- kth（位置アクセス）---\n";
+    for (int i = 0; i < tr.size(root); i++) {
+        cout << "kth(" << i << ") = " << tr.kth(root, i) << "\n";
+    }
+
+    // --- erase_at ---
+    cout << "\n--- erase_at ---\n";
+    cout << "erase_at(pos=3)\n";
+    root = tr.erase_at(root, 3);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- pop_back ---
+    cout << "\n--- pop_back ---\n";
+    root = tr.pop_back(root);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- pop_front ---
+    cout << "\n--- pop_front ---\n";
+    root = tr.pop_front(root);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- split_kth ---
+    cout << "\n--- split_kth ---\n";
+    int k = 2;
+    cout << "k = " << k << " で分割\n";
+
+    auto [l, r] = tr.split_kth(root, k);
+
+    vector<int> L, R;
+    tr.inorder(l, L);
+    tr.inorder(r, R);
+
+    cout << "左: ";
+    for (int x : L) cout << x << " ";
+    cout << "\n";
+
+    cout << "右: ";
+    for (int x : R) cout << x << " ";
+    cout << "\n";
+
+    // 戻す
+    root = tr.merge(l, r);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "merge後: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n==============================\n";
+}
+
+void random_test_implicit_step5() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+            } else {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+            }
+
+            // --- 配列一致チェック ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step5: sequence NG\n";
+                exit(0);
+            }
+
+            // --- 総和チェック（今回の本体） ---
+            long long expected_sum = 0;
+            for (int x : vec) expected_sum += x;
+
+            long long got_sum = tr.sum(root);
+
+            if (expected_sum != got_sum) {
+                cout << "Step5: total sum NG\n";
+                cout << "expected=" << expected_sum
+                     << " got=" << got_sum << "\n";
+                exit(0);
+            }
+
+            // --- split_kthチェック ---
+            int k = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+            auto [l, r] = tr.split_kth(root, k);
+
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(vec.begin(), vec.begin() + k);
+            vector<int> expected_R(vec.begin() + k, vec.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step5: split_kth NG\n";
+                exit(0);
+            }
+
+            root = tr.merge(l, r);
+        }
+    }
+
+    cout << "random_test_implicit_step5 OK\n";
+}
+
+void random_test_implicit_step6() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+            } else {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step6: sequence NG\n";
+                exit(0);
+            }
+
+            // --- 総和 ---
+            long long expected_sum = 0;
+            for (int x : vec) expected_sum += x;
+
+            if (expected_sum != tr.sum(root)) {
+                cout << "Step6: total sum NG\n";
+                exit(0);
+            }
+
+            // --- prefix sum（今回の本体） ---
+            int n = vec.size();
+
+            for (int k = 0; k <= n; k++) {
+                long long expected = 0;
+                for (int i = 0; i < k; i++) {
+                    expected += vec[i];
+                }
+
+                long long got = tr.sum_k_first(root, k);
+
+                if (expected != got) {
+                    cout << "Step6: sum_k_first NG\n";
+                    cout << "k=" << k << "\n";
+                    exit(0);
+                }
+            }
+
+            // --- split_kth ---
+            int k = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+            auto [l, r] = tr.split_kth(root, k);
+
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(vec.begin(), vec.begin() + k);
+            vector<int> expected_R(vec.begin() + k, vec.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step6: split_kth NG\n";
+                exit(0);
+            }
+
+            root = tr.merge(l, r);
+        }
+    }
+
+    cout << "random_test_implicit_step6 OK\n";
+}
+
+void random_test_implicit_step7() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+            } else {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step7: sequence NG\n";
+                exit(0);
+            }
+
+            int n = vec.size();
+
+            // --- range_sum（今回の本体） ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step7: range_sum NG\n";
+                        cout << "l=" << l << " r=" << r << "\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- prefix（念のため） ---
+            for (int k = 0; k <= n; k++) {
+                long long expected = 0;
+                for (int i = 0; i < k; i++) {
+                    expected += vec[i];
+                }
+
+                if (expected != tr.sum_k_first(root, k)) {
+                    cout << "Step7: prefix NG\n";
+                    exit(0);
+                }
+            }
+
+            // --- split_kth ---
+            int k = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+            auto [l, r] = tr.split_kth(root, k);
+
+            vector<int> L, R;
+            tr.inorder(l, L);
+            tr.inorder(r, R);
+
+            vector<int> expected_L(vec.begin(), vec.begin() + k);
+            vector<int> expected_R(vec.begin() + k, vec.end());
+
+            if (L != expected_L || R != expected_R) {
+                cout << "Step7: split_kth NG\n";
+                exit(0);
+            }
+
+            root = tr.merge(l, r);
+        }
+    }
+
+    cout << "random_test_implicit_step7 OK\n";
+}
+
+void demo_implicit_sum() {
+    Treap tr;
+    Treap::NP root = nullptr;
+
+    cout << "==============================\n";
+    cout << "implicit Treap + sum 動作確認\n";
+    cout << "==============================\n";
+
+    // --- push_back ---
+    cout << "\n--- push_back ---\n";
+    for (int x : {1, 2, 3, 4, 5}) {
+        cout << "push_back(" << x << ")\n";
+        root = tr.push_back(root, x);
+    }
+
+    vector<int> v;
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- insert_at ---
+    cout << "\n--- insert_at ---\n";
+    cout << "insert_at(pos=2, val=10)\n";
+    root = tr.insert_at(root, 2, 10);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- erase_at ---
+    cout << "\n--- erase_at ---\n";
+    cout << "erase_at(pos=3)\n";
+    root = tr.erase_at(root, 3);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- kth ---
+    cout << "\n--- kth（位置アクセス）---\n";
+    for (int i = 0; i < tr.size(root); i++) {
+        cout << "kth(" << i << ") = " << tr.kth(root, i) << "\n";
+    }
+
+    // --- prefix sum ---
+    cout << "\n--- prefix sum ---\n";
+    for (int k = 0; k <= tr.size(root); k++) {
+        cout << "[0," << k << ") の和 = "
+             << tr.sum_k_first(root, k) << "\n";
+    }
+
+    // --- range sum ---
+    cout << "\n--- range_sum ---\n";
+    int l = 1, r = 4;
+    cout << "[" << l << "," << r << ") の和 = "
+         << tr.range_sum_safe(root, l, r) << "\n";
+
+    // --- split_kth ---
+    cout << "\n--- split_kth ---\n";
+    int k = 3;
+    cout << "k = " << k << " で分割\n";
+
+    auto [a, b] = tr.split_kth(root, k);
+
+    vector<int> A, B;
+    tr.inorder(a, A);
+    tr.inorder(b, B);
+
+    cout << "左: ";
+    for (int x : A) cout << x << " ";
+    cout << "\n";
+
+    cout << "右: ";
+    for (int x : B) cout << x << " ";
+    cout << "\n";
+
+    // 戻す
+    root = tr.merge(a, b);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "merge後: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n==============================\n";
+}
+
+void random_test_implicit_step8() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 3;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step8: sequence NG\n";
+                exit(0);
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step8: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step8: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step8 OK\n";
+}
+
+void demo_implicit_sum_reverse() {
+    Treap tr;
+    Treap::NP root = nullptr;
+
+    cout << "==============================\n";
+    cout << "implicit Treap + sum + reverse 動作確認\n";
+    cout << "==============================\n";
+
+    // --- push_back ---
+    cout << "\n--- push_back ---\n";
+    for (int x : {1, 2, 3, 4, 5}) {
+        cout << "push_back(" << x << ")\n";
+        root = tr.push_back(root, x);
+    }
+
+    vector<int> v;
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- insert_at ---
+    cout << "\n--- insert_at ---\n";
+    cout << "insert_at(pos=2, val=10)\n";
+    root = tr.insert_at(root, 2, 10);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- reverse ---
+    cout << "\n--- reverse ---\n";
+    cout << "reverse([1,5))\n";
+    tr.reverse_safe(root, 1, 5);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- erase_at ---
+    cout << "\n--- erase_at ---\n";
+    cout << "erase_at(pos=3)\n";
+    root = tr.erase_at(root, 3);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "状態: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    // --- kth ---
+    cout << "\n--- kth（位置アクセス）---\n";
+    for (int i = 0; i < tr.size(root); i++) {
+        cout << "kth(" << i << ") = " << tr.kth(root, i) << "\n";
+    }
+
+    // --- prefix sum ---
+    cout << "\n--- prefix sum ---\n";
+    for (int k = 0; k <= tr.size(root); k++) {
+        cout << "[0," << k << ") の和 = "
+             << tr.sum_k_first(root, k) << "\n";
+    }
+
+    // --- range sum ---
+    cout << "\n--- range_sum ---\n";
+    int l = 1, r = 4;
+    cout << "[" << l << "," << r << ") の和 = "
+         << tr.range_sum_safe(root, l, r) << "\n";
+
+    // --- split_kth ---
+    cout << "\n--- split_kth ---\n";
+    int k = 3;
+    cout << "k = " << k << " で分割\n";
+
+    auto [a, b] = tr.split_kth(root, k);
+
+    vector<int> A, B;
+    tr.inorder(a, A);
+    tr.inorder(b, B);
+
+    cout << "左: ";
+    for (int x : A) cout << x << " ";
+    cout << "\n";
+
+    cout << "右: ";
+    for (int x : B) cout << x << " ";
+    cout << "\n";
+
+    // 戻す
+    root = tr.merge(a, b);
+
+    v.clear();
+    tr.inorder(root, v);
+    cout << "merge後: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n==============================\n";
+}
+
+void random_test_implicit_step9() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 3;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse_safe(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != vec) {
+                cout << "Step9: sequence NG\n";
+                exit(0);
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step9: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step9: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step9 OK\n";
+}
+
+void random_test_implicit_step10() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<long long> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 4;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else if (type == 2) {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse_safe(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+
+            } else {
+                // point_add
+                int pos = rng() % vec.size();
+                int x = (rng() % 21) - 10; // 負も含む
+
+                tr.point_add(root, pos, x);
+                vec[pos] += x;
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res.size() != vec.size()) {
+                cout << "Step10: size NG\n";
+                exit(0);
+            }
+
+            for (int i = 0; i < (int)vec.size(); i++) {
+                if (res[i] != vec[i]) {
+                    cout << "Step10: sequence NG\n";
+                    exit(0);
+                }
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step10: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step10: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step10 OK\n";
+}
+
+void random_test_implicit_step11() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<long long> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 5;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else if (type == 2) {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse_safe(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+
+            } else if (type == 3) {
+                // point_add
+                int pos = rng() % vec.size();
+                int x = (rng() % 21) - 10;
+
+                tr.point_add(root, pos, x);
+                vec[pos] += x;
+
+            } else {
+                // range_add（今回）
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                int x = (rng() % 21) - 10;
+
+                tr.range_add(root, l, r, x);
+                for (int i = l; i < r; i++) {
+                    vec[i] += x;
+                }
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res.size() != vec.size()) {
+                cout << "Step11: size NG\n";
+                exit(0);
+            }
+
+            for (int i = 0; i < (int)vec.size(); i++) {
+                if (res[i] != vec[i]) {
+                    cout << "Step11: sequence NG\n";
+                    exit(0);
+                }
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step11: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step11: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step11 OK\n";
+}
+
+void demo_implicit_full() {
+    Treap tr;
+    Treap::NP root = nullptr;
+
+    cout << "==============================\n";
+    cout << "implicit Treap 完全版 動作確認\n";
+    cout << "==============================\n";
+
+    // --- 初期構築 ---
+    cout << "\n--- push_back ---\n";
+    for (int x : {1, 2, 3, 4, 5}) {
+        cout << "push_back(" << x << ")\n";
+        root = tr.push_back(root, x);
+    }
+
+    auto print = [&](string msg) {
+        vector<int> v;
+        tr.inorder(root, v);
+        cout << msg << ": ";
+        for (int x : v) cout << x << " ";
+        cout << "\n";
+    };
+
+    print("状態");
+
+    // --- insert ---
+    cout << "\n--- insert_at ---\n";
+    cout << "insert_at(2, 10)\n";
+    root = tr.insert_at(root, 2, 10);
+    print("状態");
+
+    // --- range_add ---
+    cout << "\n--- range_add ---\n";
+    cout << "[1,4) に +5\n";
+    tr.range_add(root, 1, 4, 5);
+    print("状態");
+
+    // --- reverse ---
+    cout << "\n--- reverse ---\n";
+    cout << "[0,5) を反転\n";
+    tr.reverse_safe(root, 0, 5);
+    print("状態");
+
+    // --- erase ---
+    cout << "\n--- erase_at ---\n";
+    cout << "erase_at(3)\n";
+    root = tr.erase_at(root, 3);
+    print("状態");
+
+    // --- kth ---
+    cout << "\n--- kth（位置アクセス）---\n";
+    for (int i = 0; i < tr.size(root); i++) {
+        cout << "kth(" << i << ") = " << tr.kth(root, i) << "\n";
+    }
+
+    // --- prefix sum ---
+    cout << "\n--- prefix sum ---\n";
+    for (int k = 0; k <= tr.size(root); k++) {
+        cout << "[0," << k << ") の和 = "
+             << tr.sum_k_first(root, k) << "\n";
+    }
+
+    // --- range sum ---
+    cout << "\n--- range_sum ---\n";
+    int l = 1, r = 4;
+    cout << "[" << l << "," << r << ") の和 = "
+         << tr.range_sum_safe(root, l, r) << "\n";
+
+    // --- range_add + reverse 混合 ---
+    cout << "\n--- 複合操作 ---\n";
+    cout << "[1,3) に +2\n";
+    tr.range_add(root, 1, 3, 2);
+    print("状態");
+
+    cout << "[0,4) を反転\n";
+    tr.reverse_safe(root, 0, 4);
+    print("状態");
+
+    // --- split / merge ---
+    cout << "\n--- split_kth ---\n";
+    int k = 2;
+    cout << "k=" << k << " で分割\n";
+
+    auto [a, b] = tr.split_kth(root, k);
+
+    vector<int> A, B;
+    tr.inorder(a, A);
+    tr.inorder(b, B);
+
+    cout << "左: ";
+    for (int x : A) cout << x << " ";
+    cout << "\n";
+
+    cout << "右: ";
+    for (int x : B) cout << x << " ";
+    cout << "\n";
+
+    root = tr.merge(a, b);
+    print("merge後");
+
+    cout << "\n==============================\n";
+}
+
+void random_test_implicit_step12() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<long long> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 5;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else if (type == 2) {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse_safe(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+
+            } else if (type == 3) {
+                // point_add
+                int pos = rng() % vec.size();
+                int x = (rng() % 21) - 10;
+
+                tr.point_add(root, pos, x);
+                vec[pos] += x;
+
+            } else {
+                // range_add
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                int x = (rng() % 21) - 10;
+
+                tr.range_add(root, l, r, x);
+                for (int i = l; i < r; i++) {
+                    vec[i] += x;
+                }
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res.size() != vec.size()) {
+                cout << "Step12: size NG\n";
+                exit(0);
+            }
+
+            for (int i = 0; i < (int)vec.size(); i++) {
+                if (res[i] != vec[i]) {
+                    cout << "Step12: sequence NG\n";
+                    exit(0);
+                }
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step12: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- min / max（今回の本体） ---
+            if (!vec.empty()) {
+                long long expected_min = *min_element(vec.begin(), vec.end());
+                long long expected_max = *max_element(vec.begin(), vec.end());
+
+                if (tr.mn(root) != expected_min) {
+                    cout << "Step12: min NG\n";
+                    exit(0);
+                }
+                if (tr.mx(root) != expected_max) {
+                    cout << "Step12: max NG\n";
+                    exit(0);
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step12: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step12 OK\n";
+}
+
+void random_test_implicit_step13() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<long long> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 5;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else if (type == 2) {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse_safe(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+
+            } else if (type == 3) {
+                // point_add
+                int pos = rng() % vec.size();
+                int x = (rng() % 21) - 10;
+
+                tr.point_add(root, pos, x);
+                vec[pos] += x;
+
+            } else {
+                // range_add
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                int x = (rng() % 21) - 10;
+
+                tr.range_add(root, l, r, x);
+                for (int i = l; i < r; i++) {
+                    vec[i] += x;
+                }
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res.size() != vec.size()) {
+                cout << "Step13: size NG\n";
+                exit(0);
+            }
+
+            for (int i = 0; i < (int)vec.size(); i++) {
+                if (res[i] != vec[i]) {
+                    cout << "Step13: sequence NG\n";
+                    exit(0);
+                }
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step13: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- min / max ---
+            if (!vec.empty()) {
+                long long expected_min = *min_element(vec.begin(), vec.end());
+                long long expected_max = *max_element(vec.begin(), vec.end());
+
+                if (tr.mn(root) != expected_min) {
+                    cout << "Step13: min NG\n";
+                    exit(0);
+                }
+                if (tr.mx(root) != expected_max) {
+                    cout << "Step13: max NG\n";
+                    exit(0);
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step13: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step13 OK\n";
+}
+
+void random_test_implicit_step14() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<long long> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 6;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                int pos = vec.empty() ? 0 : rng() % (vec.size() + 1);
+
+                root = tr.insert_at(root, pos, x);
+                vec.insert(vec.begin() + pos, x);
+
+            } else if (type == 1) {
+                // erase
+                int pos = rng() % vec.size();
+
+                root = tr.erase_at(root, pos);
+                vec.erase(vec.begin() + pos);
+
+            } else if (type == 2) {
+                // reverse
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                tr.reverse_safe(root, l, r);
+                reverse(vec.begin() + l, vec.begin() + r);
+
+            } else if (type == 3) {
+                // point_add
+                int pos = rng() % vec.size();
+                int x = (rng() % 21) - 10;
+
+                tr.point_add(root, pos, x);
+                vec[pos] += x;
+
+            } else if (type == 4) {
+                // range_add
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                int x = (rng() % 21) - 10;
+
+                tr.range_add(root, l, r, x);
+                for (int i = l; i < r; i++) {
+                    vec[i] += x;
+                }
+
+            } else {
+                // range_min / max
+                int l = rng() % (vec.size() + 1);
+                int r = rng() % (vec.size() + 1);
+                if (l > r) swap(l, r);
+
+                long long expected_min = (long long)4e18;
+                long long expected_max = (long long)-4e18;
+
+                for (int i = l; i < r; i++) {
+                    expected_min = min(expected_min, vec[i]);
+                    expected_max = max(expected_max, vec[i]);
+                }
+
+                long long got_min = tr.range_min(root, l, r);
+                long long got_max = tr.range_max(root, l, r);
+
+                if (expected_min != got_min) {
+                    cout << "Step14: range_min NG\n";
+                    exit(0);
+                }
+                if (expected_max != got_max) {
+                    cout << "Step14: range_max NG\n";
+                    exit(0);
+                }
+            }
+
+            // --- 配列一致 ---
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res.size() != vec.size()) {
+                cout << "Step14: size NG\n";
+                exit(0);
+            }
+
+            for (int i = 0; i < (int)vec.size(); i++) {
+                if (res[i] != vec[i]) {
+                    cout << "Step14: sequence NG\n";
+                    exit(0);
+                }
+            }
+
+            int n = vec.size();
+
+            // --- range_sum ---
+            for (int l = 0; l <= n; l++) {
+                for (int r = l; r <= n; r++) {
+                    long long expected = 0;
+                    for (int i = l; i < r; i++) {
+                        expected += vec[i];
+                    }
+
+                    long long got = tr.range_sum_safe(root, l, r);
+
+                    if (expected != got) {
+                        cout << "Step14: range_sum NG\n";
+                        exit(0);
+                    }
+                }
+            }
+
+            // --- 全体min/max ---
+            if (!vec.empty()) {
+                long long expected_min = *min_element(vec.begin(), vec.end());
+                long long expected_max = *max_element(vec.begin(), vec.end());
+
+                if (tr.mn(root) != expected_min) {
+                    cout << "Step14: min NG\n";
+                    exit(0);
+                }
+                if (tr.mx(root) != expected_max) {
+                    cout << "Step14: max NG\n";
+                    exit(0);
+                }
+            }
+
+            // --- kth ---
+            for (int i = 0; i < n; i++) {
+                if (vec[i] != tr.kth(root, i)) {
+                    cout << "Step14: kth NG\n";
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "random_test_implicit_step14 OK\n";
+}
+
+void demo_implicit_full_advanced() {
+    Treap tr;
+    Treap::NP root = nullptr;
+
+    cout << "==============================\n";
+    cout << "implicit Treap 完全版 動作確認\n";
+    cout << "==============================\n";
+
+    auto print = [&](string msg) {
+        vector<int> v;
+        tr.inorder(root, v);
+        cout << msg << ": ";
+        for (int x : v) cout << x << " ";
+        cout << "\n";
+    };
+
+    // --- 初期 ---
+    cout << "\n--- push_back ---\n";
+    for (int x : {5, 1, 3, 7, 2}) {
+        cout << "push_back(" << x << ")\n";
+        root = tr.push_back(root, x);
+    }
+    print("状態");
+
+    // --- range_add ---
+    cout << "\n--- range_add ---\n";
+    cout << "[1,4) に +3\n";
+    tr.range_add(root, 1, 4, 3);
+    print("状態");
+
+    // --- reverse ---
+    cout << "\n--- reverse ---\n";
+    cout << "[0,5) を反転\n";
+    tr.reverse_safe(root, 0, 5);
+    print("状態");
+
+    // --- range_sum ---
+    cout << "\n--- range_sum ---\n";
+    cout << "[1,4) の和 = "
+         << tr.range_sum_safe(root, 1, 4) << "\n";
+
+    // --- range_min / max ---
+    cout << "\n--- range_min / max ---\n";
+    cout << "[1,4) の最小値 = "
+         << tr.range_min(root, 1, 4) << "\n";
+    cout << "[1,4) の最大値 = "
+         << tr.range_max(root, 1, 4) << "\n";
+
+    // --- point_add ---
+    cout << "\n--- point_add ---\n";
+    cout << "pos=2 に +5\n";
+    tr.point_add(root, 2, 5);
+    print("状態");
+
+    // --- kth ---
+    cout << "\n--- kth ---\n";
+    for (int i = 0; i < tr.size(root); i++) {
+        cout << "kth(" << i << ") = " << tr.kth(root, i) << "\n";
+    }
+
+    // --- split / merge ---
+    cout << "\n--- split_kth ---\n";
+    auto [a, b] = tr.split_kth(root, 2);
+
+    vector<int> A, B;
+    tr.inorder(a, A);
+    tr.inorder(b, B);
+
+    cout << "左: ";
+    for (int x : A) cout << x << " ";
+    cout << "\n";
+
+    cout << "右: ";
+    for (int x : B) cout << x << " ";
+    cout << "\n";
+
+    root = tr.merge(a, b);
+    print("merge後");
+
+    cout << "\n==============================\n";
+}
+
+void solv(){
+    random_test_implicit_step1();
+    random_test_implicit_step2();
+    random_test_implicit_step3();
+    random_test_implicit_step4();
+    demo_implicit_basic();
+    random_test_implicit_step5();
+    random_test_implicit_step6();
+    random_test_implicit_step7();
+    demo_implicit_sum();
+    random_test_implicit_step8();
+    demo_implicit_sum_reverse();
+    random_test_implicit_step9();
+    random_test_implicit_step10();
+    random_test_implicit_step11();
+    demo_implicit_full();
+    random_test_implicit_step12();
+    random_test_implicit_step13();
+    random_test_implicit_step14();
+    demo_implicit_full_advanced();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

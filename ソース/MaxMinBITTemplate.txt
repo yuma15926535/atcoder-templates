@@ -1,0 +1,652 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief Max BIT (Prefix Max Fenwick Tree)
+ * 
+ * @details 単調増加更新および Prefix 最大値 (累積最大値) の取得を高速に行うデータ構造。
+ * 
+ * 通常の BIT との違い:
+ * - 通常の BIT は加算 (逆元を持つ演算) を管理するため、任意の区間和 [l, r) を sum(r) - sum(l) で算出できます。
+ *   一方、最大値演算 (max) は逆元を持たないため、差分による区間最大値の計算ができません。
+ * 
+ * なぜ Prefix しか取得できないのか:
+ * - 各 tree[idx] にはそのノードがカバーする区間の最大値が記録されており、
+ *   インデックスを 1 ずつ減らす方向 (Prefix 方向) へ走査することで、
+ *   複数のカバー区間を過不足なくマージして [0, r) の最大値を正しく求められます。
+ *   任意の区間 [l, r) では、余分な区間 [0, l) の影響を引いて取り除くことができないため、Prefix クエリに限定されます。
+ * 
+ * なぜ単調更新しかできないのか:
+ * - a[i] の値を元の値より大きくする (単調増加) 更新は、i を含む tree の各位置の最大値を
+ *   単に max(tree[idx], x) で更新するだけで正しく伝播できます (他の要素の値に依存しない)。
+ *   しかし、値を小さくする更新を行おうとすると、そのノードがカバーする他の要素の最大値を
+ *   すべて再計算する必要が生じ、O(log N) での更新が不可能になります。
+ * 
+ * DPでの使い方:
+ * - LIS (最長増加部分列) や、dp[i] = max_{j < i, A[j] < A[i]} { dp[j] } + 1 のような遷移において、
+ *   j < i の範囲の最大値を query(i) によって O(log N) で高速に取得するために用います。
+ * 
+ * 計算量:
+ * - 構築: O(N log N)
+ * - 単調増加更新 (update): O(log N)
+ * - Prefix 最大値取得 (query, all_query): O(log N)
+ * - 内部配列取得 (values): O(N)
+ * - クリア (clear): O(N)
+ * 
+ * API一覧:
+ * - MaxBIT(n), MaxBIT(a)
+ * - build(a), assign(a), clear()
+ * - update(i, x)
+ * - query(r), all_query()
+ * - values()
+ * - size(), empty()
+ */
+template <class T>
+class MaxBIT {
+private:
+    int n;
+    T INF_NEG;
+    std::vector<T> a;
+    std::vector<T> tree;
+
+public:
+    /**
+     * @brief コンストラクタ (サイズ指定)
+     * @param n 要素数
+     * @note 計算量: O(N)
+     */
+    explicit MaxBIT(int n = 0) : n(n), INF_NEG(std::numeric_limits<T>::lowest()), a(n, INF_NEG), tree(n + 1, INF_NEG) {}
+
+    /**
+     * @brief コンストラクタ (初期配列指定)
+     * @param a_init 初期配列
+     * @note 計算量: O(N log N)
+     */
+    explicit MaxBIT(const std::vector<T>& a_init) : n(a_init.size()), INF_NEG(std::numeric_limits<T>::lowest()), a(a_init.size(), INF_NEG), tree(a_init.size() + 1, INF_NEG) {
+        build(a_init);
+    }
+
+    /**
+     * @brief 初期配列から O(N log N) で構築
+     * @param a_init 初期配列
+     * @note 計算量: O(N log N)。最大値演算は逆元を持たないため、逐次 update による O(N log N) 構築を行う。
+     */
+    void build(const std::vector<T>& a_init) {
+        n = a_init.size();
+        a.assign(n, INF_NEG);
+        tree.assign(n + 1, INF_NEG);
+        for (int i = 0; i < n; ++i) {
+            update(i, a_init[i]);
+        }
+    }
+
+    /**
+     * @brief 新しい配列で再初期化
+     * @param a_init 新しい配列
+     * @note 計算量: O(N log N)
+     */
+    void assign(const std::vector<T>& a_init) {
+        build(a_init);
+    }
+
+    /**
+     * @brief 要素数を取得
+     * @return 要素数
+     * @note 計算量: O(1)
+     */
+    int size() const {
+        return n;
+    }
+
+    /**
+     * @brief 空であるか判定
+     * @return 空ならtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool empty() const {
+        return n == 0;
+    }
+
+    /**
+     * @brief すべての要素を極小値 (-INF) に戻す
+     * @note 計算量: O(N)
+     */
+    void clear() {
+        std::fill(a.begin(), a.end(), INF_NEG);
+        std::fill(tree.begin(), tree.end(), INF_NEG);
+    }
+
+    /**
+     * @brief 位置 i の値を x で更新する (単調増加更新: a[i] = max(a[i], x))
+     * @param i インデックス (0-index)
+     * @param x 更新値
+     * @note 計算量: O(log N)。x が現在の a[i] 以下の場合は何も行わない。
+     */
+    void update(int i, T x) {
+        assert(0 <= i && i < n);
+        if (a[i] >= x) return;
+        a[i] = x;
+        for (int idx = i + 1; idx <= n; idx += idx & -idx) {
+            tree[idx] = std::max(tree[idx], x);
+        }
+    }
+
+    /**
+     * @brief 半開区間 [0, r) の最大値を取得する
+     * @param r 右端のインデックス (0-index)
+     * @return 区間内の最大値。区間が空の場合は極小値 (-INF)
+     * @note 計算量: O(log N)
+     */
+    T query(int r) const {
+        assert(0 <= r && r <= n);
+        T res = INF_NEG;
+        for (int idx = r; idx > 0; idx -= idx & -idx) {
+            res = std::max(res, tree[idx]);
+        }
+        return res;
+    }
+
+    /**
+     * @brief 全体の最大値を取得する
+     * @return 全体の最大値
+     * @note 計算量: O(log N)
+     */
+    T all_query() const {
+        return query(n);
+    }
+
+    /**
+     * @brief 現在保持している配列をそのまま取得する
+     * @return 内部配列
+     * @note 計算量: O(N)
+     */
+    std::vector<T> values() const {
+        return a;
+    }
+};
+
+
+/**
+ * @brief Min BIT (Prefix Min Fenwick Tree)
+ * 
+ * @details 単調減少更新および Prefix 最小値 (累積最小値) の取得を高速に行うデータ構造。
+ * 
+ * 通常の BIT との違い、Prefix 限定の理由、更新制約、および DP での用途は MaxBIT と同様である
+ * (最大化と最小化が反転している点のみ異なる)。
+ * 
+ * 計算量:
+ * - 構築: O(N log N)
+ * - 単調減少更新 (update): O(log N)
+ * - Prefix 最小値取得 (query, all_query): O(log N)
+ * - 内部配列取得 (values): O(N)
+ * - クリア (clear): O(N)
+ * 
+ * API一覧:
+ * - MinBIT(n), MinBIT(a)
+ * - build(a), assign(a), clear()
+ * - update(i, x)
+ * - query(r), all_query()
+ * - values()
+ * - size(), empty()
+ */
+template <class T>
+class MinBIT {
+private:
+    int n;
+    T INF_POS;
+    std::vector<T> a;
+    std::vector<T> tree;
+
+public:
+    /**
+     * @brief コンストラクタ (サイズ指定)
+     * @param n 要素数
+     * @note 計算量: O(N)
+     */
+    explicit MinBIT(int n = 0) : n(n), INF_POS(std::numeric_limits<T>::max()), a(n, INF_POS), tree(n + 1, INF_POS) {}
+
+    /**
+     * @brief コンストラクタ (初期配列指定)
+     * @param a_init 初期配列
+     * @note 計算量: O(N log N)
+     */
+    explicit MinBIT(const std::vector<T>& a_init) : n(a_init.size()), INF_POS(std::numeric_limits<T>::max()), a(a_init.size(), INF_POS), tree(a_init.size() + 1, INF_POS) {
+        build(a_init);
+    }
+
+    /**
+     * @brief 初期配列から O(N log N) で構築
+     * @param a_init 初期配列
+     * @note 計算量: O(N log N)
+     */
+    void build(const std::vector<T>& a_init) {
+        n = a_init.size();
+        a.assign(n, INF_POS);
+        tree.assign(n + 1, INF_POS);
+        for (int i = 0; i < n; ++i) {
+            update(i, a_init[i]);
+        }
+    }
+
+    /**
+     * @brief 新しい配列で再初期化
+     * @param a_init 新しい配列
+     * @note 計算量: O(N log N)
+     */
+    void assign(const std::vector<T>& a_init) {
+        build(a_init);
+    }
+
+    /**
+     * @brief 要素数を取得
+     * @return 要素数
+     * @note 計算量: O(1)
+     */
+    int size() const {
+        return n;
+    }
+
+    /**
+     * @brief 空であるか判定
+     * @return 空ならtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool empty() const {
+        return n == 0;
+    }
+
+    /**
+     * @brief すべての要素を極大値 (INF) に戻す
+     * @note 計算量: O(N)
+     */
+    void clear() {
+        std::fill(a.begin(), a.end(), INF_POS);
+        std::fill(tree.begin(), tree.end(), INF_POS);
+    }
+
+    /**
+     * @brief 位置 i の値を x で更新する (単調減少更新: a[i] = min(a[i], x))
+     * @param i インデックス (0-index)
+     * @param x 更新値
+     * @note 計算量: O(log N)。x が現在の a[i] 以上の場合は何も行わない。
+     */
+    void update(int i, T x) {
+        assert(0 <= i && i < n);
+        if (a[i] <= x) return;
+        a[i] = x;
+        for (int idx = i + 1; idx <= n; idx += idx & -idx) {
+            tree[idx] = std::min(tree[idx], x);
+        }
+    }
+
+    /**
+     * @brief 半開区間 [0, r) の最小値を取得する
+     * @param r 右端のインデックス (0-index)
+     * @return 区間内の最小値。区間が空の場合は極大値 (INF)
+     * @note 計算量: O(log N)
+     */
+    T query(int r) const {
+        assert(0 <= r && r <= n);
+        T res = INF_POS;
+        for (int idx = r; idx > 0; idx -= idx & -idx) {
+            res = std::min(res, tree[idx]);
+        }
+        return res;
+    }
+
+    /**
+     * @brief 全体の最小値を取得する
+     * @return 全体の最小値
+     * @note 計算量: O(log N)
+     */
+    T all_query() const {
+        return query(n);
+    }
+
+    /**
+     * @brief 現在保持している配列をそのまま取得する
+     * @return 内部配列
+     * @note 計算量: O(N)
+     */
+    std::vector<T> values() const {
+        return a;
+    }
+};
+
+// 動作確認用テスト
+void test_MaxBIT() {
+    std::cout << "--- test_MaxBIT 開始 ---" << std::endl;
+
+    std::vector<int> a = {3, 1, 4, 1, 5, 9, 2, 6};
+    MaxBIT<int> bit(a);
+
+    std::cout << "初期 values(): ";
+    for (int x : bit.values()) std::cout << x << " ";
+    std::cout << std::endl;
+
+    std::cout << "query(3) [0, 3) の最大値: " << bit.query(3) << " (期待値: 4) (3, 1, 4 の最大値)" << std::endl;
+    std::cout << "query(5) [0, 5) の最大値: " << bit.query(5) << " (期待値: 5) (3, 1, 4, 1, 5 の最大値)" << std::endl;
+    std::cout << "all_query(): " << bit.all_query() << " (期待値: 9)" << std::endl;
+
+    bit.update(3, 10);
+    std::cout << "update(3, 10) 実行後 (位置 3 を 10 に更新):" << std::endl;
+    std::cout << "query(5) [0, 5) の最大値: " << bit.query(5) << " (期待値: 10)" << std::endl;
+
+    bit.update(3, 2);
+    std::cout << "update(3, 2) 実行 (減衰更新の試み、無視されるべき):" << std::endl;
+    std::cout << "get a[3]: " << bit.values()[3] << " (期待値: 10)" << std::endl;
+
+    bit.clear();
+    std::cout << "clear() 実行後 all_query(): " << bit.all_query() << " (期待値: 極小値)" << std::endl;
+
+    std::cout << "--- test_MaxBIT 終了 ---" << std::endl << std::endl;
+}
+
+void test_MinBIT() {
+    std::cout << "--- test_MinBIT 開始 ---" << std::endl;
+
+    std::vector<int> a = {3, 1, 4, 1, 5, 9, 2, 6};
+    MinBIT<int> bit(a);
+
+    std::cout << "初期 values(): ";
+    for (int x : bit.values()) std::cout << x << " ";
+    std::cout << std::endl;
+
+    std::cout << "query(3) [0, 3) の最小値: " << bit.query(3) << " (期待値: 1) (3, 1, 4 の最小値)" << std::endl;
+    std::cout << "query(1) [0, 1) の最小値: " << bit.query(1) << " (期待値: 3) (3 の最小値)" << std::endl;
+    std::cout << "all_query(): " << bit.all_query() << " (期待値: 1)" << std::endl;
+
+    bit.update(6, -5);
+    std::cout << "update(6, -5) 実行後 (位置 6 を -5 に更新):" << std::endl;
+    std::cout << "all_query(): " << bit.all_query() << " (期待値: -5)" << std::endl;
+
+    bit.update(6, 10);
+    std::cout << "update(6, 10) 実行 (増大更新の試み、無視されるべき):" << std::endl;
+    std::cout << "get a[6]: " << bit.values()[6] << " (期待値: -5)" << std::endl;
+
+    bit.clear();
+    std::cout << "clear() 実行後 all_query(): " << bit.all_query() << " (期待値: 極大値)" << std::endl;
+
+    std::cout << "--- test_MinBIT 終了 ---" << std::endl << std::endl;
+}
+
+// ランダムテスト
+void random_test_MaxBIT() {
+    std::cout << "--- random_test_MaxBIT 開始 ---" << std::endl;
+
+    std::mt19937 mt(42);
+    int n = 500;
+    int queries = 5000;
+
+    std::vector<long long> naive(n, std::numeric_limits<long long>::lowest());
+    MaxBIT<long long> bit(n);
+
+    std::uniform_int_distribution<long long> val_dist(-10000, 10000);
+    std::uniform_int_distribution<int> idx_dist(0, n - 1);
+
+    for (int q = 0; q < queries; ++q) {
+        int op = mt() % 3;
+        if (op == 0) {
+            // update
+            int i = idx_dist(mt);
+            long long x = val_dist(mt);
+            naive[i] = std::max(naive[i], x);
+            bit.update(i, x);
+        } else if (op == 1) {
+            // query
+            int r = mt() % (n + 1);
+            long long naive_max = std::numeric_limits<long long>::lowest();
+            for (int i = 0; i < r; ++i) {
+                naive_max = std::max(naive_max, naive[i]);
+            }
+            assert(bit.query(r) == naive_max);
+        } else {
+            // values, all_query
+            std::vector<long long> b_vals = bit.values();
+            assert(b_vals == naive);
+            
+            long long naive_all = std::numeric_limits<long long>::lowest();
+            for (int i = 0; i < n; ++i) naive_all = std::max(naive_all, naive[i]);
+            assert(bit.all_query() == naive_all);
+        }
+    }
+
+    std::cout << "OK" << std::endl;
+    std::cout << "--- random_test_MaxBIT 終了 ---" << std::endl << std::endl;
+}
+
+void random_test_MinBIT() {
+    std::cout << "--- random_test_MinBIT 開始 ---" << std::endl;
+
+    std::mt19937 mt(42);
+    int n = 500;
+    int queries = 5000;
+
+    std::vector<long long> naive(n, std::numeric_limits<long long>::max());
+    MinBIT<long long> bit(n);
+
+    std::uniform_int_distribution<long long> val_dist(-10000, 10000);
+    std::uniform_int_distribution<int> idx_dist(0, n - 1);
+
+    for (int q = 0; q < queries; ++q) {
+        int op = mt() % 3;
+        if (op == 0) {
+            // update
+            int i = idx_dist(mt);
+            long long x = val_dist(mt);
+            naive[i] = std::min(naive[i], x);
+            bit.update(i, x);
+        } else if (op == 1) {
+            // query
+            int r = mt() % (n + 1);
+            long long naive_min = std::numeric_limits<long long>::max();
+            for (int i = 0; i < r; ++i) {
+                naive_min = std::min(naive_min, naive[i]);
+            }
+            assert(bit.query(r) == naive_min);
+        } else {
+            // values, all_query
+            std::vector<long long> b_vals = bit.values();
+            assert(b_vals == naive);
+            
+            long long naive_all = std::numeric_limits<long long>::max();
+            for (int i = 0; i < n; ++i) naive_all = std::min(naive_all, naive[i]);
+            assert(bit.all_query() == naive_all);
+        }
+    }
+
+    std::cout << "OK" << std::endl;
+    std::cout << "--- random_test_MinBIT 終了 ---" << std::endl << std::endl;
+}
+
+void solv(){
+    test_MaxBIT();
+    test_MinBIT();
+    random_test_MaxBIT();
+    random_test_MinBIT();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

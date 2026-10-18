@@ -1,0 +1,46 @@
+// =============================================================================
+//  ゲーム（mex・Grundy 数：状態の DAG・石取り（取れる数が L〜R・集合 S、周期も）、分かれる手、Nim・逆形 Nim、閉路のあるゲームの後退解析）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 10 ゲーム
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  「動けなくなった方が負け」の 2 人ゲーム。いくつかのゲームを並べ、手番ではどれか 1 つを 1 手進めるとき
+//  先手必勝 ⇔ 各ゲームの Grundy 数の XOR ≠ 0（Grundy 数 = 1 手で行ける状態の Grundy 数の mex）
+//
+//  機能一覧                                                                    計算量
+//    mex(vs)                          vs に含まれない最小の 0 以上の整数                            O(|vs|)
+//    grundy_dag(n, moves)             状態 0〜n−1、moves[v] = v から 1 手で行ける状態。各状態の Grundy 数  O(n + 辺)
+//    nim_first_wins(piles)            Nim（最後に取った方が勝ち）で先手必勝か（XOR ≠ 0）
+//    misere_nim_first_wins(piles)     逆形 Nim（最後に取った方が負け）で先手必勝か
+//    range_take_grundy(x, L, R)       1 回に L〜R 個取れる石取りの x 個の山の Grundy 数               O(1)
+//    subtraction_game_grundy(S, N)    1 回に取れる数が集合 S の石取りの Grundy 数 g(0)〜g(N)          O(N |S|)
+//    SubtractionGame G(S)             同じく x が巨大なとき：周期を見つけて G.grundy(x)。G.preperiod() / G.period()
+//    grundy_dag_multi(n, moves)       1 手で複数のゲームに分かれるとき（moves[v] = 手の一覧、手 = 行き先の状態の列。値は XOR）  O(n + 行き先の総数)
+//    game_outcome(n, moves)           閉路があってもよいゲームの勝ち負け（後退解析）：GameOutcome{result, steps}         O(n + 辺)
+//                                     result[v] = GAME_WIN / GAME_LOSE / GAME_DRAW（v で手番の人から）、steps[v] = 決着までの手数
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    game_test::random_test()  … 全部の手を試すメモ化探索との突き合わせ
+//    game_test::benchmark()    … 速度計測
+//    game_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>

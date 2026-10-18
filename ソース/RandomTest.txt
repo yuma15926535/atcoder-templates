@@ -1,0 +1,242 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+struct RandomTest {
+    mt19937 rng; // 乱数生成器
+
+    // コンストラクタ: seedを指定しなければ現在時刻で初期化
+    RandomTest(int seed = chrono::steady_clock::now().time_since_epoch().count()) { 
+        rng.seed(seed); 
+    }
+
+    // シードを後から変更したい場合
+    void set_seed(int seed) { rng.seed(seed); }
+
+    // -------------------------------
+    // 1. 整数のランダム数列生成
+    // -------------------------------
+    // n        : 生成する要素数
+    // l, r     : 要素の範囲 [l, r]
+    // unique   : true にすると要素は重複なし
+    // sorted   : true にすると昇順ソートして返す
+    vector<int> randint_sequence(int n, int l, int r, bool unique=false, bool sorted=false) {
+        vector<int> v;
+
+        // 重複なしの場合、範囲が足りないとエラー
+        if(unique && r - l + 1 < n) 
+            throw runtime_error("範囲が小さすぎてユニークにできません");
+
+        if(unique) {
+            vector<int> pool(r-l+1);
+            iota(pool.begin(), pool.end(), l);      // [l, r]の値を作る
+            shuffle(pool.begin(), pool.end(), rng); // シャッフル
+            v.assign(pool.begin(), pool.begin() + n); 
+        } else {
+            uniform_int_distribution<int> dist(l, r);
+            for(int i=0;i<n;i++) v.push_back(dist(rng));
+        }
+
+        if(sorted) sort(v.begin(), v.end());
+        return v;
+    }
+
+    // -------------------------------
+    // 2. 座標点のランダム生成
+    // -------------------------------
+    // n      : 生成する点の数
+    // x_min  : x座標の最小値
+    // x_max  : x座標の最大値
+    // y_min  : y座標の最小値
+    // y_max  : y座標の最大値
+    vector<pair<int,int>> random_points(int n, int x_min, int x_max, int y_min, int y_max) {
+        vector<pair<int,int>> pts;
+        uniform_int_distribution<int> dx(x_min, x_max);
+        uniform_int_distribution<int> dy(y_min, y_max);
+        for(int i=0;i<n;i++) pts.emplace_back(dx(rng), dy(rng));
+        return pts;
+    }
+
+    // -------------------------------
+    // 3. ランダム文字列生成
+    // -------------------------------
+    // length : 生成する文字列の長さ
+    // chars  : 使用する文字の集合（デフォルトは英数字）
+    string random_string(int length, const string& chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") {
+        string s;
+        uniform_int_distribution<int> dist(0, (int)chars.size()-1);
+        for(int i=0;i<length;i++) s += chars[dist(rng)];
+        return s;
+    }
+
+    // 複数文字列生成
+    vector<string> random_strings(int n, int length, const string& chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") {
+        vector<string> res;
+        for(int i=0;i<n;i++) res.push_back(random_string(length, chars));
+        return res;
+    }
+
+    // -------------------------------
+    // 4. グラフ生成
+    // -------------------------------
+    // 無向木（1からn-1までの辺をランダムに割り当て）
+    vector<vector<int>> random_tree(int n) {
+        vector<int> parent(n);
+        iota(parent.begin(), parent.end(), 0);
+        shuffle(parent.begin()+1, parent.end(), rng);
+        vector<vector<int>> g(n);
+        for(int i=1;i<n;i++) {
+            int p = parent[i];
+            g[i].push_back(p);
+            g[p].push_back(i);
+        }
+        return g;
+    }
+
+    // ランダムグラフ
+    // n        : 頂点数
+    // m        : 辺の数
+    // directed : trueなら有向グラフ、falseなら無向グラフ
+    vector<vector<int>> random_graph(int n, int m, bool directed=false) {
+        set<pair<int,int>> edges;
+        uniform_int_distribution<int> dist(0, n-1);
+        while((int)edges.size() < m) {
+            int u = dist(rng), v = dist(rng);
+            if(u == v) continue; // 自己ループを除く
+            if(!directed && u > v) swap(u,v); // 無向グラフなら順序を固定
+            edges.insert({u,v});
+        }
+        vector<vector<int>> g(n);
+        for(auto &[u,v]:edges) {
+            g[u].push_back(v);
+            if(!directed) g[v].push_back(u);
+        }
+        return g;
+    }
+
+    // -------------------------------
+    // 5. 繰り返しテスト用
+    // -------------------------------
+    // times : 繰り返す回数
+    // func  : 各回に実行するラムダ関数（テスト番号が渡される）
+    void repeat(int times, function<void(int)> func) {
+        for(int i=0;i<times;i++) func(i);
+    }
+
+    // -------------------------------
+    // 6. 出力確認用
+    // -------------------------------
+    void print_int(const int& num, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        cout << num << "\n";
+    }
+
+    void print_ll(const ll& num, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        cout << num << "\n";
+    }
+
+    template<typename T>
+    void print_vector(const vector<T>& v, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        for(auto &x:v) cout << x << " ";
+        cout << "\n";
+    }
+
+    template<typename T1, typename T2>
+    void print_points(const vector<pair<T1,T2>>& pts, const string &label="") {
+        if(!label.empty()) cout << label << ":\n";
+        for(auto &[x,y]:pts) cout << "("<<x<<","<<y<<") ";
+        cout << "\n";
+    }
+
+    void print_graph(const vector<vector<int>>& g, const string &label="") {
+        if(!label.empty()) cout << label << ":\n";
+        for(int i=0;i<(int)g.size();i++) {
+            cout << i << ": ";
+            for(int v:g[i]) cout << v << " ";
+            cout << "\n";
+        }
+    }
+
+    void print_string(const string& s, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        cout << s << "\n";
+    }
+
+    void print_strings(const vector<string>& s, const string &label="") {
+        if(!label.empty()) cout << label << ":\n";
+        for(auto &str:s) cout << str << "\n";
+    }
+};
+
+// ------------------------
+// 問題用関数
+// ------------------------
+string my_solution(const vector<int>& a) {
+    long long sum = 0;
+    for(auto x:a) sum += x;
+    //return (sum % 2 == 0 ? "Even" : "Odd");
+    return "Odd";
+}
+
+string correct_solution(const vector<int>& a) {
+    return accumulate(a.begin(), a.end(), 0LL) % 2 == 0 ? "Even" : "Odd";
+}
+
+void solv(){
+    RandomTest rt;
+
+    int test_count = 100;
+    bool all_passed = true;
+
+    rt.repeat(test_count, [&](int t){
+        //数列のサイズ
+        int n = rt.randint_sequence(1, 1, 10)[0];
+        //数列の生成
+        auto a = rt.randint_sequence(n, 0, 100);
+
+        string my_ans = my_solution(a);
+        string correct_ans = correct_solution(a);
+
+        if(my_ans != correct_ans) {
+            all_passed = false;
+            cout << "テスト " << t+1 << " 失敗！\n";
+            rt.print_vector(a, "入力");
+            rt.print_string(my_ans,"自作解");
+            rt.print_string(correct_ans,"正解");
+            cout<<'\n';
+        }
+    });
+
+    if(all_passed) cout << "すべてのテストに合格 ✅\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

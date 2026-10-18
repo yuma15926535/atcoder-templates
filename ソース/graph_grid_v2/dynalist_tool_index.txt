@@ -1,0 +1,165 @@
+▼ グラフ・グリッド道具選択（第二世代）
+	▼ 使い方
+		1. 入力の形で大分類を選ぶ（グラフ／木／i → A_i・順列／グリッド／状態を持つ探索）
+		2. 聞かれていることで小分類を選ぶ
+		3. 書いてあるファイルを貼る（依存するファイルは同梱済み。1回のコピーで動く）
+		記号：記号なし＝テンプレートあり、△＝専用テンプレートなし（型として数行で書く。Dynalist の △ の項目に型がある）
+	▼ グラフ（N 頂点 M 辺）　基盤：00_graph_base
+		▼ 読み込み
+			無向・重みなし → read_undirected(N, M)
+			有向・重みなし → read_directed(N, M)
+			重みあり → read_undirected_w(N, M) ／ read_directed_w(N, M)
+			入力が 0-indexed → 最後の引数 base に 0 を渡す
+			特殊な形（行列・文字列など）で、自分で隣接リストを作った → graph_from_adj(adj)（vector<vector<int>> ／ vector<vector<pair<int, long long>>>）
+			そのほかの特殊な形 → Graph G(N) を作って G.add_edge(u, v, w) で1本ずつ足す
+		▼ 最短距離・最短手数
+			重みなし（全部 1） → 01_bfs　bfs(G, s)
+			重みが 0 か 1 → 01_zero_one_bfs　zero_one_bfs(G, s)
+			重みが 0 以上 → 02_dijkstra　dijkstra(G, s)
+			負の重みがある・負閉路の検出・−∞ になる頂点 → 02_bellman_ford　bellman_ford(G, s) ／ find_negative_cycle(G)
+			得点の最大化（重みを負にして最短路） → 02_bellman_ford
+			差の不等式 x_v − x_u ≤ w（牛ゲー） → 02_bellman_ford（辺 u → v、重み w）
+			全点間の距離（N ≤ 400 程度） → 02_warshall_floyd　WarshallFloyd W(G);　W[i][j]
+			辺を消していくクエリで全点間の距離 → 02_warshall_floyd　逆順に update_edge で足す
+			始点が複数（いちばん近い○○までの距離） → bfs(G, {s1, s2, …})（dijkstra なども同じ）
+			始点ごとに最初のコストが違う → 02_dijkstra　dijkstra(G, {{s1, c1}, {s2, c2}, …})
+			辺が N^2 本近い（全点間に重みがある・座標から重みを計算） → 02_dijkstra　dijkstra_dense(N, s, cost)
+			時刻で辺を通る時間が変わる（発車時刻・混雑。待ってよい） → 02_dijkstra_time　dijkstra_time(G, s, cost)（cost(e, t)）
+			どの始点がいちばん近いか → r.nearest_source()
+			特別な頂点すべてとつながる仮の頂点（超頂点） → G.add_vertex()
+			各頂点から t までの距離（有向グラフ） → G.reversed() を t から探索
+			経路の頂点を出力 → r.path(t)
+			経路の辺番号を出力・最短路木の辺を選ぶ → parent_edges(G, r)
+			最短路の本数 → 02_shortest_path_dag
+			この辺・頂点は最短路に乗るか → 02_shortest_path_dag
+			すべての最短路が通る頂点・辺（消すと最短距離が変わる） → 02_shortest_path_dag　must_vertex / must_edge
+		▼ 到達・連結
+			s から行けるか → 01_bfs　r.reached(v)
+			連結成分の数・成分ごとの集計 → 01_components
+			有向グラフで、向きを無視してつながっているか → 01_components　weak_components(G)
+			成分ごとの辺の本数（木か・閉路がちょうど 1 つか） → 01_components　component_edge_counts(G, c)
+			ある頂点を除いたときの成分 → 01_components　components_core(n, adj, alive)
+			辺を足しながら「同じ成分か」に答える → 03_union_find
+			グラフ全体を Union-Find に入れる → 03_union_find　union_find_from(G)
+			辺を消していく → 逆順に見て「足していく」形にする → 03_union_find
+			全頂点をつなぐ最小コスト（最小全域木） → 03_kruskal
+			最大全域木 → 03_kruskal　kruskal_max(G)
+			必ず使う辺・最初からつながっている組がある → 03_kruskal　kruskal(G, uf)（uf で先に unite）
+			差の条件（x_v − x_u = w）の矛盾判定・差を答える → 03_weighted_union_find　weighted_union_find_from(G) ／ diff(u, v)
+			併合を取り消したい（巻き戻し） → 03_rollback_union_find
+			いつ初めて u と v がつながるか・過去の時点で同じ成分か → 03_persistent_union_find　when(u, v) ／ same(u, v, t)
+			全部の組の間に辺がある（重みが式で決まる）最小・最大全域木 → 03_prim　prim_dense(N, cost) ／ prim_dense_max
+		▼ 色分け・閉路・順序
+			2色に塗り分けられるか・矛盾のない割り当て → 01_bipartite
+			「同じ／違う」の条件（偶奇）に矛盾がないか → 01_bipartite　xor_coloring(G)
+			閉路があるか・閉路を出力 → 01_cycle（有向／無向）
+			s を通る最短の閉路（有向） → 01_cycle　shortest_cycle_directed(G, s)
+			N 頂点 N 辺（なもりグラフ）の閉路の上の頂点 → 01_cycle　two_core(G)
+			順序の制約（A は B より前） → 04_topo_sort
+			辞書順最小の順序 → 04_topo_sort　topo_sort_lex_min(G)
+			辞書順最大の順序 → 04_topo_sort　topo_sort_lex_max(G)
+			順序が一意に決まるか → 04_topo_sort　unique
+			DAG 上の最長路・経路の数 → 04_topo_sort　dag_longest_path(G) ／ dag_count_paths(G, s, mod)（ほかの DP は △ DAG上のDP）
+			DFS の訪問順そのものが答え → 01_dfs
+			すべての経路を調べる（N が小さい） → △ 再帰DFS（バックトラック）
+		▼ 強連結・橋・2-SAT・一筆書き
+			互いに行き来できる頂点のまとまり・縮約して DAG → 07_scc　SCC S(G); S.dag(G)
+			橋・関節点（消すと非連結になる辺・頂点） → 07_lowlink　L.bridges ／ L.articulations
+			頂点（辺）を 1 つ消したときの連結成分の数・大きさ → 07_lowlink　components_after_removing_vertex(v) ／ pieces_after_removing_vertex(v)
+			どの 1 辺を消しても行き来できる組（二重辺連結成分） → 07_lowlink　two_edge_id ／ bridge_tree()
+			どの 1 頂点を消してもつながっている部分（ブロック）・必ず通る頂点 → 07_lowlink　block_cut_tree()
+			「x か y のどちらかは真」の条件を全部満たす割り当て → 07_two_sat
+			すべての辺をちょうど1回ずつ通る（一筆書き） → 06_euler_path　euler_path_undirected(G) ／ euler_path_directed(G)
+		▼ フロー・マッチング
+			最大マッチング（人と仕事・ドミノ） → 08_bipartite_matching　M.solve()
+			最小点被覆・最大独立集合（二部グラフ） → 08_bipartite_matching　min_vertex_cover() ／ max_independent_set()
+			最大流・最小カット（辺・頂点をいくつ消せば分断） → 08_max_flow　F.flow(s, t) ／ F.min_cut(s)
+			2 択の最適化（燃やす埋める） → 08_max_flow（最小カット。使い方デモ）
+			流量に下限がある → 08_max_flow　LowerBoundFlow
+			コストを最小にして流す・最大重みマッチング → 08_min_cost_flow　F.flow(s, t, K) ／ F.flow_min_cost(s, t)
+			割り当て問題（全部の組にコスト。n ≤ 1000 程度） → 08_hungarian　hungarian(a) ／ hungarian_max(a)
+	▼ 木（N 頂点 N−1 辺）　基盤：05_rooted_tree
+		▼ 読み込み
+			辺 N−1 本 → read_tree(N)（重みあり：read_tree_w(N)）
+			親の配列 p_2 … p_N → read_parents(N)
+		親・深さ・部分木サイズ・子の一覧 → 05_rooted_tree
+		部分木の値を下から集める（木DP） → 05_rooted_tree ＋ △ 木DP（order を逆順に回す）
+		部分木を区間 [in, out) として扱う（部分木クエリ） → 05_rooted_tree　in / out
+		部分木に足す操作をまとめて処理・根からの累積 → 05_rooted_tree　root_path_sum(val)
+		部分木の和・最大 → 05_rooted_tree　subtree_sum(val) / subtree_fold(val, op)
+		辺を切ったときの両側の頂点数（辺を通る組の数） → 05_rooted_tree　edge_child[id] と sz
+		辺を 1 本切ったときの両側それぞれの木DP（直径・値など） → 05_rerooting_edges　from_side ／ to_side
+		訪れた順に頂点を出力（戻るときも書く。オイラーツアー） → 05_rooted_tree　euler_tour()
+		u が v の祖先か → 05_rooted_tree　is_ancestor(u, v)
+		2点間の距離・共通祖先 → 05_lca　dist / lca
+		k 個上の祖先・パスの k 番目の頂点 → 05_lca　kth_ancestor / jump
+		2点間のパスの頂点 → 05_lca　path(u, v)
+		a が u-v のパス上にあるか → 05_lca　on_path(u, v, a)
+		いちばん遠い2点・直径 → 05_tree_diameter
+		各頂点から最も遠い頂点までの距離 → 05_tree_diameter　ecc[v]
+		木の中心（両端までの遠いほうの距離が最小の頂点） → 05_tree_diameter
+		すべての頂点について「その頂点を根にしたときの値」（全方位木DP） → 05_rerooting　rerooting(G, e, merge, put_edge, put_vertex)
+		各頂点から全頂点への距離の和 → 05_rerooting（使い方デモ）
+		パス上の値の集計（パスを区間に分けてセグ木） → 05_lca　path_segments(u, v)
+		パス上の値の集計・1 点更新（向きが大事な演算も） → 05_hld　TreeQuery
+		パス・部分木にまとめて足す・代入する → 05_hld　TreeLazyQuery
+		辺の重みを変えながら 2 点の距離 → 05_hld　TreeQuery（edge = true）
+		距離が K 以下の組の数・一番近い印までの距離 → 05_centroid　CentroidDecomposition
+		木の重心 → 05_centroid　tree_centroids(G)
+		クエリごとに頂点の集合（K の合計が小さい）・その頂点だけの圧縮した木 → 05_virtual_tree　virtual_tree(L, vs)
+		指定した頂点をすべて結ぶ最小の部分木の大きさ → 05_virtual_tree（Σ dist[i]）
+		最大独立集合・最小点被覆・最小支配集合・最大マッチング（木なら O(N)） → 05_tree_classic
+		隣り合う 2 頂点を選ばない選び方の数（EDPC P） → 05_tree_classic　tree_count_independent_sets(G, mod)
+	▼ i → A_i（各頂点から辺が1本）・順列
+		K 回移動した先（K ≤ 10^18） → 06_functional_graph　kth(v, K)
+		K 回移動したときの値の合計 → 06_functional_graph（重みを渡す）　kth_sum(v, K)
+		K 回移動したときの最小値・最大値・一次関数の合成など（和以外） → 06_doubling　fold(v, K)
+		何回目に初めて条件を満たすか（和が X を超える など） → 06_doubling　first_true(v, limit, f)
+		行き先がない頂点がある（そこで止まる） → 06_doubling（nxt[v] = -1）
+		u から v に行けるか・何回で行けるか → 06_functional_graph　reach(u, v)
+		サイクルの長さ・サイクルに入るまでの回数・周期 → 06_functional_graph
+		順列のサイクル・サイクルの数 → 06_perm_cycles
+		順列を K 回適用した結果 → 06_perm_cycles　pow(K)
+		ソートに必要な最小の交換回数 → 06_perm_cycles
+		交換の手順を出力 → 06_perm_cycles　sort_swaps()
+		何回で元に戻るか（周期） → 06_perm_cycles　period() ／ period_mod(mod)
+		逆順列・合成・偶置換か奇置換か → 06_perm_cycles　inverse() ／ perm_compose(a, b) ／ parity()
+	▼ グリッド（H 行 W 列）　基盤：00_grid_base
+		▼ 読み込み・基本操作
+			読み込み → read_grid(H, W)
+			範囲判定・(i, j) ↔ 番号・4／8方向の隣接 → 00_grid_base
+			'S' や 'G' の位置 → find('S')
+			外周に壁を付ける → padded('#')
+			経路を UDLR の文字列で出力 → path_to_dirs(path)
+			数値のグリッド → read_matrix<T>(H, W) ＋ Grid g(H, W) で形だけ使う
+			矢印・UDLR の文字 → 方向番号 → Grid::dir_of(c)
+		迷路の最短手数 → 09_grid_bfs
+		いちばん近い○○までの距離（始点が複数） → 09_grid_bfs（多始点）
+		斜めにも 1 手で動ける（8 方向） → 09_grid_bfs　grid_bfs8
+		壁を壊す・ワープ（コスト 0 と 1） → 09_grid_01bfs
+		パンチで 2×2 を壊す・5×5 へのワープ → 09_grid_01bfs（使い方デモの例）
+		曲がる回数の最小 → 09_grid_01bfs（状態 (マス, 向き)。使い方デモの例）
+		氷の上を滑る（壁にぶつかるまで進む） → g.slide(v, d, walls) ＋ 探索の本体（09_grid_bfs の使い方デモの例）
+		つながった領域（島）の数・大きさ → 09_grid_components
+		同じ色（文字）の領域の数 → 09_grid_components　grid_components_same(g)
+		'#' の塊の数 → 09_grid_components　grid_components(g, ~CharSet('#'))
+		グリッドでグラフの道具を使う（最短路の本数・関節点・閉路・二部グラフ） → 09_grid_graph　grid_graph(g)
+		隣のマスとの差が重みの最小全域木・経路上の最大値の最小化 → 09_grid_graph　grid_graph_w(g, cost) ＋ 03_kruskal
+		外とつながっていない（囲まれた）領域 → 09_grid_bfs　enclosed_cells(g)
+		向き・残り回数などで動き方が変わる → 「状態を持つ探索」へ
+		桂馬跳び・決まった距離へのジャンプ → 09_grid_bfs　grid_bfs_offsets(g, s, offs)（offs は Grid::offsets_knight() など）
+		ワープ（同じ文字のマスへ。ABC184 E） → bfs_core ＋ g.for_each4（09_grid_bfs の使い方デモの例）
+		端どうしがつながっている（トーラス） → g.for_each4_torus ＋ 探索の本体（09_grid_bfs の使い方デモの例）。座標だけなら wrap(i, j)
+		図形の回転・反転・一致判定 → 10_grid_transform
+		裏返しも許す形の一致 → 10_grid_transform　match_symmetry
+		ずらして重なるか（端がつながっている） → 10_grid_transform　shift_torus
+		パターンが現れる位置 → 10_grid_transform　find_subgrid(a, pat)
+		点を任意の中心のまわりに90度回転 → 10_grid_transform　rotate_point
+		マンハッタン距離の最大・最小 → 10_grid_transform　manhattan_to_chebyshev(x, y)（45度回転）
+	▼ 状態を持つ探索（鍵・回数・向き・偶奇・時刻 mod K）　基盤：00_state_id
+		1. 状態を（頂点, 状態）の組にして、00_state_id で番号を付ける
+		2. 状態の数（頂点数 × 状態の種類）が 10^7 程度以下か確かめる
+		3. 移動のコストで本体を選ぶ：全部 1 → bfs_core、0 か 1 → zero_one_bfs_core、0 以上 → dijkstra_core
+		4. 答えは「終点のすべての状態」の距離の最小を取る
+		時刻で移動の時間が変わる（待ってよい・時刻を状態に持たない） → 02_dijkstra_time　dijkstra_time_core（adj に今の時刻が渡る）
+		グラフが書かれていない（数・文字列・盤面を操作で変える） → 状態を頂点と考えて同じ手順で解く

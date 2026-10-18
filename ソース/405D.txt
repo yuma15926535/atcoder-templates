@@ -1,0 +1,42 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main(){
+    int H,W;
+    cin>>H>>W;
+    vector<string>S(H);
+    rep(i,0,H)cin>>S[i];
+    //多始点BFS(複数始点BFS)
+    //初期のqueueに始点を追加
+    //距離を求める場合はvisitedも必要->下参照
+    //https://zenn.dev/caselab/articles/0ee780a1524ff6
+    queue<pair<int,int>>q;
+    rep(i,0,H)rep(j,0,W)if(S[i][j]=='E')q.push({i,j});
+    vector<int>dx={1,0,-1,0},dy={0,1,0,-1};
+    auto range=[&](int h,int w){return 0<=h&&h<H&&0<=w&&w<W;};
+    string A="^<v>";
+    while(!q.empty()){
+        auto [i,j]=q.front();
+        q.pop();
+        rep(k,0,4){
+            int ni=i+dx[k],nj=j+dy[k];
+            if(range(ni,nj)&&S[ni][nj]=='.'){
+                S[ni][nj]=A[k];
+                q.push({ni,nj});
+            }
+        }
+    }
+    rep(i,0,H)cout<<S[i]<<"\n";
+    return 0;
+}

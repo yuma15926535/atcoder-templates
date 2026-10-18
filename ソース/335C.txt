@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct xy{
+    int x;
+    int y;
+    xy operator+=(const xy &right){
+        x+=right.x;
+        y+=right.y;
+        return *this;
+    }
+};
+map<char,xy> m;
+deque<xy> deq;
+struct solv{
+    solv(int n){
+        erep(i,1,n)deq.push_back({(int)i,0});
+        m['R']={1,0};
+        m['L']={-1,0};
+        m['U']={0,1};
+        m['D']={0,-1};
+    }
+    void print(int pos){
+        cout<<deq[pos-1].x<<" "<<deq[pos-1].y<<"\n";
+    }
+    void move(char c){
+        xy p=deq[0];
+        p+=m[c];
+        deq.push_front(p);
+        deq.pop_back();
+    }
+};
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N,Q;
+    cin>>N>>Q;
+    solv s=solv(N);
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q-1){
+            int pos;
+            cin>>pos;
+            s.print(pos);
+        }else{
+            char c;
+            cin>>c;
+            s.move(c);
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,40 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+bool comp(ll a,ll b){
+    return a>b;
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<ll> A(N);
+    rep(i,0,N)cin>>A[i];
+    sort(nall(A),comp);
+    ll ans=0,sum=0;
+    //差の和を直接やるとTLE
+    rep(i,0,N-1){
+        if(i){
+            ll a=A[i-1]-A[i];
+            sum-=a*(N-i);
+            ans+=sum;
+        }else{
+            rep(j,1,N)sum+=A[0]-A[j];
+            ans+=sum;
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

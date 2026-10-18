@@ -1,0 +1,48 @@
+// =============================================================================
+//  線形漸化式（項の多い漸化式の第 K 項・最初の n 項、最初の数項から漸化式を求める Berlekamp–Massey）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 06 数列・和
+//  依存       : 00_int_common, 00_math_base, 00_modint, 07_convolution（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  漸化式 a_i = c_1 a_{i−1} + c_2 a_{i−2} + … + c_d a_{i−d}
+//    a = {a_0, …, a_{d−1}}（最初の d 項）、c = {c_1, …, c_d}（c[0] が 1 つ前の項の係数）
+//  使い方
+//      using mint = ModInt998;
+//      mint f = linear_recurrence_kth<mint>({0, 1}, {1, 1}, K);   // フィボナッチ数 F_K（K ≤ 10^18）
+//      mint g = guess_kth(first_terms, K);                        // DP で出した最初の数十項から第 K 項を推測
+//
+//  機能一覧                                                                    計算量
+//    linear_recurrence_kth(a, c, K)   第 K 項（Bostan–Mori。mod は何でも。d = 5×10^4 で約 0.5 秒。
+//                                     10^9+7 など NTT が使えない mod は 3 つの素数の畳み込みなので約 5 倍遅い）  O(d log d log K)
+//    linear_recurrence_terms(a, c, n) 最初の n 項                                                 O(n log n)
+//    berlekamp_massey(s)              列 s をみたす最短の漸化式の c（mod は素数。次数 d には 2d 項以上いる）  O(N^2)
+//    guess_kth(s, K)                  berlekamp_massey + linear_recurrence_kth
+//  （項が少ない（d ≤ 10 程度）なら 05_matrix の行列累乗でもよい。P(x)/Q(x) の第 K 係数は 07_fps の fps_coeff_of_fraction）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    linrec_test::random_test()  … 漸化式どおりに計算した値との突き合わせ
+//    linrec_test::benchmark()    … 速度計測
+//    linrec_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

@@ -1,0 +1,85 @@
+// =============================================================================
+//  文字列基盤（文字の種類・区間の文字の数・出現位置・ランレングス・変換・比較・区切り）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 00 基盤（ほかの文字列テンプレートはすべてこれを同梱している）
+//  依存       : なし（ほかの第二世代（グラフ・グリッド・幾何・数学）と一緒に貼っても衝突しない）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  共通の約束（第二世代の文字列テンプレートすべてで同じ）
+//    - 列を受け取る関数・構造体は string と vector<整数>（int・long long）のどちらでもよい。文字列リテラル "abc" も渡せる
+//    - 範囲は半開区間 [l, r)（0 始まり）。問題の「L 文字目から R 文字目」は (L - 1, R) で渡す。k 番目は 0 から
+//    - 位置・番号が「ない」ときは -1
+//    - 文字の種類は Alphabet で指定する（既定は英小文字 a〜z）。番号の順が辞書順として扱われる
+//    - 範囲外の文字・使えない引数（範囲外の位置など）はメッセージを出して止める（黙って配列の外を読まない）
+//    - char は unsigned char として扱う（128 以上の文字（日本語など）でも負の添字にしない。std::string の比較と同じ順）
+//    - 「部分文字列」は連続する部分、「部分列」は飛び飛びに選んだもの（名前で区別する）
+//
+//  機能一覧                                                                       計算量
+//   文字の種類
+//    Alphabet::lower() / upper() / digits()       a〜z（既定）/ A〜Z / 0〜9
+//    Alphabet::letters() / alnum()                A〜Z,a〜z（52 種）/ 0〜9,A〜Z,a〜z（62 種）。どちらも ASCII 順
+//    Alphabet::ascii() / bytes()                  文字コード 0〜127 / 0〜255
+//    Alphabet::of("()[]")                         並べた文字だけ（並べた順が番号 = 辞書順の順。独自の順にも）
+//    Alphabet::ints(K) / ints(lo, hi)             整数 0〜K-1 / [lo, hi)（数の列に）
+//    A.id(c) / A.contains(c) / A.size()           文字・値の番号（範囲外は止める）/ 入っているか / 種類の数     O(1)
+//    A.value(i) / A.ch(i) / A.chars()             番号 → 値 / 文字 / 全部の文字
+//    to_ids(s, A) / from_ids(ids, A)              文字列 → 番号の列 / 番号の列 → 文字列                     O(N)
+//    compress_values(a)                           数の列を 0〜K-1 に圧縮（CompressedValues{ids, values}。.alphabet() で ints(K)）  O(N log N)
+//   文字の数・位置
+//    count_chars(s, A)                            番号ごとの個数                                            O(N)
+//    CharPrefix cp(s, A)                          区間の文字の数・次 / 前の出現を O(1) で（前処理 O(Nσ)・メモリ (N+1)σ 個の int）
+//      cp.count(l, r, c) / has(l, r, c)           [l, r) にある c の数 / あるか                              O(1)
+//      cp.counts(l, r) / distinct(l, r)           [l, r) の番号ごとの数 / 種類の数                           O(σ)
+//      cp.next(i, c) / prev(i, c)                 i 以上で最初の c / i より前で最後の c（なければ -1）         O(1)
+//      cp.kth(c, k) / total(c)                    c の k 番目（0 から）の位置 / 個数                          O(1)
+//    CharPositions cps(s, A)                      文字の出現位置（メモリを抑えた版。前処理 O(N + σ)・メモリ O(N + σ)。σ が大きくてもよい）
+//      cps.next(i, c) / prev(i, c)                i 以上で最初の c / i より前で最後の c（なければ -1）         O(log N)
+//      cps.kth(c, k) / total(c) / positions(c)    c の k 番目（0 から）の位置 / 個数 / 位置の一覧              O(1)
+//      cps.count(l, r, c) / has(l, r, c)          [l, r) にある c の数 / あるか                              O(log N)
+//      cps.occurrence_index(i)                    s[i] がその文字の何番目（0 から）の出現か                    O(1)
+//   ランレングス
+//    run_length(s)                                連続する同じ値を RunBlock{value, len, start} の列に        O(N)
+//    run_length_decode(runs)                      元に戻す（char なら string、それ以外は vector）
+//   変換（元の列は変えず、新しい列を返す）
+//    to_lower(s) / to_upper(s) / swap_case(s)     英字の大文字・小文字                                       O(N)
+//    caesar_shift(s, k, A)                        A の文字を番号で k ずらす（負も。A にない文字はそのまま）      O(N)
+//    CharMap cm(A)                                文字の置き換えを重ねる
+//      cm.replace(c, d)                           今 c になっている文字を全部 d に（ABC342 C）                 O(σ)
+//      cm.set(c, d) / cm(c) / cm.apply(s)         元の c の行き先を d に / 元の c の行き先 / s に当てはめる     O(1) / O(1) / O(N)
+//      cm.compose(g) / cm.table()                 「cm のあとに g」/ 番号 → 行き先の番号
+//    reversed(s) / min_with_reverse(s)            反転 / s と反転の小さい方（向きを区別しないときの代表）       O(N)
+//    sorted_chars(s) / repeat_string(s, k)        並べ替えたもの / k 回つなげたもの
+//   比較
+//    common_prefix_length(a, b) / common_suffix_length(a, b)   共通の接頭辞 / 接尾辞の長さ                   O(N)
+//    hamming_distance(a, b)                       同じ位置で違う文字の数（同じ長さ）                          O(N)
+//    is_subsequence(t, s)                         t が s の部分列か（何度も聞くなら 06_subsequence）           O(|s|)
+//    is_palindrome(s)                             全体が回文か（区間を何度も聞くなら 04_palindrome）           O(N)
+//   区切り・位置
+//    split(s, sep, skip_empty) / join(vs, sep)    区切る / 区切りを挟んでつなげる（数も。答えの出力に）         O(N)
+//    StrSpan{l, r} / substr_of(s, sp)             部分文字列の位置（len()）/ その部分のコピー
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    strb_test::random_test()  … 愚直解と全機能を突き合わせるランダムテスト
+//    strb_test::benchmark()    … 速度計測
+//    strb_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>

@@ -1,0 +1,551 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+template<class T>
+struct CoordinateCompress {
+    vector<T> xs;
+
+    //座標圧縮対象
+    void add(const T& x) { xs.push_back(x); }
+    void add(const vector<T>& v) { for (auto &x : v) xs.push_back(x); }
+
+    //座標圧縮
+    void build() {
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+    }
+
+    //引数の座標圧縮後の値(0-index)
+    int get(const T& x) const {
+        return lower_bound(xs.begin(), xs.end(), x) - xs.begin();
+    }
+
+    //引数の座標圧縮後の値(0-index) 存在しなければ-1
+    int get_or_minus1(const T& x) const {
+        auto it = lower_bound(xs.begin(), xs.end(), x);
+        if (it == xs.end() || *it != x) return -1;
+        return it - xs.begin();
+    }
+
+    //実際の値から座標圧縮後の値
+    bool contains(const T& x) const {
+        return binary_search(xs.begin(), xs.end(), x);
+    }
+
+    //以上の最小の座標圧縮後の値
+    int lower_idx(const T& x) const {
+        return lower_bound(xs.begin(), xs.end(), x) - xs.begin();
+    }
+
+    //より大きい最小の座標圧縮後の値
+    int upper_idx(const T& x) const {
+        return upper_bound(xs.begin(), xs.end(), x) - xs.begin();
+    }
+
+    //座標圧縮後の値から実際の値
+    T rev(int i) const { return xs[i]; }
+
+    //座標圧縮後の値の範囲から実際の値の範囲長
+    T range_len(int l, int r) const {
+        return xs[r] - xs[l];
+    }
+
+    int size() const { return xs.size(); }
+};
+
+struct BIT {
+    int n;
+    vector<long long> bit;
+
+    BIT(int n=0): n(n), bit(n+1,0) {}
+
+    // index i に v を加算
+    void add(int i, long long v){
+        for(i++; i<=n; i+=i&-i) bit[i] += v;
+    }
+
+    // [0, i] の和
+    long long sum(int i) const {
+        long long s = 0;
+        for(i++; i>0; i-=i&-i) s += bit[i];
+        return s;
+    }
+
+    // 累積和が k 以上になる最小の index を返す
+    // (k >= 1 を想定)
+    int lower_bound(long long k) const {
+        int idx = 0;
+        long long cur = 0;
+        for(int d = 1<<20; d > 0; d >>= 1){
+            if(idx + d <= n && cur + bit[idx + d] < k){
+                cur += bit[idx + d];
+                idx += d;
+            }
+        }
+        return idx; // 0-index
+    }
+};
+
+struct MEX {
+    int N;                 // ID の最大数
+    vector<int> cnt;       // 各 ID の出現回数
+    BIT bit;               // 欠番なら 1, 存在するなら 0
+    long long sz = 0;      // 現在の要素数（重複込み）
+
+    // 初期状態：すべて欠番
+    MEX(int N): N(N), cnt(N,0), bit(N) {
+        for(int i=0;i<N;i++) bit.add(i,1);
+    }
+
+    // ID x を追加（重複可）
+    void add(int x){
+        if(cnt[x] == 0) bit.add(x, -1); // 欠番でなくなる
+        cnt[x]++;
+        sz++;
+    }
+
+    // ID x を削除（cnt[x] >= 1 が保証される）
+    void remove(int x){
+        cnt[x]--;
+        if(cnt[x] == 0) bit.add(x, +1); // 再び欠番
+        sz--;
+    }
+
+    // 現在の要素数（重複込み）
+    long long size() const {
+        return sz;
+    }
+
+    // 最小の欠番（存在しなければ -1）
+    int get_min_missing() const {
+        if(bit.sum(N-1) == 0) return -1;
+        return bit.lower_bound(1);
+    }
+
+    // 最大の欠番（存在しなければ -1）
+    int get_max_missing() const {
+        long long tot = bit.sum(N-1);
+        if(tot == 0) return -1;
+        return bit.lower_bound(tot);
+    }
+
+    // k 番目の欠番（1-indexed, 存在しなければ -1）
+    int get_kth_missing(long long k) const {
+        if(bit.sum(N-1) < k) return -1;
+        return bit.lower_bound(k);
+    }
+
+    // l 以上で最小の欠番
+    int get_min_missing_from(int l) const {
+        if(l >= N) return -1;
+        long long before = (l == 0 ? 0 : bit.sum(l-1));
+        long long total  = bit.sum(N-1);
+        if(before == total) return -1;
+        return bit.lower_bound(before + 1);
+    }
+
+    // [l, r) に含まれる欠番の個数
+    long long count_missing_range(int l, int r) const {
+        if(l >= r) return 0;
+        return bit.sum(r-1) - (l == 0 ? 0 : bit.sum(l-1));
+    }
+
+    // 全体の欠番数
+    long long count_missing() const {
+        return bit.sum(N-1);
+    }
+
+    // ID x が欠番か？
+    bool is_missing(int x) const {
+        return cnt[x] == 0;
+    }
+};
+
+template<class T>
+struct MexCompressed {
+    // ========= 内部構造 =========
+    CoordinateCompress<T> comp; // 座標圧縮
+    BIT bit;                    // 欠番管理用 BIT（1 = 欠番, 0 = 存在）
+    vector<long long> cnt;      // 各値の出現回数
+    long long total_cnt = 0;    // 追加されている要素数（重複込み）
+
+    // ========= コンストラクタ =========
+    // candidates : 「欠番候補になりうる値の全集合」
+    MexCompressed(const vector<T>& candidates) {
+        comp.add(candidates);
+        comp.build();
+        int n = comp.size();
+        bit = BIT(n);
+        cnt.assign(n, 0);
+
+        // 初期状態ではすべて欠番
+        for (int i = 0; i < n; i++) bit.add(i, 1);
+    }
+
+    // ========= 基本操作 =========
+
+    // 値 x を追加（重複あり）
+    void add(const T& x) {
+        int id = comp.get(x);
+        if (cnt[id] == 0) bit.add(id, -1); // 欠番でなくなる
+        cnt[id]++;
+        total_cnt++;
+    }
+
+    // 値 x を削除（必ず1個以上存在すると仮定）
+    void remove(const T& x) {
+        int id = comp.get(x);
+        cnt[id]--;
+        if (cnt[id] == 0) bit.add(id, 1); // 再び欠番になる
+        total_cnt--;
+    }
+
+    // ========= 欠番判定 =========
+
+    // 値 x が欠番かどうか（true = 欠番）
+    bool is_missing_value(const T& x) const {
+        if (!comp.contains(x)) return true;
+        int id = comp.get(x);
+        return cnt[id] == 0;
+    }
+
+    // ID が欠番かどうか（true = 欠番）
+    bool is_missing_id(int id) const {
+        return cnt[id] == 0;
+    }
+
+    // ========= MEX（ID版） =========
+
+    // 最小の欠番の ID を返す（存在しなければ -1）
+    int get_min_missing_id() const {
+        if (bit.sum(comp.size() - 1) == 0) return -1;
+        return bit.lower_bound(1);
+    }
+
+    // 最大の欠番の ID を返す（存在しなければ -1）
+    int get_max_missing_id() const {
+        long long tot = bit.sum(comp.size() - 1);
+        if (tot == 0) return -1;
+        return bit.lower_bound(tot);
+    }
+
+    // k 番目の欠番の ID を返す（1-indexed, 存在しなければ -1）
+    int get_kth_missing_id(long long k) const {
+        if (bit.sum(comp.size() - 1) < k) return -1;
+        return bit.lower_bound(k);
+    }
+
+    // l 以上で最小の欠番の ID を返す（存在しなければ -1）
+    int get_min_missing_from_id(int l) const {
+        if (l >= comp.size()) return -1;
+        long long before = (l == 0 ? 0 : bit.sum(l - 1));
+        long long total = bit.sum(comp.size() - 1);
+        if (before == total) return -1;
+        return bit.lower_bound(before + 1);
+    }
+
+    // ========= MEX（実値版） =========
+
+    // 最小の欠番の「実際の値」を返す（存在しなければ T(-1)）
+    T get_min_missing_value() const {
+        int id = get_min_missing_id();
+        if (id == -1) return T(-1);
+        return comp.rev(id);
+    }
+
+    // 最大の欠番の「実際の値」を返す（存在しなければ T(-1)）
+    T get_max_missing_value() const {
+        int id = get_max_missing_id();
+        if (id == -1) return T(-1);
+        return comp.rev(id);
+    }
+
+    // k 番目の欠番の「実際の値」を返す（存在しなければ T(-1)）
+    T get_kth_missing_value(long long k) const {
+        int id = get_kth_missing_id(k);
+        if (id == -1) return T(-1);
+        return comp.rev(id);
+    }
+
+    // l 以上で最小の欠番の「実際の値」を返す（存在しなければ T(-1)）
+    T get_min_missing_from_value(const T& l) const {
+        int id = get_min_missing_from_id(comp.lower_idx(l));
+        if (id == -1) return T(-1);
+        return comp.rev(id);
+    }
+
+    // ========= 欠番数カウント =========
+
+    // 全体の欠番数を返す
+    long long count_missing_all() const {
+        return bit.sum(comp.size() - 1);
+    }
+
+    // [l, r) に含まれる欠番数を返す（実値指定）
+    long long count_missing_range(const T& l, const T& r) const {
+        int L = comp.lower_idx(l);
+        int R = comp.lower_idx(r);
+        if (L >= R) return 0;
+        return bit.sum(R - 1) - (L == 0 ? 0 : bit.sum(L - 1));
+    }
+
+    // ========= 補助 =========
+
+    // 現在追加されている要素数（重複込み）
+    long long size() const {
+        return total_cnt;
+    }
+};
+
+struct Tree {
+    int N;
+    vector<vector<int>> g;
+
+    // ===== LCA =====
+    int LOG;
+    vector<int> depth;
+    vector<vector<int>> parent;
+    vector<ll> dist_from_root;
+
+    // ===== HLD =====
+    vector<int> sz, heavy, head, in, out;
+    int cur;
+
+    // ===== 木DP =====
+    vector<ll> dp;        // ★部分木DP
+
+    // ===== 全方位木DP =====
+    vector<ll> dp_all;    // ★全方位の答え
+
+    Tree(int n=0){ init(n); }
+
+    void init(int n){
+        N = n;
+        g.assign(N, {});
+
+        LOG = 1;
+        while((1<<LOG) <= N) LOG++;
+        depth.assign(N, 0);
+        parent.assign(LOG, vector<int>(N, -1));
+        dist_from_root.assign(N, 0);
+
+        sz.assign(N, 0);
+        heavy.assign(N, -1);
+        head.assign(N, 0);
+        in.assign(N, 0);
+        out.assign(N, 0);
+        cur = 0;
+
+        dp.assign(N, 0);
+        dp_all.assign(N, 0);
+    }
+
+    // 辺の追加（無向木）
+    void add_edge(int u, int v, ll w=1){
+        g[u].push_back(v);
+        g[v].push_back(u);
+    }
+
+    // ===== build =====
+    void build(int root=0){
+        dfs_lca(root, -1, 0, 0);
+        for(int k=0;k+1<LOG;k++){
+            for(int v=0;v<N;v++){
+                if(parent[k][v] < 0) parent[k+1][v] = -1;
+                else parent[k+1][v] = parent[k][ parent[k][v] ];
+            }
+        }
+        dfs_size(root, -1);
+        dfs_hld(root, -1, root);
+    }
+
+    // ===== LCA 構築 DFS =====
+    void dfs_lca(int v, int p, int d, ll dist){
+        parent[0][v] = p;
+        depth[v] = d;
+        dist_from_root[v] = dist;
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_lca(to, v, d+1, dist + 1);
+        }
+    }
+
+    // LCA取得
+    int lca(int a, int b){
+        if(depth[a] < depth[b]) swap(a,b);
+        int diff = depth[a] - depth[b];
+        for(int k=0;k<LOG;k++) if(diff&(1<<k)) a = parent[k][a];
+        if(a == b) return a;
+        for(int k=LOG-1;k>=0;k--){
+            if(parent[k][a] != parent[k][b]){
+                a = parent[k][a];
+                b = parent[k][b];
+            }
+        }
+        return parent[0][a];
+    }
+
+    // 距離取得
+    ll dist(int u, int v){
+        int c = lca(u,v);
+        return dist_from_root[u] + dist_from_root[v] - 2*dist_from_root[c];
+    }
+
+    // k番目の祖先
+    int kth_parent(int v, int k){
+        for(int i=0;i<LOG;i++) if(k&(1<<i)) v = parent[i][v];
+        return v;
+    }
+
+    // u-vパス上にaがあるか
+    bool on_path(int u, int v, int a){
+        return dist(u,v) == dist(u,a) + dist(a,v);
+    }
+
+    // u→vのパス取得
+    vector<int> get_path(int u, int v){
+        int c = lca(u,v);
+        vector<int> a,b;
+        while(u!=c){ a.push_back(u); u = parent[0][u]; }
+        a.push_back(c);
+        while(v!=c){ b.push_back(v); v = parent[0][v]; }
+        reverse(b.begin(), b.end());
+        for(int x:b) a.push_back(x);
+        return a;
+    }
+
+    // ===== HLD =====
+    void dfs_size(int v, int p){
+        sz[v] = 1;
+        int mx = 0;
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_size(to, v);
+            sz[v] += sz[to];
+            if(sz[to] > mx){
+                mx = sz[to];
+                heavy[v] = to;
+            }
+        }
+    }
+
+    void dfs_hld(int v, int p, int h){
+        head[v] = h;
+        in[v] = cur++;
+        if(heavy[v] != -1) dfs_hld(heavy[v], v, h);
+        for(int to : g[v]){
+            if(to == p || to == heavy[v]) continue;
+            dfs_hld(to, v, to);
+        }
+        out[v] = cur;
+    }
+
+    // HLDでu-vパスを区間に分解
+    vector<pair<int,int>> get_path_hld(int u, int v){
+        vector<pair<int,int>> res;
+        while(head[u] != head[v]){
+            if(depth[head[u]] < depth[head[v]]) swap(u,v);
+            res.push_back({in[head[u]], in[u]});
+            u = parent[0][head[u]];
+        }
+        if(depth[u] > depth[v]) swap(u,v);
+        res.push_back({in[u], in[v]});
+        return res;
+    }
+
+    // ===== 木DP（根固定） =====
+    void dfs_tree_dp(int v, int p){
+        dp[v] = 0; // ★初期値
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_tree_dp(to, v);
+            dp[v] += dp[to]; // ★マージ処理
+        }
+        dp[v] += 1; // ★自身の寄与
+    }
+
+    // ===== 全方位木DP =====
+    void dfs_reroot(int v, int p, ll from_parent){
+        vector<ll> pref, suff;
+        for(int to : g[v]){
+            if(to == p) pref.push_back(from_parent);
+            else pref.push_back(dp[to]);
+        }
+        int m = pref.size();
+        suff = pref;
+        for(int i=1;i<m;i++) pref[i] += pref[i-1]; // ★
+        for(int i=m-2;i>=0;i--) suff[i] += suff[i+1]; // ★
+
+        dp_all[v] = (m?pref[m-1]:0) + 1; // ★
+
+        int idx = 0;
+        for(int to : g[v]){
+            if(to == p){ idx++; continue; }
+            ll val = 1;
+            if(idx>0) val += pref[idx-1];
+            if(idx+1<m) val += suff[idx+1];
+            dfs_reroot(to, v, val);
+            idx++;
+        }
+    }
+};
+
+void solv(){
+    int N;
+    cin>>N;
+    Tree tree(N);
+    vector<int>C(N);
+    rep(i,0,N)cin>>C[i];
+    MexCompressed mex(C);
+    rep(i,0,N-1){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        tree.add_edge(a,b);
+    }
+    tree.build();
+    vector<int>ans={-1};
+    vector<bool>visited(N,true);
+    auto dfs=[&](int pos,auto dfs)->void{
+        if(mex.is_missing_value(C[pos]))ans.push_back(pos+1);
+        visited[pos]=false;
+        mex.add(C[pos]);
+        for(int nxt:tree.g[pos]){
+            if(!visited[nxt])continue;
+            dfs(nxt,dfs);
+        }
+        mex.remove(C[pos]);
+    };
+    dfs(0,dfs);
+    sort(nall(ans),[](int a,int b){return a<b;});
+    rep(i,1,ans.size())cout<<ans[i]<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

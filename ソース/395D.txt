@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct Pigeon{
+    //v[i]=jは鳩iが巣j(実際の巣ラベルとは異なる)
+    //l[i]=jは巣iの巣ラベルがjである
+    //p[i]=jは巣ラベルiは巣jに入っている
+    vector<int> v,l,p;
+    Pigeon(int N){
+        v.resize(N+1);
+        l.resize(N+1);
+        p.resize(N+1);
+        erep(i,1,N){
+            v[i]=i;
+            l[i]=i;
+            p[i]=i;
+        }
+    }
+    //鳩aの位置によらず巣ラベルbの位置に移動
+    void query1(int a,int b){
+        v[a]=p[b];
+    }
+    //巣ラベルの入れ替え
+    void query2(int a,int b){
+        l[p[a]]=b;
+        l[p[b]]=a;
+        swap(p[a],p[b]);
+    }
+    int query3(int a){
+        return l[v[a]];
+    }
+};
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N,Q;
+    cin>>N>>Q;
+    Pigeon ps=Pigeon(N);
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            int a,b;
+            cin>>a>>b;
+            ps.query1(a,b);
+        }else if(q==2){
+            int a,b;
+            cin>>a>>b;
+            ps.query2(a,b);
+        }else{
+            int a;
+            cin>>a;
+            cout<<ps.query3(a)<<"\n";
+        }
+    }
+    return 0;
+}

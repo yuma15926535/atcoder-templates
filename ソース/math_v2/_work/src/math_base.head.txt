@@ -1,0 +1,76 @@
+// =============================================================================
+//  数学基盤（割り算・倍数・累乗根・累乗と溢れ・gcd / lcm・64 ビットの mod・数列の和・分数の比較）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 00 基盤（ほかの数学テンプレートはすべてこれを同梱している）
+//  依存       : 00_int_common（同梱済み。Int128・isqrt・parse_fixed などは幾何第二世代と共通）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）。__int128 を使う（GCC / Clang）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  共通の約束（第二世代の数学テンプレートすべてで同じ）
+//    - 整数は long long が基本。途中で溢れるところは Int128 で計算する。答えが long long に収まらないことが
+//      あるものは Int128 で返すか、上限で止める版（名前に _cap）を用意する
+//    - 黙って溢れない：厳密な値を返す関数（pow_int・arith_sum など）は、溢れるときメッセージを出して止める
+//    - 使える範囲の外の引数（倍数の d ≤ 0、mod の m ≤ 0 など）も、メッセージを出して止める（黙って変な値を返さない）
+//    - 負の数の割り算・余りは floor_div / ceil_div / mod_floor を使う（C++ の / と % は 0 に向かって切り捨てる）
+//    - 範囲の引数は半開区間 [l, r)。「L 以上 R 以下」で使うことが多いものは _closed 版もある
+//    - 解がないことがある関数は ok を持つ構造体で返す（Maybe<T>{ok, value} など。-1 などの番兵で返さない）
+//    - modint は 00_modint（using mint = ModInt998; を使う側で書く）
+//
+//  機能一覧                                                                    計算量
+//    Maybe<T>{ok, value}                ないことがある値（ok が false なら value は使わない）
+//   割り算・倍数（b ≠ 0。LLONG_MIN / -1 は答えが収まらない）
+//    floor_div(a, b) / ceil_div(a, b)   ⌊a/b⌋ / ⌈a/b⌉（負の数でも）                        O(1)
+//    mod_floor(a, m)                    a を m で割った余り（0 以上 m 未満。-7 mod 3 = 2）
+//    round_div(a, b)                    a/b の四捨五入（.5 は大きい方へ）
+//    ceil_multiple(x, d) / floor_multiple(x, d)          x 以上で最小 / x 以下で最大の d の倍数
+//    ceil_congruent(x, a, m) / floor_congruent(x, a, m)  x 以上で最小 / x 以下で最大の y ≡ a (mod m)
+//    count_multiples(l, r, d) / count_multiples_closed(L, R, d)        [l, r) / [L, R] にある d の倍数の数
+//    count_congruent(l, r, a, m) / count_congruent_closed(L, R, a, m)  [l, r) / [L, R] にある x ≡ a (mod m) の数
+//   累乗根（誤差なし）
+//    isqrt(n) / isqrt_ceil(n)           ⌊√n⌋ / ⌈√n⌉（00_int_common）                       O(1)
+//    kth_root_floor(n, k) / kth_root_ceil(n, k)   ⌊n^(1/k)⌋ / ⌈n^(1/k)⌉（n ≥ 0, k ≥ 1）       O(k)
+//    is_square(n) / is_kth_power(n, k)  平方数か / k 乗数か
+//   累乗・溢れ
+//    pow_int(a, e)                      a^e を厳密に（溢れたら止める）                       O(log e)
+//    pow_cap(a, e, cap)                 min(a^e, cap)（a ≥ 0。溢れない。「a^e が cap を超えるか」に）  O(log e)
+//    mul_cap(a, b, cap) / add_cap(a, b, cap)      min(a·b, cap) / min(a+b, cap)（0 以上の値）      O(1)
+//    mul_overflows(a, b) / add_overflows(a, b)    a·b / a+b が long long に収まらないか           O(1)
+//    ilog_floor(n, b) / ilog_ceil(n, b) b^k ≤ n となる最大の k / b^k ≥ n となる最小の k          O(log n)
+//    pow10_ll(k)                        10^k（0 ≤ k ≤ 18）
+//   gcd・lcm（gcd / lcm そのものは std::gcd / std::lcm）
+//    ext_gcd(a, b)                      ExtGcd{g, x, y}：a x + b y = g = gcd(|a|, |b|)          O(log)
+//    lcm_cap(a, b, cap)                 min(lcm(a, b), cap)（溢れない）
+//    try_lcm(a, b)                      lcm（Maybe：long long に収まらなければ ok = false）
+//    gcd_of(v) / lcm_of_cap(v, cap)     全部の gcd / min(全部の lcm, cap)（vector<int> でも、gcd_of({a, b, c}) でも）  O(N log)
+//   64 ビットの mod（1 ≤ m < 2^63。a は負でもよい。答えは [0, m)）
+//    mod_mul(a, b, m)                   a·b mod m（128 ビットで計算）                           O(1)
+//    mod_pow(a, e, m)                   a^e mod m（e < 0 なら逆元の累乗）                       O(log e)
+//    mod_inv(a, m) / try_mod_inv(a, m)  逆元（m は合成数でもよい。ないと止まる / Maybe で返す）     O(log m)
+//    geom_sum_mod(r, n, m)              1 + r + … + r^(n-1) mod m（逆元を使わないので m は何でも）   O(log n)
+//   数列の和
+//    arith_sum(a, d, n)                 a + (a+d) + … + (a+(n-1)d)（Int128。収まらなければ止める）   O(1)
+//    arith_sum_mod(a, d, n, m)          同じ和を mod m で（m は何でも）
+//    sum_range(l, r) / sum_range_closed(L, R)     l + … + (r-1) / L + … + R（Int128）
+//    sum_range_mod(l, r, m) / sum_range_closed_mod(L, R, m)   同じ和を mod m で（[0, m)）
+//   分数
+//    frac_compare(a, b, c, d)           a/b と c/d の大小（-1 / 0 / 1。b, d ≠ 0。誤差なし）        O(1)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    mathb_test::random_test()  … 128 ビット・ループの愚直計算と全機能を突き合わせるランダムテスト
+//    mathb_test::benchmark()    … 速度計測
+//    mathb_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

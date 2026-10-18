@@ -1,0 +1,350 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ MexCounter
+------------------------------------------------------------
+【概要】
+ 非負整数 multiset + mex を管理する構造体。
+
+ mex = 「存在しない最小の非負整数」
+
+ insert / erase を行っても
+ mex() を O(1) で取得可能。
+
+------------------------------------------------------------
+【計算量】
+ insert      : O(logN)
+ erase       : O(logN)
+ mex         : O(1)
+ count       : O(1)
+------------------------------------------------------------
+【内部構造】
+
+ cnt[x]      : x の出現回数
+ missing     : 現在存在しない整数集合
+
+ missing の最小値 = mex
+============================================================
+*/
+struct MexCounter {
+
+    // ========= 内部状態 =========
+    vector<long long> cnt; // 出現回数
+    set<int> missing;      // 存在しない値
+
+    long long total_size = 0;
+    int distinct_size = 0;
+    int MAXV;
+
+    // ========= constructor =========
+    MexCounter(int max_value)
+        : MAXV(max_value),
+          cnt(max_value + 1, 0)
+    {
+        for(int i=0;i<=MAXV;i++)
+            missing.insert(i);
+    }
+
+    // =====================================================
+    // add : x を k 個追加
+    // =====================================================
+    void add(int x, long long k = 1){
+        if(k <= 0 || x > MAXV) return;
+
+        long long old = cnt[x];
+        long long now = old + k;
+
+        // 0 → 正 に変化
+        if(old == 0){
+            missing.erase(x);
+            distinct_size++;
+        }
+
+        cnt[x] = now;
+        total_size += k;
+    }
+
+    // =====================================================
+    // erase : x を k 個削除
+    // =====================================================
+    void erase(int x, long long k = 1){
+        if(k <= 0 || x > MAXV) return;
+        if(cnt[x] == 0) return;
+
+        long long old = cnt[x];
+        long long dec = min(k, old);
+        long long now = old - dec;
+
+        cnt[x] = now;
+        total_size -= dec;
+
+        // 正 → 0 に変化
+        if(now == 0){
+            missing.insert(x);
+            distinct_size--;
+        }
+    }
+
+    // ========= mex =========
+    /*
+        常に missing の最小
+        → O(1)
+    */
+    int mex() const{
+        return *missing.begin(); // O(1)
+    }
+
+    // ========= 個数取得 =========
+    long long count(int x) const{
+        if(x > MAXV) return 0;
+        return cnt[x];
+    }
+
+    // ========= 存在判定 =========
+    bool exist(int x) const{
+        return count(x) > 0;
+    }
+
+    // ========= 全体サイズ =========
+    long long size() const{
+        return total_size;
+    }
+
+    // ========= 種類数 =========
+    int distinct() const{
+        return distinct_size;
+    }
+};
+
+void solv(){
+    cout << "===== MexCounter TEST START =====\n";
+
+    MexCounter mc(10);
+
+    // ------------------------------
+    cout << "\n[初期状態]\n";
+    cout << "mex = " << mc.mex() << "\n"; // 0
+
+    // ------------------------------
+    cout << "\n[0 を追加]\n";
+    mc.add(0);
+    cout << "mex = " << mc.mex() << "\n"; // 1
+
+    // ------------------------------
+    cout << "\n[1,2 を追加]\n";
+    mc.add(1);
+    mc.add(2);
+    cout << "mex = " << mc.mex() << "\n"; // 3
+
+    // ------------------------------
+    cout << "\n[2 を3個追加]\n";
+    mc.add(2,3);
+    cout << "count(2) = " << mc.count(2) << "\n";
+    cout << "mex = " << mc.mex() << "\n"; // 3
+
+    // ------------------------------
+    cout << "\n[サイズ確認]\n";
+    cout << "total size = " << mc.size() << "\n";
+    cout << "distinct = " << mc.distinct() << "\n";
+
+    // ------------------------------
+    cout << "\n[1 を削除]\n";
+    mc.erase(1);
+    cout << "mex = " << mc.mex() << "\n"; // 1
+
+    // ------------------------------
+    cout << "\n[2 を全部削除]\n";
+    mc.erase(2,100);
+    cout << "count(2) = " << mc.count(2) << "\n";
+    cout << "mex = " << mc.mex() << "\n"; // 1
+
+    // ------------------------------
+    cout << "\n[0 を削除]\n";
+    mc.erase(0);
+    cout << "mex = " << mc.mex() << "\n"; // 0
+
+    // ------------------------------
+    cout << "\n[サイズ確認]\n";
+    cout << "total size = " << mc.size() << "\n";
+    cout << "distinct = " << mc.distinct() << "\n";
+
+    cout << "\n===== ALL TEST END =====\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

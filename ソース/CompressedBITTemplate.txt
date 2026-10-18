@@ -1,0 +1,826 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief Compressed BIT (座標圧縮個数管理・順序統計 Fenwick Tree)
+ * 
+ * @details 座標圧縮を内部で行うことで、非常に大きい値（例: 10^18）や負の数に対しても
+ * 個数管理、順序統計、前後探索を高速に行うデータ構造。
+ * OrderedBIT の完全上位互換となるように API が設計されている。
+ * 
+ * 注意点:
+ * - あらかじめコンストラクタに探索対象となり得るすべての値の候補を渡す必要がある。
+ * - 座標圧縮対象外の値を操作した場合、安全なエラー値を返す (例: insertはfalseを返す)。
+ * - 順位統計や範囲クエリ (count_lt 等) においては、対象外の値に対しても数学的に正しい結果を返す。
+ * 
+ * 用途:
+ * - 非常に広い値域 (例: -10^18 〜 10^18) における動的 multiset のシミュレーション
+ * 
+ * 計算量:
+ * - 構築: O(V log V) (V = 候補となる値のユニーク数)
+ * - 追加 (insert): O(log V)
+ * - 削除 (erase, erase_all): O(log V)
+ * - 個数取得 (count, count_range 等): O(log V)
+ * - 順位統計 (kth, rank, min, max 等): O(log V)
+ * - 前後探索 (prev, next, lower_bound, upper_bound): O(log V)
+ * - 最小値・最大値取り出し (pop_min, pop_max): O(log V)
+ * - 全要素取得 (values, unique_values): O(V + size())
+ * - クリア (clear): O(V)
+ * - 座標圧縮 / 逆変換 (compress, decompress): O(log V) / O(1)
+ * 
+ * API一覧:
+ * - CompressedBIT(values)
+ * - insert(x), erase(x), erase_all(x)
+ * - count(x), contains(x)
+ * - count_lt(x), count_le(x), count_gt(x), count_ge(x), count_range(l, r)
+ * - rank(x), kth(k), min(), max()
+ * - prev(x), next(x), lower_bound(x), upper_bound(x)
+ * - pop_min(), pop_max()
+ * - values(), unique_values()
+ * - size(), empty(), clear()
+ * - compress(x), decompress(idx), compressed_size(), exists_value(x), compressed_values()
+ */
+class CompressedBIT {
+private:
+    std::vector<long long> coords;
+    int max_val;
+    int size_;
+    std::vector<int> tree;
+
+    // 内部用の Fenwick Tree add
+    void add(int i, int x) {
+        for (int idx = i + 1; idx <= max_val; idx += idx & -idx) {
+            tree[idx] += x;
+        }
+    }
+
+    // 内部用の Fenwick Tree sum [0, r)
+    int sum(int r) const {
+        int s = 0;
+        for (int idx = r; idx > 0; idx -= idx & -idx) {
+            s += tree[idx];
+        }
+        return s;
+    }
+
+public:
+    /**
+     * @brief コンストラクタ
+     * @param values 集合に含まれ得るすべての値の候補
+     * @note 計算量: O(V log V) (ソートとユニーク化)
+     */
+    explicit CompressedBIT(const std::vector<long long>& values) : size_(0) {
+        coords = values;
+        std::sort(coords.begin(), coords.end());
+        coords.erase(std::unique(coords.begin(), coords.end()), coords.end());
+        max_val = coords.size();
+        tree.assign(max_val + 1, 0);
+    }
+
+    /**
+     * @brief 要素数を取得
+     * @return 集合に含まれる全要素数
+     * @note 計算量: O(1)
+     */
+    int size() const {
+        return size_;
+    }
+
+    /**
+     * @brief 空であるか判定
+     * @return 空ならtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool empty() const {
+        return size_ == 0;
+    }
+
+    /**
+     * @brief 集合をクリアして空にする
+     * @note 計算量: O(V) (V = 座標圧縮後サイズ)
+     */
+    void clear() {
+        std::fill(tree.begin(), tree.end(), 0);
+        size_ = 0;
+    }
+
+    /**
+     * @brief 値 x を座標圧縮後の 0-index に変換する
+     * @param x 変換する値
+     * @return 圧縮後のインデックス。存在しなければ -1
+     * @note 計算量: O(log V)
+     */
+    int compress(long long x) const {
+        auto it = std::lower_bound(coords.begin(), coords.end(), x);
+        if (it != coords.end() && *it == x) {
+            return std::distance(coords.begin(), it);
+        }
+        return -1;
+    }
+
+    /**
+     * @brief 圧縮インデックスを元の値に復元する
+     * @param index 圧縮インデックス
+     * @return 元の値。範囲外なら -1
+     * @note 計算量: O(1)
+     */
+    long long decompress(int index) const {
+        if (index < 0 || index >= max_val) return -1;
+        return coords[index];
+    }
+
+    /**
+     * @brief 座標圧縮後の候補数 (ユニーク数) を取得する
+     * @return ユニークな候補数
+     * @note 計算量: O(1)
+     */
+    int compressed_size() const {
+        return max_val;
+    }
+
+    /**
+     * @brief 値 x が座標圧縮の候補に含まれているか判定する
+     * @param x 判定する値
+     * @return 含まれていればtrue、そうでなければfalse
+     * @note 計算量: O(log V)
+     */
+    bool exists_value(long long x) const {
+        return compress(x) != -1;
+    }
+
+    /**
+     * @brief 座標圧縮の基準配列 (ユニーク昇順) を取得する
+     * @return 座標圧縮基準配列
+     * @note 計算量: O(V)
+     */
+    std::vector<long long> compressed_values() const {
+        return coords;
+    }
+
+    /**
+     * @brief 値 x を1つ追加する
+     * @param x 追加する値
+     * @return 追加に成功したらtrue、候補外ならfalse
+     * @note 計算量: O(log V)
+     */
+    bool insert(long long x) {
+        int idx = compress(x);
+        if (idx == -1) return false;
+        add(idx, 1);
+        size_++;
+        return true;
+    }
+
+    /**
+     * @brief 値 x を1つ削除する
+     * @param x 削除する値
+     * @return 削除に成功したらtrue、存在しないか範囲外ならfalse
+     * @note 計算量: O(log V)
+     */
+    bool erase(long long x) {
+        int idx = compress(x);
+        if (idx == -1) return false;
+        if (count(x) == 0) return false;
+        add(idx, -1);
+        size_--;
+        return true;
+    }
+
+    /**
+     * @brief 値 x をすべて削除する
+     * @param x 削除する値
+     * @return 実際に削除された個数
+     * @note 計算量: O(log V)
+     */
+    int erase_all(long long x) {
+        int idx = compress(x);
+        if (idx == -1) return 0;
+        int cnt = count(x);
+        if (cnt > 0) {
+            add(idx, -cnt);
+            size_ -= cnt;
+        }
+        return cnt;
+    }
+
+    /**
+     * @brief 値 x の個数を取得する
+     * @param x 個数を確認する値
+     * @return 値 x の個数。候補外なら0
+     * @note 計算量: O(log V)
+     */
+    int count(long long x) const {
+        int idx = compress(x);
+        if (idx == -1) return 0;
+        int s = tree[idx + 1];
+        int l = idx & (idx + 1);
+        for (int i = idx; i > l; i -= i & -i) {
+            s -= tree[i];
+        }
+        return s;
+    }
+
+    /**
+     * @brief 値 x が集合に存在するか判定する
+     * @param x 判定する値
+     * @return 存在すればtrue、そうでなければfalse
+     * @note 計算量: O(log V)
+     */
+    bool contains(long long x) const {
+        return count(x) > 0;
+    }
+
+    /**
+     * @brief x 未満の要素数を取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x 未満の要素数
+     * @note 計算量: O(log V)
+     */
+    int count_lt(long long x) const {
+        int idx = std::lower_bound(coords.begin(), coords.end(), x) - coords.begin();
+        return sum(idx);
+    }
+
+    /**
+     * @brief x 以下の要素数を取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x 以下の要素数
+     * @note 計算量: O(log V)
+     */
+    int count_le(long long x) const {
+        int idx = std::upper_bound(coords.begin(), coords.end(), x) - coords.begin();
+        return sum(idx);
+    }
+
+    /**
+     * @brief x より大きい要素数を取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x より大きい要素数
+     * @note 計算量: O(log V)
+     */
+    int count_gt(long long x) const {
+        return size_ - count_le(x);
+    }
+
+    /**
+     * @brief x 以上の要素数を取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x 以上の要素数
+     * @note 計算量: O(log V)
+     */
+    int count_ge(long long x) const {
+        return size_ - count_lt(x);
+    }
+
+    /**
+     * @brief 半開区間 [l, r) に含まれる要素数を取得する
+     * @param l 左端
+     * @param r 右端
+     * @return 区間に含まれる要素数
+     * @note 計算量: O(log V)
+     */
+    int count_range(long long l, long long r) const {
+        if (l >= r) return 0;
+        return count_lt(r) - count_lt(l);
+    }
+
+    /**
+     * @brief x より小さい要素数を取得する (count_lt と同じ)
+     * @param x 境界値
+     * @return x より小さい要素数
+     * @note 計算量: O(log V)
+     */
+    int rank(long long x) const {
+        return count_lt(x);
+    }
+
+    /**
+     * @brief 集合内の 0-index で k 番目に小さい値を取得する
+     * @param k インデックス (0-index)
+     * @return k 番目に小さい値。存在しなければ -1
+     * @note 計算量: O(log V)
+     */
+    long long kth(int k) const {
+        if (k < 0 || k >= size_) return -1;
+        int idx = 0;
+        int val = k + 1;
+        int step = 1;
+        while (step * 2 <= max_val) step *= 2;
+        for (; step > 0; step /= 2) {
+            if (idx + step <= max_val && tree[idx + step] < val) {
+                val -= tree[idx + step];
+                idx += step;
+            }
+        }
+        return decompress(idx);
+    }
+
+    /**
+     * @brief 集合内の最小値を取得する
+     * @return 最小値。空なら -1
+     * @note 計算量: O(log V)
+     */
+    long long min() const {
+        return kth(0);
+    }
+
+    /**
+     * @brief 集合内の最大値を取得する
+     * @return 最大値。空なら -1
+     * @note 計算量: O(log V)
+     */
+    long long max() const {
+        return kth(size_ - 1);
+    }
+
+    /**
+     * @brief x 未満で最大の要素を取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x 未満最大の値。存在しなければ -1
+     * @note 計算量: O(log V)
+     */
+    long long prev(long long x) const {
+        int cnt = count_lt(x);
+        return kth(cnt - 1);
+    }
+
+    /**
+     * @brief x より大きい要素で最小のものを取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x より大きい最小の値。存在しなければ -1
+     * @note 計算量: O(log V)
+     */
+    long long next(long long x) const {
+        int cnt = count_le(x);
+        return kth(cnt);
+    }
+
+    /**
+     * @brief x 以上で最小の要素を取得する (候補外の値に対しても正しく動作する)
+     * @param x 境界値
+     * @return x 以上最小の値。存在しなければ -1
+     * @note 計算量: O(log V)
+     */
+    long long lower_bound(long long x) const {
+        int cnt = count_lt(x);
+        return kth(cnt);
+    }
+
+    /**
+     * @brief x より大きい要素で最小のものを取得する (nextと同じ)
+     * @param x 境界値
+     * @return x より大きい最小の値。存在しなければ -1
+     * @note 計算量: O(log V)
+     */
+    long long upper_bound(long long x) const {
+        return next(x);
+    }
+
+    /**
+     * @brief 集合内の最小値を削除して返す
+     * @return 削除された最小値。空なら -1
+     * @note 計算量: O(log V)
+     */
+    long long pop_min() {
+        long long val = min();
+        if (val != -1) {
+            erase(val);
+        }
+        return val;
+    }
+
+    /**
+     * @brief 集合内の最大値を削除して返す
+     * @return 削除された最大値。空なら -1
+     * @note 計算量: O(log V)
+     */
+    long long pop_max() {
+        long long val = max();
+        if (val != -1) {
+            erase(val);
+        }
+        return val;
+    }
+
+    /**
+     * @brief 集合内の全要素を昇順に並べた vector を取得する
+     * @return 重複を含む全要素の昇順 vector
+     * @note 計算量: O(V + size())
+     */
+    std::vector<long long> values() const {
+        std::vector<long long> res;
+        res.reserve(size_);
+        for (int i = 0; i < max_val; ++i) {
+            int idx = i;
+            int cnt = sum(idx + 1) - sum(idx); // O(log V) で個数取得するより直接求めたほうが速いが、ここでは分かりやすさ優先
+            long long val = decompress(idx);
+            for (int j = 0; j < cnt; ++j) {
+                res.push_back(val);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * @brief 集合内に存在する一意な値の昇順 vector を取得する
+     * @return 重複を除いた要素の昇順 vector
+     * @note 計算量: O(V)
+     */
+    std::vector<long long> unique_values() const {
+        std::vector<long long> res;
+        for (int i = 0; i < max_val; ++i) {
+            int idx = i;
+            int cnt = sum(idx + 1) - sum(idx);
+            if (cnt > 0) {
+                res.push_back(decompress(idx));
+            }
+        }
+        return res;
+    }
+};
+
+// 動作確認用テスト
+void test_CompressedBIT() {
+    std::cout << "--- test_CompressedBIT 開始 ---" << std::endl;
+
+    std::vector<long long> pool = {-1000000000000LL, 0, 5, 1000000000000LL, 9999};
+    CompressedBIT bit(pool); // 候補プール指定
+
+    std::cout << "座標圧縮候補数: " << bit.compressed_size() << " (期待値: 5)" << std::endl;
+
+    bit.insert(-1000000000000LL);
+    bit.insert(9999);
+    bit.insert(9999);
+    bit.insert(0);
+
+    std::cout << "追加: -10^12, 9999, 9999, 0" << std::endl;
+    std::cout << "size(): " << bit.size() << " (期待値: 4)" << std::endl;
+
+    std::cout << "count(9999): " << bit.count(9999) << " (期待値: 2)" << std::endl;
+    std::cout << "contains(0): " << (bit.contains(0) ? "true" : "false") << " (期待値: true)" << std::endl;
+    std::cout << "contains(5): " << (bit.contains(5) ? "true" : "false") << " (期待値: false)" << std::endl;
+
+    std::cout << "values(): ";
+    for (auto x : bit.values()) std::cout << x << " ";
+    std::cout << "(期待値: -1000000000000 0 9999 9999)" << std::endl;
+
+    std::cout << "unique_values(): ";
+    for (auto x : bit.unique_values()) std::cout << x << " ";
+    std::cout << "(期待値: -1000000000000 0 9999)" << std::endl;
+
+    std::cout << "min(): " << bit.min() << " (期待値: -1000000000000)" << std::endl;
+    std::cout << "max(): " << bit.max() << " (期待値: 9999)" << std::endl;
+
+    std::cout << "kth(1): " << bit.kth(1) << " (期待値: 0)" << std::endl;
+
+    std::cout << "--- 候補プール外の値に対するクエリテスト ---" << std::endl;
+    std::cout << "insert(50) (プール外): " << (bit.insert(50) ? "true" : "false") << " (期待値: false)" << std::endl;
+    std::cout << "count_lt(5000): " << bit.count_lt(5000) << " (期待値: 2) (-10^12 と 0)" << std::endl;
+    std::cout << "count_le(5000): " << bit.count_le(5000) << " (期待値: 2)" << std::endl;
+    std::cout << "count_lt(9999): " << bit.count_lt(9999) << " (期待値: 2)" << std::endl;
+    std::cout << "count_le(9999): " << bit.count_le(9999) << " (期待値: 4)" << std::endl;
+
+    std::cout << "prev(5000): " << bit.prev(5000) << " (期待値: 0)" << std::endl;
+    std::cout << "next(5000): " << bit.next(5000) << " (期待値: 9999)" << std::endl;
+    std::cout << "lower_bound(5000): " << bit.lower_bound(5000) << " (期待値: 9999)" << std::endl;
+    std::cout << "upper_bound(5000): " << bit.upper_bound(5000) << " (期待値: 9999)" << std::endl;
+
+    bit.clear();
+    std::cout << "clear() 実行後の empty(): " << (bit.empty() ? "true" : "false") << " (期待値: true)" << std::endl;
+
+    std::cout << "--- test_CompressedBIT 終了 ---" << std::endl << std::endl;
+}
+
+// ランダムテスト
+void random_test_CompressedBIT() {
+    std::cout << "--- random_test_CompressedBIT 開始 ---" << std::endl;
+
+    std::mt19937 mt(42);
+    int candidate_size = 300;
+    int queries = 5000;
+
+    std::vector<long long> pool(candidate_size);
+    std::uniform_int_distribution<long long> pool_dist(-1000000000000LL, 1000000000000LL);
+    for (int i = 0; i < candidate_size; ++i) {
+        pool[i] = pool_dist(mt);
+    }
+
+    CompressedBIT bit(pool);
+    std::multiset<long long> naive;
+    std::vector<long long> uniq_pool = bit.compressed_values();
+
+    std::uniform_int_distribution<int> op_dist(0, 7);
+    // クエリはプール内の値およびプール外のランダムな値を利用
+    std::uniform_int_distribution<int> idx_dist(0, (int)uniq_pool.size() - 1);
+    std::uniform_int_distribution<long long> ext_dist(-1500000000000LL, 1500000000000LL);
+
+    for (int q = 0; q < queries; ++q) {
+        int op = op_dist(mt);
+        long long x;
+        if (mt() % 2 == 0) {
+            x = uniq_pool[idx_dist(mt)];
+        } else {
+            x = ext_dist(mt);
+        }
+
+        if (op == 0) {
+            // insert
+            bool b_res = bit.insert(x);
+            bool n_res = bit.exists_value(x);
+            assert(b_res == n_res);
+            if (n_res) naive.insert(x);
+        } else if (op == 1) {
+            // erase
+            bool b_res = bit.erase(x);
+            bool n_res = false;
+            auto it = naive.find(x);
+            if (it != naive.end()) {
+                naive.erase(it);
+                n_res = true;
+            }
+            assert(b_res == n_res);
+        } else if (op == 2) {
+            // erase_all
+            int b_res = bit.erase_all(x);
+            int n_res = naive.count(x);
+            naive.erase(x);
+            assert(b_res == n_res);
+        } else if (op == 3) {
+            // count, contains
+            assert(bit.count(x) == (int)naive.count(x));
+            assert(bit.contains(x) == (naive.count(x) > 0));
+        } else if (op == 4) {
+            // min, max, kth
+            if (naive.empty()) {
+                assert(bit.min() == -1);
+                assert(bit.max() == -1);
+                assert(bit.kth(0) == -1);
+            } else {
+                assert(bit.min() == *naive.begin());
+                assert(bit.max() == *naive.rbegin());
+                
+                std::uniform_int_distribution<int> k_dist(0, (int)naive.size() - 1);
+                int k = k_dist(mt);
+                auto it = naive.begin();
+                std::advance(it, k);
+                assert(bit.kth(k) == *it);
+            }
+        } else if (op == 5) {
+            // count_lt, count_le, count_gt, count_ge, count_range
+            int lt = 0, le = 0, gt = 0, ge = 0;
+            for (auto v : naive) {
+                if (v < x) lt++;
+                if (v <= x) le++;
+                if (v > x) gt++;
+                if (v >= x) ge++;
+            }
+            assert(bit.count_lt(x) == lt);
+            assert(bit.count_le(x) == le);
+            assert(bit.count_gt(x) == gt);
+            assert(bit.count_ge(x) == ge);
+            assert(bit.rank(x) == lt);
+
+            long long y = ext_dist(mt);
+            long long l = x, r = y;
+            if (l > r) std::swap(l, r);
+            int rng = 0;
+            for (auto v : naive) {
+                if (v >= l && v < r) rng++;
+            }
+            assert(bit.count_range(l, r) == rng);
+        } else if (op == 6) {
+            // prev, next, lower_bound, upper_bound
+            long long naive_prev = -1;
+            long long naive_next = -1;
+            long long naive_lb = -1;
+            long long naive_ub = -1;
+
+            auto it_lb = naive.lower_bound(x);
+            if (it_lb != naive.end()) naive_lb = *it_lb;
+
+            auto it_ub = naive.upper_bound(x);
+            if (it_ub != naive.end()) naive_ub = *it_ub;
+            naive_next = naive_ub;
+
+            auto it_prev = naive.lower_bound(x);
+            if (it_prev != naive.begin()) {
+                naive_prev = *(--it_prev);
+            }
+
+            assert(bit.prev(x) == naive_prev);
+            assert(bit.next(x) == naive_next);
+            assert(bit.lower_bound(x) == naive_lb);
+            assert(bit.upper_bound(x) == naive_ub);
+        } else {
+            // size, empty, values, unique_values
+            assert(bit.size() == (int)naive.size());
+            assert(bit.empty() == naive.empty());
+            
+            std::vector<long long> b_vals = bit.values();
+            std::vector<long long> n_vals(naive.begin(), naive.end());
+            assert(b_vals == n_vals);
+
+            std::vector<long long> b_uvals = bit.unique_values();
+            std::vector<long long> n_uvals;
+            for (auto v : naive) {
+                if (n_uvals.empty() || n_uvals.back() != v) {
+                    n_uvals.push_back(v);
+                }
+            }
+            assert(b_uvals == n_uvals);
+        }
+    }
+
+    std::cout << "OK" << std::endl;
+    std::cout << "--- random_test_CompressedBIT 終了 ---" << std::endl << std::endl;
+}
+
+void solv(){
+    test_CompressedBIT();
+    random_test_CompressedBIT();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

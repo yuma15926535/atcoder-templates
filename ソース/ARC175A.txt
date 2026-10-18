@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+void solv(){
+    int N;
+    cin>>N;
+    vector<int>P(N);
+    rep(i,0,N)cin>>P[i],P[i]--;
+    string S;
+    cin>>S;
+    ll left,right,m=998244353;
+    rep(t,0,2){
+        ll cnt=1;
+        vector<bool>rec(N,true);
+        rep(i,0,N){
+            ll time;
+            int idx=P[i];
+            if(rec[idx]&&rec[(idx+1)%N]){
+                if(t){
+                    if(S[idx]=='L')time=0;
+                    else{
+                        time=1;
+                        rec[(idx+1)%N]=false;
+                    }
+                }else{
+                    if(S[idx]=='R')time=0;
+                    else{
+                        time=1;
+                        rec[idx]=false;
+                    }
+                }
+            }else if(rec[idx]){
+                if(t==1)time=0;
+                else{
+                    if(S[idx]=='?')time=2;
+                    else time=1;
+                    rec[idx]=false;
+                }
+            }else if(rec[(idx+1)%N]){
+                if(t==0)time=0;
+                else{
+                    if(S[idx]=='?')time=2;
+                    else time=1;
+                    rec[(idx+1)%N]=false;
+                }
+            }else time=0;
+            cnt*=time;
+            cnt%=m;
+        }
+        if(t)right=cnt;
+        else left=cnt;
+    }
+    cout<<(left+right)%m<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<opml version="2.0">
+  <head>
+    <title>数学道具選択（第二世代）</title>
+  </head>
+  <body>
+    <outline text="▼ 数学道具選択（第二世代）">
+      <outline text="▼ 使い方" collapsed="true">
+        <outline text="1. 問題の特徴で大分類を選ぶ（mod／大きな数・割り算／桁・進数／素数・約数／gcd・lcm／合同式／累乗・位数／数え上げ／行列・漸化式／和／畳み込み／ビット／分数・多倍長／ゲーム）"/>
+        <outline text="2. 聞かれていることで小分類を選ぶ"/>
+        <outline text="3. 書いてあるファイルを貼る（依存するファイルは同梱済み。1回のコピーで動く）"/>
+        <outline text="答えを mod で出すときは using mint = ModInt998;（10^9+7 なら ModInt107、入力で決まるなら DynModInt）を最初に書く"/>
+        <outline text="範囲の引数は半開区間 [l, r)。「L 以上 R 以下」は _closed 版。k 番目は 0 から数える"/>
+      </outline>
+      <outline text="▼ 答えを mod で求める　00_modint" collapsed="true">
+        <outline text="998244353 / 10^9+7 で割った余り → using mint = ModInt998; ／ ModInt107"/>
+        <outline text="mod が入力で与えられる（素数とは限らない） → DynModInt::set_mod(M)"/>
+        <outline text="割り算・逆元（mod が合成数でも gcd = 1 なら） → a / b ／ a.inv()"/>
+        <outline text="期待値・確率を mod で → 使い方デモ（ABC280 E）"/>
+        <outline text="期待値は「各要素・各状態が数えられる確率の和」に分ける（期待値の線形性）→ mint で足す"/>
+        <outline text="mod の答えから元の分数を推測する（デバッグ） → rational_reconstruct(x)"/>
+        <outline text="64 ビットの mod の掛け算・累乗・逆元 → 00_math_base　mod_mul ／ mod_pow(a, e, m) ／ mod_inv(a, m)"/>
+      </outline>
+      <outline text="▼ 大きな数・割り算・平方根　00_math_base" collapsed="true">
+        <outline text="負の数の切り捨て・切り上げ・余り → floor_div ／ ceil_div ／ mod_floor"/>
+        <outline text="[l, r) の d の倍数の数 → count_multiples(l, r, d)（L 以上 R 以下なら _closed）"/>
+        <outline text="平方根・k 乗根を誤差なく → isqrt ／ kth_root_floor(n, k)"/>
+        <outline text="a^b が上限を超えるか・溢れずに累乗 → pow_cap(a, b, 上限)"/>
+        <outline text="掛け算が溢れるか → mul_overflows(a, b) ／ mul_cap"/>
+        <outline text="lcm が大きくなる・溢れるか → lcm_cap(a, b, 上限) ／ try_lcm(a, b)（溢れたら ok = false）"/>
+        <outline text="多くの数の gcd・lcm（vector&lt;int&gt; も {…} も） → gcd_of ／ lcm_of_cap"/>
+        <outline text="Int128 の入出力 → cin &gt;&gt; x ／ cout &lt;&lt; x"/>
+        <outline text="小数の入力を誤差なく → parse_fixed(s, k) ／ read_fixed(k)"/>
+        <outline text="分数の大小を誤差なく → frac_compare(a, b, c, d)（何度も使うなら 08_fraction）"/>
+        <outline text="等差数列・等比数列の和・l〜r−1 の和（mod は何でも） → arith_sum ／ arith_sum_mod ／ geom_sum_mod ／ sum_range_mod"/>
+        <outline text="割り算の四捨五入・10^k・⌊log_b n⌋ を誤差なく → round_div ／ pow10_ll ／ ilog_floor ／ ilog_ceil"/>
+      </outline>
+      <outline text="▼ 桁・進数・回文数　01_digits" collapsed="true">
+        <outline text="桁和・桁数・桁の配列・桁の配列から数へ → digit_sum ／ num_digits ／ digits_of ／ from_digits"/>
+        <outline text="n 進数に直す・n 進数から直す（−2 進も） → to_base ／ from_base"/>
+        <outline text="n 進数として読んだ値が上限以下か → base_value_leq(s, base, limit)"/>
+        <outline text="回文数の k 番目（0 から）・N 以下の個数・N 以上で最小の回文数 → kth_palindrome ／ count_palindromes_up_to ／ ceil_palindrome ／ floor_palindrome"/>
+        <outline text="回文数か・左半分から回文数を作る → is_palindrome_num(n, base) ／ make_palindrome"/>
+        <outline text="10^18 を超える回文数（文字列。75 桁まで個数も） → ceil_palindrome_str ／ floor_palindrome_str ／ count_palindromes_up_to_str"/>
+        <outline text="数をつなげた値・同じ数を K 回つなげた値（mod でも） → concat_value ／ repeat_concat_value ／ concat_mod ／ repeat_concat_mod"/>
+        <outline text="11…1（レピュニット）・10^k を mod で → repunit_mod ／ pow10_mod"/>
+        <outline text="11…1・77…7 が K で割り切れる最小の桁数 → 03_discrete_log　mult_order(10, 9K)（77…7 は K を K / gcd(K, 7) に。gcd(K, 10) ≠ 1 なら無い）"/>
+        <outline text="大きな数（文字列。n 進でも）の余り・大小 → str_mod(s, m, base) ／ str_num_compare"/>
+        <outline text="大きな数の掛け算（桁の畳み込みの繰り上がり） → carry_to_string(07_convolution の convolve_ll の結果)"/>
+        <outline text="部分文字列の値（mod で何度も） → substr_value ／ DigitPrefix"/>
+        <outline text="1〜N の桁数の和・数字 d の出現回数・[l, r) を桁数ごとに分ける → total_digits_up_to ／ count_digit_up_to ／ digit_length_blocks"/>
+        <outline text="使える数字が決まった数を全部 → numbers_from_digits"/>
+      </outline>
+      <outline text="▼ 素数・素因数分解・約数" collapsed="true">
+        <outline text="N 以下（N ≤ 5×10^7）の数を何度も分解・素数判定 → 02_sieve　Sieve S(N)"/>
+        <outline text="1 つの数（10^18 まで）の素数判定・分解・異なる素因数・約数 → 02_factorize　is_prime ／ factorize ／ prime_factors ／ divisors_of"/>
+        <outline text="素因数の個数 ω（異なる）・Ω（重複も） → 02_factorize　omega ／ big_omega（Sieve のメンバにも）"/>
+        <outline text="N 以下の素数の一覧・[L, R] の素数の個数 → 02_sieve　primes_up_to(N)（メモリ半分なら primes_up_to&lt;int&gt;）／ S.count_primes_closed"/>
+        <outline text="[L, R) の素数・素因数分解（R ≤ 10^14、幅 ≤ 10^7） → 02_sieve　segment_primes ／ segment_factorize"/>
+        <outline text="φ・μ・約数の個数・約数の和の表 → 02_sieve　phi_table ／ mu_table ／ divisor_count_table ／ divisor_sum_table"/>
+        <outline text="異なる素因数の個数の表 → 02_sieve　omega_table"/>
+        <outline text="n! が p で何回割れるか・k が n! を割り切る最小の n → 02_factorize　factorial_exponent ／ min_factorial_multiple"/>
+        <outline text="平方数を掛けて平方数にする・平方因子を除く → square_free_decompose（Sieve のメンバにも）"/>
+        <outline text="a^b（b ≥ 2）の形の数の個数 → 02_factorize　count_perfect_powers"/>
+        <outline text="N 以下の素数の個数・素数の和（N ≤ 10^12） → 02_prime_count　prime_count ／ prime_sum ／ PrimeCountTable（⌊N/i⌋ ごとの値）"/>
+        <outline text="素因数が P 以下の数の個数 → 02_prime_count　count_smooth"/>
+        <outline text="乗法的関数の和 Σ f(i)（N ≤ 10^12。Min_25 篩） → 02_prime_count　multiplicative_sum"/>
+      </outline>
+      <outline text="▼ gcd・lcm・互いに素" collapsed="true">
+        <outline text="多くの数の lcm を mod で（mod を取りながら lcm を取ると誤る） → 02_factorize　lcm_mod_of ／ Sieve::lcm_mod"/>
+        <outline text="N 以下で M と互いに素な数 → 02_factorize　count_coprime_up_to"/>
+        <outline text="全部の組が互いに素か（pairwise coprime） → 02_sieve　使い方デモ（ABC177 E：素因数ごとに出てくる回数）"/>
+        <outline text="gcd が g になる組の数・列の gcd の和 → 02_divisor_transform　count_pairs_by_gcd ／ sum_gcd_tuples"/>
+        <outline text="Σφ(i)・Σμ(i)（N ≤ 10^11）・互いに素な組の数 → 02_divisor_transform　phi_sum ／ mertens ／ count_coprime_pairs"/>
+        <outline text="約数・倍数についての和（ゼータ・メビウス変換。max・gcd で畳むなら op を渡す）・gcd ／ lcm の畳み込み → 02_divisor_transform　divisor_zeta ／ multiple_mobius ／ gcd_convolution"/>
+        <outline text="ディリクレ積 Σ_{d|n} a[d] b[n/d] → 02_divisor_transform　dirichlet_convolution"/>
+        <outline text="1 つの大きな M（10^18）の約数の上のゼータ・メビウス変換（gcd(x, M) ごとの数など） → 02_divisor_transform　DivisorsOf"/>
+        <outline text="いずれかで割り切れる数の個数（包除） → 04_combinatorics　count_divisible_by_any（L 以上 R 以下なら _closed）"/>
+      </outline>
+      <outline text="▼ 合同式・方程式　03_mod_equation" collapsed="true">
+        <outline text="ax ≡ b (mod m) → linear_congruence"/>
+        <outline text="ax + by = c の整数解・範囲の中の解の数・x が最小の解 → linear_diophantine ／ diophantine_count ／ diophantine_min_x"/>
+        <outline text="x ≡ r_i (mod m_i) をまとめる（mod が互いに素でなくても） → crt_merge ／ crt_all"/>
+        <outline text="互いに素な mod での答えを別の mod で → garner"/>
+        <outline text="周期的に繰り返す 2 つの区間が重なる最初の時刻 → 使い方デモ（ABC193 E）"/>
+      </outline>
+      <outline text="▼ 累乗・位数・離散対数　03_discrete_log" collapsed="true">
+        <outline text="a^k ≡ 1 となる最小の k（位数）・同じ mod で何度も → mult_order ／ MultOrder"/>
+        <outline text="原始根・カーマイケル関数 λ(n) → primitive_root ／ carmichael_lambda"/>
+        <outline text="a^x ≡ b となる x → discrete_log"/>
+        <outline text="mod p の平方根 → mod_sqrt"/>
+        <outline text="指数が巨大（a^(b^c)） → pow_tower_mod（素数 p なら指数を p − 1 で割った余りに。a が p の倍数のときに注意）"/>
+      </outline>
+      <outline text="▼ 数え上げ" collapsed="true">
+        <outline text="nCr・nPr・nHr を何度も → 04_binomial　Binomial&lt;mint&gt; B(N)"/>
+        <outline text="n が大きく r が小さい nCr → 04_binomial　binom_large_n"/>
+        <outline text="mod が合成数・mod なしの厳密な nCr → 04_binomial　pascal_table ／ binom_exact ／ binom_mod_any"/>
+        <outline text="mod が小さい素数 → 04_binomial　binom_lucas"/>
+        <outline text="格子路・境界を越えない格子路（カタラン。鏡像法） → 04_binomial　paths ／ paths_not_crossing"/>
+        <outline text="Σ_{i≤m} C(n, i) をたくさん（Mo のアルゴリズム） → 04_binomial　BinomialPrefix"/>
+        <outline text="スターリング数・ベル数・分割数・完全順列・全射 → 04_combinatorics　stirling2 ／ stirling1_row ／ bell ／ partition_row ／ derangement_table ／ surjections"/>
+        <outline text="x(x+1)…(x+n−1) の係数・サイクルが k 個の順列 → 04_combinatorics　stirling1_row"/>
+        <outline text="写像 12 相（玉と箱。区別する・しない、1 個以下・1 個以上） → 04_combinatorics　balls_into_boxes"/>
+        <outline text="包除原理（f(S) = 条件 S を全部満たす数 → どれも満たさない数） → 04_combinatorics　inclusion_exclusion ／ inclusion_exclusion_count（使い方デモ：ABC242 F・ABC297 F）"/>
+        <outline text="「ちょうど k 個」を「k 個選んで満たす」の和から・二項変換 → 04_combinatorics　exactly_from_at_least ／ binomial_inverse"/>
+        <outline text="max の期待値・最後に起きる時刻（min-max 包除：max(S) = Σ_{T⊆S, T≠∅} (−1)^{|T|+1} min(T)） → 04_combinatorics　inclusion_exclusion で"/>
+        <outline text="組分け・整数の分割を全部たどる → 04_combinatorics　for_each_set_partition（使い方デモ：ABC390 D）／ for_each_integer_partition"/>
+        <outline text="q 二項係数（F_q^n の部分空間の数）・標準ヤング盤の数 → 04_combinatorics　q_binomial ／ young_tableaux_count"/>
+        <outline text="順列・重複のある並びの何番目か・k 番目 → 04_permutation　perm_rank ／ perm_unrank ／ multiset_perm_rank ／ multiset_perm_unrank"/>
+        <outline text="k 個選ぶ組合せの k 番目・何番目か → 04_permutation　kth_combination ／ combination_rank"/>
+        <outline text="転倒数・置換の偶奇（入れ替えで並べられるか） → 04_permutation　inversion_count ／ perm_parity（グラフの PermCycles なら C.parity()）"/>
+      </outline>
+      <outline text="▼ 行列・漸化式" collapsed="true">
+        <outline text="行列の累乗（項の少ない漸化式・K 歩の数え上げ） → 05_matrix　Matrix&lt;mint&gt;::pow"/>
+        <outline text="ちょうど K 歩の最短路・K 歩で行けるか・XOR と AND の漸化式 → 05_matrix　MinPlus ／ OrAnd ／ XorAnd"/>
+        <outline text="ちょうど K 歩で通る辺の最大を最小に（ボトルネック）・最小を最大に → 05_matrix　MinMax ／ MaxMin（自作の半環も zero()・one() を書けば使える）"/>
+        <outline text="項の少ない線形漸化式の第 N 項 → 05_matrix　recurrence_nth_matrix(c, a, n)"/>
+        <outline text="2×2・3×3 の行列を何度も・行列式・逆行列 → 05_matrix　MatrixFixed&lt;T, K&gt;"/>
+        <outline text="連立一次方程式・行列式・逆行列・階数 → 05_linear_algebra　solve_linear ／ mat_det ／ mat_inverse ／ mat_rank"/>
+        <outline text="合成数の mod の行列式 → 05_linear_algebra　det_mod_any"/>
+        <outline text="特性多項式・det(A + xB) → 05_linear_algebra　char_poly ／ det_affine（使い方デモ：ABC323 G）"/>
+        <outline text="全域木の数・有向木の数（行列木定理） → 05_linear_algebra　count_spanning_trees ／ count_arborescences"/>
+        <outline text="有向グラフのオイラー閉路の数（BEST 定理） → count_arborescences(根は任意の 1 点) × Π_v (出次数(v) − 1)!"/>
+        <outline text="XOR で作れる値（最大・最小・k 番目・作れるか） → 05_xor_basis　XorBasis（max_xor ／ min_xor ／ kth ／ contains）"/>
+        <outline text="重みの大きい順に「XOR で独立なもの」を選ぶ（貪欲） → 05_xor_basis　大きい順に B.insert(x) して true のものを取る"/>
+        <outline text="区間の要素の XOR で作れるか → 05_xor_basis　PrefixXorBasis"/>
+        <outline text="mod 2 の連立方程式 → 05_xor_basis　Gf2System"/>
+        <outline text="項の多い線形漸化式の第 K 項 → 06_linear_recurrence　linear_recurrence_kth"/>
+        <outline text="最初の数項から漸化式を推測 → 06_linear_recurrence　berlekamp_massey ／ guess_kth"/>
+      </outline>
+      <outline text="▼ 和" collapsed="true">
+        <outline text="⌊N/i⌋ の和・⌊N/i⌋ が同じ i をまとめる（途中で止めるなら f が false を返す） → 06_quotient　sum_floor_div ／ quotient_blocks ／ for_each_quotient"/>
+        <outline text="Σ i⌊N/i⌋・Σ (N mod i) → 06_quotient　sum_i_floor_div ／ sum_mod_i"/>
+        <outline text="Σ ⌊(a i + b)/m⌋（ACL と同じ引数の順）・直線の下の格子点 → 06_quotient　linear_floor_sum ／ count_lattice_under_line"/>
+        <outline text="Σ ((a i + b) mod m) → 06_quotient　linear_mod_sum（Σ(a i + b) − m Σ⌊…⌋）"/>
+        <outline text="Σ i⌊…⌋・Σ⌊…⌋² を mod で → 06_quotient　linear_floor_sum_ext&lt;mint&gt;"/>
+        <outline text="床関数を含むもっと複雑な和（Σ A^i B^{⌊(ai+b)/c⌋} など） → 06_quotient　universal_euclid（万能ユークリッド）"/>
+        <outline text="べき乗和 Σ i^k → 06_series　sum_powers&lt;mint&gt;"/>
+        <outline text="Σ i·r^i → 06_series　arith_geom_sum"/>
+        <outline text="多項式の値から別の点の値（ラグランジュ補間） → 06_series　lagrange_interpolate"/>
+        <outline text="多項式の割り算（次数が小さい） → 06_series　poly_divmod"/>
+      </outline>
+      <outline text="▼ 畳み込み・多項式" collapsed="true">
+        <outline text="2 つの列の畳み込み（mod は何でも・整数のまま） → 07_convolution　convolve ／ convolve_ll ／ convolve_mod"/>
+        <outline text="ずらして重ねた積の和・一致の数 → 07_convolution　correlate"/>
+        <outline text="多くの多項式の積・Π(1 + a_i x) → 07_convolution　convolve_many ／ 07_fps　prod_linear"/>
+        <outline text="巡回畳み込み（添字を mod n で） → 07_convolution　convolve_cyclic"/>
+        <outline text="答えを次の入力に使う畳み込み（f_{n+1} = Σ f_i g_{n−i}） → 07_convolution　RelaxedConvolution"/>
+        <outline text="形式的冪級数（逆数・log・exp・累乗・平方根） → 07_fps　fps_inv ／ fps_log ／ fps_exp ／ fps_pow ／ fps_sqrt"/>
+        <outline text="f(x + c)・多項式の割り算 → 07_fps　taylor_shift ／ fps_divmod"/>
+        <outline text="P(x)/Q(x) の K 次の係数 → 07_fps　fps_coeff_of_fraction"/>
+        <outline text="多項式の多点評価・補間 → 07_fps　multipoint_eval ／ interpolate"/>
+        <outline text="べき乗和 Σ w_i a_i^k（全部の k）・分数の和 Σ P_i/Q_i → 07_fps　power_sums ／ fps_sum_of_fractions"/>
+        <outline text="OR・AND・XOR の畳み込み・部分集合の和・アダマール変換 → 07_subset_transform　or_convolution ／ and_convolution ／ xor_convolution ／ subset_zeta ／ walsh_hadamard"/>
+        <outline text="集合を 2 つに分ける数え上げ → 07_subset_transform　subset_convolution"/>
+        <outline text="組分け全部の積の和（exp）・連結なものの数え上げ（log） → 07_subset_transform　subset_exp ／ subset_log"/>
+      </outline>
+      <outline text="▼ ビット　09_bit" collapsed="true">
+        <outline text="部分集合の列挙・k 個選ぶ・必ず含む／含まないビット → for_each_submask ／ for_each_subset_k ／ for_each_mask_between"/>
+        <outline text="立っているビットの位置・数 → bit_indices ／ for_each_bit ／ bit_count ／ top_bit"/>
+        <outline text="グレイコード → gray_code"/>
+        <outline text="0〜N の各ビットの 1 の個数・L ⊕ … ⊕ R → count_bit_up_to ／ popcount_sum_up_to ／ xor_range_closed"/>
+        <outline text="全部の組・全部の区間の XOR の和 → xor_pair_sum ／ subarray_xor_sum"/>
+        <outline text="bit 全探索 → 使い方デモ（ABC197 C）"/>
+      </outline>
+      <outline text="▼ 分数・多倍長" collapsed="true">
+        <outline text="分数を誤差なく（比で並べる・既約分数・小数で表示） → 08_fraction　Fraction ／ to_decimal"/>
+        <outline text="分母が小さい近い分数・以下で最大・以上で最小 → 08_fraction　best_rational_approx ／ rational_floor ／ rational_ceil"/>
+        <outline text="2 つの分数のあいだで分母が最小の分数・連分数 → 08_fraction　simplest_between ／ continued_fraction ／ from_continued_fraction"/>
+        <outline text="long long・Int128 にも収まらない整数（gcd・lcm も） → 08_bigint　BigInt"/>
+      </outline>
+      <outline text="▼ ゲーム　10_game" collapsed="true">
+        <outline text="Grundy 数（状態の DAG）・mex・Nim・逆形 Nim → grundy_dag ／ mex ／ nim_first_wins ／ misere_nim_first_wins"/>
+        <outline text="L〜R 個取れる石取り・取れる数が決まった石取り（周期も） → range_take_grundy ／ subtraction_game_grundy ／ SubtractionGame"/>
+        <outline text="1 手で山がいくつかに分かれる（行き先の Grundy 数の XOR） → grundy_dag_multi"/>
+        <outline text="閉路があるゲームの勝ち・負け・引き分けと手数（後退解析） → game_outcome（使い方デモ：ABC209 E）"/>
+      </outline>
+      <outline text="▼ グラフ・グリッド／幾何と組み合わせる" collapsed="true">
+        <outline text="K 歩で行ける道の数 → graph_grid_v2 の隣接を行列にして 05_matrix　Matrix&lt;mint&gt;::pow"/>
+        <outline text="ちょうど K 歩の最短路 → 05_matrix　Matrix&lt;MinPlus&lt;long long&gt;&gt;"/>
+        <outline text="置換の偶奇 → graph_grid_v2 06_perm_cycles　C.parity()（列なら 04_permutation　perm_parity）"/>
+        <outline text="全域木の数 → graph_grid_v2 の辺（G.es）を us・vs にして 05_linear_algebra　count_spanning_trees へ"/>
+        <outline text="最短路の本数を mod で → graph_grid_v2 02_shortest_path_dag　count_shortest_paths(G, r, mod)"/>
+        <outline text="DAG の経路の数 → graph_grid_v2 04_topo_sort　dag_count_paths(G, s, mod)"/>
+        <outline text="向き・傾きを gcd で正規化 → geometry_v2 00_geo_base　direction_key"/>
+      </outline>
+    </outline>
+  </body>
+</opml>

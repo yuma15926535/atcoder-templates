@@ -1,0 +1,47 @@
+00_int_common（整数の共通部分：Int128 / UInt128 の入出力、整数の平方根、小数の入力。数学・幾何で共通）
+	説明
+		Int128 / UInt128（= __int128）：cout << x ／ cin >> x がそのまま使える（範囲外の入力は止まる）
+		int128_to_string(v) ／ uint128_to_string(u) ／ parse_int128(s) ／ parse_uint128(s)（10 進の文字列と相互に変換）
+		isqrt(n) ／ isqrt_ceil(n)（⌊√n⌋ ／ ⌈√n⌉。誤差なし。n ≤ 9.2×10^18）
+		parse_fixed(s, k) ／ read_fixed(k)（小数を 10^k 倍した整数に。誤差なし。k 桁を超える 0 でない桁・long long に収まらない値は止まる）
+	メモ
+		数学の 00_math_base・幾何の 00_geo_base がこれを同梱している（ふつうは単独で貼らない）。数学と幾何を一緒に貼っても 1 回だけ定義される
+		geometry_v2 にも同じファイルを置いている（update_bundles がそれぞれのフォルダで使う）
+		Main_base の debug(x) は Int128 をそのまま表示できない → debug(int128_to_string(x))
+		類題：ABC169 C（read_fixed(2) で掛け算を整数に）
+	C:\atcoder_template\典型90\ソース\math_v2\00_int_common.cpp
+00_math_base（数学基盤：負の数の割り算・倍数の数・累乗根・溢れない累乗・gcd / lcm・64 ビットの mod・数列の和・分数の比較）
+	説明
+		floor_div(a, b) ／ ceil_div(a, b) ／ mod_floor(a, m)（0 以上の余り）／ round_div(a, b)（四捨五入）：負の数でも正しい（C++ の / と % は 0 に向かって切り捨てる）
+		ceil_multiple(x, d) ／ floor_multiple(x, d) ／ ceil_congruent(x, a, m) ／ floor_congruent(x, a, m)（x 以上・以下で最も近い倍数・合同な数）
+		count_multiples(l, r, d) ／ count_multiples_closed(L, R, d) ／ count_congruent(l, r, a, m) ／ count_congruent_closed（範囲の中の倍数・x ≡ a の個数）
+		isqrt ／ isqrt_ceil（00_int_common）／ kth_root_floor(n, k) ／ kth_root_ceil(n, k) ／ is_square(n) ／ is_kth_power(n, k)（誤差なし）
+		pow_int(a, e)（厳密。溢れたら止まる）／ pow_cap(a, e, cap) ／ mul_cap(a, b, cap) ／ add_cap（min(値, cap)。溢れない）／ mul_overflows(a, b) ／ add_overflows(a, b)
+		ilog_floor(n, b) ／ ilog_ceil(n, b)（b^k ≤ n の最大の k ／ b^k ≥ n の最小の k）／ pow10_ll(k)
+		ext_gcd(a, b)（ExtGcd{g, x, y}：a x + b y = g）／ lcm_cap(a, b, cap) ／ try_lcm(a, b)（溢れたら ok = false）／ gcd_of(v) ／ lcm_of_cap(v, cap)（v は vector<int> でも {…} でも）
+		mod_mul(a, b, m) ／ mod_pow(a, e, m)（e < 0 なら逆元の累乗）／ mod_inv(a, m) ／ try_mod_inv(a, m)（m < 2^63・合成数の mod でも）
+		geom_sum_mod(r, n, m)（1 + r + … + r^(n-1)。逆元を使わないので m は何でも）／ arith_sum(a, d, n)（Int128）／ arith_sum_mod ／ sum_range(l, r) ／ sum_range_closed(L, R) ／ sum_range_mod(l, r, m) ／ sum_range_closed_mod
+		frac_compare(a, b, c, d)（a/b と c/d の大小。誤差なし）／ Maybe<T>{ok, value}（ないことがある値）
+	メモ
+		数学第二世代のほかのテンプレートはすべてこれを同梱している（00_int_common も入っている）
+		範囲の引数は半開区間 [l, r)。「L 以上 R 以下」は _closed 版
+		厳密な値を返す関数（pow_int・arith_sum など）は溢れるとメッセージを出して止まる。上限で止めたいときは _cap 版
+		多くの数の lcm を mod で求めるときは、mod を取りながら lcm を取ってはいけない（02_factorize の lcm_mod_of）
+		mod が 2^31 未満の定数なら 00_modint の方が速い（mod_pow などは 10^18 級の mod 用）
+		類題：ABC131 C（count_multiples_closed ＋ lcm_cap）、ABC169 B（mul_cap）、典型90 020（pow_cap）、典型90 038（lcm_cap）、ABC227 C（kth_root_floor）、ABC228 E（mod_pow で指数を p − 1 で割った余りに）、ABC293 E・ABC357 D（geom_sum_mod）、ABC308 C（frac_compare）、ARC059 C（ceil_div）
+	C:\atcoder_template\典型90\ソース\math_v2\00_math_base.cpp
+00_modint（modint：ModInt<MOD>（定数の mod）/ DynModInt（入力で決まる mod））
+	説明
+		使う側で 1 行：using mint = ModInt998;（10^9+7 は ModInt107、ほかの定数は ModInt<M>、入力で決まる mod は DynModInt と mint::set_mod(M)）
+		mint x = 整数（負の数・long long・Int128 から）／ mint::raw(x) ／ + - * / ++ -- 比較（整数と混ざってもよい）／ cout << x ／ cin >> x（長い数も読める）
+		x.val() ／ mint::mod() ／ x.pow(e)（負の指数は逆元の累乗。N − 2 のような式が負になりうるときは場合分け）／ x.inv() ／ x.try_inv()（Maybe で返す）／ x.is_unit()（逆元があるか）
+		unordered_map<mint, V> ／ unordered_set<mint>（std::hash あり）／ ModInt<M>::IS_PRIME ／ DynModInt::mod_is_prime()
+		DynModIntT<ID>（ID を変えると別の mod を同時に持てる）
+		rational_reconstruct(x)（mint の値を小さい分数 num/den に戻す。期待値の答えを確かめるデバッグ用）
+	メモ
+		mod は 1 以上 2^31 未満（素数でなくてよい・偶数でもよい）。逆元は mod と互いに素なときだけ（なければ止まる。try_inv なら止まらない）
+		mint という名前はテンプレートでは定義しない（使う側で書く）。組合せ・行列・畳み込みのテンプレートは Binomial<mint> のように型を受け取る
+		DynModInt の set_mod を途中で変えると、それまでに作った値は意味がなくなる
+		速さ：ModInt は ACL の static_modint とほぼ同じ。DynModInt は ACL の dynamic_modint より速い（内積で約 1.4 倍、O(n²) の畳み込みで約 1.9 倍。モンゴメリ乗算）
+		類題：典型90 069（pow で N ≤ 10^18 の累乗）、ABC280 E・ABC263 E（期待値を mod で。確率 P/100 は mint(P) / 100）
+	C:\atcoder_template\典型90\ソース\math_v2\00_modint.cpp

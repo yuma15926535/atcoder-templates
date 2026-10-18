@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct train{
+    //前後を記録
+    struct pn{
+        int p;
+        int n;
+    };
+    vector<pn> v;
+    train(int n){
+        v.resize(n+1,{0,0});
+    }
+    void query1(int x,int y){
+        v[x].n=y;
+        v[y].p=x;
+    }
+    void query2(int x,int y){
+        v[x].n=0;
+        v[y].p=0;
+    }
+    //出力時の制限から全体を数えて出力しても間に合う
+    void query3(int x){
+        while(v[x].n)x=v[x].n;
+        int m=1;
+        while(v[x].p){
+            x=v[x].p;
+            m++;
+        }
+        cout<<m<<" ";
+        while(v[x].n){
+            cout<<x<<" ";
+            x=v[x].n;
+        }
+        cout<<x<<"\n";
+    }
+};
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N,Q;
+    cin>>N>>Q;
+    train t=train(N);
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            int x,y;
+            cin>>x>>y;
+            t.query1(x,y);
+        }else if(q==2){
+            int x,y;
+            cin>>x>>y;
+            t.query2(x,y);
+        }else{
+            int x;
+            cin>>x;
+            t.query3(x);
+        }
+    }
+    return 0;
+}

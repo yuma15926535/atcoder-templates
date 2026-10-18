@@ -1,0 +1,48 @@
+// =============================================================================
+//  辞書順（つなげて最小・独自の文字の順・最小 / 最大の回転・列名 a, …, z, aa・辞書の番号・同じ長さの次の文字列）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 05 辞書順・回転
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）。__int128 を使う（GCC / Clang）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  辞書順は std::string と同じ（先頭から比べ、片方が接頭辞なら短い方が小さい。char は 0〜255 として比べる）
+//  文字の種類（列名・辞書の番号・次の文字列）は Alphabet で指定する（既定は英小文字）
+//
+//  機能一覧                                                                       計算量
+//    concat_order(vs) / min_concat(vs)     全部をつなげて辞書順最小になる並べ方（添字）/ その列（a + b < b + a）   O(N log N × 最長の長さ)
+//    lex_less_by(order) / lex_less_by(A)   独自の文字の順の比較関数 LexLess（sort に渡す。.compare(a, b) は -1 / 0 / 1）
+//    min_rotation(s) / max_rotation(s)     辞書順最小 / 最大の回転 s[k..] + s[..k] の k（同じなら最小の k）           O(N)
+//    bijective_to_string(n, A)             列名：1 → a、26 → z、27 → aa（0 なら空）                                 O(log n)
+//    bijective_from_string(s, A)           その逆（a → 1）                                                         O(|s|)
+//    dict_rank(s, max_len, A)              長さ 1〜max_len の全部の文字列を辞書順に並べたときの s の番号（0 から）   O(|s| + max_len)
+//    dict_unrank(k, max_len, A)            その逆（番号 k の文字列）                                                 O(max_len)
+//    next_string(s, A)                     同じ長さで辞書順の次の文字列（最後なら空）                                O(N)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    lex_test::random_test()  … 全部の並べ方・全部の文字列を並べる愚直解と全機能を突き合わせるランダムテスト
+//    lex_test::benchmark()    … 速度計測
+//    lex_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

@@ -1,0 +1,121 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+struct GridRange {
+    int H, W;
+
+    GridRange(int h, int w) : H(h), W(w) {}
+
+    GridRange(const vector<string>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    template<class T>
+    GridRange(const vector<vector<T>>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    bool in(int x, int y) const {
+        return (0 <= x && x < H && 0 <= y && y < W);
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+struct Neighbors {
+    vector<pair<int,int>> d;
+
+    // 4近傍
+    static Neighbors four(){
+        return {{{1,0},{-1,0},{0,1},{0,-1}}};
+    }
+
+    // 8近傍
+    static Neighbors eight(){
+        return {{{1,0},{-1,0},{0,1},{0,-1},
+                 {1,1},{1,-1},{-1,1},{-1,-1}}};
+    }
+};
+
+void solv(){
+    int H,W;
+    cin>>H>>W;
+    vector<string>A(H);
+    rep(i,0,H)cin>>A[i];
+    int N;
+    cin>>N;
+    vector<vector<ll>>med(H,vector<ll>(W,-1));
+    rep(i,0,N){
+        int r,c;
+        ll e;
+        cin>>r>>c>>e;
+        r--;c--;
+        med[r][c]=e;
+    }
+    vector<vector<ll>>dist(H,vector<ll>(W,-1));
+    int sx,sy,gx,gy;
+    rep(i,0,H)rep(j,0,W){
+        if(A[i][j]=='S')sx=i,sy=j;
+        if(A[i][j]=='T')gx=i,gy=j;
+    }
+    GridRange gr(A);
+    auto dirs=Neighbors::four();
+    priority_queue<tuple<ll,int,int>> pq;
+    dist[sx][sy] = max(0LL, med[sx][sy]);
+    pq.push({dist[sx][sy], sx, sy});
+
+    //逆ダイクストラ
+    while (!pq.empty()) {
+        auto [hp, x, y] = pq.top(); pq.pop();
+        if (hp < dist[x][y]) continue;
+
+        for (auto [dx, dy] : dirs.d) {
+            int nx = x + dx, ny = y + dy;
+            if (!gr.in(nx,ny)) continue;
+            if (A[nx][ny]=='#') continue;
+
+            ll nhp = hp - 1;
+            if (nhp < 0) continue;
+
+            nhp = max(nhp, med[nx][ny]);
+            if (nhp > dist[nx][ny]) {
+                dist[nx][ny] = nhp;
+                pq.push({nhp, nx, ny});
+            }
+        }
+    }
+    if(dist[gx][gy]>=0)YN;
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,147 @@
+02_divisor_transform（約数・倍数の変換：ゼータ・メビウス変換、gcd・lcm の畳み込み、gcd ごとの組の数、Σφ・Σμ、列の gcd の和、ディリクレ積、大きな M の約数の上の変換）
+	説明
+		divisor_zeta(f, op) ／ divisor_mobius(f, inv_op)（g[n] = Σ_{d | n} f[d] とその逆）／ multiple_zeta(f, op) ／ multiple_mobius(f, inv_op)（倍数の和とその逆。op で max・gcd なども）
+		gcd_convolution(a, b) ／ lcm_convolution(a, b)（c[k] = Σ_{gcd(i,j)=k} a[i] b[j]）
+		count_pairs_by_gcd(cnt)（値 v の個数から gcd がちょうど g の組 {i < j} の数を全部の g で）
+		phi_sum(N)（Σφ。Int128）／ mertens(N)（Σμ）／ count_coprime_pairs(N)（N ≤ 10^11 程度で約 1.5 秒。O(N^{2/3})）
+		sum_gcd_tuples(K, len, m)（値が 1〜K で長さ len の列すべての gcd の和 mod m）
+		dirichlet_convolution(a, b)（Σ_{d|n} a[d] b[n/d]）
+		DivisorsOf D(M)（M ≤ 10^18 の約数の上の変換）：D.zeta ／ D.mobius ／ D.multiple_zeta ／ D.multiple_mobius ／ D.divisors() ／ D.index(d) ／ D[i]
+	メモ
+		配列は 1〜N を使う（f[0] は使わない）。long long は途中の値が溢れても止まるので、大きくなりそうなら mint で
+		02_sieve（φ・μ の表）と 02_factorize を同梱している
+		類題：ABC162 E（sum_gcd_tuples）、ABC206 E（multiple_mobius で gcd ごとの組の数）
+	C:\atcoder_template\典型90\ソース\math_v2\02_divisor_transform.cpp
+02_prime_count（素数の個数・和：N が大きい π(N)・素数の和、⌊N/i⌋ ごとの π の表、素因数がすべて P 以下の数の個数、乗法的関数の和）
+	説明
+		prime_count(N)（N = 10^11 で約 0.3 秒、10^12 で約 1.3 秒）／ prime_sum(N)（Int128）
+		PrimeCountTable P(N); P.count(v) ／ P(v)（v は ⌊N/i⌋ の形の値か √N 以下）
+		count_smooth(N, P)（N 以下で素因数がすべて P 以下の数の個数。1 も数える。P ≤ 100 程度）
+		multiplicative_sum<T>(N, coef, fpe)（乗法的関数の和。Min_25 篩。f(p) = Σ coef[k] p^k（3 次まで）、f(p^e) = fpe(p, e)。N ≤ 10^12。mint で 10^11 なら約 1 秒）
+	メモ
+		N ≤ 10^8 なら 02_sieve の primes_up_to ／ Sieve の方が速い。区間の素数は segment_primes
+		類題：ABC300 G（count_smooth）、ABC172 D（multiplicative_sum でも）
+	C:\atcoder_template\典型90\ソース\math_v2\02_prime_count.cpp
+03_discrete_log（位数・原始根・離散対数・mod の平方根・累乗の塔）
+	説明
+		carmichael_lambda(n) ／ mult_order(a, m)（a^k ≡ 1 の最小の k。Maybe）／ MultOrder ord(m); ord(a)（同じ m で何度も）
+		primitive_root(p) ／ mod_sqrt(a, p)（x^2 ≡ a。小さい方。Maybe）
+		discrete_log(a, b, m)（a^x ≡ b の最小の x ≥ 0。m は合成数でもよい。m ≤ 10^13 程度。Maybe）
+		pow_tower_mod(as, m)（a_0^(a_1^(…)) mod m。指数が巨大でも）
+	メモ
+		02_factorize を同梱している。1 つの a^e mod m・逆元は 00_math_base の mod_pow ／ mod_inv
+		類題：ABC222 G（mult_order(10, 9K / gcd(K, 2))）、ABC335 G（MultOrder で位数が割り切る組）、ABC228 E（pow_tower_mod({M, K, N}, p)）
+	C:\atcoder_template\典型90\ソース\math_v2\03_discrete_log.cpp
+04_combinatorics（数え上げ：スターリング数・ベル数・分割数・完全順列・全射・写像 12 相・包除原理・二項変換・組分けの列挙・q 二項係数・ヤング盤）
+	説明
+		stirling2<mint>(n, k)（n ≤ 10^18 でも）／ stirling2_row<mint>(n) ／ stirling2_table<T>(N) ／ stirling1_row<mint>(n) ／ stirling1_table<T>(N)
+		bell<mint>(n) ／ bell_table<T>(N) ／ partition_row<mint>(N)（O(N log N)）／ partition_table<T>(N) ／ partition_count_table<T>(N, K)（k 個以下に分ける）
+		derangement_table<T>(N) ／ surjections<mint>(n, k)
+		balls_into_boxes<mint>(n, k, 玉を区別, 箱を区別, rule)（rule：0 = 何個でも、1 = 各箱 1 個以下、2 = 各箱 1 個以上）
+		inclusion_exclusion<T>(n, f)（Σ_S (−1)^{|S|} f(S)。f(S) = 条件 S を全部満たす数 → どれも満たさない数。n ≤ 30）／ inclusion_exclusion_count<mint>(n, g)（Σ (−1)^i C(n, i) g(n − i)）
+		count_divisible_by_any(l, r, ds) ／ count_divisible_by_any_closed(L, R, ds)（ds のどれかで割り切れる数の個数）
+		binomial_transform ／ binomial_inverse ／ at_least_from_exactly ／ exactly_from_at_least（<mint> の vector。「ちょうど k 個」を「k 個選んで満たす」の和から）
+		for_each_set_partition(n, f)（組分けを全部 f(g, k)）／ for_each_integer_partition(n, f, max_part)
+		q_binomial<mint>(n, k, q)（q 二項係数）／ young_tableaux_count<mint>(shape)（フック長公式）
+	メモ
+		mint の mod は素数。_table<T> は long long でも使える（溢れたら止める）
+		00_modint・04_binomial・07_convolution を同梱している
+		類題：ABC131 C（count_divisible_by_any_closed）、ABC242 F（inclusion_exclusion_count の 2 重）、ABC297 F（inclusion_exclusion(4, …) で外接長方形）、ABC390 D（for_each_set_partition）
+	C:\atcoder_template\典型90\ソース\math_v2\04_combinatorics.cpp
+04_permutation（順列・組合せの番号：辞書順で何番目か・k 番目の並び・重複のある並び・転倒数・置換の偶奇）
+	説明
+		inversion_count(a)（値は何でも。vector でも string でも）／ perm_parity(a)（置換の偶奇。値がすべて異なる列）
+		perm_rank(p)（Int128。n ≤ 33）／ perm_rank_mod<mint>(p) ／ perm_unrank(n, k)（0〜n−1 の順列の k 番目）
+		multiset_perm_rank(a) ／ multiset_perm_rank_mod<mint>(a) ／ multiset_perm_unrank(a, k)（同じものを区別しない並べ替え）
+		kth_combination(n, r, k) ／ combination_rank(n, c)（{0..n−1} から r 個選ぶ組の辞書順）
+	メモ
+		番号はすべて 0 から。次・前の順列は std::next_permutation ／ prev_permutation
+		類題：ABC190 F（inversion_count ＋ 先頭を回す差分）、ABC276 C（perm_unrank(N, perm_rank(P) − 1)）、ABC202 D（multiset_perm_unrank("a…ab…b", K − 1)）
+	C:\atcoder_template\典型90\ソース\math_v2\04_permutation.cpp
+05_linear_algebra（線形代数：階数・行列式・逆行列・連立一次方程式、合成数 mod の行列式、行列木定理、特性多項式・det(A + xB)）
+	説明
+		mat_rank(A) ／ mat_det(A) ／ mat_inverse(A)（Maybe）
+		solve_linear(A, b)（LinearSolution{ok, x, kernel}：x は解の 1 つ、kernel は A y = 0 の解の基底）
+		det_mod_any(A, m)（Matrix<long long>。m は合成数でもよい）
+		count_spanning_trees<T>(n, us, vs)（無向。多重辺も）／ count_arborescences<T>(n, us, vs, root)（root から向かう有向木）
+		char_poly(A)（det(xI − A) の係数）／ det_affine(A, B)（det(A + xB) の係数。B は正則でなくてよい）
+	メモ
+		T は mint（mod は素数）・double・Fraction。整数型の行列はコンパイルエラーにしている（割り算が切り捨てになるため）
+		05_matrix を同梱している。mod 2 の方程式は 05_xor_basis の Gf2System
+		類題：ABC253 Ex（頂点集合ごとの count_spanning_trees ＋ 森の DP）、ABC323 G（転倒の辺を x にしたラプラシアンで det_affine）
+	C:\atcoder_template\典型90\ソース\math_v2\05_linear_algebra.cpp
+05_xor_basis（XOR の基底：作れる値の最大・k 番目・作れるか・どの要素で作るか、区間の要素の基底、mod 2 の連立一次方程式）
+	説明
+		XorBasis B; B.insert(x) ／ contains ／ max_xor(x) ／ min_xor(x) ／ kth(k) ／ count_le(x) ／ rank ／ count ／ zero_by_nonempty ／ represent(x) ／ merge ／ basis
+		PrefixXorBasis P; P.push_back(a) ／ P.contains(l, x) ／ P.max_xor(l, x) ／ P.rank(l) ／ P.basis(l)（今の末尾までの [l, size()) の要素で）
+		Gf2System S(m); S.add(vars, rhs) ／ add_row(coef, rhs) ／ rank ／ solvable ／ free_count ／ solve（Maybe）／ kernel
+	メモ
+		「作れる値」は 0 個の XOR = 0 も含む。kth は 0 番目が 0
+		PrefixXorBasis はクエリを右端の順に並べ替えて答える
+		類題：ABC141 F（T のビットを消した基底の max_xor × 2 + T）、ABC223 H（PrefixXorBasis）、ABC283 G（kth(L − 1)〜kth(R − 1)）
+	C:\atcoder_template\典型90\ソース\math_v2\05_xor_basis.cpp
+06_linear_recurrence（線形漸化式：項の多い漸化式の第 K 項・最初の n 項、最初の数項から漸化式を求める）
+	説明
+		linear_recurrence_kth(a, c, K)（a_i = c_1 a_{i−1} + … + c_d a_{i−d}。a = 最初の d 項、c = {c_1, …, c_d}。Bostan–Mori。mod は何でも）
+		linear_recurrence_terms(a, c, n)（最初の n 項）
+		berlekamp_massey(s)（最短の漸化式の c。mod は素数。次数 d には 2d 項以上）／ guess_kth(s, K)
+	メモ
+		DP の最初の数十項から第 10^18 項を出すときは guess_kth
+		項が少ないなら 05_matrix の行列累乗でもよい。P(x)/Q(x) の K 次の係数は 07_fps の fps_coeff_of_fraction
+		類題：ABC300 Ex（Bostan–Mori で N のビットが 1 の段は偶奇両方を足す。convolve で）
+	C:\atcoder_template\典型90\ソース\math_v2\06_linear_recurrence.cpp
+07_convolution（畳み込み：mint の列（NTT・任意の mod は 3 つの素数）、整数のまま、多くの多項式の積、相関、巡回、オンライン）
+	説明
+		convolve(a, b)（mint の列。998244353 などは NTT、10^9+7・合成数の mod は自動で 3 つの素数）
+		convolve_ll(a, b) ／ convolve_i128(a, b)（整数のまま。負も）／ convolve_mod(a, b, m)（long long の列を mod m で）
+		convolve_many(ps)（多くの多項式の積）／ correlate(a, b)（c[k] = Σ a[k+i] b[i]）／ ntt(a) ／ intt(a)
+		convolve_cyclic(a, b, n)（巡回畳み込み）／ RelaxedConvolution<mint> rc; rc.push(a_n, b_n)（オンライン：c_n を返す。f_{n+1} = Σ f_i g_{n−i} の DP に。2×10^5 回で約 0.4 秒）
+	メモ
+		00_modint を同梱している。ACL の convolution とは名前が違うので一緒に貼れる
+		類題：ACL Practice F、ATC001 C（convolve_ll）、ABC196 F（correlate で一致の数）、ABC291 G（ビットごとに correlate）
+	C:\atcoder_template\典型90\ソース\math_v2\07_convolution.cpp
+07_fps（形式的冪級数 Fps<mint>：逆数・log・exp・累乗・平方根・多項式の割り算・テイラーシフト・P/Q の K 次の係数・多点評価・補間・べき乗和）
+	説明
+		Fps<mint> f = {1, 1};（vector<mint> と同じ。+ − × ・pre(n) ・eval(x) ・cout <<）
+		fps_inv(f, n) ／ fps_log(f, n) ／ fps_exp(f, n) ／ fps_pow(f, k, n)（k ≤ 10^18）／ fps_sqrt(f, n)（Maybe）
+		fps_divmod(f, g)（FpsDivMod{q, r}）／ fps_derivative ／ fps_integral ／ taylor_shift(f, c)
+		fps_coeff_of_fraction(P, Q, K)（[x^K] P/Q。K ≤ 10^18。Bostan–Mori）／ prod_linear(as)（Π(1 + a_i x)）
+		multipoint_eval(f, xs)（多点評価。10^5 点で約 0.5 秒）／ interpolate(xs, ys)（補間）
+		power_sums(as, n, ws)（Σ w_i a_i^k を k = 0〜n−1 で）／ fps_sum_of_fractions(nums, dens)（Σ P_i/Q_i を 1 つの分数 FpsFraction{num, den} に）
+	メモ
+		n を渡すものは最初の n 項を返す。log・exp・pow は mod が項の数より大きい素数、sqrt は mod が奇素数のとき
+		07_convolution を同梱している
+		類題：ABC230 Ex（F = x(MSET(F + G) − 1) をニュートン法で。fps_exp ／ fps_inv）
+	C:\atcoder_template\典型90\ソース\math_v2\07_fps.cpp
+07_subset_transform（部分集合の変換：高速ゼータ・メビウス変換、OR・AND・XOR の畳み込み、部分集合の畳み込み・exp・log）
+	説明
+		subset_zeta(f, op) ／ subset_mobius ／ superset_zeta ／ superset_mobius（op で max なども）
+		walsh_hadamard(f, inverse) ／ or_convolution(a, b) ／ and_convolution(a, b) ／ xor_convolution(a, b)
+		subset_convolution(a, b)（c[S] = Σ_{T ⊆ S} a[T] b[S∖T]。O(n^2 2^n)）
+		subset_exp(f)（組分けごとの積の和。f[∅] = 0）／ subset_log(f)（その逆：連結なものの数え上げ。f[∅] = 1）。割り算なしなので long long・合成数の mod でも
+	メモ
+		配列の長さは 2^n。xor_convolution は 2^n で割るので mod は奇数
+		部分集合の列挙は 09_bit
+		類題：ABC212 H（アダマール変換して点ごとに等比数列の和）
+	C:\atcoder_template\典型90\ソース\math_v2\07_subset_transform.cpp
+08_bigint（多倍長整数 BigInt：四則演算・比較・累乗・平方根・gcd・lcm・入出力）
+	説明
+		BigInt a("123…"), b = 10;（cin >> a でもよい）／ + − × ÷ % ／ ++ −− ／ == < など ／ compare(a, b) ／ divmod(a, b)
+		pow(a, e) ／ isqrt(a) ／ gcd(a, b) ／ lcm(a, b) ／ abs(a)（gcd・lcm は整数と混ぜてもよい）
+		to_string ／ fits_ll ／ to_ll ／ to_i128 ／ to_ld ／ num_digits ／ digit_sum ／ mod_ll(m) ／ sign ／ is_zero ／ is_even
+	メモ
+		割り算は C++ と同じく 0 の方向に切り捨て（% の符号は割られる数と同じ）
+		× は 10^5 桁同士で約 0.15 秒。答えが Int128 に収まるなら Int128、mod で足りるなら mint の方がずっと速い
+		類題：ABC169 B（掛けながら 10^18 と比べる）
+	C:\atcoder_template\典型90\ソース\math_v2\08_bigint.cpp
+10_game（ゲーム：mex・Grundy 数（状態の DAG・石取り、周期も、分かれる手も）、Nim・逆形 Nim、閉路のあるゲームの後退解析）
+	説明
+		mex(vs) ／ grundy_dag(n, moves)（moves[v] = 1 手で行ける状態。閉路があれば止める。再帰しない）
+		nim_first_wins(piles) ／ misere_nim_first_wins(piles)
+		range_take_grundy(x, L, R)（L〜R 個取れる石取り）／ subtraction_game_grundy(S, N) ／ SubtractionGame G(S); G.grundy(x) ／ preperiod ／ period
+		grundy_dag_multi(n, moves)（1 手で複数のゲームに分かれる。手 = 行き先の状態の列、値は XOR）
+		game_outcome(n, moves)（閉路があってもよい後退解析。GameOutcome{result, steps}：GAME_WIN ／ GAME_LOSE ／ GAME_DRAW と決着までの手数）
+	メモ
+		いくつかのゲームを並べたときの先手必勝 ⇔ 各 Grundy 数の XOR ≠ 0
+		類題：ABC206 F（区間の Grundy 数を mex で）、ABC297 G（range_take_grundy の XOR）、ABC368 F（約数へ動く grundy_dag）、ABC209 E（game_outcome）
+	C:\atcoder_template\典型90\ソース\math_v2\10_game.cpp

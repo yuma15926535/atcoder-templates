@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct Pipe{
+    vector<pair<int,int>> v;
+    int index=0;
+    void query1(int x,int c){
+        v.push_back({x,c});
+    }
+    ll query2(int c){
+        ll ret=0;
+        while(c){
+            if(c>=v[index].second){
+                c-=v[index].second;
+                ret+=(ll)v[index].first*v[index].second;
+                v[index].second=0;
+                index++;
+            }else{
+                ret+=(ll)v[index].first*c;
+                v[index].second-=c;
+                c=0;
+            }
+        }
+        return ret;
+    }
+};
+
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int Q;
+    cin>>Q;
+    Pipe p;
+    p.index=0;
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            int x,c;
+            cin>>x>>c;
+            p.query1(x,c);
+        }else{
+            int c;
+            cin>>c;
+            cout<<p.query2(c)<<"\n";
+        }
+    }
+    return 0;
+}

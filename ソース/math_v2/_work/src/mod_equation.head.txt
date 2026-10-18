@@ -1,0 +1,45 @@
+// =============================================================================
+//  合同式・一次不定方程式・中国剰余定理（a x ≡ b (mod m)・a x + b y = c・x ≡ r_i (mod m_i)）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 03 合同式・方程式
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  答えの形
+//    ModSolution{ok, r, m}            解は x ≡ r (mod m)（0 ≤ r < m）。ok が false なら解なし
+//    Diophantine{ok, x0, y0, dx, dy}  a x + b y = c の解すべて：x = x0 + k·dx、y = y0 − k·dy（d.x(k) / d.y(k) でも）
+//  （1 つの合同式の逆元・累乗・個数は 00_math_base：mod_inv / mod_pow / ceil_congruent / count_congruent。このファイルに入っている）
+//
+//  機能一覧                                                                    計算量
+//    linear_congruence(a, b, m)       a x ≡ b (mod m) の解を x ≡ r (mod m / gcd(a, m)) で（a, b は負でも）      O(log m)
+//    linear_diophantine(a, b, c)      a x + b y = c の解すべて（0 ≤ x0 < dx = |b| / g）                       O(log)
+//    diophantine_count(a, b, c, xl, xr, yl, yr)        xl ≤ x < xr かつ yl ≤ y < yr の解の数
+//    diophantine_count_closed(a, b, c, XL, XR, YL, YR)  XL ≤ x ≤ XR かつ YL ≤ y ≤ YR の解の数（x, y ≥ 0 なら範囲は 0〜LLONG_MAX）
+//                                     （2 つとも、個数が long long に収まらなければ止める）
+//    diophantine_min_x(a, b, c, x_min)                 x ≥ x_min で x が最小の解 DiophantinePoint{ok, x, y}
+//    crt_merge(r1, m1, r2, m2)        x ≡ r1 (mod m1) かつ x ≡ r2 (mod m2)（互いに素でなくてよい）          O(log)
+//    crt_all(rs, ms)                  x ≡ rs[i] (mod ms[i]) をすべて。答えの r は 0 以上で最小の解            O(n log)
+//                                     lcm が long long を超えたら overflow = true（ok は「long long に入る解があるか」、r はその最小）
+//    garner(rs, ms, mod)              互いに素な ms での答え x（0 ≤ x < Π ms。long long を超えてよい）を mod で  O(n^2)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    meq_test::random_test()  … 全部調べる愚直解・128 ビットでの検算との突き合わせ
+//    meq_test::benchmark()    … 速度計測
+//    meq_demo::demo()         … 全機能の使い方デモ（日本語の説明付き。周期的に繰り返す 2 つの区間が重なる最初の時刻も）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

@@ -1,0 +1,558 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief Basic BIT (Fenwick Tree)
+ * 
+ * @details 点加算および区間和の取得を高速に行うデータ構造。
+ * 内部的には1-indexで管理し、外部APIはすべて0-indexかつ半開区間 [l, r) で統一している。
+ * 
+ * 注意点:
+ * - lower_bound / upper_bound は要素がすべて非負（単調増加）である場合のみ正しく動作する。
+ * 
+ * 用途:
+ * - 点加算・区間和の高速処理
+ * - 累積和に対する二分探索
+ * 
+ * 計算量:
+ * - 構築: O(N)
+ * - 点加算 (add): O(log N)
+ * - 一点更新 (set): O(log N)
+ * - 一点取得 (get): O(log N)
+ * - 区間和取得 (sum): O(log N)
+ * - 二分探索 (lower_bound, upper_bound): O(log N)
+ * - クリア (clear): O(N)
+ * 
+ * API一覧:
+ * - BasicBIT(n), BasicBIT(a)
+ * - build(a), assign(a), clear()
+ * - add(i, x), set(i, x), get(i), operator[](i)
+ * - sum(r), sum(l, r), all_sum()
+ * - lower_bound(x), upper_bound(x)
+ * - size(), empty()
+ */
+template <class T>
+class BasicBIT {
+private:
+    int n;
+    std::vector<T> tree;
+
+public:
+    /**
+     * @brief コンストラクタ（サイズ指定）
+     * @param n 要素数
+     * @note 計算量: O(N)
+     */
+    explicit BasicBIT(int n = 0) : n(n), tree(n + 1, 0) {}
+
+    /**
+     * @brief コンストラクタ（初期配列指定）
+     * @param a 初期配列
+     * @note 計算量: O(N)
+     */
+    explicit BasicBIT(const std::vector<T>& a) {
+        build(a);
+    }
+
+    /**
+     * @brief 初期配列からO(N)で構築
+     * @param a 初期配列
+     * @note 計算量: O(N)
+     */
+    void build(const std::vector<T>& a) {
+        n = a.size();
+        tree.assign(n + 1, 0);
+        for (int i = 0; i < n; ++i) {
+            tree[i + 1] = a[i];
+        }
+        for (int i = 1; i <= n; ++i) {
+            int ni = i + (i & -i);
+            if (ni <= n) {
+                tree[ni] += tree[i];
+            }
+        }
+    }
+
+    /**
+     * @brief 新しい配列で再初期化
+     * @param a 新しい配列
+     * @note 計算量: O(N)
+     */
+    void assign(const std::vector<T>& a) {
+        build(a);
+    }
+
+    /**
+     * @brief 要素数を取得
+     * @return 要素数
+     * @note 計算量: O(1)
+     */
+    int size() const {
+        return n;
+    }
+
+    /**
+     * @brief 空であるか判定
+     * @return 空ならtrue、そうでなければfalse
+     * @note 計算量: O(1)
+     */
+    bool empty() const {
+        return n == 0;
+    }
+
+    /**
+     * @brief すべての要素を0に戻す
+     * @note 計算量: O(N)
+     */
+    void clear() {
+        std::fill(tree.begin(), tree.end(), 0);
+    }
+
+    /**
+     * @brief 位置 i に x を加算する (a[i] += x)
+     * @param i インデックス (0-index)
+     * @param x 加算する値
+     * @note 計算量: O(log N)
+     */
+    void add(int i, T x) {
+        assert(0 <= i && i < n);
+        for (int idx = i + 1; idx <= n; idx += idx & -idx) {
+            tree[idx] += x;
+        }
+    }
+
+    /**
+     * @brief 位置 i の値を x に更新する (a[i] = x)
+     * @param i インデックス (0-index)
+     * @param x 更新する値
+     * @note 計算量: O(log N)
+     */
+    void set(int i, T x) {
+        assert(0 <= i && i < n);
+        T cur = get(i);
+        add(i, x - cur);
+    }
+
+    /**
+     * @brief 位置 i の値を取得する (a[i])
+     * @param i インデックス (0-index)
+     * @return 位置 i の値
+     * @note 計算量: O(log N) (定数倍が軽い)
+     */
+    T get(int i) const {
+        assert(0 <= i && i < n);
+        T s = tree[i + 1];
+        int l = i & (i + 1);
+        for (int idx = i; idx > l; idx -= idx & -idx) {
+            s -= tree[idx];
+        }
+        return s;
+    }
+
+    /**
+     * @brief 位置 i の値を取得する (getと同じ)
+     * @param i インデックス (0-index)
+     * @return 位置 i の値
+     * @note 計算量: O(log N)
+     */
+    T operator[](int i) const {
+        return get(i);
+    }
+
+    /**
+     * @brief 半開区間 [0, r) の和を計算する
+     * @param r 右端のインデックス (0-index)
+     * @return 区間和
+     * @note 計算量: O(log N)
+     */
+    T sum(int r) const {
+        assert(0 <= r && r <= n);
+        T s = 0;
+        for (int idx = r; idx > 0; idx -= idx & -idx) {
+            s += tree[idx];
+        }
+        return s;
+    }
+
+    /**
+     * @brief 半開区間 [l, r) の和を計算する
+     * @param l 左端のインデックス (0-index)
+     * @param r 右端のインデックス (0-index)
+     * @return 区間和
+     * @note 計算量: O(log N)
+     */
+    T sum(int l, int r) const {
+        assert(0 <= l && l <= r && r <= n);
+        return sum(r) - sum(l);
+    }
+
+    /**
+     * @brief 全体の総和を計算する
+     * @return 全体の総和
+     * @note 計算量: O(log N)
+     */
+    T all_sum() const {
+        return sum(n);
+    }
+
+    /**
+     * @brief 累積和が x 以上となる最小のインデックスを探索する
+     * @param x 探索基準値
+     * @return 累積和が x 以上となる最小の 0-index。存在しない場合は -1
+     * @note 計算量: O(log N)。全要素が非負である必要がある。
+     */
+    int lower_bound(T x) const {
+        if (x <= 0) return 0;
+        int idx = 0;
+        int k = 1;
+        while (k * 2 <= n) k *= 2;
+        for (int step = k; step > 0; step /= 2) {
+            if (idx + step <= n && tree[idx + step] < x) {
+                x -= tree[idx + step];
+                idx += step;
+            }
+        }
+        if (idx >= n) return -1;
+        return idx;
+    }
+
+    /**
+     * @brief 累積和が x より大きくなる最小のインデックスを探索する
+     * @param x 探索基準値
+     * @return 累積和が x より大きくなる最小の 0-index。存在しない場合は -1
+     * @note 計算量: O(log N)。全要素が非負である必要がある。
+     */
+    int upper_bound(T x) const {
+        if (x < 0) return 0;
+        int idx = 0;
+        int k = 1;
+        while (k * 2 <= n) k *= 2;
+        for (int step = k; step > 0; step /= 2) {
+            if (idx + step <= n && tree[idx + step] <= x) {
+                x -= tree[idx + step];
+                idx += step;
+            }
+        }
+        if (idx >= n) return -1;
+        return idx;
+    }
+};
+
+// 動作確認用テスト
+void test_BasicBIT() {
+    std::cout << "--- test_BasicBIT 開始 ---" << std::endl;
+
+    std::vector<int> a = {2, 1, 1, 3, 2, 3, 4, 5, 6, 7};
+    BasicBIT<int> bit(a);
+
+    std::cout << "初期配列: ";
+    for (int i = 0; i < bit.size(); ++i) std::cout << bit[i] << " ";
+    std::cout << std::endl;
+
+    std::cout << "size(): " << bit.size() << " (期待値: 10)" << std::endl;
+    std::cout << "empty(): " << (bit.empty() ? "true" : "false") << " (期待値: false)" << std::endl;
+
+    std::cout << "sum(0, 5): " << bit.sum(0, 5) << " (期待値: 9)" << std::endl;
+    std::cout << "sum(5): " << bit.sum(5) << " (期待値: 9)" << std::endl;
+    std::cout << "all_sum(): " << bit.all_sum() << " (期待値: 34)" << std::endl;
+
+    bit.add(2, 5);
+    std::cout << "add(2, 5) 実行後の get(2): " << bit.get(2) << " (期待値: 6)" << std::endl;
+    std::cout << "add(2, 5) 実行後の sum(0, 5): " << bit.sum(0, 5) << " (期待値: 14)" << std::endl;
+
+    bit.set(2, 1);
+    std::cout << "set(2, 1) 実行後の get(2): " << bit.get(2) << " (期待値: 1)" << std::endl;
+
+    std::cout << "--- 二分探索テスト ---" << std::endl;
+    // a = {2, 1, 1, 3, 2, 3, 4, 5, 6, 7} (現在の配列)
+    // 累積和: [0, 2, 3, 4, 7, 9, 12, 16, 21, 27, 34]
+    std::cout << "lower_bound(4): " << bit.lower_bound(4) << " (期待値: 3)" << std::endl;
+    std::cout << "lower_bound(5): " << bit.lower_bound(5) << " (期待値: 3)" << std::endl;
+    std::cout << "upper_bound(4): " << bit.upper_bound(4) << " (期待値: 3)" << std::endl;
+    std::cout << "upper_bound(3): " << bit.upper_bound(3) << " (期待値: 2)" << std::endl;
+    std::cout << "lower_bound(100): " << bit.lower_bound(100) << " (期待値: -1)" << std::endl;
+
+    bit.clear();
+    std::cout << "clear() 実行後の all_sum(): " << bit.all_sum() << " (期待値: 0)" << std::endl;
+
+    std::cout << "--- test_BasicBIT 終了 ---" << std::endl << std::endl;
+}
+
+// ランダムテスト
+void random_test_BasicBIT() {
+    std::cout << "--- random_test_BasicBIT 開始 ---" << std::endl;
+    
+    std::mt19937 mt(42);
+    int n = 1000;
+    int queries = 10000;
+
+    std::vector<long long> naive(n);
+    std::uniform_int_distribution<long long> val_dist(0, 100); // 非負値に限定 (lower_boundのため)
+    for (int i = 0; i < n; ++i) {
+        naive[i] = val_dist(mt);
+    }
+
+    BasicBIT<long long> bit(naive);
+
+    std::uniform_int_distribution<int> op_dist(0, 5);
+    std::uniform_int_distribution<int> idx_dist(0, n - 1);
+
+    for (int q = 0; q < queries; ++q) {
+        int op = op_dist(mt);
+        if (op == 0) {
+            // add
+            int i = idx_dist(mt);
+            long long x = val_dist(mt);
+            naive[i] += x;
+            bit.add(i, x);
+        } else if (op == 1) {
+            // set
+            int i = idx_dist(mt);
+            long long x = val_dist(mt);
+            naive[i] = x;
+            bit.set(i, x);
+        } else if (op == 2) {
+            // sum
+            int l = idx_dist(mt);
+            int r = idx_dist(mt);
+            if (l > r) std::swap(l, r);
+            long long naive_sum = 0;
+            for (int i = l; i < r; ++i) naive_sum += naive[i];
+            assert(bit.sum(l, r) == naive_sum);
+        } else if (op == 3) {
+            // lower_bound
+            long long total = 0;
+            for (int i = 0; i < n; ++i) total += naive[i];
+            std::uniform_int_distribution<long long> x_dist(0, total + 10);
+            long long x = x_dist(mt);
+            
+            int naive_lb = -1;
+            long long s = 0;
+            for (int i = 0; i < n; ++i) {
+                s += naive[i];
+                if (s >= x) {
+                    naive_lb = i;
+                    break;
+                }
+            }
+            if (x <= 0) naive_lb = 0;
+            assert(bit.lower_bound(x) == naive_lb);
+        } else if (op == 4) {
+            // upper_bound
+            long long total = 0;
+            for (int i = 0; i < n; ++i) total += naive[i];
+            std::uniform_int_distribution<long long> x_dist(0, total + 10);
+            long long x = x_dist(mt);
+            
+            int naive_ub = -1;
+            long long s = 0;
+            for (int i = 0; i < n; ++i) {
+                s += naive[i];
+                if (s > x) {
+                    naive_ub = i;
+                    break;
+                }
+            }
+            if (x < 0) naive_ub = 0;
+            assert(bit.upper_bound(x) == naive_ub);
+        } else {
+            // get / operator[]
+            int i = idx_dist(mt);
+            assert(bit.get(i) == naive[i]);
+            assert(bit[i] == naive[i]);
+        }
+    }
+
+    std::cout << "OK" << std::endl;
+    std::cout << "--- random_test_BasicBIT 終了 ---" << std::endl << std::endl;
+}
+
+void solv(){
+    test_BasicBIT();
+    random_test_BasicBIT();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

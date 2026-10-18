@@ -1,0 +1,330 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+
+// 動的サイズ BitSet ラッパ
+// - vector<ull> 管理
+// - std::bitset の上位互換を意識
+// - 単一ビット論理演算 / 全体演算 / shift 対応
+// - 競プロ用テンプレ
+struct BitSet {
+    using ull = unsigned long long;
+    static constexpr int B = 64;
+
+    int n;              // ビット長
+    int m;              // ull の個数
+    vector<ull> bits;
+
+    // n ビットで初期化（全 0）
+    BitSet(int n = 0) { init(n); }
+
+    void init(int n_) {
+        n = n_;
+        m = (n + B - 1) / B;
+        bits.assign(m, 0);
+    }
+
+    int size() const { return n; }
+
+    /*======================
+      単一ビット基本操作
+    ======================*/
+    // idx を bit (0 or 1) に設定
+    void set(int idx, int bit = 1) {
+        int b = idx / B;
+        int o = idx % B;
+        if (bit) bits[b] |= (1ULL << o);
+        else     bits[b] &= ~(1ULL << o);
+    }
+
+    // idx を反転
+    void flip(int idx) {
+        int b = idx / B;
+        int o = idx % B;
+        bits[b] ^= (1ULL << o);
+    }
+
+    // idx の値を取得
+    bool get(int idx) const {
+        int b = idx / B;
+        int o = idx % B;
+        return (bits[b] >> o) & 1ULL;
+    }
+
+    /*======================
+      単一ビット論理演算（代入型）
+    ======================*/
+    // idx = idx & bit
+    void bit_and(int idx, int bit) {
+        if (bit == 0) set(idx, 0);
+    }
+
+    // idx = idx | bit
+    void bit_or(int idx, int bit) {
+        if (bit == 1) set(idx, 1);
+    }
+
+    // idx = idx ^ bit
+    void bit_xor(int idx, int bit) {
+        if (bit == 1) flip(idx);
+    }
+
+    /*======================
+      全体操作
+    ======================*/
+    // 全ビット反転
+    void flip_all() {
+        for (ull &x : bits) x = ~x;
+        if (n % B) bits.back() &= ((1ULL << (n % B)) - 1);
+    }
+
+    // 全体 popcount
+    int popcount() const {
+        int res = 0;
+        for (ull x : bits) res += __builtin_popcountll(x);
+        return res;
+    }
+
+    /*======================
+      区間 popcount [l, r)
+    ======================*/
+    int popcount(int l, int r) const {
+        if (l >= r) return 0;
+
+        int bl = l / B;
+        int br = (r - 1) / B;
+        int res = 0;
+
+        if (bl == br) {
+            // 同一ワード
+            int L = l % B;
+            int R = r % B;
+            if (R == 0) R = B;  // r がワード境界のとき
+
+            ull mask;
+            if (R - L == B) mask = ~0ULL;
+            else mask = ((1ULL << (R - L)) - 1) << L;
+
+            res += __builtin_popcountll(bits[bl] & mask);
+        } else {
+            // 左端ワード
+            int L = l % B;
+            ull left_mask = (~0ULL << L);
+            res += __builtin_popcountll(bits[bl] & left_mask);
+
+            // 中央ワード
+            for (int i = bl + 1; i < br; i++) {
+                res += __builtin_popcountll(bits[i]);
+            }
+
+            // 右端ワード
+            int R = r % B;
+            ull right_mask;
+            if (R == 0) right_mask = ~0ULL;
+            else right_mask = (1ULL << R) - 1;
+
+            res += __builtin_popcountll(bits[br] & right_mask);
+        }
+        return res;
+    }
+
+    /*======================
+      BitSet 同士の論理演算
+    ======================*/
+    void bit_and(const BitSet &o) {
+        for (int i = 0; i < m; i++) bits[i] &= o.bits[i];
+    }
+
+    void bit_or(const BitSet &o) {
+        for (int i = 0; i < m; i++) bits[i] |= o.bits[i];
+    }
+
+    void bit_xor(const BitSet &o) {
+        for (int i = 0; i < m; i++) bits[i] ^= o.bits[i];
+    }
+
+    BitSet operator&(const BitSet &o) const {
+        BitSet r(n);
+        for (int i = 0; i < m; i++) r.bits[i] = bits[i] & o.bits[i];
+        return r;
+    }
+
+    BitSet operator|(const BitSet &o) const {
+        BitSet r(n);
+        for (int i = 0; i < m; i++) r.bits[i] = bits[i] | o.bits[i];
+        return r;
+    }
+
+    BitSet operator^(const BitSet &o) const {
+        BitSet r(n);
+        for (int i = 0; i < m; i++) r.bits[i] = bits[i] ^ o.bits[i];
+        return r;
+    }
+
+    /*======================
+      シフト操作
+    ======================*/
+    // 左に k ビットシフト（範囲外は捨てる）
+    BitSet shifted_left(int k) const {
+        BitSet res(n);
+        int w = k / B;
+        int s = k % B;
+
+        for (int i = m - 1; i >= 0; i--) {
+            ull val = 0;
+            if (i - w >= 0) {
+                val |= bits[i - w] << s;
+                if (s && i - w - 1 >= 0) {
+                    val |= bits[i - w - 1] >> (B - s);
+                }
+            }
+            res.bits[i] = val;
+        }
+        if (n % B) res.bits.back() &= ((1ULL << (n % B)) - 1);
+        return res;
+    }
+
+    // 右に k ビットシフト（範囲外は捨てる）
+    BitSet shifted_right(int k) const {
+        BitSet res(n);
+        int w = k / B;
+        int s = k % B;
+
+        for (int i = 0; i < m; i++) {
+            ull val = 0;
+            if (i + w < m) {
+                val |= bits[i + w] >> s;
+                if (s && i + w + 1 < m) {
+                    val |= bits[i + w + 1] << (B - s);
+                }
+            }
+            res.bits[i] = val;
+        }
+        return res;
+    }
+
+    /*======================
+      可視化・変換
+    ======================*/
+    // "0101..."（index 0 が先頭）
+    string to_string() const {
+        string s;
+        s.reserve(n);
+        for (int i = 0; i < n; i++) {
+            s.push_back(get(i) ? '1' : '0');
+        }
+        return s;
+    }
+
+    // 立っているビットの index を列挙
+    vector<int> to_indices() const {
+        vector<int> res;
+        for (int i = 0; i < m; i++) {
+            ull x = bits[i];
+            while (x) {
+                int t = __builtin_ctzll(x);
+                int idx = i * B + t;
+                if (idx < n) res.push_back(idx);
+                x &= x - 1;
+            }
+        }
+        return res;
+    }
+};
+
+void solv(){
+    cout << "=============================\n";
+    cout << " 動的 BitSet 動作確認\n";
+    cout << "=============================\n";
+
+    BitSet bs(130);
+
+    cout << "\n--- 初期状態 ---\n";
+    cout << "サイズ: " << bs.size() << "\n";
+    cout << "bit列: " << bs.to_string() << "\n";
+    cout << "popcount(全体): " << bs.popcount() << "\n";
+
+    cout << "\n--- set / flip ---\n";
+    bs.set(3, 1);
+    bs.set(5, 1);
+    bs.set(64, 1);
+    bs.set(129, 1);
+    cout << "3,5,64,129 を 1 に設定\n";
+    cout << "bit列: " << bs.to_string() << "\n";
+    cout << "popcount: " << bs.popcount() << "\n";
+
+    bs.flip(5);
+    cout << "5 を flip\n";
+    cout << "bit列: " << bs.to_string() << "\n";
+
+    cout << "\n--- get ---\n";
+    cout << "bit[3] = " << bs.get(3) << "\n";
+    cout << "bit[5] = " << bs.get(5) << "\n";
+
+    cout << "\n--- bit_and / bit_or / bit_xor ---\n";
+    bs.bit_and(3, 0);
+    bs.bit_or(10, 1);
+    bs.bit_xor(64, 1);
+    cout << "and(3,0), or(10,1), xor(64,1)\n";
+    cout << "bit列: " << bs.to_string() << "\n";
+
+    cout << "\n--- 区間 popcount ---\n";
+    cout << "popcount[0,10) = " << bs.popcount(0,10) << "\n";
+    cout << "popcount[0,65) = " << bs.popcount(0,65) << "\n";
+    cout << "popcount[60,130) = " << bs.popcount(60,130) << "\n";
+
+    cout << "\n--- to_indices ---\n";
+    auto idx = bs.to_indices();
+    cout << "1 が立っている index: ";
+    for (int x : idx) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n--- shifted_left ---\n";
+    auto sl = bs.shifted_left(3);
+    cout << "左に 3 シフト\n";
+    cout << sl.to_string() << "\n";
+
+    cout << "\n--- shifted_right ---\n";
+    auto sr = bs.shifted_right(2);
+    cout << "右に 2 シフト\n";
+    cout << sr.to_string() << "\n";
+
+    cout << "\n--- flip_all ---\n";
+    bs.flip_all();
+    cout << "全反転\n";
+    cout << "bit列: " << bs.to_string() << "\n";
+    cout << "popcount: " << bs.popcount() << "\n";
+
+    cout << "\n=============================\n";
+    cout << " 動作確認終了\n";
+    cout << "=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

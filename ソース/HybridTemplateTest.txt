@@ -1,0 +1,2416 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+struct OrderedCount {
+    struct Node {
+        ll key;
+        ll cnt;
+        ll sz;
+        ll sum;
+        uint32_t pri;
+        Node *l, *r;
+
+        Node(ll key, uint32_t pri)
+            : key(key), cnt(1), sz(1), sum(key), pri(pri), l(nullptr), r(nullptr) {}
+    };
+
+    Node* root = nullptr;
+    mt19937 rng;
+
+    static constexpr ll LINF = (1LL << 62);
+
+    OrderedCount() : rng(chrono::steady_clock::now().time_since_epoch().count()) {}
+
+    ll size(Node* t) const {
+        return t ? t->sz : 0;
+    }
+
+    ll sum(Node* t) const {
+        return t ? t->sum : 0;
+    }
+
+    void update(Node* t) {
+        if (!t) return;
+        t->sz = t->cnt + size(t->l) + size(t->r);
+        t->sum =
+            t->key * t->cnt
+            + sum(t->l)
+            + sum(t->r);
+    }
+
+    void rotate_left(Node*& t) {
+        Node* r = t->r;
+        t->r = r->l;
+        r->l = t;
+        update(t);
+        update(r);
+        t = r;
+    }
+
+    void rotate_right(Node*& t) {
+        Node* l = t->l;
+        t->l = l->r;
+        l->r = t;
+        update(t);
+        update(l);
+        t = l;
+    }
+
+    void insert(Node*& t, ll x) {
+        if (!t) {
+            t = new Node(x, rng());
+            return;
+        }
+
+        if (x == t->key) {
+            t->cnt++;
+        }
+        else if (x < t->key) {
+            insert(t->l, x);
+            if (t->l->pri > t->pri) {
+                rotate_right(t);
+            }
+        }
+        else {
+            insert(t->r, x);
+            if (t->r->pri > t->pri) {
+                rotate_left(t);
+            }
+        }
+
+        update(t);
+    }
+
+    bool erase_one(Node*& t, ll x) {
+        if (!t) return false;
+
+        bool erased = false;
+
+        if (x < t->key) {
+            erased = erase_one(t->l, x);
+        }
+        else if (x > t->key) {
+            erased = erase_one(t->r, x);
+        }
+        else {
+            erased = true;
+
+            if (t->cnt > 1) {
+                t->cnt--;
+            }
+            else {
+                if (!t->l && !t->r) {
+                    delete t;
+                    t = nullptr;
+                    return true;
+                }
+                else if (!t->r || (t->l && t->l->pri > t->r->pri)) {
+                    rotate_right(t);
+                    erase_one(t->r, x);
+                }
+                else {
+                    rotate_left(t);
+                    erase_one(t->l, x);
+                }
+            }
+        }
+
+        update(t);
+        return erased;
+    }
+
+    ll count(Node* t, ll x) const {
+        if (!t) return 0;
+
+        if (x == t->key) return t->cnt;
+        if (x < t->key) return count(t->l, x);
+        return count(t->r, x);
+    }
+
+    void vec(Node* t, vector<ll>& res) const {
+        if (!t) return;
+
+        vec(t->l, res);
+
+        for (ll i = 0; i < t->cnt; i++) {
+            res.push_back(t->key);
+        }
+
+        vec(t->r, res);
+    }
+
+    ll min(Node* t) const {
+        if (!t) return LINF;
+
+        while (t->l) {
+            t = t->l;
+        }
+
+        return t->key;
+    }
+
+    ll max(Node* t) const {
+        if (!t) return LINF;
+
+        while (t->r) {
+            t = t->r;
+        }
+
+        return t->key;
+    }
+
+    ll prev(Node* t, ll x) const {
+        ll ans = LINF;
+
+        while (t) {
+            if (t->key < x) {
+                ans = t->key;
+                t = t->r;
+            }
+            else {
+                t = t->l;
+            }
+        }
+
+        return ans;
+    }
+
+    ll prev_eq(Node* t, ll x) const {
+        ll ans = LINF;
+
+        while (t) {
+            if (t->key <= x) {
+                ans = t->key;
+                t = t->r;
+            }
+            else {
+                t = t->l;
+            }
+        }
+
+        return ans;
+    }
+
+    ll next(Node* t, ll x) const {
+        ll ans = LINF;
+
+        while (t) {
+            if (t->key > x) {
+                ans = t->key;
+                t = t->l;
+            }
+            else {
+                t = t->r;
+            }
+        }
+
+        return ans;
+    }
+
+    ll next_eq(Node* t, ll x) const {
+        ll ans = LINF;
+
+        while (t) {
+            if (t->key >= x) {
+                ans = t->key;
+                t = t->l;
+            }
+            else {
+                t = t->r;
+            }
+        }
+
+        return ans;
+    }
+
+    ll rank(Node* t, ll x) const {
+        if (!t) return 0;
+
+        if (x <= t->key) {
+            return rank(t->l, x);
+        }
+
+        return size(t->l) + t->cnt + rank(t->r, x);
+    }
+
+    ll kth(Node* t, ll k) const {
+        // 存在しない場合
+        if (!t) return LINF;
+
+        ll ls = size(t->l);
+
+        if (k < ls) {
+            return kth(t->l, k);
+        }
+
+        k -= ls;
+
+        if (k < t->cnt) {
+            return t->key;
+        }
+
+        k -= t->cnt;
+
+        return kth(t->r, k);
+    }
+
+    bool erase_all(Node*& t, ll x) {
+        ll c = count(t, x);
+
+        if (c == 0) return false;
+
+        for (ll i = 0; i < c; i++) {
+            erase_one(t, x);
+        }
+
+        return true;
+    }
+    // ===== 公開API =====
+
+    void insert(ll x) {
+        insert(root, x);
+    }
+
+    bool erase_one(ll x) {
+        return erase_one(root, x);
+    }
+
+    ll count(ll x) const {
+        return count(root, x);
+    }
+
+    ll size() const {
+        return size(root);
+    }
+
+    vector<ll> vec() const {
+        vector<ll> res;
+        vec(root, res);
+        return res;
+    }
+
+    ll min() const {
+        return min(root);
+    }
+
+    ll max() const {
+        return max(root);
+    }
+
+    ll prev(ll x) const {
+        return prev(root, x);
+    }
+
+    ll prev_eq(ll x) const {
+        return prev_eq(root, x);
+    }
+
+    ll next(ll x) const {
+        return next(root, x);
+    }
+
+    ll next_eq(ll x) const {
+        return next_eq(root, x);
+    }
+
+    ll rank(ll x) const {
+        return rank(root, x);
+    }
+
+    ll kth(ll k) const {
+        if (k < 0 || k >= size()) {
+            return LINF;
+        }
+
+        return kth(root, k);
+    }
+
+    ll count_lt(ll x) const {
+        return rank(x);
+    }
+
+    ll count_le(ll x) const {
+        return rank(x) + count(x);
+    }
+
+    ll count_gt(ll x) const {
+        return size() - count_le(x);
+    }
+
+    ll count_ge(ll x) const {
+        return size() - count_lt(x);
+    }
+
+    bool contains(ll x) const {
+        return count(x) > 0;
+    }
+
+    bool empty() const {
+        return root == nullptr;
+    }
+
+    ll sum() const {
+        return sum(root);
+    }
+
+    bool erase_all(ll x) {
+        return erase_all(root, x);
+    }
+
+    ll pop_min() {
+        if (empty()) return LINF;
+
+        ll x = min();
+
+        erase_one(x);
+
+        return x;
+    }
+
+    ll pop_max() {
+        if (empty()) return LINF;
+
+        ll x = max();
+
+        erase_one(x);
+
+        return x;
+    }
+};
+
+struct BIT{
+    int n;
+    vector<ll> bit;
+
+    BIT(int n=0):n(n),bit(n+1,0){}
+
+    void init(int n_){
+        n=n_;
+        bit.assign(n+1,0);
+    }
+
+    void add(int idx,ll val){
+        idx++; // 0-index→1-index
+        while(idx<=n){
+            bit[idx]+=val;
+            idx+=idx&-idx;
+        }
+    }
+
+    ll sum_prefix(int idx) const{
+        ll res=0;
+        while(idx>0){
+            res+=bit[idx];
+            idx-=idx&-idx;
+        }
+        return res;
+    }
+
+    ll sum(int l,int r) const{
+        return sum_prefix(r)-sum_prefix(l);
+    }
+};
+
+struct DynamicSequence {
+    static constexpr ll LINF = (1LL << 62);
+    static constexpr int B = 64;
+    BIT bit;
+
+    struct Leaf {
+        vector<ll> val;
+    };
+
+    vector<Leaf*> leaves;
+    ll sz = 0;
+
+    pair<int,int> locate(ll i) const{
+        int ng=-1;
+        int ok=leaves.size()-1;
+
+        while(ok-ng>1){
+            int mid=(ok+ng)/2;
+
+            if(bit.sum_prefix(mid+1)>i){
+                ok=mid;
+            }else{
+                ng=mid;
+            }
+        }
+
+        int id=ok;
+
+        ll before=bit.sum_prefix(id);
+
+        return {id,(int)(i-before)};
+    }
+
+    void rebuild_bit(){
+        bit.init(leaves.size());
+
+        for(int i=0;i<(int)leaves.size();i++){
+            bit.add(i, leaves[i]->val.size());
+        }
+    }
+
+    ll get(ll i) const {
+        auto [id,pos]=locate(i);
+
+        return leaves[id]->val[pos];
+    }
+
+    void set(ll i,ll x){
+        auto [id,pos]=locate(i);
+
+        leaves[id]->val[pos]=x;
+    }
+
+    void split(int id){
+        Leaf* lf = leaves[id];
+
+        if((int)lf->val.size() <= 2*B) return;
+
+        Leaf* nw = new Leaf();
+
+        nw->val.assign(
+            lf->val.begin()+B,
+            lf->val.end()
+        );
+
+        lf->val.resize(B);
+
+        leaves.insert(
+            leaves.begin()+id+1,
+            nw
+        );
+
+        rebuild_bit();
+    }
+
+    void merge(int id){
+
+        if(leaves.empty()) return;
+
+        if(id<0 || id>=(int)leaves.size()) return;
+
+        Leaf* lf = leaves[id];
+
+        if((int)lf->val.size() >= B) return;
+
+        if(leaves.size()==1){
+
+            if(lf->val.empty()){
+                delete lf;
+
+                leaves.clear();
+
+                rebuild_bit();
+            }
+
+            return;
+        }
+
+        if(id+1<(int)leaves.size()){
+
+            Leaf* rt=leaves[id+1];
+
+            if((int)(lf->val.size()+rt->val.size())<=2*B){
+
+                lf->val.insert(
+                    lf->val.end(),
+                    rt->val.begin(),
+                    rt->val.end()
+                );
+
+                delete rt;
+
+                leaves.erase(
+                    leaves.begin()+id+1
+                );
+
+                rebuild_bit();
+            }
+        }
+        else{
+
+            Leaf* lt=leaves[id-1];
+
+            if((int)(lt->val.size()+lf->val.size())<=2*B){
+
+                lt->val.insert(
+                    lt->val.end(),
+                    lf->val.begin(),
+                    lf->val.end()
+                );
+
+                delete lf;
+
+                leaves.erase(
+                    leaves.begin()+id
+                );
+
+                rebuild_bit();
+            }
+        }
+    }
+
+    void insert(ll i,ll x){
+
+        if(sz==0){
+            Leaf* lf = new Leaf();
+
+            lf->val.push_back(x);
+
+            leaves.push_back(lf);
+
+            sz=1;
+
+            rebuild_bit();
+
+            return;
+        }
+
+        if(i==sz){
+            int id = (int)leaves.size() - 1;
+
+            leaves[id]->val.push_back(x);
+
+            bit.add(id, 1);
+
+            sz++;
+            split(id);
+
+            return;
+        }
+
+        auto [id,pos]=locate(i);
+
+        leaves[id]->val.insert(
+            leaves[id]->val.begin()+pos,
+            x
+        );
+
+        bit.add(id, 1);
+
+        sz++;
+
+        split(id);
+    }
+
+    ll erase(ll i){
+
+        auto [id,pos]=locate(i);
+
+        ll res=leaves[id]->val[pos];
+
+        leaves[id]->val.erase(
+            leaves[id]->val.begin()+pos
+        );
+
+        bit.add(id, -1);
+
+        sz--;
+
+        merge(id);
+
+        return res;
+    }
+
+    ll lt_index(ll x) const {
+        ll res = 0;
+
+        for (auto lf : leaves) {
+            for (ll v : lf->val) {
+                if (v < x) res++;
+            }
+        }
+
+        return res;
+    }
+
+    ll le_index(ll x) const {
+        ll res = 0;
+
+        for (auto lf : leaves) {
+            for (ll v : lf->val) {
+                if (v <= x) res++;
+            }
+        }
+
+        return res;
+    }
+
+    ll ge_index(ll x) const {
+        return sz - lt_index(x);
+    }
+
+    ll gt_index(ll x) const {
+        return sz - le_index(x);
+    }
+
+    vector<ll> vec() const{
+
+        vector<ll> res;
+
+        res.reserve(sz);
+
+        for(auto lf:leaves){
+            for(ll x:lf->val){
+                res.push_back(x);
+            }
+        }
+
+        return res;
+    }
+
+    ll size() const{
+        return sz;
+    }
+
+    bool empty() const{
+        return sz==0;
+    }
+};
+
+struct Hybrid {
+
+    OrderedCount oc;
+    DynamicSequence ds;
+
+    static constexpr ll LINF = (1LL<<62);
+
+    // =====================
+    // 基本操作
+    // =====================
+
+    void insert(ll i, ll x){
+        ds.insert(i, x);
+        oc.insert(x);
+    }
+
+    ll erase(ll i){
+        ll old = ds.erase(i);
+        oc.erase_one(old);
+        return old;
+    }
+
+    void set(ll i, ll x){
+        ll old = ds.get(i);
+
+        ds.set(i, x);
+
+        oc.erase_one(old);
+        oc.insert(x);
+    }
+
+    ll get(ll i) const {
+        return ds.get(i);
+    }
+
+    ll size() const {
+        return ds.size();
+    }
+
+    bool empty() const {
+        return ds.empty();
+    }
+
+    vector<ll> vec() const {
+        return ds.vec();
+    }
+
+    // =====================
+    // OrderedCount API
+    // =====================
+
+    ll count(ll x) const {
+        return oc.count(x);
+    }
+
+    bool contains(ll x) const {
+        return oc.contains(x);
+    }
+
+    ll rank(ll x) const {
+        return oc.rank(x);
+    }
+
+    ll kth(ll k) const {
+        return oc.kth(k);
+    }
+
+    ll min() const {
+        return oc.min();
+    }
+
+    ll max() const {
+        return oc.max();
+    }
+
+    ll prev(ll x) const {
+        return oc.prev(x);
+    }
+
+    ll prev_eq(ll x) const {
+        return oc.prev_eq(x);
+    }
+
+    ll next(ll x) const {
+        return oc.next(x);
+    }
+
+    ll next_eq(ll x) const {
+        return oc.next_eq(x);
+    }
+
+    ll count_lt(ll x) const {
+        return oc.count_lt(x);
+    }
+
+    ll count_le(ll x) const {
+        return oc.count_le(x);
+    }
+
+    ll count_gt(ll x) const {
+        return oc.count_gt(x);
+    }
+
+    ll count_ge(ll x) const {
+        return oc.count_ge(x);
+    }
+
+    ll sum() const {
+        return oc.sum();
+    }
+
+    bool erase_all(ll x){
+        bool ok = oc.erase_all(x);
+
+        if(!ok) return false;
+
+        // ds側から全部消す
+        for(ll i=0;i<ds.size();){
+            if(ds.get(i)==x){
+                ds.erase(i);
+            }else{
+                i++;
+            }
+        }
+
+        return true;
+    }
+
+    ll pop_min(){
+        ll x = oc.pop_min();
+
+        if(x==LINF) return LINF;
+
+        for(ll i=0;i<ds.size();i++){
+            if(ds.get(i)==x){
+                ds.erase(i);
+                break;
+            }
+        }
+
+        return x;
+    }
+
+    ll pop_max(){
+        ll x = oc.pop_max();
+
+        if(x==LINF) return LINF;
+
+        for(ll i=0;i<ds.size();i++){
+            if(ds.get(i)==x){
+                ds.erase(i);
+                break;
+            }
+        }
+
+        return x;
+    }
+
+    ll lt_index(ll x) const {
+        return ds.lt_index(x);
+    }
+
+    ll le_index(ll x) const {
+        return ds.le_index(x);
+    }
+
+    ll gt_index(ll x) const {
+        return ds.gt_index(x);
+    }
+
+    ll ge_index(ll x) const {
+        return ds.ge_index(x);
+    }
+
+    // i番目の値の出現回数
+    ll count_of_index(ll i){
+        return oc.count(ds.get(i));
+    }
+};
+
+void random_test_ordered_count() {
+    OrderedCount oc;
+    map<ll,ll> mp;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+        int op = rng() % 3;
+        ll x = rng() % 20 - 10;
+
+        if (op == 0) {
+            // insert
+            oc.insert(x);
+            mp[x]++;
+        }
+        else if (op == 1) {
+            // erase_one
+            bool a = oc.erase_one(x);
+
+            bool b = false;
+            auto it = mp.find(x);
+            if (it != mp.end()) {
+                b = true;
+                it->second--;
+
+                if (it->second == 0) {
+                    mp.erase(it);
+                }
+            }
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                cout << "query = " << q << "\n";
+                cout << "x = " << x << "\n";
+                return;
+            }
+        }
+        else {
+            // count
+            ll a = oc.count(x);
+
+            ll b = 0;
+            auto it = mp.find(x);
+            if (it != mp.end()) {
+                b = it->second;
+            }
+
+            if (a != b) {
+                cout << "count mismatch\n";
+                cout << "query = " << q << "\n";
+                cout << "x = " << x << "\n";
+                cout << "expected = " << b << "\n";
+                cout << "actual = " << a << "\n";
+                return;
+            }
+        }
+
+        // size確認
+        ll sa = oc.size();
+
+        ll sb = 0;
+        for (auto [k, c] : mp) {
+            sb += c;
+        }
+
+        if (sa != sb) {
+            cout << "size mismatch\n";
+            cout << "query = " << q << "\n";
+            return;
+        }
+
+        // vec確認
+        vector<ll> va = oc.vec();
+
+        vector<ll> vb;
+        for (auto [k, c] : mp) {
+            for (ll i = 0; i < c; i++) {
+                vb.push_back(k);
+            }
+        }
+
+        if (va != vb) {
+            cout << "vec mismatch\n";
+            cout << "query = " << q << "\n";
+
+            cout << "expected : ";
+            for (ll x : vb) cout << x << " ";
+            cout << "\n";
+
+            cout << "actual   : ";
+            for (ll x : va) cout << x << " ";
+            cout << "\n";
+
+            return;
+        }
+    }
+
+    cout << "OrderedCount Ver0-1 ランダムテスト成功\n";
+}
+
+void random_test_ordered_count_ver02() {
+    OrderedCount oc;
+    multiset<ll> st;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+        int op = rng() % 3;
+        ll x = rng() % 20 - 10;
+
+        if (op == 0) {
+            oc.insert(x);
+            st.insert(x);
+        }
+        else if (op == 1) {
+            bool a = oc.erase_one(x);
+
+            bool b = false;
+            auto it = st.find(x);
+
+            if (it != st.end()) {
+                b = true;
+                st.erase(it);
+            }
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                return;
+            }
+        }
+        else {
+            ll a = oc.count(x);
+            ll b = st.count(x);
+
+            if (a != b) {
+                cout << "count mismatch\n";
+                return;
+            }
+        }
+
+        // size
+        if (oc.size() != (ll)st.size()) {
+            cout << "size mismatch\n";
+            return;
+        }
+
+        // vec
+        vector<ll> va = oc.vec();
+        vector<ll> vb(st.begin(), st.end());
+
+        if (va != vb) {
+            cout << "vec mismatch\n";
+            return;
+        }
+
+        // min
+        ll mina = oc.min();
+        ll minb = st.empty() ? OrderedCount::LINF : *st.begin();
+
+        if (mina != minb) {
+            cout << "min mismatch\n";
+            return;
+        }
+
+        // max
+        ll maxa = oc.max();
+        ll maxb = st.empty() ? OrderedCount::LINF : *st.rbegin();
+
+        if (maxa != maxb) {
+            cout << "max mismatch\n";
+            return;
+        }
+
+        // prev / prev_eq / next / next_eq
+        for (ll y = -15; y <= 15; y++) {
+
+            // prev
+            ll pa = oc.prev(y);
+
+            ll pb = OrderedCount::LINF;
+            auto it = st.lower_bound(y);
+
+            if (it != st.begin()) {
+                --it;
+                pb = *it;
+            }
+
+            if (pa != pb) {
+                cout << "prev mismatch\n";
+                cout << "q=" << q << " y=" << y << "\n";
+                return;
+            }
+
+            // prev_eq
+            ll pea = oc.prev_eq(y);
+
+            ll peb = OrderedCount::LINF;
+            auto it2 = st.upper_bound(y);
+
+            if (it2 != st.begin()) {
+                --it2;
+                peb = *it2;
+            }
+
+            if (pea != peb) {
+                cout << "prev_eq mismatch\n";
+                cout << "q=" << q << " y=" << y << "\n";
+                return;
+            }
+
+            // next
+            ll na = oc.next(y);
+
+            ll nb = OrderedCount::LINF;
+            auto it3 = st.upper_bound(y);
+
+            if (it3 != st.end()) {
+                nb = *it3;
+            }
+
+            if (na != nb) {
+                cout << "next mismatch\n";
+                cout << "q=" << q << " y=" << y << "\n";
+                return;
+            }
+
+            // next_eq
+            ll nea = oc.next_eq(y);
+
+            ll neb = OrderedCount::LINF;
+            auto it4 = st.lower_bound(y);
+
+            if (it4 != st.end()) {
+                neb = *it4;
+            }
+
+            if (nea != neb) {
+                cout << "next_eq mismatch\n";
+                cout << "q=" << q << " y=" << y << "\n";
+                return;
+            }
+        }
+    }
+
+    cout << "OrderedCount Ver0-2 ランダムテスト成功\n";
+}
+
+void random_test_ordered_count_ver03() {
+    OrderedCount oc;
+    multiset<ll> st;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+        int op = rng() % 3;
+        ll x = rng() % 20 - 10;
+
+        if (op == 0) {
+            oc.insert(x);
+            st.insert(x);
+        }
+        else if (op == 1) {
+            bool a = oc.erase_one(x);
+
+            bool b = false;
+
+            auto it = st.find(x);
+
+            if (it != st.end()) {
+                b = true;
+                st.erase(it);
+            }
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                return;
+            }
+        }
+        else {
+            ll a = oc.count(x);
+            ll b = st.count(x);
+
+            if (a != b) {
+                cout << "count mismatch\n";
+                return;
+            }
+        }
+
+        vector<ll> vec(st.begin(), st.end());
+
+        // rank, kth, count_*
+        for (ll y = -15; y <= 15; y++) {
+
+            ll rank_ans = 0;
+
+            while (rank_ans < (ll)vec.size() &&
+                   vec[rank_ans] < y) {
+                rank_ans++;
+            }
+
+            if (oc.rank(y) != rank_ans) {
+                cout << "rank mismatch\n";
+                cout << "q=" << q << " y=" << y << "\n";
+                return;
+            }
+
+            ll lt = 0;
+            ll le = 0;
+            ll gt = 0;
+            ll ge = 0;
+
+            for (ll v : vec) {
+                if (v < y) lt++;
+                if (v <= y) le++;
+                if (v > y) gt++;
+                if (v >= y) ge++;
+            }
+
+            if (oc.count_lt(y) != lt) {
+                cout << "count_lt mismatch\n";
+                return;
+            }
+
+            if (oc.count_le(y) != le) {
+                cout << "count_le mismatch\n";
+                return;
+            }
+
+            if (oc.count_gt(y) != gt) {
+                cout << "count_gt mismatch\n";
+                return;
+            }
+
+            if (oc.count_ge(y) != ge) {
+                cout << "count_ge mismatch\n";
+                return;
+            }
+        }
+
+        // kth
+        for (ll k = -1; k <= (ll)vec.size(); k++) {
+
+            ll expected = OrderedCount::LINF;
+
+            if (0 <= k && k < (ll)vec.size()) {
+                expected = vec[k];
+            }
+
+            ll actual = oc.kth(k);
+
+            if (actual != expected) {
+                cout << "kth mismatch\n";
+                cout << "q=" << q << "\n";
+                cout << "k=" << k << "\n";
+
+                cout << "expected=" << expected << "\n";
+                cout << "actual=" << actual << "\n";
+
+                return;
+            }
+        }
+    }
+
+    cout << "OrderedCount Ver0-3 ランダムテスト成功\n";
+}
+
+void random_test_ordered_count_ver04() {
+    OrderedCount oc;
+    multiset<ll> st;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+
+        int op = rng() % 7;
+        ll x = rng() % 20 - 10;
+
+        if (op == 0) {
+            // insert
+            oc.insert(x);
+            st.insert(x);
+        }
+        else if (op == 1) {
+            // erase_one
+            bool a = oc.erase_one(x);
+
+            bool b = false;
+
+            auto it = st.find(x);
+
+            if (it != st.end()) {
+                b = true;
+                st.erase(it);
+            }
+
+            if (a != b) {
+                cout << "erase_one mismatch\n";
+                return;
+            }
+        }
+        else if (op == 2) {
+            // erase_all
+            bool a = oc.erase_all(x);
+
+            bool b = (st.count(x) > 0);
+
+            st.erase(x);
+
+            if (a != b) {
+                cout << "erase_all mismatch\n";
+                return;
+            }
+        }
+        else if (op == 3) {
+            // pop_min
+            ll a = oc.pop_min();
+
+            ll b = OrderedCount::LINF;
+
+            if (!st.empty()) {
+                b = *st.begin();
+                st.erase(st.begin());
+            }
+
+            if (a != b) {
+                cout << "pop_min mismatch\n";
+                return;
+            }
+        }
+        else if (op == 4) {
+            // pop_max
+            ll a = oc.pop_max();
+
+            ll b = OrderedCount::LINF;
+
+            if (!st.empty()) {
+                auto it = prev(st.end());
+
+                b = *it;
+
+                st.erase(it);
+            }
+
+            if (a != b) {
+                cout << "pop_max mismatch\n";
+                return;
+            }
+        }
+        else if (op == 5) {
+            // contains
+            bool a = oc.contains(x);
+            bool b = st.count(x);
+
+            if (a != b) {
+                cout << "contains mismatch\n";
+                return;
+            }
+        }
+        else {
+            // count
+            if (oc.count(x) != (ll)st.count(x)) {
+                cout << "count mismatch\n";
+                return;
+            }
+        }
+
+        // empty
+        if (oc.empty() != st.empty()) {
+            cout << "empty mismatch\n";
+            return;
+        }
+
+        // size
+        if (oc.size() != (ll)st.size()) {
+            cout << "size mismatch\n";
+            return;
+        }
+
+        // sum
+        ll sa = oc.sum();
+
+        ll sb = 0;
+
+        for (ll v : st) {
+            sb += v;
+        }
+
+        if (sa != sb) {
+            cout << "sum mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // vec
+        vector<ll> va = oc.vec();
+        vector<ll> vb(st.begin(), st.end());
+
+        if (va != vb) {
+            cout << "vec mismatch\n";
+            return;
+        }
+
+        // min/max
+        ll mina = oc.min();
+        ll minb = st.empty() ? OrderedCount::LINF : *st.begin();
+
+        if (mina != minb) {
+            cout << "min mismatch\n";
+            return;
+        }
+
+        ll maxa = oc.max();
+        ll maxb = st.empty() ? OrderedCount::LINF : *st.rbegin();
+
+        if (maxa != maxb) {
+            cout << "max mismatch\n";
+            return;
+        }
+
+        // rank, kth
+        vector<ll> vec(vb.begin(), vb.end());
+
+        for (ll y = -15; y <= 15; y++) {
+
+            ll lt = 0;
+            ll le = 0;
+
+            for (ll v : vec) {
+                if (v < y) lt++;
+                if (v <= y) le++;
+            }
+
+            if (oc.rank(y) != lt) {
+                cout << "rank mismatch\n";
+                return;
+            }
+
+            if (oc.count_lt(y) != lt) {
+                cout << "count_lt mismatch\n";
+                return;
+            }
+
+            if (oc.count_le(y) != le) {
+                cout << "count_le mismatch\n";
+                return;
+            }
+        }
+
+        for (ll k = -1; k <= (ll)vec.size(); k++) {
+
+            ll expected = OrderedCount::LINF;
+
+            if (0 <= k && k < (ll)vec.size()) {
+                expected = vec[k];
+            }
+
+            if (oc.kth(k) != expected) {
+                cout << "kth mismatch\n";
+                return;
+            }
+        }
+    }
+
+    cout << "OrderedCount Ver0-4 ランダムテスト成功\n";
+}
+
+void random_test_dynamic_sequence_ver11() {
+    DynamicSequence ds;
+    vector<ll> vec;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+
+        int op = rng() % 4;
+
+        // insert
+        if (op == 0) {
+
+            ll x = rng() % 20 - 10;
+            ll pos = rng() % (vec.size() + 1);
+
+            ds.insert(pos, x);
+            vec.insert(vec.begin() + pos, x);
+        }
+
+        // erase
+        else if (op == 1) {
+
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.erase(pos);
+
+            ll b = vec[pos];
+
+            vec.erase(vec.begin() + pos);
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+        }
+
+        // set
+        else if (op == 2) {
+
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+            ll x = rng() % 20 - 10;
+
+            ds.set(pos, x);
+            vec[pos] = x;
+        }
+
+        // get
+        else {
+
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.get(pos);
+            ll b = vec[pos];
+
+            if (a != b) {
+                cout << "get mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+        }
+
+        // size
+        if (ds.size() != (ll)vec.size()) {
+            cout << "size mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // empty
+        if (ds.empty() != vec.empty()) {
+            cout << "empty mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // vec
+        if (ds.vec() != vec) {
+            cout << "vec mismatch\n";
+            cout << "query=" << q << "\n";
+
+            cout << "expected: ";
+            for (ll x : vec) cout << x << " ";
+            cout << "\n";
+
+            cout << "actual: ";
+            for (ll x : ds.vec()) cout << x << " ";
+            cout << "\n";
+
+            return;
+        }
+    }
+
+    cout << "DynamicSequence Ver1-1 ランダムテスト成功\n";
+}
+
+void random_test_dynamic_sequence_ver12(){
+
+    DynamicSequence ds;
+
+    vector<ll> vec;
+
+    mt19937 rng(0);
+
+    const int Q=100000;
+
+    for(int q=1;q<=Q;q++){
+
+        int op=rng()%4;
+
+        if(op==0){
+
+            ll x=rng()%20-10;
+
+            ll pos=rng()%(vec.size()+1);
+
+            ds.insert(pos,x);
+
+            vec.insert(
+                vec.begin()+pos,
+                x
+            );
+        }
+
+        else if(op==1){
+
+            if(vec.empty()) continue;
+
+            ll pos=rng()%vec.size();
+
+            ll a=ds.erase(pos);
+
+            ll b=vec[pos];
+
+            vec.erase(
+                vec.begin()+pos
+            );
+
+            if(a!=b){
+
+                cout<<"erase mismatch\n";
+
+                cout<<"query="<<q<<"\n";
+
+                return;
+            }
+        }
+
+        else if(op==2){
+
+            if(vec.empty()) continue;
+
+            ll pos=rng()%vec.size();
+
+            ll x=rng()%20-10;
+
+            ds.set(pos,x);
+
+            vec[pos]=x;
+        }
+
+        else{
+
+            if(vec.empty()) continue;
+
+            ll pos=rng()%vec.size();
+
+            if(ds.get(pos)!=vec[pos]){
+
+                cout<<"get mismatch\n";
+
+                cout<<"query="<<q<<"\n";
+
+                return;
+            }
+        }
+
+        if(ds.size()!=(ll)vec.size()){
+
+            cout<<"size mismatch\n";
+
+            return;
+        }
+
+        if(ds.empty()!=vec.empty()){
+
+            cout<<"empty mismatch\n";
+
+            return;
+        }
+
+        if(ds.vec()!=vec){
+
+            cout<<"vec mismatch\n";
+
+            cout<<"query="<<q<<"\n";
+
+            return;
+        }
+
+        // 葉の不変条件チェック
+        ll total=0;
+
+        for(int i=0;i<(int)ds.leaves.size();i++){
+
+            int s=ds.leaves[i]->val.size();
+
+            total+=s;
+
+            if(ds.size()==0) continue;
+
+            if(i==(int)ds.leaves.size()-1 &&
+               ds.leaves.size()==1){
+                continue;
+            }
+
+            if(!(1<=s && s<=2*DynamicSequence::B)){
+
+                cout<<"leaf invariant mismatch\n";
+
+                cout<<"query="<<q<<"\n";
+
+                return;
+            }
+        }
+
+        if(total!=ds.size()){
+
+            cout<<"total mismatch\n";
+
+            return;
+        }
+    }
+
+    cout<<"DynamicSequence Ver1-2 ランダムテスト成功\n";
+}
+
+void random_test_dynamic_sequence_ver13() {
+    DynamicSequence ds;
+    vector<ll> vec;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+
+        int op = rng() % 4;
+
+        // insert
+        if (op == 0) {
+            ll x = rng() % 20 - 10;
+            ll pos = rng() % (vec.size() + 1);
+
+            ds.insert(pos, x);
+
+            vec.insert(vec.begin() + pos, x);
+        }
+
+        // erase
+        else if (op == 1) {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.erase(pos);
+
+            ll b = vec[pos];
+
+            vec.erase(vec.begin() + pos);
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+        }
+
+        // set
+        else if (op == 2) {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+            ll x = rng() % 20 - 10;
+
+            ds.set(pos, x);
+
+            vec[pos] = x;
+        }
+
+        // get
+        else {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.get(pos);
+            ll b = vec[pos];
+
+            if (a != b) {
+                cout << "get mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+        }
+
+        // size
+        if (ds.size() != (ll)vec.size()) {
+            cout << "size mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // empty
+        if (ds.empty() != vec.empty()) {
+            cout << "empty mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // vec
+        if (ds.vec() != vec) {
+            cout << "vec mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // ===== Ver1-3追加テスト =====
+
+        // locate の検証
+        for (ll i = 0; i < (ll)vec.size(); i++) {
+
+            auto [id, pos] = ds.locate(i);
+
+            if (id < 0 || id >= (int)ds.leaves.size()) {
+                cout << "locate id mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+
+            if (pos < 0 || pos >= (int)ds.leaves[id]->val.size()) {
+                cout << "locate pos mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+
+            if (ds.leaves[id]->val[pos] != vec[i]) {
+                cout << "locate value mismatch\n";
+                cout << "query=" << q << "\n";
+                cout << "i=" << i << "\n";
+                return;
+            }
+        }
+
+        // BIT の検証
+        ll total = 0;
+
+        for (int i = 0; i < (int)ds.leaves.size(); i++) {
+
+            ll leaf_size = ds.leaves[i]->val.size();
+
+            total += leaf_size;
+
+            // BIT の一点取得
+            ll bit_size = ds.bit.sum(i, i + 1);
+
+            if (bit_size != leaf_size) {
+                cout << "bit mismatch\n";
+                cout << "query=" << q << "\n";
+                cout << "leaf=" << i << "\n";
+                cout << "expected=" << leaf_size << "\n";
+                cout << "actual=" << bit_size << "\n";
+                return;
+            }
+        }
+
+        if (total != ds.size()) {
+            cout << "bit total mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // locate が get と一致するか
+        for (ll i = 0; i < (ll)vec.size(); i++) {
+
+            auto [id, pos] = ds.locate(i);
+
+            if (ds.get(i) != ds.leaves[id]->val[pos]) {
+                cout << "get-locate mismatch\n";
+                cout << "query=" << q << "\n";
+                cout << "i=" << i << "\n";
+                return;
+            }
+        }
+    }
+
+    cout << "DynamicSequence Ver1-3 ランダムテスト成功\n";
+}
+
+void random_test_dynamic_sequence_ver14() {
+    DynamicSequence ds;
+    vector<ll> vec;
+
+    mt19937 rng(0);
+
+    const int Q = 100000;
+
+    for (int q = 1; q <= Q; q++) {
+
+        int op = rng() % 4;
+
+        // insert
+        if (op == 0) {
+            ll x = rng() % 20 - 10;
+            ll pos = rng() % (vec.size() + 1);
+
+            ds.insert(pos, x);
+
+            vec.insert(vec.begin() + pos, x);
+        }
+
+        // erase
+        else if (op == 1) {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.erase(pos);
+
+            ll b = vec[pos];
+
+            vec.erase(vec.begin() + pos);
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+        }
+
+        // set
+        else if (op == 2) {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+            ll x = rng() % 20 - 10;
+
+            ds.set(pos, x);
+
+            vec[pos] = x;
+        }
+
+        // get
+        else {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.get(pos);
+            ll b = vec[pos];
+
+            if (a != b) {
+                cout << "get mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+        }
+
+        // size
+        if (ds.size() != (ll)vec.size()) {
+            cout << "size mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // empty
+        if (ds.empty() != vec.empty()) {
+            cout << "empty mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // vec
+        if (ds.vec() != vec) {
+            cout << "vec mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // ===== Ver1-3追加テスト =====
+
+        // locate の検証
+        for (ll i = 0; i < (ll)vec.size(); i++) {
+
+            auto [id, pos] = ds.locate(i);
+
+            if (id < 0 || id >= (int)ds.leaves.size()) {
+                cout << "locate id mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+
+            if (pos < 0 || pos >= (int)ds.leaves[id]->val.size()) {
+                cout << "locate pos mismatch\n";
+                cout << "query=" << q << "\n";
+                return;
+            }
+
+            if (ds.leaves[id]->val[pos] != vec[i]) {
+                cout << "locate value mismatch\n";
+                cout << "query=" << q << "\n";
+                cout << "i=" << i << "\n";
+                return;
+            }
+        }
+
+        // BIT の検証
+        ll total = 0;
+
+        for (int i = 0; i < (int)ds.leaves.size(); i++) {
+
+            ll leaf_size = ds.leaves[i]->val.size();
+
+            total += leaf_size;
+
+            // BIT の一点取得
+            ll bit_size = ds.bit.sum(i, i + 1);
+
+            if (bit_size != leaf_size) {
+                cout << "bit mismatch\n";
+                cout << "query=" << q << "\n";
+                cout << "leaf=" << i << "\n";
+                cout << "expected=" << leaf_size << "\n";
+                cout << "actual=" << bit_size << "\n";
+                return;
+            }
+        }
+
+        if (total != ds.size()) {
+            cout << "bit total mismatch\n";
+            cout << "query=" << q << "\n";
+            return;
+        }
+
+        // locate が get と一致するか
+        for (ll i = 0; i < (ll)vec.size(); i++) {
+
+            auto [id, pos] = ds.locate(i);
+
+            if (ds.get(i) != ds.leaves[id]->val[pos]) {
+                cout << "get-locate mismatch\n";
+                cout << "query=" << q << "\n";
+                cout << "i=" << i << "\n";
+                return;
+            }
+        }
+    }
+
+    cout << "DynamicSequence Ver1-4 ランダムテスト成功\n";
+}
+
+void random_test_dynamic_sequence_ver15() {
+
+    DynamicSequence ds;
+    vector<ll> vec;
+
+    mt19937 rng(0);
+
+    const int Q = 50000;
+
+    for (int q = 1; q <= Q; q++) {
+
+        int op = rng() % 4;
+
+        if (op == 0) {
+            ll x = rng() % 20 - 10;
+            ll pos = rng() % (vec.size() + 1);
+
+            ds.insert(pos, x);
+            vec.insert(vec.begin() + pos, x);
+        }
+
+        else if (op == 1) {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            ll a = ds.erase(pos);
+            ll b = vec[pos];
+
+            vec.erase(vec.begin() + pos);
+
+            if (a != b) {
+                cout << "erase mismatch\n";
+                return;
+            }
+        }
+
+        else if (op == 2) {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+            ll x = rng() % 20 - 10;
+
+            ds.set(pos, x);
+            vec[pos] = x;
+        }
+
+        else {
+            if (vec.empty()) continue;
+
+            ll pos = rng() % vec.size();
+
+            if (ds.get(pos) != vec[pos]) {
+                cout << "get mismatch\n";
+                return;
+            }
+        }
+
+        // ===== 基本チェック =====
+        if (ds.size() != (ll)vec.size()) {
+            cout << "size mismatch\n";
+            return;
+        }
+
+        if (ds.vec() != vec) {
+            cout << "vec mismatch\n";
+            return;
+        }
+
+        // ===== index系 =====
+        for (ll x = -10; x <= 10; x++) {
+
+            ll lt = 0, le = 0;
+
+            for (ll v : vec) {
+                if (v < x) lt++;
+                if (v <= x) le++;
+            }
+
+            if (ds.lt_index(x) != lt) {
+                cout << "lt_index mismatch\n";
+                return;
+            }
+
+            if (ds.le_index(x) != le) {
+                cout << "le_index mismatch\n";
+                return;
+            }
+
+            if (ds.gt_index(x) != (ll)vec.size() - le) {
+                cout << "gt_index mismatch\n";
+                return;
+            }
+
+            if (ds.ge_index(x) != (ll)vec.size() - lt) {
+                cout << "ge_index mismatch\n";
+                return;
+            }
+        }
+    }
+
+    cout << "DynamicSequence Ver1-5 ランダムテスト成功\n";
+}
+
+void test_hybrid(){
+
+    Hybrid h;
+
+    vector<ll> vec;
+
+    mt19937 rng(0);
+
+    const int Q = 50000;
+
+    for(int q=1;q<=Q;q++){
+
+        int op = rng()%3;
+
+        if(op==0){
+            // insert
+            ll x = rng()%20 - 10;
+            ll i = rng()%(vec.size()+1);
+
+            h.insert(i,x);
+            vec.insert(vec.begin()+i,x);
+        }
+
+        else if(op==1){
+            // erase
+            if(vec.empty()) continue;
+
+            ll i = rng()%vec.size();
+
+            ll old = h.erase(i);
+            vec.erase(vec.begin()+i);
+
+            if(old < -1e18){
+                cout<<"erase fail\n";
+                return;
+            }
+        }
+
+        else{
+            // set
+            if(vec.empty()) continue;
+
+            ll i = rng()%vec.size();
+            ll x = rng()%20 - 10;
+
+            h.set(i,x);
+            vec[i] = x;
+        }
+
+        // =========================
+        // ① 配列一致チェック
+        // =========================
+        if(h.vec() != vec){
+            cout << "vec mismatch\n";
+            return;
+        }
+
+        // =========================
+        // ② multiset一致チェック
+        // =========================
+        vector<ll> sorted = vec;
+        sort(sorted.begin(), sorted.end());
+
+        if(h.oc.vec() != sorted){
+            cout << "oc mismatch\n";
+            return;
+        }
+
+        // =========================
+        // ③ sizeチェック
+        // =========================
+        if(h.size() != (ll)vec.size()){
+            cout << "size mismatch\n";
+            return;
+        }
+
+        // =========================
+        // ④ count_of_indexのみチェック
+        // =========================
+        for(int i=0;i<(int)vec.size();i++){
+
+            ll x = vec[i];
+
+            ll c1 = h.count_of_index(i);
+
+            ll c2 = 0;
+            for(ll v: vec){
+                if(v == x) c2++;
+            }
+
+            if(c1 != c2){
+                cout << "count_of_index mismatch\n";
+                return;
+            }
+        }
+
+        // =========================
+        // ⑤ OrderedCount基本整合（軽く）
+        // =========================
+        if(!vec.empty()){
+            ll mn = *min_element(vec.begin(), vec.end());
+            ll mx = *max_element(vec.begin(), vec.end());
+
+            if(h.min() != mn){
+                cout << "min mismatch\n";
+                return;
+            }
+
+            if(h.max() != mx){
+                cout << "max mismatch\n";
+                return;
+            }
+        }
+    }
+
+    cout << "Hybrid OK\n";
+}
+
+void solv(){
+    random_test_ordered_count();
+    random_test_ordered_count_ver02();
+    random_test_ordered_count_ver03();
+    random_test_ordered_count_ver04();
+    random_test_dynamic_sequence_ver11();
+    random_test_dynamic_sequence_ver12();
+    random_test_dynamic_sequence_ver13();
+    random_test_dynamic_sequence_ver14();
+    random_test_dynamic_sequence_ver15();
+    test_hybrid();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

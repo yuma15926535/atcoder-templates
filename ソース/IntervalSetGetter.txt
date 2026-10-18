@@ -1,0 +1,905 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ===================== template begin (ここから下をコピー) =====================
+#ifndef ITV_STRUCT_DEFINED
+#define ITV_STRUCT_DEFINED
+// 半開区間 [l, r)。l < r が前提（assert なし）。l >= r の値は「空／該当なし」を表す（Itv{} = {0,0}）。
+struct Itv {
+    long long l, r;
+    constexpr long long len() const noexcept { return r - l; }                         // 長さ
+    constexpr long long mid2() const noexcept { return l + r; }                        // 中央値×2（整数のまま比較するため）
+    constexpr bool contains(long long x) const noexcept { return l <= x && x < r; }    // x ∈ [l, r)
+    constexpr bool empty() const noexcept { return l >= r; }                           // 空（該当なし）か
+    constexpr explicit operator bool() const noexcept { return l < r; }                // 空でなければ true
+    friend constexpr bool operator==(const Itv& a, const Itv& b) noexcept { return a.l == b.l && a.r == b.r; }
+    friend constexpr bool operator!=(const Itv& a, const Itv& b) noexcept { return !(a == b); }
+    friend constexpr bool operator<(const Itv& a, const Itv& b) noexcept { return a.l != b.l ? a.l < b.l : a.r < b.r; }  // (l, r) 辞書順
+    friend constexpr bool operator>(const Itv& a, const Itv& b) noexcept { return b < a; }
+    friend constexpr bool operator<=(const Itv& a, const Itv& b) noexcept { return !(b < a); }
+    friend constexpr bool operator>=(const Itv& a, const Itv& b) noexcept { return !(a < b); }
+    friend std::ostream& operator<<(std::ostream& os, const Itv& t) { return os << '[' << t.l << ", " << t.r << ')'; }
+};
+#endif
+
+// =============================================================================
+//  ③ ItvMultiSet : 区間を「結合せずそのまま」管理する多重集合 ＋ 最適な区間の検索
+// -----------------------------------------------------------------------------
+//  区間は半開区間 [l, r)（l < r が前提。高速化のため assert なし）。
+//  座標は |値| <= 4e18 程度まで（l + r や 1 - r を内部で計算するため）。
+//  該当なしのときは空区間 Itv{}（= {0,0}）を返す。 if (auto t = s.find(x)) { ... } で判定できる。
+//
+//  [更新]  add(l, r) / add(t)        区間を1個追加（同じ区間の重複もそのまま持つ）
+//          erase(l, r) / erase(t)    完全一致する区間を1個だけ削除（無ければ false）
+//          clear()
+//  [情報]  size() / empty() / to_vector()  ※to_vector は (l, r) 昇順
+//  [最適]  min_l()  max_l()  min_r()  max_r()  min_mid()  max_mid()  min_len()  max_len()
+//  [検索]  l_ge(x)  l_gt(x)  l_le(x)  l_lt(x)   … 左端が x 以上/超/以下/未満で、左端が最小/最小/最大/最大の区間
+//          r_ge(x)  r_gt(x)  r_le(x)  r_lt(x)   … 右端について同様
+//  [点]    contains(x)          x を含む区間があるか
+//          find(x)              x を含む区間のうち r 最大（同じなら l 最小 = 最長）
+//          find_min_l(x)        x を含む区間のうち l 最小（同じなら r 最大 = 最長）
+//          count_containing(x)  x を含む区間の個数
+//  [区間]  intersects(a, b)          [a, b) と共通部分を持つ区間があるか（重複判定）
+//          find_intersecting(a, b)   [a, b) と共通部分を持つ区間のうち r 最大（同じなら l 最小）
+//          count_intersecting(a, b)  [a, b) と共通部分を持つ区間の個数
+//
+//  同順位のタイブレーク（決定的）:
+//    min_X / X_ge / X_gt  … (X, 副キー) の辞書順で最小   max_X / X_le / X_lt … 辞書順で最大
+//    副キーは l 系なら r、それ以外（r, mid, len）は l。mid は l + r（= 中央値×2）で比較。
+//
+//  計算量（n = 区間数, B = ブロック長 128〜。要素数が増えると自動で大きくなる）:
+//    add / erase は償却 O(B + log n)。std::multiset で書いた場合の約 2〜3 倍速（n = 2e5〜1e6 の実測）。
+//    min_l / max_l / l 系の検索は O(log n)、contains / find / intersects 系は O(log n + B)、count 系は O(log n)
+//    （ブロックの分割・削除の後の最初の find / count 系だけ O(n / B) の索引作り直しが入る）。
+//    r 系・find_min_l・count 系は初回呼び出し時に鏡像構造を O(n log n) で作り、以後 add / erase で同時に更新する。
+//    mid 系・len 系も初回呼び出し時にヒープを O(n) で作り、以後は償却 O(log n)（使わない機能のコストは払わない）。
+//
+//  【使い方】 "template begin" 〜 "template end" の間だけをコピーして使う（main・テスト・デモは貼らない）。
+//    4 つのテンプレートを同じファイルに貼っても struct Itv は 1 回だけ定義される（#ifndef ガード）。
+//    このファイル単体で実行すると demo()（全機能の使用例）→ random_test()（愚直解との照合）が走る。Release ビルド推奨。
+// =============================================================================
+class ItvMultiSet {
+    using Key = std::pair<long long, long long>;
+
+    // ---- 平方分割のソート列（(l, r) 辞書順）。ブロック毎の r 最大値のセグ木と要素数の BIT を持つ ----
+    struct Blocks {
+        int bsz;                              // 目標ブロック長（2*bsz に達したら分割。ブロック数が多くなると倍にする）
+        int n = 0;                            // 要素数
+        std::vector<std::vector<Itv>> bl;     // 各ブロック（空ブロックは持たない）
+        std::vector<Itv> last;                // 各ブロックの末尾要素（二分探索用）
+        std::vector<long long> mxr;           // 各ブロックの r の最大
+        mutable std::vector<long long> seg;   // mxr の max セグ木
+        mutable std::vector<int> bit;         // ブロック要素数の BIT（1-indexed）
+        mutable int cap = 1;                  // セグ木の葉の数
+        mutable bool dirty = true;            // ブロック構成が変わり seg / bit が古い（必要になった時に作り直す）
+
+        explicit Blocks(int b) : bsz(b) {}
+        int nb() const { return (int)bl.size(); }
+        void clear() { n = 0; bl.clear(); last.clear(); mxr.clear(); dirty = true; }
+
+        void reindex() const {  // bl, last, mxr から seg と bit を作り直す O(ブロック数)
+            const int m = nb();
+            cap = 1;
+            while (cap < m) cap <<= 1;
+            seg.assign(2 * (size_t)cap, LLONG_MIN);
+            for (int i = 0; i < m; ++i) seg[cap + i] = mxr[i];
+            for (int i = cap - 1; i >= 1; --i) seg[i] = std::max(seg[2 * i], seg[2 * i + 1]);
+            bit.assign(m + 1, 0);
+            for (int i = 1; i <= m; ++i) {
+                bit[i] += (int)bl[i - 1].size();
+                const int j = i + (i & -i);
+                if (j <= m) bit[j] += bit[i];
+            }
+            dirty = false;
+        }
+        void build(std::vector<Itv>&& flat) {  // flat はソート済み
+            n = (int)flat.size();
+            bl.clear(); last.clear(); mxr.clear();
+            for (int s = 0; s < n; s += bsz) {
+                const int e = std::min(n, s + bsz);
+                bl.emplace_back(flat.begin() + s, flat.begin() + e);
+                last.push_back(flat[e - 1]);
+                long long m = LLONG_MIN;
+                for (int k = s; k < e; ++k) m = std::max(m, flat[k].r);
+                mxr.push_back(m);
+            }
+            dirty = true;
+        }
+        void rebalance() {
+            std::vector<Itv> flat;
+            flat.reserve(n);
+            for (const auto& v : bl) flat.insert(flat.end(), v.begin(), v.end());
+            build(std::move(flat));
+        }
+        void seg_set(int i, long long v) {
+            int k = cap + i;
+            seg[k] = v;
+            for (k >>= 1; k; k >>= 1) seg[k] = std::max(seg[2 * k], seg[2 * k + 1]);
+        }
+        void seg_raise(int i, long long v) {
+            for (int k = cap + i; k && seg[k] < v; k >>= 1) seg[k] = v;
+        }
+        void bit_add(int i, int d) {
+            const int m = nb();
+            for (++i; i <= m; i += i & -i) bit[i] += d;
+        }
+        int bit_sum(int i) const {  // ブロック [0, i) の要素数
+            int s = 0;
+            for (; i > 0; i -= i & -i) s += bit[i];
+            return s;
+        }
+        // ---- ブロック位置の二分探索 ----
+        int blk_ge(const Itv& t) const { return (int)(std::lower_bound(last.begin(), last.end(), t) - last.begin()); }
+        int blk_l_ge(long long x) const {
+            return (int)(std::lower_bound(last.begin(), last.end(), x, [](const Itv& a, long long v) { return a.l < v; }) - last.begin());
+        }
+        int blk_l_gt(long long x) const {
+            return (int)(std::upper_bound(last.begin(), last.end(), x, [](long long v, const Itv& a) { return v < a.l; }) - last.begin());
+        }
+        static int pos_l_ge(const std::vector<Itv>& v, long long x) {
+            return (int)(std::lower_bound(v.begin(), v.end(), x, [](const Itv& a, long long y) { return a.l < y; }) - v.begin());
+        }
+        static int pos_l_gt(const std::vector<Itv>& v, long long x) {
+            return (int)(std::upper_bound(v.begin(), v.end(), x, [](long long y, const Itv& a) { return y < a.l; }) - v.begin());
+        }
+
+        void insert(const Itv& t) {
+            if (bl.empty()) {
+                bl.push_back({t}); last.push_back(t); mxr.push_back(t.r);
+                n = 1;
+                dirty = true;
+                return;
+            }
+            int i = blk_ge(t);
+            if (i == nb()) --i;
+            std::vector<Itv>& v = bl[i];
+            v.insert(std::upper_bound(v.begin(), v.end(), t), t);
+            ++n;
+            last[i] = v.back();
+            if (t.r > mxr[i]) mxr[i] = t.r;
+            if (!dirty) { bit_add(i, 1); seg_raise(i, t.r); }
+            if ((int)v.size() >= 2 * bsz) split(i);
+        }
+        void split(int i) {
+            std::vector<Itv> w(bl[i].begin() + bsz, bl[i].end());
+            bl[i].resize(bsz);
+            long long m1 = LLONG_MIN, m2 = LLONG_MIN;
+            for (const Itv& e : bl[i]) m1 = std::max(m1, e.r);
+            for (const Itv& e : w) m2 = std::max(m2, e.r);
+            last[i] = bl[i].back();
+            mxr[i] = m1;
+            last.insert(last.begin() + i + 1, w.back());
+            mxr.insert(mxr.begin() + i + 1, m2);
+            bl.insert(bl.begin() + i + 1, std::move(w));
+            dirty = true;
+            if (nb() > 32 * bsz) bsz *= 2;  // 要素数が多いときはブロックを大きくする
+        }
+        bool erase(const Itv& t) {
+            const int i = blk_ge(t);
+            if (i == nb()) return false;
+            std::vector<Itv>& v = bl[i];
+            const auto it = std::lower_bound(v.begin(), v.end(), t);
+            if (!(*it == t)) return false;
+            v.erase(it);
+            --n;
+            if (v.empty()) {
+                bl.erase(bl.begin() + i); last.erase(last.begin() + i); mxr.erase(mxr.begin() + i);
+                dirty = true;
+                return true;
+            }
+            last[i] = v.back();
+            if (!dirty) bit_add(i, -1);
+            if (t.r == mxr[i]) {
+                long long m = LLONG_MIN;
+                for (const Itv& e : v) m = std::max(m, e.r);
+                mxr[i] = m;
+                if (!dirty) seg_set(i, m);
+            }
+            if ((long long)nb() * bsz > 4LL * n + 4LL * bsz) rebalance();  // 小さいブロックが増えすぎたら詰め直す
+            return true;
+        }
+
+        const Itv* front() const { return n ? &bl.front().front() : nullptr; }
+        const Itv* back() const { return n ? &bl.back().back() : nullptr; }
+        const Itv* ge(long long x) const {  // l >= x の最初
+            const int i = blk_l_ge(x);
+            return i == nb() ? nullptr : &bl[i][pos_l_ge(bl[i], x)];
+        }
+        const Itv* gt(long long x) const {  // l > x の最初
+            const int i = blk_l_gt(x);
+            return i == nb() ? nullptr : &bl[i][pos_l_gt(bl[i], x)];
+        }
+        const Itv* le(long long x) const {  // l <= x の最後
+            const int i = blk_l_gt(x);
+            if (i == nb()) return back();
+            const int p = pos_l_gt(bl[i], x);
+            if (p > 0) return &bl[i][p - 1];
+            return i > 0 ? &bl[i - 1].back() : nullptr;
+        }
+        const Itv* lt(long long x) const {  // l < x の最後
+            const int i = blk_l_ge(x);
+            if (i == nb()) return back();
+            const int p = pos_l_ge(bl[i], x);
+            if (p > 0) return &bl[i][p - 1];
+            return i > 0 ? &bl[i - 1].back() : nullptr;
+        }
+        int count_le(long long x) const {  // l <= x の個数
+            if (dirty) reindex();
+            const int i = blk_l_gt(x);
+            if (i == nb()) return n;
+            return bit_sum(i) + pos_l_gt(bl[i], x);
+        }
+        // l <= x の要素のうち r 最大（同じなら順序が最初 = l 最小）。無ければ nullptr
+        const Itv* argmax_r(long long x) const {
+            if (dirty) reindex();
+            const int m = nb();
+            const int i = blk_l_gt(x);
+            long long best_blk = LLONG_MIN;
+            for (int lo = cap, hi = cap + i; lo < hi; lo >>= 1, hi >>= 1) {
+                if (lo & 1) best_blk = std::max(best_blk, seg[lo++]);
+                if (hi & 1) best_blk = std::max(best_blk, seg[--hi]);
+            }
+            const Itv* bp = nullptr;
+            long long best_part = LLONG_MIN;
+            if (i < m) {
+                for (const Itv& e : bl[i]) {
+                    if (e.l > x) break;
+                    if (e.r > best_part) { best_part = e.r; bp = &e; }
+                }
+            }
+            if (i > 0 && best_blk >= best_part) {
+                int k = 1;
+                while (k < cap) { k <<= 1; if (seg[k] < best_blk) ++k; }
+                for (const Itv& e : bl[k - cap]) if (e.r == best_blk) return &e;
+            }
+            return bp;
+        }
+    };
+
+    // ---- 削除予約付きヒープ（min 用は std::greater、max 用は std::less） ----
+    template <class Cmp> struct LazyHeap {
+        std::vector<Key> h, d;  // h: 全要素, d: 削除予約
+        bool on = false;        // 初回クエリで構築されたか
+        void push(const Key& k) { h.push_back(k); std::push_heap(h.begin(), h.end(), Cmp()); }
+        void del(const Key& k) { d.push_back(k); std::push_heap(d.begin(), d.end(), Cmp()); }
+        bool bloated() const { return d.size() > h.size() / 2 + 32; }
+        const Key& top() {
+            while (!d.empty() && d.front() == h.front()) {
+                std::pop_heap(h.begin(), h.end(), Cmp()); h.pop_back();
+                std::pop_heap(d.begin(), d.end(), Cmp()); d.pop_back();
+            }
+            return h.front();
+        }
+        void build(std::vector<Key>&& v) {
+            h = std::move(v);
+            std::make_heap(h.begin(), h.end(), Cmp());
+            d.clear();
+            on = true;
+        }
+        void reset() { h.clear(); d.clear(); on = false; }
+    };
+
+    static Itv mirror(const Itv& t) { return Itv{1 - t.r, 1 - t.l}; }  // x -> -x の鏡像（整数座標）
+    static Key mid_key(const Itv& t) { return Key(t.l + t.r, t.l); }
+    static Key len_key(const Itv& t) { return Key(t.r - t.l, t.l); }
+    static Itv from_mid(const Key& k) { return Itv{k.second, k.first - k.second}; }
+    static Itv from_len(const Key& k) { return Itv{k.second, k.first + k.second}; }
+    static Itv val(const Itv* p) { return p ? *p : Itv{}; }
+    static Itv mval(const Itv* p) { return p ? mirror(*p) : Itv{}; }
+
+    Blocks byl_;                           // (l, r) 順
+    mutable Blocks mir_;                   // 鏡像 Itv{1-r, 1-l} の (l, r) 順（= 元の区間の (r, l) 降順）。r 系で使用
+    mutable bool mir_on_ = false;
+    mutable LazyHeap<std::greater<Key>> mid_min_, len_min_;
+    mutable LazyHeap<std::less<Key>> mid_max_, len_max_;
+
+    void need_mirror() const {
+        if (mir_on_) return;
+        std::vector<Itv> v;
+        v.reserve(byl_.n);
+        for (const auto& b : byl_.bl) for (const Itv& t : b) v.push_back(mirror(t));
+        std::sort(v.begin(), v.end());
+        mir_.build(std::move(v));
+        mir_on_ = true;
+    }
+    template <class Cmp> void heap_build(LazyHeap<Cmp>& hp, bool is_mid) const {
+        std::vector<Key> v;
+        v.reserve(byl_.n);
+        for (const auto& b : byl_.bl) for (const Itv& t : b) v.push_back(is_mid ? mid_key(t) : len_key(t));
+        hp.build(std::move(v));
+    }
+    template <class Cmp> Itv heap_top(LazyHeap<Cmp>& hp, bool is_mid) const {
+        if (byl_.n == 0) return Itv{};
+        if (!hp.on) heap_build(hp, is_mid);
+        return is_mid ? from_mid(hp.top()) : from_len(hp.top());
+    }
+    template <class Cmp> void heap_erase(LazyHeap<Cmp>& hp, const Key& k, bool is_mid) {
+        if (!hp.on) return;
+        hp.del(k);
+        if (hp.bloated()) heap_build(hp, is_mid);
+    }
+
+public:
+    // block: 平方分割の初期ブロック長（1 以上。通常は指定不要。テストで小さくして境界を突くため）
+    explicit ItvMultiSet(int block = 128) : byl_(block), mir_(block) {}
+
+    // ---------------- 更新 ----------------
+    void add(long long l, long long r) { add(Itv{l, r}); }
+    void add(const Itv& t) {
+        byl_.insert(t);
+        if (mir_on_) mir_.insert(mirror(t));
+        if (mid_min_.on) mid_min_.push(mid_key(t));
+        if (mid_max_.on) mid_max_.push(mid_key(t));
+        if (len_min_.on) len_min_.push(len_key(t));
+        if (len_max_.on) len_max_.push(len_key(t));
+    }
+    bool erase(long long l, long long r) { return erase(Itv{l, r}); }
+    bool erase(const Itv& t) {  // 完全一致を1個削除
+        if (!byl_.erase(t)) return false;
+        if (mir_on_) mir_.erase(mirror(t));
+        heap_erase(mid_min_, mid_key(t), true);
+        heap_erase(mid_max_, mid_key(t), true);
+        heap_erase(len_min_, len_key(t), false);
+        heap_erase(len_max_, len_key(t), false);
+        return true;
+    }
+    void clear() {
+        byl_.clear(); mir_.clear(); mir_on_ = false;
+        mid_min_.reset(); mid_max_.reset(); len_min_.reset(); len_max_.reset();
+    }
+
+    // ---------------- 情報 ----------------
+    int size() const { return byl_.n; }
+    bool empty() const { return byl_.n == 0; }
+    std::vector<Itv> to_vector() const {
+        std::vector<Itv> v;
+        v.reserve(byl_.n);
+        for (const auto& b : byl_.bl) v.insert(v.end(), b.begin(), b.end());
+        return v;
+    }
+
+    // ---------------- 最適な区間 ----------------
+    Itv min_l() const { return val(byl_.front()); }    // l 最小（同じなら r 最小）
+    Itv max_l() const { return val(byl_.back()); }     // l 最大（同じなら r 最大）
+    Itv min_r() const { need_mirror(); return mval(mir_.back()); }   // r 最小（同じなら l 最小）
+    Itv max_r() const { need_mirror(); return mval(mir_.front()); }  // r 最大（同じなら l 最大）
+    Itv min_mid() const { return heap_top(mid_min_, true); }         // l+r 最小（同じなら l 最小）
+    Itv max_mid() const { return heap_top(mid_max_, true); }         // l+r 最大（同じなら l 最大）
+    Itv min_len() const { return heap_top(len_min_, false); }        // 長さ最小（同じなら l 最小）
+    Itv max_len() const { return heap_top(len_max_, false); }        // 長さ最大（同じなら l 最大）
+
+    // ---------------- 左端・右端で検索 ----------------
+    Itv l_ge(long long x) const { return val(byl_.ge(x)); }  // l >= x で l 最小（同じなら r 最小）
+    Itv l_gt(long long x) const { return val(byl_.gt(x)); }  // l >  x で l 最小（同じなら r 最小）
+    Itv l_le(long long x) const { return val(byl_.le(x)); }  // l <= x で l 最大（同じなら r 最大）
+    Itv l_lt(long long x) const { return val(byl_.lt(x)); }  // l <  x で l 最大（同じなら r 最大）
+    Itv r_ge(long long x) const { need_mirror(); return mval(mir_.le(1 - x)); }  // r >= x で r 最小（同じなら l 最小）
+    Itv r_gt(long long x) const { need_mirror(); return mval(mir_.lt(1 - x)); }  // r >  x で r 最小（同じなら l 最小）
+    Itv r_le(long long x) const { need_mirror(); return mval(mir_.ge(1 - x)); }  // r <= x で r 最大（同じなら l 最大）
+    Itv r_lt(long long x) const { need_mirror(); return mval(mir_.gt(1 - x)); }  // r <  x で r 最大（同じなら l 最大）
+
+    // ---------------- 点 x を含む区間 ----------------
+    bool contains(long long x) const {
+        const Itv* p = byl_.argmax_r(x);
+        return p && p->r > x;
+    }
+    Itv find(long long x) const {  // x を含む区間のうち r 最大（同じなら l 最小）
+        const Itv* p = byl_.argmax_r(x);
+        return (p && p->r > x) ? *p : Itv{};
+    }
+    Itv find_min_l(long long x) const {  // x を含む区間のうち l 最小（同じなら r 最大）
+        need_mirror();
+        const Itv* p = mir_.argmax_r(-x);
+        return (p && p->r > -x) ? mirror(*p) : Itv{};
+    }
+    int count_containing(long long x) const {  // #(l <= x) - #(r <= x)
+        need_mirror();
+        return byl_.count_le(x) - (byl_.n - mir_.count_le(-x));
+    }
+
+    // ---------------- 区間 [a, b) と共通部分を持つ区間 ----------------
+    bool intersects(long long a, long long b) const {
+        const Itv* p = byl_.argmax_r(b - 1);
+        return p && p->r > a;
+    }
+    bool intersects(const Itv& q) const { return intersects(q.l, q.r); }
+    Itv find_intersecting(long long a, long long b) const {  // r 最大（同じなら l 最小）
+        const Itv* p = byl_.argmax_r(b - 1);
+        return (p && p->r > a) ? *p : Itv{};
+    }
+    Itv find_intersecting(const Itv& q) const { return find_intersecting(q.l, q.r); }
+    int count_intersecting(long long a, long long b) const {  // #(l < b) - #(r <= a)
+        need_mirror();
+        return byl_.count_le(b - 1) - (byl_.n - mir_.count_le(-a));
+    }
+    int count_intersecting(const Itv& q) const { return count_intersecting(q.l, q.r); }
+};
+// ===================== template end (ここまでをコピー) =====================
+
+// =============================================================================
+//  ランダムテスト（愚直実装と全クエリを比較。タイブレークまで完全一致を要求）
+// =============================================================================
+namespace itv3_test {
+
+struct Naive {
+    std::vector<Itv> v;
+    template <class Ok, class Better> Itv best(Ok ok, Better better) const {
+        Itv res{};
+        bool found = false;
+        for (const Itv& t : v)
+            if (ok(t) && (!found || better(t, res))) { res = t; found = true; }
+        return res;
+    }
+};
+using K2 = std::pair<long long, long long>;
+static K2 kLR(const Itv& t) { return K2(t.l, t.r); }
+static K2 kRL(const Itv& t) { return K2(t.r, t.l); }
+static K2 kMid(const Itv& t) { return K2(t.l + t.r, t.l); }
+static K2 kLen(const Itv& t) { return K2(t.r - t.l, t.l); }
+
+[[noreturn]] static void fail(const std::string& what, long long seed, int step, long long x, long long y, const Itv& expect, const Itv& got) {
+    std::cout << "\n*** MISMATCH *** " << what << " seed=" << seed << " step=" << step << " x=" << x << " y=" << y
+              << " expect=" << expect << " got=" << got << std::endl;
+    std::exit(1);
+}
+
+struct Config {
+    const char* name;
+    int block;
+    long long lo, hi;      // 左端の範囲
+    long long maxlen;      // 長さの最大
+    int ops;
+    int grow_to;           // この個数付近まで増やしてから減らす
+    int reps;              // 繰り返し回数（シードを変える）
+    int shrink_add;        // 減らす局面での追加の割合（%）
+};
+
+static void run(const Config& cfg, long long seed) {
+    std::mt19937_64 rng((unsigned long long)seed * 0x9E3779B97F4A7C15ULL + 12345);
+    auto rnd = [&](long long a, long long b) {  // [a, b]
+        return a + (long long)(rng() % (unsigned long long)(b - a + 1));
+    };
+    ItvMultiSet s(cfg.block);
+    Naive nv;
+    // 遅延構築の機能を使い始めるタイミングをランダムに
+    const int start_mirror = (int)rnd(0, cfg.ops / 2), start_mid = (int)rnd(0, cfg.ops / 2), start_len = (int)rnd(0, cfg.ops / 2);
+    bool growing = true;
+
+    auto gen_itv = [&]() {
+        long long l = rnd(cfg.lo, cfg.hi);
+        long long len = 1 + (rng() % 4 == 0 ? rnd(0, cfg.maxlen - 1) : rnd(0, std::max(0LL, std::min(cfg.maxlen, 3LL) - 1)));
+        return Itv{l, l + len};
+    };
+    auto gen_x = [&]() {
+        if (!nv.v.empty() && rng() % 2) {
+            const Itv& t = nv.v[rng() % nv.v.size()];
+            switch (rng() % 4) {
+                case 0: return t.l;
+                case 1: return t.r;
+                case 2: return t.l - 1;
+                default: return t.r - 1;
+            }
+        }
+        return rnd(cfg.lo - 2, cfg.hi + std::min(cfg.maxlen, (LLONG_MAX / 4)) + 2);
+    };
+
+    for (int step = 0; step < cfg.ops; ++step) {
+        const int n = (int)nv.v.size();
+        if (n >= cfg.grow_to) growing = false;
+        if (n == 0) growing = true;
+        const int r100 = (int)(rng() % 100);
+        // ---------------- 更新 ----------------
+        if (r100 < (growing ? 45 : cfg.shrink_add)) {
+            Itv t = (n > 0 && rng() % 5 == 0) ? nv.v[rng() % n] : gen_itv();  // 重複も積極的に入れる
+            s.add(t);
+            nv.v.push_back(t);
+        } else if (r100 < 60) {
+            Itv t = (n > 0 && rng() % 4 != 0) ? nv.v[rng() % n] : gen_itv();
+            auto it = std::find(nv.v.begin(), nv.v.end(), t);
+            const bool expect = it != nv.v.end();
+            if (expect) { *it = nv.v.back(); nv.v.pop_back(); }
+            const bool got = s.erase(t);
+            if (got != expect) fail("erase(bool)", seed, step, t.l, t.r, Itv{expect, 2}, Itv{got, 2});
+        } else if (r100 == 60 && rng() % 200 == 0) {
+            s.clear();
+            nv.v.clear();
+        }
+        // ---------------- クエリ ----------------
+        const int nq = 1 + (int)(rng() % 3);
+        for (int q = 0; q < nq; ++q) {
+            const long long x = gen_x();
+            long long y = gen_x();
+            long long a = std::min(x, y), b = std::max(x, y);
+            if (a == b) ++b;
+            const auto& V = nv;
+            int kind = (int)(rng() % 26);
+            if (step < start_mirror && (kind >= 4 && kind <= 9)) kind = 0;     // r 系・鏡像を使うもの
+            if (step < start_mirror && (kind == 15 || kind == 17 || kind == 20)) kind = 1;
+            if (step < start_mid && (kind == 10 || kind == 11)) kind = 2;
+            if (step < start_len && (kind == 12 || kind == 13)) kind = 3;
+            Itv e{}, g{};
+            std::string nm;
+            switch (kind) {
+                case 0: nm = "min_l"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kLR(p) < kLR(q2); }); g = s.min_l(); break;
+                case 1: nm = "max_l"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kLR(p) > kLR(q2); }); g = s.max_l(); break;
+                case 2: nm = "l_ge"; e = V.best([&](const Itv& t) { return t.l >= x; }, [](const Itv& p, const Itv& q2) { return kLR(p) < kLR(q2); }); g = s.l_ge(x); break;
+                case 3: nm = "l_le"; e = V.best([&](const Itv& t) { return t.l <= x; }, [](const Itv& p, const Itv& q2) { return kLR(p) > kLR(q2); }); g = s.l_le(x); break;
+                case 4: nm = "min_r"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kRL(p) < kRL(q2); }); g = s.min_r(); break;
+                case 5: nm = "max_r"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kRL(p) > kRL(q2); }); g = s.max_r(); break;
+                case 6: nm = "r_ge"; e = V.best([&](const Itv& t) { return t.r >= x; }, [](const Itv& p, const Itv& q2) { return kRL(p) < kRL(q2); }); g = s.r_ge(x); break;
+                case 7: nm = "r_gt"; e = V.best([&](const Itv& t) { return t.r > x; }, [](const Itv& p, const Itv& q2) { return kRL(p) < kRL(q2); }); g = s.r_gt(x); break;
+                case 8: nm = "r_le"; e = V.best([&](const Itv& t) { return t.r <= x; }, [](const Itv& p, const Itv& q2) { return kRL(p) > kRL(q2); }); g = s.r_le(x); break;
+                case 9: nm = "r_lt"; e = V.best([&](const Itv& t) { return t.r < x; }, [](const Itv& p, const Itv& q2) { return kRL(p) > kRL(q2); }); g = s.r_lt(x); break;
+                case 10: nm = "min_mid"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kMid(p) < kMid(q2); }); g = s.min_mid(); break;
+                case 11: nm = "max_mid"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kMid(p) > kMid(q2); }); g = s.max_mid(); break;
+                case 12: nm = "min_len"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kLen(p) < kLen(q2); }); g = s.min_len(); break;
+                case 13: nm = "max_len"; e = V.best([](const Itv&) { return true; }, [](const Itv& p, const Itv& q2) { return kLen(p) > kLen(q2); }); g = s.max_len(); break;
+                case 14: nm = "find"; e = V.best([&](const Itv& t) { return t.l <= x && x < t.r; }, [](const Itv& p, const Itv& q2) { return p.r != q2.r ? p.r > q2.r : p.l < q2.l; }); g = s.find(x);
+                    if (s.contains(x) != !e.empty()) fail("contains", seed, step, x, 0, e, g);
+                    break;
+                case 15: nm = "find_min_l"; e = V.best([&](const Itv& t) { return t.l <= x && x < t.r; }, [](const Itv& p, const Itv& q2) { return p.l != q2.l ? p.l < q2.l : p.r > q2.r; }); g = s.find_min_l(x); break;
+                case 16: nm = "find_intersecting"; e = V.best([&](const Itv& t) { return t.l < b && a < t.r; }, [](const Itv& p, const Itv& q2) { return p.r != q2.r ? p.r > q2.r : p.l < q2.l; }); g = s.find_intersecting(a, b);
+                    if (s.intersects(Itv{a, b}) != !e.empty()) fail("intersects", seed, step, a, b, e, g);
+                    break;
+                case 17: {
+                    nm = "count_containing";
+                    long long c = 0;
+                    for (const Itv& t : V.v) c += (t.l <= x && x < t.r);
+                    e = Itv{c, c + 1}; long long gg = s.count_containing(x); g = Itv{gg, gg + 1};
+                    break;
+                }
+                case 18: nm = "l_gt"; e = V.best([&](const Itv& t) { return t.l > x; }, [](const Itv& p, const Itv& q2) { return kLR(p) < kLR(q2); }); g = s.l_gt(x); break;
+                case 19: nm = "l_lt"; e = V.best([&](const Itv& t) { return t.l < x; }, [](const Itv& p, const Itv& q2) { return kLR(p) > kLR(q2); }); g = s.l_lt(x); break;
+                case 20: {
+                    nm = "count_intersecting";
+                    long long c = 0;
+                    for (const Itv& t : V.v) c += (t.l < b && a < t.r);
+                    e = Itv{c, c + 1}; long long gg = s.count_intersecting(a, b); g = Itv{gg, gg + 1};
+                    break;
+                }
+                case 21: nm = "size"; e = Itv{(long long)V.v.size(), (long long)V.v.size() + 1}; g = Itv{(long long)s.size(), (long long)s.size() + 1};
+                    if (s.empty() != V.v.empty()) fail("empty", seed, step, 0, 0, e, g);
+                    break;
+                default: {  // 全体比較（まれに）
+                    if (rng() % 64 != 0) continue;
+                    nm = "to_vector";
+                    std::vector<Itv> w = V.v;
+                    std::sort(w.begin(), w.end());
+                    const std::vector<Itv> got = s.to_vector();
+                    if (w != got) fail("to_vector", seed, step, (long long)w.size(), (long long)got.size(), Itv{}, Itv{});
+                    continue;
+                }
+            }
+            if (!(e == g)) fail(nm, seed, step, x, (kind == 16 || kind == 20) ? b : 0, e, g);
+            if (kind == 16 || kind == 20) {
+                if (!(e == g)) fail(nm, seed, step, a, b, e, g);
+            }
+        }
+    }
+}
+
+inline void random_test() {
+    const auto t0 = std::chrono::steady_clock::now();
+    const Config cfgs[] = {
+        // name                   block  lo    hi    maxlen  ops    grow_to  reps  shrink_add
+        {"tiny block, dense", 1, 0, 12, 4, 30000, 40, 4, 20},
+        {"block=2, dense", 2, 0, 20, 6, 30000, 80, 4, 20},
+        {"block=3, mid", 3, -50, 50, 30, 40000, 300, 4, 20},
+        {"block=5, sparse", 5, -1000, 1000, 400, 40000, 500, 4, 20},
+        {"block=8, grow/shrink", 8, 0, 3000, 50, 40000, 400, 3, 8},
+        {"block=16, grow/shrink", 16, -5000, 5000, 200, 50000, 700, 3, 8},
+        {"default block, many", 128, 0, 3000, 60, 80000, 800, 2, 20},
+        {"default block, dense", 128, 0, 200, 8, 80000, 800, 2, 12},
+        {"huge coords", 4, -2000000000000000000LL, 2000000000000000000LL, 2000000000000000000LL, 30000, 400, 4, 20},
+        {"huge coords default", 128, -2000000000000000000LL, 2000000000000000000LL, 1000000000LL, 60000, 800, 2, 12},
+    };
+    long long seed = 1;
+    for (const Config& c : cfgs) {
+        for (int rep = 0; rep < c.reps; ++rep) run(c, seed++);
+        std::cout << "  [OK] " << c.name << " x" << c.reps << "\n";
+    }
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    std::cout << "random_test: ALL PASSED (" << (long long)ms << " ms)\n";
+}
+
+}  // namespace itv3_test
+
+// =============================================================================
+//  使い方（全機能）。右のコメントが出力される値
+// =============================================================================
+namespace itv3_test {
+
+inline void demo() {
+    using std::cout;
+    auto S = [](const Itv& t) { return t ? "[" + std::to_string(t.l) + ", " + std::to_string(t.r) + ")" : std::string("none"); };
+    auto B01 = [](bool v) { return std::string(v ? "1" : "0"); };
+    // 1 行 =「呼び出し = 結果」＋「何を返す／何をするか」
+    auto line = [](std::string left, const std::string& what) {
+        if (left.size() < 36) left.resize(36, ' ');
+        cout << left << " : " << what << "\n";
+    };
+    cout << "===== (3) ItvMultiSet demo =====\n";
+    cout << "区間 [l, r) を結合せずそのまま持つ多重集合。該当なしのときは none（空区間 Itv{}）が返る\n";
+
+    ItvMultiSet s;
+    s.add(1, 5);                                                   // [1,5)
+    s.add(Itv{3, 8});                                              // [3,8)
+    s.add(3, 8);                                                   // 同じ区間も重複して持つ
+    s.add(10, 12);                                                 // [10,12)
+    s.add(0, 2);                                                   // [0,2)
+    cout << "\n[追加]\n";
+    line("add(1, 5), add({3, 8}), add(3, 8)", "区間を1個追加する（戻り値なし）。Itv でも (l, r) でも渡せる");
+    line("add(10, 12), add(0, 2)", "同じ区間 [3, 8) も重複したまま2個持つ");
+
+    cout << "\n[情報]\n";
+    line("size = " + std::to_string(s.size()), "管理している区間の個数");                                  // 5
+    line("empty = " + B01(s.empty()), "空かどうか（1: 空 / 0: 空でない）");                               // 0
+    {
+        std::string v;
+        for (const Itv& t : s.to_vector()) v += " " + S(t);
+        line("to_vector =" + v, "全区間を (l, r) の昇順に並べた vector<Itv>");                             // [0, 2) [1, 5) [3, 8) [3, 8) [10, 12)
+    }
+
+    // ---- 最適な区間 ----
+    cout << "\n[最適な区間]\n";
+    line("min_l = " + S(s.min_l()), "左端 l が最小の区間（同じなら r が小さい方）");                      // [0, 2)
+    line("max_l = " + S(s.max_l()), "左端 l が最大の区間（同じなら r が大きい方）");                      // [10, 12)
+    line("min_r = " + S(s.min_r()), "右端 r が最小の区間（同じなら l が小さい方）");                      // [0, 2)
+    line("max_r = " + S(s.max_r()), "右端 r が最大の区間（同じなら l が大きい方）");                      // [10, 12)
+    line("min_mid = " + S(s.min_mid()), "中央値 (l+r)/2 が最小の区間（同じなら l が小さい方）");          // [0, 2)    (l+r = 2,6,11,11,22)
+    line("max_mid = " + S(s.max_mid()), "中央値 (l+r)/2 が最大の区間（同じなら l が大きい方）");          // [10, 12)
+    line("min_len = " + S(s.min_len()), "長さ r-l が最小の区間（長さ2が2つあるので l が小さい方）");       // [0, 2)
+    line("max_len = " + S(s.max_len()), "長さ r-l が最大の区間（長さ5の [3, 8) が2つ）");                  // [3, 8)
+
+    // ---- 左端・右端で検索 ----
+    cout << "\n[左端・右端で検索]  ge/gt は条件を満たす中で最小、le/lt は最大を返す\n";
+    line("l_ge(2) = " + S(s.l_ge(2)), "l >= 2 の中で l が最小の区間（同じなら r が小さい方）");           // [3, 8)
+    line("l_gt(3) = " + S(s.l_gt(3)), "l > 3 の中で l が最小の区間（同じなら r が小さい方）");            // [10, 12)
+    line("l_le(3) = " + S(s.l_le(3)), "l <= 3 の中で l が最大の区間（同じなら r が大きい方）");           // [3, 8)
+    line("l_lt(3) = " + S(s.l_lt(3)), "l < 3 の中で l が最大の区間（同じなら r が大きい方）");            // [1, 5)
+    line("r_ge(5) = " + S(s.r_ge(5)), "r >= 5 の中で r が最小の区間（同じなら l が小さい方）");           // [1, 5)
+    line("r_gt(5) = " + S(s.r_gt(5)), "r > 5 の中で r が最小の区間（同じなら l が小さい方）");            // [3, 8)
+    line("r_le(7) = " + S(s.r_le(7)), "r <= 7 の中で r が最大の区間（同じなら l が大きい方）");           // [1, 5)
+    line("r_lt(5) = " + S(s.r_lt(5)), "r < 5 の中で r が最大の区間（同じなら l が大きい方）");            // [0, 2)
+    line("l_gt(10) = " + S(s.l_gt(10)), "条件を満たす区間が無いときは none（空区間 Itv{}）");             // none
+
+    // ---- 点 x を含む区間 ----
+    cout << "\n[点 x を含む区間]\n";
+    line("contains(4) = " + B01(s.contains(4)), "4 を含む区間があるか（1: ある / 0: ない）");             // 1
+    line("contains(9) = " + B01(s.contains(9)), "9 を含む区間があるか（9 は [3, 8) と [10, 12) の間）");        // 0
+    line("find(4) = " + S(s.find(4)), "4 を含む区間のうち r が最大の区間（同じなら l が小さい方）");      // [3, 8)
+    line("find_min_l(4) = " + S(s.find_min_l(4)), "4 を含む区間のうち l が最小の区間（同じなら r が大きい方）");  // [1, 5)
+    line("count_containing(4) = " + std::to_string(s.count_containing(4)), "4 を含む区間の個数");         // 3
+    if (auto t = s.find(11))
+        line("find(11): l = " + std::to_string(t.l) + ", r = " + std::to_string(t.r),
+             "if (auto t = s.find(x)) で見つかった区間を受け取れる");                                       // find(11): l = 10, r = 12
+    if (!s.find(9)) line("find(9) is none", "見つからないと空区間なので if (!s.find(x)) で判定できる");     // find(9) is none
+
+    // ---- 区間 [a, b) と共通部分を持つ区間 ----
+    cout << "\n[区間 [a, b) と共通部分を持つ区間]\n";
+    line("intersects(8, 10) = " + B01(s.intersects(8, 10)), "[8, 10) と共通部分を持つ区間があるか（重複判定）");  // 0
+    line("intersects({7,11}) = " + B01(s.intersects(Itv{7, 11})), "Itv でも渡せる。[7, 11) と重なる区間があるか");  // 1
+    line("find_intersecting(7, 11) = " + S(s.find_intersecting(7, 11)), "[7, 11) と共通部分を持つ区間のうち r が最大の区間");  // [10, 12)
+    line("count_intersecting(7, 11) = " + std::to_string(s.count_intersecting(Itv{7, 11})), "[7, 11) と共通部分を持つ区間の個数");  // 3
+
+    // ---- 削除（完全一致を1個だけ） ----
+    cout << "\n[削除]  erase は完全一致する区間を1個だけ削除し、削除できたかを返す\n";
+    const bool e1 = s.erase(3, 8);                                                   // true（[3,8) が2個 → 1個に）
+    line("erase(3, 8) = " + B01(e1), "[3, 8) を1個削除できた（2個あったので1個残る）");                 // 1
+    line("count_containing(4) = " + std::to_string(s.count_containing(4)), "削除後に 4 を含む区間の個数");  // 2
+    const bool e2 = s.erase(Itv{3, 9});                                              // false（無い）
+    line("erase({3, 9}) = " + B01(e2), "完全一致する区間が無いので何もせず 0");                          // 0
+    const bool e3 = s.erase(3, 8);                                                   // true（最後の1個）
+    line("erase(3, 8) = " + B01(e3), "残っていた最後の [3, 8) を削除");                                  // 1
+    const bool e4 = s.erase(3, 8);                                                   // false（もう無い）
+    line("erase(3, 8) = " + B01(e4), "もう無いので 0");                                                  // 0
+    line("size = " + std::to_string(s.size()), "残りの区間の個数");                                      // 3
+
+    // ---- Itv 自体の機能 ----
+    const Itv t{2, 7};
+    cout << "\n[Itv 自体の機能]  t = " << t << "（cout << で表示できる）\n";                           // t = [2, 7)
+    line("len = " + std::to_string(t.len()), "長さ r - l");                                              // 5
+    line("mid2 = " + std::to_string(t.mid2()), "l + r（中央値×2。整数のまま比較するため）");            // 9
+    line("contains(7) = " + B01(t.contains(7)), "7 が [2, 7) に含まれるか（右端は含まない）");          // 0
+    line("empty = " + B01(t.empty()), "空区間（l >= r）かどうか");                                      // 0
+    line(std::string("Itv{} is ") + (Itv{} ? "not empty" : "empty"), "Itv{} は空区間（= 該当なし）。if (t) で空でないかを判定できる");  // Itv{} is empty
+
+    s.clear();
+    cout << "\n[全削除]\n";
+    line("after clear: size = " + std::to_string(s.size()), "clear() で全区間を削除した後の個数");       // 0
+    line("min_l = " + S(s.min_l()), "空なので none");                                                    // none
+}
+
+}
+
+void solv(){
+    itv3_test::demo();
+    std::cout << "\n===== (3) ItvMultiSet random test =====\n";
+    itv3_test::random_test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

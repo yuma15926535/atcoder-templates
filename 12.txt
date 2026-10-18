@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//UnionFindの実装
+//findは代表元を返すためfindの戻り値が等しいかを確かめれば同集合に属するかを判定できる
+struct UnionFind
+{
+    //各頂点の親を表す配列
+    //-1の場合は自身が親
+    vector<int> P;
+    UnionFind(int n){
+        P.resize(n,-1);
+    }
+
+    int find(int x){
+        if(P[x]==-1)return x;
+        else return P[x]=find(P[x]);
+    }
+
+    void unite(int x,int y){
+        x=find(x);
+        y=find(y);
+        if(x!=y)P[x]=y;
+    }
+};
+
+
+int main()
+{
+    int H,W,Q;
+    cin>>H>>W>>Q;
+    UnionFind uf(H*W);
+    //used:ak赤色を記録
+    vector<vector<bool>> used(H,vector<bool>(W,false));
+    vector<int> dx={1,-1,0,0},dy={0,0,1,-1};
+    vector<int> question;
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        question.push_back(q);
+        if(q==1){
+            int a,b;
+            cin>>a>>b;
+            question.push_back(a);
+            question.push_back(b);
+        }else{
+            int a,b,c,d;
+            cin>>a>>b>>c>>d;
+            question.push_back(a);
+            question.push_back(b);
+            question.push_back(c);
+            question.push_back(d);
+        }
+    }
+    ll index=0;
+    //Union-Findは一次元を扱っているので変換してから処理
+    rep(i,0,Q){
+        int q=question[index];
+        index++;
+        if(q==1){
+            ll x=question[index],y=question[index+1];
+            index+=2;
+            ll pos=(x-1)*W+y-1;
+            rep(j,0,4){
+                ll target=(x-1+dx[j])*W+y-1+dy[j];
+                if(0<=x-1+dx[j]&&x-1+dx[j]<H&&0<=y-1+dy[j]&&y-1+dy[j]<W&&used[x-1+dx[j]][y-1+dy[j]])uf.unite(pos,target);
+            }
+            used[x-1][y-1]=true;
+        }else{
+            ll a=question[index],b=question[index+1],c=question[index+2],d=question[index+3];
+            index+=4;
+            ll x=(a-1)*W+b-1,y=(c-1)*W+d-1;
+            if(!used[a-1][b-1]||!used[c-1][d-1]){
+                NO;
+                continue;
+            }
+            if(uf.find(x)==uf.find(y))YN;
+        }
+    }
+    return 0;
+}

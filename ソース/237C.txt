@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//素数生成 intなら10桁
+//https://keisan.casio.jp/exec/user/1648239841
+
+int main()
+{
+    string S;
+    cin>>S;
+    ll m=1998450787;
+    ll h=0,rh=0,d=100,rec=1;
+    //順方向にハッシュ値を生成
+    for(char c:S){
+        h=(h+(c-'a'+1)*rec)%m;
+        rec=(rec*d)%m;
+    }
+    rec=1;
+    //逆方向にハッシュ値を生成
+    rrep(i,S.size(),0){
+        rh=(rh+(S[i]-'a'+1)*rec)%m;
+        rec=(rec*d)%m;
+    }
+    //先頭にaを付け足す
+    erep(i,0,S.size()){
+        if(h==rh){
+            YES;
+            return 0;
+        }
+        h=(h*d+1)%m;
+        rh=(rh+rec)%m;
+        rec=(rec*d)%m;
+    }
+    NO;
+    return 0;
+}

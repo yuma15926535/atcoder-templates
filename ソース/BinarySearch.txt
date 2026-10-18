@@ -1,0 +1,322 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ==============================
+// ソート前処理
+// ==============================
+// 入力: 任意配列
+// 出力: 昇順ソート済み配列
+vector<ll> sorted(vector<ll> A){
+    sort(A.begin(), A.end());
+    return A;
+}
+
+// ============================================================
+// ▼▼▼ 以下は「Aが昇順ソート済みであること」が前提 ▼▼▼
+// ============================================================
+
+// [L, R] に入る index 範囲と個数を返す
+// 戻り値: (l, r, cnt)  ※存在しないとき cnt=0, l=r=-1
+tuple<int,int,long long> range_count(const vector<long long>& A, long long L, long long R){
+    int n = A.size();
+    int l = lower_bound(A.begin(), A.end(), L) - A.begin();
+    int r = upper_bound(A.begin(), A.end(), R) - A.begin() - 1;
+
+    if(l > r) return {-1, -1, 0};
+    return {l, r, r - l + 1};
+}
+
+// [L, R] に入る 個数を返す
+long long count_range(const vector<long long>& A, long long L, long long R){
+    return upper_bound(A.begin(), A.end(), R)
+         - lower_bound(A.begin(), A.end(), L);
+}
+
+// A[i] < x の個数
+int count_less(const vector<ll>& A, ll x){
+    return lower_bound(A.begin(), A.end(), x) - A.begin();
+}
+
+// A[i] <= x の個数
+int count_leq(const vector<ll>& A, ll x){
+    return upper_bound(A.begin(), A.end(), x) - A.begin();
+}
+
+// A[i] >= x の個数
+int count_geq(const vector<ll>& A, ll x){
+    return A.end() - lower_bound(A.begin(), A.end(), x);
+}
+
+// A[i] > x の個数
+int count_greater(const vector<ll>& A, ll x){
+    return A.end() - upper_bound(A.begin(), A.end(), x);
+}
+
+// 値 x が存在するか
+bool exists(const vector<ll>& A, ll x){
+    auto it = lower_bound(A.begin(), A.end(), x);
+    return it != A.end() && *it == x;
+}
+
+// x に最も近い値との差（最小絶対差）
+// ※Aが空でないことが前提
+ll closest(const vector<ll>& A, ll x){
+    int n = A.size();
+    int i = lower_bound(A.begin(), A.end(), x) - A.begin();
+
+    ll res = LLONG_MAX;
+    if(i < n) res = min(res, abs(A[i] - x));
+    if(i > 0) res = min(res, abs(A[i-1] - x));
+    return res;
+}
+
+// 固定 i に対して A[j] <= x を満たす最大 j
+// 存在しない場合は -1 を返す
+int max_right_leq(const vector<ll>& A, int i, ll x){
+    int j = upper_bound(A.begin()+i+1, A.end(), x) - A.begin() - 1;
+    if(j <= i) return -1;
+    return j;
+}
+
+// A[i] から見て A[j] - A[i] <= K の最大長
+int max_len_diff_leq(const vector<ll>& A, ll K){
+    int n = A.size();
+    int ans = 0;
+    for(int i=0;i<n;i++){
+        int j = upper_bound(A.begin(), A.end(), A[i]+K) - A.begin();
+        ans = max(ans, j - i);
+    }
+    return ans;
+}
+
+// A[i] + A[j] <= K のペア数（i < j）
+// 計算量: O(N log N)
+ll count_pair_leq(const vector<ll>& A, ll K){
+    int n = A.size();
+    ll res = 0;
+    for(int i=0;i<n;i++){
+        int j = upper_bound(A.begin()+i+1, A.end(), K - A[i]) - A.begin();
+        res += j - (i+1);
+    }
+    return res;
+}
+
+// k番目の値（1-indexed）
+// ※1 <= k <= N が前提
+ll kth_value(const vector<ll>& A, ll k){
+    return A[k-1];
+}
+
+void solv(){
+    vector<ll> A = {5,1,4,2,3,3};
+    auto B = sorted(A);
+
+    cout << "==============================\n";
+    cout << "ソート結果\n";
+    cout << "==============================\n";
+    for(auto x:B) cout << x << " ";
+    cout << "\n\n";
+
+    cout << "==============================\n";
+    cout << "range_count [2,4]\n";
+    cout << "==============================\n";
+    auto [l,r,c] = range_count(B,2,4);
+    cout << "l=" << l << " r=" << r << " cnt=" << c << "\n\n";
+
+    cout << "count_range [2,4] = " << count_range(B,2,4) << "\n";
+    cout << "count_less(3) = " << count_less(B,3) << "\n";
+    cout << "count_leq(3) = " << count_leq(B,3) << "\n";
+    cout << "count_geq(3) = " << count_geq(B,3) << "\n";
+    cout << "count_greater(3) = " << count_greater(B,3) << "\n\n";
+
+    cout << "exists(4) = " << exists(B,4) << "\n";
+    cout << "exists(10) = " << exists(B,10) << "\n\n";
+
+    cout << "closest(6) = " << closest(B,6) << "\n\n";
+
+    cout << "max_right_leq (i=1, x=4) = " << max_right_leq(B,1,4) << "\n\n";
+
+    cout << "max_len_diff_leq(K=2) = " << max_len_diff_leq(B,2) << "\n\n";
+
+    cout << "count_pair_leq(K=5) = " << count_pair_leq(B,5) << "\n\n";
+
+    cout << "kth_value(k=3) = " << kth_value(B,3) << "\n\n";
+
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,750 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================================
+//  (3) AnyModInt : mod を実行時に決める modint（mod は何でもよい・合成数OK）
+// ============================================================================
+//  ・int / long long と同じ感覚で使える（暗黙変換・全演算子・cout 直接出力）
+//  ・mod は 1 <= mod <= 2^31-1 なら何でもよい（素数／合成数／偶数／2^30 超）
+//  ・乗算は Barrett リダクション（除算命令なし）。
+//    素数専用の DynModInt（②）より 2〜3 割遅いが、mod を選ばない。
+//  ・割り算は「逆元が存在しないときは assert で落とす」。変な値は絶対に返さない。
+//
+//  合成数 mod ならではの追加機能:
+//      is_unit()                  逆元を持つか（gcd(v,mod)==1 か）
+//      gcd_mod()                  gcd(v, mod)
+//      try_inv(out)               逆元があれば out に入れて true（落ちない版の inv）
+//      solve_linear(a,b,x0,pr,ct) a*x ≡ b (mod m) の全解。合成数 mod だと
+//                                 「割り算できないが解は複数ある」が普通に起こる
+//      mod_factors()              mod の素因数分解（キャッシュ）
+//      totient()                  φ(mod)（キャッシュ）
+//      order()                    元の乗法位数（周期）。単元のみ
+//      mod_is_prime()             mod が素数か
+//      pow(n)                     n が負でもOK（逆元を使う）
+//
+//  使い方:
+//      using mint = AnyModInt<>;
+//      mint::set_mod(1000000000);        // 偶数・合成数でOK
+//      mint a = 5, b = -3;  cout << a * b + 1 << "\n";   // .val() 不要
+// ============================================================================
+template <int id = -1> struct AnyModInt {
+  private:
+    using mint = AnyModInt;
+    using u32 = unsigned int;
+    using u64 = unsigned long long;
+    using i64 = long long;
+
+    inline static u32 M = 1;       // mod
+    inline static u64 IM = 0;      // floor(2^64 / M) + 1   （Barrett 用）
+    inline static bool PRIME = false;
+    inline static int PHI = 1;                                  // φ(M)（キャッシュ）
+    inline static std::vector<std::pair<int, int>> FACT;        // M の素因数分解（キャッシュ）
+    inline static std::vector<int> PHI_PRIMES;                  // φ(M) の素因数（order 用）
+
+    // 64bit x 64bit の上位 64bit
+    static u64 mulhi(u64 a, u64 b) {
+#if defined(__SIZEOF_INT128__)
+        return (u64)(((__uint128_t)a * b) >> 64);
+#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+        return __umulh(a, b);
+#else
+        u64 a0 = (u32)a, a1 = a >> 32, b0 = (u32)b, b1 = b >> 32;
+        u64 t = a1 * b0 + ((a0 * b0) >> 32);
+        u64 w1 = (u32)t, w2 = t >> 32;
+        w1 += a0 * b1;
+        return a1 * b1 + w2 + (w1 >> 32);
+#endif
+    }
+    // Barrett リダクション: z < M^2 (< 2^62) → z mod M
+    static u32 barrett(u64 z) {
+        u64 q = mulhi(z, IM);
+        u32 r = (u32)(z - q * M);
+        if (r >= M) r += M;      // q が 1 大きいときの補正（u32 の巻き戻りで正しくなる）
+        return r;
+    }
+
+    static u64 cpow(u64 a, u64 n, u64 m) { u64 r = 1 % m; a %= m;
+        while (n) { if (n & 1) r = r * a % m; a = a * a % m; n >>= 1; } return r; }
+    static bool miller_rabin(u32 n) {
+        if (n <= 1) return false;
+        if (n == 2 || n == 7 || n == 61) return true;
+        if (n % 2 == 0) return false;
+        u32 d = n - 1;
+        while (d % 2 == 0) d /= 2;
+        const u32 bases[3] = {2u, 7u, 61u};
+        for (int i = 0; i < 3; i++) {
+            u32 a = bases[i], t = d;
+            u64 y = cpow(a, t, n);
+            while (t != n - 1 && y != 1 && y != n - 1) { y = y * y % n; t <<= 1; }
+            if (y != n - 1 && t % 2 == 0) return false;
+        }
+        return true;
+    }
+    // {gcd(a,b), x}  ただし a*x ≡ gcd (mod b), 0 <= x < b/gcd
+    static std::pair<i64, i64> inv_gcd(i64 a, i64 b) {
+        a %= b; if (a < 0) a += b;
+        if (a == 0) return {b, 0};
+        i64 s = b, t = a, m0 = 0, m1 = 1;
+        while (t) { i64 u = s / t; s -= t * u; m0 -= m1 * u;
+                    i64 tmp = s; s = t; t = tmp; tmp = m0; m0 = m1; m1 = tmp; }
+        if (m0 < 0) m0 += b / s;
+        return {s, m0};
+    }
+    static std::vector<std::pair<int, int>> factorize(long long n) {
+        std::vector<std::pair<int, int>> f;
+        for (long long p = 2; p * p <= n; p++) {
+            if (n % p) continue;
+            int e = 0;
+            while (n % p == 0) { n /= p; e++; }
+            f.emplace_back((int)p, e);
+        }
+        if (n > 1) f.emplace_back((int)n, 1);
+        return f;
+    }
+
+    u32 _v;
+
+  public:
+    // ---- mod の設定 --------------------------------------------------------
+    static void set_mod(int m) {
+        assert(1 <= m && "AnyModInt::set_mod : mod は 1 以上 2^31-1 以下");
+        M = (u32)m;
+        IM = (u64)(-1) / M + 1;
+        PRIME = miller_rabin(M);
+        FACT = factorize(M);
+        long long phi = M;
+        for (auto& [p, e] : FACT) { (void)e; phi = phi / p * (p - 1); }
+        PHI = (int)phi;
+        PHI_PRIMES.clear();
+        for (auto& [p, e] : factorize(PHI)) { (void)e; PHI_PRIMES.push_back(p); }
+    }
+    static int mod() { return (int)M; }
+    static bool mod_is_prime() { return PRIME; }
+    static int totient() { return PHI; }                                 // φ(mod)
+    static const std::vector<std::pair<int, int>>& mod_factors() { return FACT; }  // {素数, 指数}
+
+    // ---- 構築 --------------------------------------------------------------
+    AnyModInt() : _v(0) {}
+
+    template <class T, std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>>* = nullptr>
+    AnyModInt(T x) {
+        if constexpr (sizeof(T) <= 4) { int y = (int)x % (int)M; if (y < 0) y += (int)M; _v = (u32)y; }
+        else { i64 y = (i64)x % (i64)M; if (y < 0) y += (i64)M; _v = (u32)y; }
+    }
+    template <class T, std::enable_if_t<std::is_integral_v<T> && !std::is_signed_v<T>>* = nullptr>
+    AnyModInt(T x) {
+        if constexpr (sizeof(T) <= 4) _v = (u32)x % M;
+        else _v = (u32)((u64)x % M);
+    }
+
+    static mint raw(int x) { assert(0 <= x && (u32)x < M); mint r; r._v = (u32)x; return r; }
+
+    // ---- 取得 --------------------------------------------------------------
+    int val() const { return (int)_v; }
+    explicit operator bool() const { return _v != 0; }
+
+    // ---- 加減乗除 ----------------------------------------------------------
+    mint& operator+=(const mint& o) { _v += o._v; if (_v >= M) _v -= M; return *this; }
+    mint& operator-=(const mint& o) { if (_v < o._v) _v += M; _v -= o._v; return *this; }
+    mint& operator*=(const mint& o) { _v = barrett((u64)_v * o._v); return *this; }
+    mint& operator/=(const mint& o) { return *this *= o.inv(); }
+
+    mint operator+() const { return *this; }
+    mint operator-() const { mint r; r._v = _v ? M - _v : 0; return r; }
+
+    mint& operator++() { _v++; if (_v == M) _v = 0; return *this; }
+    mint& operator--() { if (_v == 0) _v = M; _v--; return *this; }
+    mint operator++(int) { mint t = *this; ++*this; return t; }
+    mint operator--(int) { mint t = *this; --*this; return t; }
+
+    friend mint operator+(mint a, const mint& b) { return a += b; }
+    friend mint operator-(mint a, const mint& b) { return a -= b; }
+    friend mint operator*(mint a, const mint& b) { return a *= b; }
+    friend mint operator/(mint a, const mint& b) { return a /= b; }
+
+    friend bool operator==(const mint& a, const mint& b) { return a._v == b._v; }
+    friend bool operator!=(const mint& a, const mint& b) { return a._v != b._v; }
+    friend bool operator<(const mint& a, const mint& b) { return a._v < b._v; }
+    friend bool operator>(const mint& a, const mint& b) { return a._v > b._v; }
+    friend bool operator<=(const mint& a, const mint& b) { return a._v <= b._v; }
+    friend bool operator>=(const mint& a, const mint& b) { return a._v >= b._v; }
+
+    // ---- pow / inv ---------------------------------------------------------
+    mint pow(long long n) const {          // 負の指数もOK
+        mint x = *this, r = 1;
+        unsigned long long e;
+        if (n < 0) { x = x.inv(); e = (unsigned long long)(-(n + 1)) + 1ULL; }
+        else e = (unsigned long long)n;
+        while (e) { if (e & 1) r *= x; x *= x; e >>= 1; }
+        return r;
+    }
+
+    // ---- 合成数 mod 向けの追加機能 -----------------------------------------
+    int gcd_mod() const { return (int)std::gcd((long long)_v, (long long)M); }   // gcd(値, mod)
+    bool is_unit() const { return gcd_mod() == 1; }                              // 逆元を持つか
+
+    // 逆元があれば out に入れて true。落ちない版の inv。
+    bool try_inv(mint& out) const {
+        auto eg = inv_gcd((i64)_v, (i64)M);
+        if (eg.first != 1) return false;
+        out = mint::raw((int)eg.second);
+        return true;
+    }
+    mint inv() const {
+        mint r;
+        bool ok = try_inv(r);
+        assert(ok && "AnyModInt::inv() : 逆元が存在しません（gcd(値, mod) != 1）");
+        (void)ok;
+        return r;
+    }
+
+    // a * x ≡ b (mod m) を解く。解があれば true。
+    //   解は x0, x0 + period, x0 + 2*period, ... の count 個（mod m で数えて）。
+    //   合成数 mod では「a で割れない（逆元が無い）が解はある」が普通に起こるので、
+    //   operator/ が assert で落ちる場面ではこちらを使う。
+    static bool solve_linear(const mint& a, const mint& b, mint& x0, int& period, int& count) {
+        i64 A = a._v, B = b._v, Mo = M;
+        i64 g = std::gcd(A, Mo);              // A==0 のときは g = Mo
+        if (B % g != 0) return false;
+        i64 a2 = A / g, b2 = B / g, m2 = Mo / g;
+        auto eg = inv_gcd(a2, m2);            // gcd(a2, m2) == 1
+        i64 x = (b2 % m2) * eg.second % m2;
+        x0 = mint::raw((int)x);
+        period = (int)m2;
+        count = (int)g;
+        return true;
+    }
+
+    // 乗法位数（a^k == 1 となる最小の k>0）。単元でないと定義されない。
+    int order() const {
+        assert(is_unit() && "AnyModInt::order() : 単元（gcd==1）でないと位数は定義されません");
+        int res = PHI;
+        for (int p : PHI_PRIMES)
+            while (res % p == 0 && pow(res / p) == mint(1)) res /= p;
+        return res;
+    }
+
+    // ---- 入出力 ------------------------------------------------------------
+    friend std::ostream& operator<<(std::ostream& os, const mint& a) { return os << a.val(); }
+    friend std::istream& operator>>(std::istream& is, mint& a) { long long x; is >> x; a = x; return is; }
+};
+
+namespace std {
+template <int id> struct hash<AnyModInt<id>> {
+    size_t operator()(const AnyModInt<id>& a) const noexcept {
+        return std::hash<unsigned int>()((unsigned int)a.val());
+    }
+};
+}
+
+struct Ref {
+    long long m;
+    explicit Ref(long long m) : m(m) {}
+    long long nrm(long long x) const { x %= m; if (x < 0) x += m; return x; }
+    long long add(long long a, long long b) const { return (a + b) % m; }
+    long long sub(long long a, long long b) const { return ((a - b) % m + m) % m; }
+    long long mul(long long a, long long b) const { return a * b % m; }
+    long long pw(long long a, long long e) const {
+        long long r = 1 % m, x = a % m;
+        while (e) { if (e & 1) r = mul(r, x); x = mul(x, x); e >>= 1; }
+        return r;
+    }
+    long long gcd(long long a, long long b) const { while (b) { long long t = a % b; a = b; b = t; } return a; }
+};
+
+static long long g_checks = 0;
+#define CHECK(cond, msg)                                                        \
+    do { ++g_checks;                                                            \
+        if (!(cond)) { std::cout << "\n[NG] " << (msg) << "  (line " << __LINE__ \
+                                 << ")\n"; std::abort(); } } while (0)
+
+void test_one_mod(int MOD, int iters, std::mt19937_64& rng) {
+    using M = AnyModInt<>;
+    M::set_mod(MOD);
+    Ref ref(MOD);
+    CHECK(M::mod() == MOD, "mod()");
+    CHECK(M().val() == 0, "default ctor");
+
+    std::vector<long long> cand = {0, 1, 2, MOD - 1LL, MOD - 2LL, (long long)MOD, MOD + 1LL,
+                                   -1, -2, -(long long)MOD, -(long long)MOD - 1};
+    for (int it = 0; it < iters; it++) {
+        long long ra, rb;
+        if (it < (int)(cand.size() * cand.size())) { ra = cand[it / cand.size()]; rb = cand[it % cand.size()]; }
+        else {
+            ra = (long long)(rng() % (unsigned)MOD);
+            rb = (long long)(rng() % (unsigned)MOD);
+            if (it % 7 == 0) ra = -(long long)(rng() % 1000000000000000000ULL);
+            if (it % 11 == 0) rb = (long long)(rng() % 1000000000000000000ULL);
+        }
+        M a = ra, b = rb;
+        long long x = ref.nrm(ra), y = ref.nrm(rb);
+
+        CHECK(a.val() == (int)x && b.val() == (int)y, "ctor / val");
+        CHECK(0 <= a.val() && a.val() < MOD, "val range");
+        CHECK((a + b).val() == (int)ref.add(x, y), "operator+");
+        CHECK((a - b).val() == (int)ref.sub(x, y), "operator-");
+        CHECK((a * b).val() == (int)ref.mul(x, y), "operator*");
+        CHECK((-a).val() == (int)ref.sub(0, x), "unary -");
+        CHECK((+a).val() == (int)x, "unary +");
+        { M t = a; t += b; CHECK(t.val() == (int)ref.add(x, y), "+="); }
+        { M t = a; t -= b; CHECK(t.val() == (int)ref.sub(x, y), "-="); }
+        { M t = a; t *= b; CHECK(t.val() == (int)ref.mul(x, y), "*="); }
+
+        CHECK((a + 5).val() == (int)ref.add(x, ref.nrm(5)), "mint + int");
+        CHECK((5 + a).val() == (int)ref.add(ref.nrm(5), x), "int + mint");
+        CHECK((a - 7LL).val() == (int)ref.sub(x, ref.nrm(7)), "mint - ll");
+        CHECK((7LL - a).val() == (int)ref.sub(ref.nrm(7), x), "ll - mint");
+        CHECK((a * 3u).val() == (int)ref.mul(x, ref.nrm(3)), "mint * uint");
+        CHECK((3u * a).val() == (int)ref.mul(ref.nrm(3), x), "uint * mint");
+
+        CHECK((a == b) == (x == y), "operator==");
+        CHECK((a != b) == (x != y), "operator!=");
+        CHECK((a < b) == (x < y), "operator<");
+        CHECK((bool)a == (x != 0), "operator bool");
+
+        { M t = a; CHECK((++t).val() == (int)ref.add(x, 1 % MOD), "pre ++"); }
+        { M t = a; CHECK((t++).val() == (int)x, "post ++");
+                   CHECK(t.val() == (int)ref.add(x, 1 % MOD), "post ++ result"); }
+        { M t = a; CHECK((--t).val() == (int)ref.sub(x, 1 % MOD), "pre --"); }
+        { M t = a; CHECK((t--).val() == (int)x, "post --");
+                   CHECK(t.val() == (int)ref.sub(x, 1 % MOD), "post -- result"); }
+
+        long long e = (long long)(rng() % 1000000);
+        CHECK(a.pow(e).val() == (int)ref.pw(x, e), "pow");
+
+        // --- 合成数 mod 向けの機能 ---
+        long long g = ref.gcd(y, MOD);
+        CHECK(b.gcd_mod() == (int)g, "gcd_mod");
+        CHECK(b.is_unit() == (g == 1), "is_unit");
+        M ib;
+        CHECK(b.try_inv(ib) == (g == 1), "try_inv の可否");
+        if (g == 1) {
+            CHECK((b * ib).val() == (int)(1 % MOD), "try_inv の値");
+            CHECK(b.inv() == ib, "inv");
+            CHECK((a / b).val() == (int)ref.mul(x, ib.val()), "operator/");
+            CHECK(((a / b) * b).val() == (int)x, "div then mul");
+            CHECK(b.pow(-1) == ib, "pow(-1)");
+            CHECK(b.pow(-3) == ib * ib * ib, "pow(-3)");
+            int ord = b.order();
+            CHECK(ord >= 1 && M::totient() % ord == 0, "order は φ(mod) の約数");
+            CHECK(b.pow(ord) == M(1), "b^order == 1");
+        }
+        // 一次合同式 b*x ≡ a
+        {
+            M x0; int period = 0, cnt = 0;
+            bool ok = M::solve_linear(b, a, x0, period, cnt);
+            CHECK(ok == (x % g == 0), "solve_linear の可解判定");
+            if (ok) {
+                CHECK(b * x0 == a, "solve_linear の解");
+                CHECK((long long)period * cnt == MOD, "period * count == mod");
+                CHECK(b * (x0 + M(period)) == a, "解 + period も解");
+            }
+        }
+        CHECK(M::raw((int)x).val() == (int)x, "raw");
+        { std::ostringstream os; os << a; CHECK(os.str() == std::to_string(x), "operator<<"); }
+        { std::istringstream is(std::to_string(ra)); M t; is >> t; CHECK(t.val() == (int)x, "operator>>"); }
+    }
+
+    // mod_factors / totient の検証
+    {
+        long long prod = 1;
+        for (auto& [p, e] : M::mod_factors()) { for (int i = 0; i < e; i++) prod *= p; }
+        CHECK(prod == MOD, "mod_factors の積 == mod");
+        for (auto& [p, e] : M::mod_factors()) { (void)e; CHECK(p >= 2, "素因数は 2 以上"); }
+    }
+
+    for (int it = 0; it < iters; it++) {
+        M a = (long long)(rng() % (unsigned)MOD), b = (long long)(rng() % (unsigned)MOD),
+          c = (long long)(rng() % (unsigned)MOD);
+        CHECK((a + b) + c == a + (b + c), "add assoc");
+        CHECK((a * b) * c == a * (b * c), "mul assoc");
+        CHECK(a * (b + c) == a * b + a * c, "distrib");
+        CHECK(a - b == a + (-b), "sub == add neg");
+    }
+}
+
+// 小さい mod では全数探索で照合する（solve_linear / order / totient の全数検証）
+void test_small_exhaustive(int MOD) {
+    using M = AnyModInt<>;
+    M::set_mod(MOD);
+
+    // totient を数え上げで検証
+    int phi = 0;
+    for (int i = 0; i < MOD; i++) if (std::gcd(i, MOD) == 1) phi++;
+    if (MOD == 1) phi = 1;
+    CHECK(M::totient() == phi, "totient の全数検証");
+
+    for (int a = 0; a < MOD; a++) {
+        M ma = M::raw(a);
+        // order の全数検証
+        if (std::gcd(a, MOD) == 1) {
+            int ord = 1;
+            M t = ma;
+            while (t != M(1)) { t *= ma; ord++; }
+            CHECK(ma.order() == ord, "order の全数検証");
+        }
+        for (int b = 0; b < MOD; b++) {
+            M mb = M::raw(b);
+            // 乗算の全数検証
+            CHECK((ma * mb).val() == (int)((long long)a * b % MOD), "mul の全数検証");
+            // solve_linear の解集合を全数検証
+            std::vector<int> sols;
+            for (int x = 0; x < MOD; x++) if ((long long)a * x % MOD == b) sols.push_back(x);
+            M x0; int period = 0, cnt = 0;
+            bool ok = M::solve_linear(ma, mb, x0, period, cnt);
+            CHECK(ok == !sols.empty(), "solve_linear 可解判定の全数検証");
+            if (ok) {
+                CHECK(cnt == (int)sols.size(), "解の個数");
+                std::vector<int> got;
+                for (int k = 0; k < cnt; k++) got.push_back((x0.val() + (long long)k * period) % MOD);
+                std::sort(got.begin(), got.end());
+                CHECK(got == sols, "解集合の一致");
+            }
+        }
+    }
+}
+
+void random_test() {
+    std::cout << "[1] ランダムテスト（AnyModInt vs 素朴実装）\n";
+    std::mt19937_64 rng(20260909);
+    const int N = 3000;
+
+    std::vector<std::pair<int, const char*>> mods = {
+        {1, "境界"}, {2, "偶数の素数"}, {4, "2の冪"}, {6, "合成数"}, {12, "合成数"},
+        {100, "合成数"}, {1024, "2の冪"}, {999983, "素数"},
+        {1000000000, "10^9（偶数・合成数）"}, {1000000007, "素数"},
+        {1073741824, "2^30（2の冪）"}, {2147483646, "2^31-2（偶数）"},
+        {2147483647, "2^31-1（素数・最大）"}, {2147483645, "合成数（大きい奇数）"},
+    };
+    for (auto& [m, note] : mods) {
+        std::cout << "    mod = " << m << " ... " << std::flush;
+        test_one_mod(m, N, rng);
+        std::cout << "OK  (" << note << ")\n";
+    }
+
+    std::cout << "    ランダムな mod 300 種 ... " << std::flush;
+    for (int i = 0; i < 300; i++) {
+        int m = (int)(rng() % 2147483647u) + 1;
+        test_one_mod(m, 50, rng);
+    }
+    std::cout << "OK\n";
+
+    std::cout << "    小さい mod (1..60) の全数検証 ... " << std::flush;
+    for (int m = 1; m <= 60; m++) test_small_exhaustive(m);
+    std::cout << "OK\n";
+
+    std::cout << "    → 全 " << g_checks << " 項目 一致\n\n";
+}
+
+// ============================================================================
+//  動作確認
+// ============================================================================
+void demo() {
+    using namespace std;
+    using AM = AnyModInt<>;
+
+    cout << "[2] 動作確認 : AnyModInt\n";
+    cout << "=============================\n";
+
+    AM::set_mod(1000000000);   // 10^9 = 2^9 * 5^9（合成数・偶数）
+    cout << "set_mod(1000000000)\n";
+    cout << "mod()        = " << AM::mod() << "\n";
+    cout << "素数か       = " << AM::mod_is_prime() << "\n";
+    cout << "素因数分解   = ";
+    for (auto& [p, e] : AM::mod_factors()) cout << p << "^" << e << " ";
+    cout << "\n";
+    cout << "φ(mod)       = " << AM::totient() << "\n\n";
+
+    AM p = 555555555;
+    AM q = 333333333;
+    cout << "p = " << p << "\n";
+    cout << "q = " << q << "\n";
+
+    cout << "\n[基本演算]\n";
+    cout << "p + q = " << p + q << "\n";
+    cout << "p - q = " << p - q << "\n";
+    cout << "p * q = " << p * q << "\n";
+    cout << "-p    = " << -p << "\n";
+
+    cout << "\n[割り算は逆元があるときだけ]\n";
+    cout << "q.is_unit()   = " << q.is_unit() << "  (gcd(" << q << ", mod) = " << q.gcd_mod() << ")\n";
+    cout << "p / q         = " << p / q << "\n";
+    cout << "(p/q)*q       = " << (p / q) * q << "   (p に戻る)\n";
+    AM even = 2;
+    cout << "even = " << even << " , is_unit() = " << even.is_unit()
+         << "  (gcd = " << even.gcd_mod() << ")  → p / even は assert で落ちる\n";
+    AM out;
+    cout << "even.try_inv(out) = " << even.try_inv(out) << "   (落ちずに失敗を返せる)\n";
+
+    cout << "\n[逆元が無いときの一次合同式 2*x ≡ 4 (mod 10^9)]\n";
+    {
+        AM x0; int period = 0, cnt = 0;
+        bool ok = AM::solve_linear(AM(2), AM(4), x0, period, cnt);
+        cout << "解あり = " << ok << " , 最小解 x0 = " << x0
+             << " , 周期 = " << period << " , 解の個数 = " << cnt << "\n";
+        cout << "検算: 2*x0 = " << AM(2) * x0 << " , 2*(x0+period) = " << AM(2) * (x0 + AM(period)) << "\n";
+    }
+    cout << "\n[解が無い例 2*x ≡ 3 (mod 10^9)]\n";
+    {
+        AM x0; int period = 0, cnt = 0;
+        bool ok = AM::solve_linear(AM(2), AM(3), x0, period, cnt);
+        cout << "解あり = " << ok << "   (3 が gcd(2,10^9)=2 で割れないので解なし)\n";
+    }
+
+    cout << "\n[pow / 位数]\n";
+    AM::set_mod(36);
+    cout << "set_mod(36) , φ(36) = " << AM::totient() << "\n";
+    cout << "5^1..5^6 mod 36 : ";
+    for (int i = 1; i <= 6; i++) cout << AM(5).pow(i) << " ";
+    cout << "\n5 の位数 = " << AM(5).order() << "\n";
+    cout << "5^-1 = " << AM(5).pow(-1) << " , 5*5^-1 = " << AM(5) * AM(5).pow(-1) << "\n";
+
+    cout << "\n[++ / -- / 整数混在 / チェーン]\n";
+    AM::set_mod(1000000000);
+    AM y = 555555555;
+    cout << "初期 y = " << y << "\n";
+    cout << "前置++ = " << ++y << " , 後置++ = " << y++ << " → 現在 " << y << "\n";
+    cout << "前置-- = " << --y << " , 後置-- = " << y-- << " → 現在 " << y << "\n";
+    cout << "y + 7  = " << y + 7 << " , 7 + y = " << 7 + y << " , y * 3 = " << y * 3 << "\n";
+    cout << "(y+8)*(y-3) = " << (y + 8) * (y - 3) << "\n";
+
+    cout << "\n[正規化確認]\n";
+    cout << "AM(-999) = " << AM(-999) << "\n";
+    cout << "AM(1e18) = " << AM(1000000000000000000LL) << "\n";
+
+    cout << "\n[比較・コンテナ]\n";
+    vector<AM> v = {AM(5), AM(2), AM(9), AM(2)};
+    sort(v.begin(), v.end());
+    cout << "sort 後 = "; for (auto& e : v) cout << e << " "; cout << "\n";
+
+    cout << "\n[2^31-1 のような大きい mod でも動く]\n";
+    AM::set_mod(2147483647);
+    cout << "set_mod(2147483647) 素数か = " << AM::mod_is_prime() << "\n";
+    cout << "AM(-1) = " << AM(-1) << " , AM(2)*AM(1073741824) = " << AM(2) * AM(1073741824) << "\n";
+
+    cout << "\n=============================\n";
+    cout << "動作確認 完了\n\n";
+}
+
+// ============================================================================
+//  簡易ベンチ（あくまで目安。タイトなループはコード配置の影響で
+//  同じ処理でも 1〜2 割ぶれることがあります）
+// ============================================================================
+void benchmark() {
+    using namespace std;
+    using namespace std::chrono;
+    cout << "[3] 簡易ベンチ (mod = 1000000000)\n";
+    using M = AnyModInt<>;
+    M::set_mod(1000000000);
+    {
+        M x = 12345, y = 123456789, c = 7;
+        auto t0 = steady_clock::now();
+        for (int i = 0; i < 30000000; i++) x = x * y + c;
+        auto t1 = steady_clock::now();
+        cout << "    x = x*y+c を 3*10^7 回 : " << duration<double, milli>(t1 - t0).count()
+             << " ms   (結果 " << x << ")\n";
+    }
+    {
+        const int n = 2000;
+        vector<M> a(n), b(n), c(2 * n);
+        mt19937 rng(1);
+        for (int i = 0; i < n; i++) { a[i] = (long long)rng(); b[i] = (long long)rng(); }
+        auto t0 = steady_clock::now();
+        for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) c[i + j] += a[i] * b[j];
+        auto t1 = steady_clock::now();
+        cout << "    2000x2000 の畳み込み   : " << duration<double, milli>(t1 - t0).count()
+             << " ms   (結果 " << c[n] << ")\n";
+    }
+    cout << "\n";
+}
+
+void solv(){
+    random_test();
+    demo();
+    benchmark();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,171 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//累積和(1D)
+struct PrefixSum1D {
+    int N;
+    vector<long long> ps; // ps[i]: [0, i) の和
+
+    // 0-index の配列を渡す
+    PrefixSum1D(const vector<long long>& a) {
+        N = a.size();
+        ps.assign(N + 1, 0);
+        for (int i = 0; i < N; i++) {
+            ps[i + 1] = ps[i] + a[i];
+        }
+    }
+
+    // ===== 0-index =====
+
+    // 半開区間 [l, r)
+    long long sum0_open(int l, int r) {
+        return ps[r] - ps[l];
+    }
+
+    // 閉区間 [l, r]
+    long long sum0_close(int l, int r) {
+        return ps[r + 1] - ps[l];
+    }
+
+    // ===== 1-index =====
+
+    // 半開区間 [l, r)（1-index）
+    long long sum1_open(int l, int r) {
+        // [l, r) -> [l-1, r-1)
+        return ps[r - 1] - ps[l - 1];
+    }
+
+    // 閉区間 [l, r]（1-index）
+    long long sum1_close(int l, int r) {
+        // [l, r] -> [l-1, r)
+        return ps[r] - ps[l - 1];
+    }
+};
+
+//累積和(2D)
+struct PrefixSum2D {
+    int H, W;
+    vector<vector<long long>> ps;
+
+    // a は 0-index の H×W 行列
+    PrefixSum2D(const vector<vector<long long>>& a) {
+        H = a.size();
+        W = a[0].size();
+        ps.assign(H + 1, vector<long long>(W + 1, 0));
+
+        for (int i = 0; i < H; i++) {
+            for (int j = 0; j < W; j++) {
+                ps[i + 1][j + 1] =
+                    ps[i][j + 1] + ps[i + 1][j] - ps[i][j] + a[i][j];
+            }
+        }
+    }
+
+    // ===== 0-index =====
+
+    // 半開区間 [x1, y1) × [x2, y2)
+    long long sum0_open(int x1, int y1, int x2, int y2) {
+        return ps[y1][y2]
+             - ps[x1][y2]
+             - ps[y1][x2]
+             + ps[x1][x2];
+    }
+
+    // 閉区間 [x1, y1] × [x2, y2]
+    long long sum0_close(int x1, int y1, int x2, int y2) {
+        return sum0_open(x1, y1 + 1, x2, y2 + 1);
+    }
+
+    // ===== 1-index =====
+
+    // 半開区間 [x1, y1) × [x2, y2)
+    long long sum1_open(int x1, int y1, int x2, int y2) {
+        return sum0_open(x1 - 1, y1 - 1, x2 - 1, y2 - 1);
+    }
+
+    // 閉区間 [x1, y1] × [x2, y2]
+    long long sum1_close(int x1, int y1, int x2, int y2) {
+        return sum0_open(x1 - 1, y1, x2 - 1, y2);
+    }
+};
+
+void solv(){
+    // ===== PrefixSum1D 動作確認 =====
+    vector<long long> a = {1, 2, 3, 4, 5};
+    PrefixSum1D ps1(a);
+
+    cout << "=== PrefixSum1D ===\n";
+    cout << "array: ";
+    for (auto x : a) cout << x << " ";
+    cout << "\n";
+
+    cout << "[0-index]\n";
+    cout << "sum0_open(1, 4)  = " << ps1.sum0_open(1, 4)
+         << " (2+3+4=9)\n";
+    cout << "sum0_close(1, 3) = " << ps1.sum0_close(1, 3)
+         << " (2+3+4=9)\n";
+
+    cout << "[1-index]\n";
+    cout << "sum1_open(2, 5)  = " << ps1.sum1_open(2, 5)
+         << " (2+3+4=9)\n";
+    cout << "sum1_close(2, 4) = " << ps1.sum1_close(2, 4)
+         << " (2+3+4=9)\n";
+
+    cout << "\n";
+
+    // ===== PrefixSum2D 動作確認 =====
+    vector<vector<long long>> mat = {
+        {1, 2, 3},
+        {4, 5, 6},
+        {7, 8, 9}
+    };
+    PrefixSum2D ps2(mat);
+
+    cout << "=== PrefixSum2D ===\n";
+    cout << "matrix:\n";
+    for (auto& row : mat) {
+        for (auto x : row) cout << x << " ";
+        cout << "\n";
+    }
+
+    cout << "[0-index]\n";
+    cout << "sum0_open(0,2,0,2)  = " << ps2.sum0_open(0, 2, 0, 2)
+         << " (1+2+4+5=12)\n";
+    cout << "sum0_close(1,2,1,2) = " << ps2.sum0_close(1, 2, 1, 2)
+         << " (5+6+8+9=28)\n";
+
+    cout << "[1-index]\n";
+    cout << "sum1_open(1,3,1,3)  = " << ps2.sum1_open(1, 3, 1, 3)
+         << " (1+2+4+5=12)\n";
+    cout << "sum1_close(2,3,2,3) = " << ps2.sum1_close(2, 3, 2, 3)
+         << " (5+6+8+9=28)\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

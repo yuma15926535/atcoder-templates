@@ -1,0 +1,822 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ LazyBidirectionalString
+------------------------------------------------------------
+ 前後から高速に文字列を構築できる構造体
+ + lazy reverse
+ + lazy materialize（遅延文字列構築）
+
+ 内部構造
+   left  : reverse で保持
+   right : 通常順で保持
+
+ rev == false
+   実際の文字列 = reverse(left) + right
+
+ rev == true
+   実際の文字列 = reverse(right) + left
+
+------------------------------------------------------------
+ Lazy Materialize
+------------------------------------------------------------
+ 実体文字列を cache に保持する。
+
+ 更新操作
+   dirty = true
+
+ str() / substr() / operator[] など
+   dirty のときだけ rebuild
+
+------------------------------------------------------------
+ 計算量
+------------------------------------------------------------
+ prepend/append(char)     O(1)
+ prepend/append(string)   O(|s|)
+ reverse()                O(1)
+
+ operator[]               O(1)
+ front/back               O(1)
+
+ substr                   O(len)
+
+ str()
+   初回 O(N)
+   以降 O(1)
+
+------------------------------------------------------------
+ 用途
+------------------------------------------------------------
+ ・前後から文字列構築
+ ・reverse が多い問題
+ ・文字列クエリ問題
+ ・deque + reverse の代替
+============================================================
+*/
+struct LazyBidirectionalString {
+
+    // reverse で保持
+    string left;
+
+    // 通常順
+    string right;
+
+    // lazy reverse
+    bool rev = false;
+
+    // ===== lazy materialize =====
+
+    mutable string cache;
+    mutable bool dirty = true;
+
+    //--------------------------------------------------------
+    // constructor
+    //--------------------------------------------------------
+
+    //空文字で初期化
+    LazyBidirectionalString(){}
+
+    //初期化
+    LazyBidirectionalString(const string& s){
+        right = s;
+        dirty = true;
+    }
+
+    //--------------------------------------------------------
+    // size
+    //--------------------------------------------------------
+    int size() const {
+        return left.size() + right.size();
+    }
+
+    //--------------------------------------------------------
+    // empty
+    //--------------------------------------------------------
+    bool empty() const {
+        return size() == 0;
+    }
+
+    //--------------------------------------------------------
+    // reserve
+    //--------------------------------------------------------
+    void reserve(size_t n){
+        left.reserve(n);
+        right.reserve(n);
+    }
+
+    //--------------------------------------------------------
+    // prepend(char)
+    //--------------------------------------------------------
+    void prepend(char c){
+
+        dirty = true;
+
+        if(!rev) left.push_back(c);
+        else right.push_back(c);
+    }
+
+    //--------------------------------------------------------
+    // prepend(string)
+    //--------------------------------------------------------
+    void prepend(const string& s){
+
+        dirty = true;
+
+        if(!rev){
+            for(auto it = s.rbegin(); it != s.rend(); ++it)
+                left.push_back(*it);
+        }
+        else{
+            for(auto it = s.rbegin(); it != s.rend(); ++it)
+                right.push_back(*it);
+        }
+    }
+
+    //--------------------------------------------------------
+    // append(char)
+    //--------------------------------------------------------
+    void append(char c){
+
+        dirty = true;
+
+        if(!rev) right.push_back(c);
+        else left.push_back(c);
+    }
+
+    //--------------------------------------------------------
+    // append(string)
+    //--------------------------------------------------------
+    void append(const string& s){
+
+        dirty = true;
+
+        if(!rev){
+            right += s;
+        }
+        else{
+            left += s;
+        }
+    }
+
+    //--------------------------------------------------------
+    // reverse
+    //--------------------------------------------------------
+    void reverse(){
+        rev ^= 1;
+        dirty = true;
+    }
+
+    //--------------------------------------------------------
+    // cache rebuild
+    //--------------------------------------------------------
+    void build_cache() const {
+
+        if(!dirty) return;
+
+        cache.clear();
+        cache.reserve(size());
+
+        if(!rev){
+
+            for(auto it = left.rbegin(); it != left.rend(); ++it)
+                cache.push_back(*it);
+
+            cache += right;
+
+        }
+        else{
+
+            for(auto it = right.rbegin(); it != right.rend(); ++it)
+                cache.push_back(*it);
+
+            cache += left;
+        }
+
+        dirty = false;
+    }
+
+    //--------------------------------------------------------
+    // index access
+    //--------------------------------------------------------
+    char operator[](size_t i) const {
+
+        size_t L = left.size();
+        size_t R = right.size();
+
+        if(!rev){
+
+            if(i < L) return left[L - 1 - i];
+            else return right[i - L];
+
+        }else{
+
+            if(i < R) return right[R - 1 - i];
+            else return left[i - R];
+        }
+    }
+
+    //--------------------------------------------------------
+    // front
+    //--------------------------------------------------------
+    char front() const {
+        return (*this)[0];
+    }
+
+    //--------------------------------------------------------
+    // back
+    //--------------------------------------------------------
+    char back() const {
+        return (*this)[size() - 1];
+    }
+
+    //--------------------------------------------------------
+    // substr
+    //--------------------------------------------------------
+    string substr(size_t pos, size_t len) const {
+
+        size_t L = left.size();
+        size_t R = right.size();
+
+        string res;
+        res.reserve(len);
+
+        if(!rev){
+
+            // real = reverse(left) + right
+
+            if(pos < L){
+
+                size_t take = min(len, L - pos);
+
+                for(size_t i = 0; i < take; i++)
+                    res.push_back(left[L - 1 - (pos + i)]);
+
+                pos += take;
+                len -= take;
+            }
+
+            if(len){
+                res.append(right, pos - L, len);
+            }
+
+        }else{
+
+            // real = reverse(right) + left
+
+            if(pos < R){
+
+                size_t take = min(len, R - pos);
+
+                for(size_t i = 0; i < take; i++)
+                    res.push_back(right[R - 1 - (pos + i)]);
+
+                pos += take;
+                len -= take;
+            }
+
+            if(len){
+                res.append(left, pos - R, len);
+            }
+        }
+
+        return res;
+    }
+
+    //--------------------------------------------------------
+    // str
+    //--------------------------------------------------------
+    const string& str() const {
+
+        build_cache();
+        return cache;
+    }
+
+    //--------------------------------------------------------
+    // clear
+    //--------------------------------------------------------
+    void clear(){
+        left.clear();
+        right.clear();
+        rev = false;
+
+        cache.clear();
+        dirty = true;
+    }
+};
+
+//------------------------------------------------------------
+// LazyBidirectionalString ランダムテスト
+// std::string と結果を比較してバグ検出
+//------------------------------------------------------------
+void random_test(){
+
+    cout << "\n==============================\n";
+    cout << " ランダムテスト開始\n";
+    cout << "==============================\n";
+
+    LazyBidirectionalString s;
+    string t;
+
+    mt19937 rng(0);
+
+    const int TEST = 100000;
+
+    for(int step = 1; step <= TEST; step++){
+
+        int op = rng() % 6;
+
+        //----------------------------------------------------
+        // prepend char
+        //----------------------------------------------------
+        if(op == 0){
+
+            char c = 'a' + rng()%26;
+
+            s.prepend(c);
+            t = c + t;
+
+        }
+
+        //----------------------------------------------------
+        // append char
+        //----------------------------------------------------
+        if(op == 1){
+
+            char c = 'a' + rng()%26;
+
+            s.append(c);
+            t += c;
+
+        }
+
+        //----------------------------------------------------
+        // prepend string
+        //----------------------------------------------------
+        if(op == 2){
+
+            int len = rng()%5;
+
+            string x;
+            for(int i=0;i<len;i++)
+                x += char('a'+rng()%26);
+
+            s.prepend(x);
+            t = x + t;
+
+        }
+
+        //----------------------------------------------------
+        // append string
+        //----------------------------------------------------
+        if(op == 3){
+
+            int len = rng()%5;
+
+            string x;
+            for(int i=0;i<len;i++)
+                x += char('a'+rng()%26);
+
+            s.append(x);
+            t += x;
+
+        }
+
+        //----------------------------------------------------
+        // reverse
+        //----------------------------------------------------
+        if(op == 4){
+
+            s.reverse();
+            reverse(t.begin(), t.end());
+
+        }
+
+        //----------------------------------------------------
+        // substr check
+        //----------------------------------------------------
+        if(op == 5 && !t.empty()){
+
+            int pos = rng()%t.size();
+            int len = rng()%(t.size()-pos);
+
+            string a = s.substr(pos,len);
+            string b = t.substr(pos,len);
+
+            if(a != b){
+
+                cout << "\nsubstr 不一致発生\n";
+                cout << "pos=" << pos << " len=" << len << "\n";
+                cout << "LazyBidirectionalString: " << a << "\n";
+                cout << "std::string: " << b << "\n";
+
+                exit(0);
+            }
+        }
+
+        //----------------------------------------------------
+        // 全体一致確認
+        //----------------------------------------------------
+
+        if(s.str() != t){
+
+            cout << "\n文字列不一致発生\n";
+            cout << "step=" << step << "\n";
+
+            cout << "LazyBidirectionalString: " << s.str() << "\n";
+            cout << "std::string: " << t << "\n";
+
+            exit(0);
+        }
+
+        //----------------------------------------------------
+        // index check
+        //----------------------------------------------------
+
+        for(int i=0;i<t.size();i++){
+
+            if(s[i] != t[i]){
+
+                cout << "\nindex 不一致発生\n";
+                cout << "step=" << step << " index=" << i << "\n";
+
+                cout << "LazyBidirectionalString: " << s[i] << "\n";
+                cout << "std::string: " << t[i] << "\n";
+
+                exit(0);
+            }
+        }
+    }
+
+    cout << "ランダムテスト " << TEST << " 回成功\n";
+}
+
+void solv(){
+    cout << "==============================\n";
+    cout << " LazyBidirectionalString 動作確認\n";
+    cout << "==============================\n\n";
+
+
+    //--------------------------------------------------------
+    // constructor
+    //--------------------------------------------------------
+
+    cout << "[テスト1] 初期化\n";
+
+    LazyBidirectionalString s("abc");
+
+    cout << "初期文字列: " << s.str() << "\n";
+    cout << "サイズ: " << s.size() << "\n";
+    cout << "empty(): " << (s.empty() ? "true" : "false") << "\n\n";
+
+
+    //--------------------------------------------------------
+    // append
+    //--------------------------------------------------------
+
+    cout << "[テスト2] append\n";
+
+    s.append('X');
+    s.append("YZ");
+
+    cout << "append後: " << s.str() << "\n";
+    cout << "期待値: abcXYZ\n\n";
+
+
+    //--------------------------------------------------------
+    // prepend
+    //--------------------------------------------------------
+
+    cout << "[テスト3] prepend\n";
+
+    s.prepend('A');
+    s.prepend("BC");
+
+    cout << "prepend後: " << s.str() << "\n";
+    cout << "期待値: BCAabcXYZ\n\n";
+
+
+    //--------------------------------------------------------
+    // operator[]
+    //--------------------------------------------------------
+
+    cout << "[テスト4] index access\n";
+
+    cout << "全index出力: ";
+    for(int i=0;i<s.size();i++){
+        cout << s[i] << " ";
+    }
+    cout << "\n";
+    cout << "期待値: B C A a b c X Y Z\n\n";
+
+
+    //--------------------------------------------------------
+    // front / back
+    //--------------------------------------------------------
+
+    cout << "[テスト5] front / back\n";
+
+    cout << "front(): " << s.front() << "\n";
+    cout << "back(): " << s.back() << "\n";
+    cout << "期待値: front=B back=Z\n\n";
+
+
+    //--------------------------------------------------------
+    // substr
+    //--------------------------------------------------------
+
+    cout << "[テスト6] substr\n";
+
+    cout << "substr(0,3): " << s.substr(0,3) << "\n";
+    cout << "期待値: BCA\n";
+
+    cout << "substr(3,3): " << s.substr(3,3) << "\n";
+    cout << "期待値: abc\n";
+
+    cout << "substr(6,3): " << s.substr(6,3) << "\n";
+    cout << "期待値: XYZ\n\n";
+
+
+    //--------------------------------------------------------
+    // reverse
+    //--------------------------------------------------------
+
+    cout << "[テスト7] reverse\n";
+
+    s.reverse();
+
+    cout << "reverse後: " << s.str() << "\n";
+    cout << "期待値: ZYXcbaACB\n\n";
+
+
+    //--------------------------------------------------------
+    // reverse状態でappend
+    //--------------------------------------------------------
+
+    cout << "[テスト8] reverse状態でappend\n";
+
+    s.append('Q');
+
+    cout << "append('Q')後: " << s.str() << "\n";
+    cout << "期待値: ZYXcbaACBQ\n\n";
+
+
+    //--------------------------------------------------------
+    // reverse状態でprepend
+    //--------------------------------------------------------
+
+    cout << "[テスト9] reverse状態でprepend\n";
+
+    s.prepend('P');
+
+    cout << "prepend('P')後: " << s.str() << "\n";
+    cout << "期待値: PZYXcbaACBQ\n\n";
+
+
+    //--------------------------------------------------------
+    // operator[] 再確認
+    //--------------------------------------------------------
+
+    cout << "[テスト10] reverse状態index確認\n";
+
+    cout << "全index出力: ";
+    for(int i=0;i<s.size();i++){
+        cout << s[i] << " ";
+    }
+    cout << "\n\n";
+
+
+    //--------------------------------------------------------
+    // substr (reverse状態)
+    //--------------------------------------------------------
+
+    cout << "[テスト11] reverse状態 substr\n";
+
+    cout << "substr(0,4): " << s.substr(0,4) << "\n";
+    cout << "substr(3,5): " << s.substr(3,5) << "\n\n";
+
+
+    //--------------------------------------------------------
+    // str() キャッシュ確認
+    //--------------------------------------------------------
+
+    cout << "[テスト12] str() キャッシュ確認\n";
+
+    cout << "1回目: " << s.str() << "\n";
+    cout << "2回目: " << s.str() << "\n";
+    cout << "3回目: " << s.str() << "\n";
+
+    cout << "(同じ結果ならキャッシュOK)\n\n";
+
+
+    //--------------------------------------------------------
+    // clear
+    //--------------------------------------------------------
+
+    cout << "[テスト13] clear\n";
+
+    s.clear();
+
+    cout << "clear後 size: " << s.size() << "\n";
+    cout << "empty(): " << (s.empty() ? "true" : "false") << "\n\n";
+
+
+    //--------------------------------------------------------
+    // reserve
+    //--------------------------------------------------------
+
+    cout << "[テスト14] reserve + 大量追加\n";
+
+    s.reserve(100);
+
+    for(int i=0;i<10;i++){
+        s.append('a'+i);
+    }
+
+    cout << "追加後: " << s.str() << "\n";
+    cout << "期待値: abcdefghij\n\n";
+
+
+    cout << "==============================\n";
+    cout << " テスト終了\n";
+    cout << "==============================\n";
+    random_test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

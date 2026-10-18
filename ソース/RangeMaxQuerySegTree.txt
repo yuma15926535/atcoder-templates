@@ -1,0 +1,366 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+=====================================================
+★ モノイド定義（問題ごとに変更）
+=====================================================
+
+S : ノードの値
+combine : 区間結合
+id : 単位元
+
+※ prefix探索を使う場合は
+累積が単調になる演算であること
+=====================================================
+*/
+
+using S = ll;
+
+// ★区間結合
+S combine(S a, S b) {
+    return max(a, b); // 区間max
+}
+
+// ★単位元
+S id() {
+    return -(1LL << 60);
+}
+
+/*
+=====================================================
+SegTree 本体
+=====================================================
+*/
+
+struct SegTree {
+    int n;
+    vector<S> seg;
+
+    SegTree(int sz) {
+        n = 1;
+        while (n < sz) n <<= 1;
+        seg.assign(2*n, id());
+    }
+
+    // 配列初期化
+    SegTree(const vector<S>& v) {
+        int sz = v.size();
+
+        n = 1;
+        while (n < sz) n <<= 1;
+
+        seg.assign(2*n, id());
+
+        for (int i = 0; i < sz; i++)
+            seg[n+i] = v[i];
+
+        for (int i = n-1; i > 0; i--)
+            seg[i] = combine(seg[i<<1], seg[i<<1|1]);
+    }
+
+    // ========================
+    // 点更新
+    // ========================
+    void set(int i, S x) {
+        i += n;
+
+        seg[i] = x;
+
+        while (i >>= 1)
+            seg[i] = combine(seg[i<<1], seg[i<<1|1]);
+    }
+
+    // ========================
+    // 区間取得 [l,r)
+    // ========================
+    S range(int l, int r) {
+        S L = id(), R = id();
+
+        for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
+
+            if (l & 1)
+                L = combine(L, seg[l++]);
+
+            if (r & 1)
+                R = combine(seg[--r], R);
+        }
+
+        return combine(L, R);
+    }
+
+    S get(int i) {
+        return seg[n+i];
+    }
+
+    S all() {
+        return seg[1];
+    }
+};
+
+void random_test() {
+    random_device rd;
+    mt19937 rng(rd());
+
+    rep(tc, 0, 10000) {
+
+        int N = rng() % 20 + 1;
+
+        vector<ll> v(N);
+
+        rep(i, 0, N)
+            v[i] = (ll)(rng() % 200) - 100;
+
+        SegTree seg(v);
+
+        vector<ll> naive = v;
+
+        rep(q, 0, 1000) {
+
+            // 0:set
+            // 1:range max
+            int type = rng() % 2;
+
+            // ========================
+            // 点更新
+            // ========================
+            if (type == 0) {
+
+                int idx = rng() % N;
+
+                ll x = (ll)(rng() % 200) - 100;
+
+                seg.set(idx, x);
+
+                naive[idx] = x;
+            }
+
+            // ========================
+            // 区間max
+            // ========================
+            else {
+
+                int l = rng() % N;
+                int r = rng() % N;
+
+                if (l > r)
+                    swap(l, r);
+
+                r++;
+
+                ll ans1 = seg.range(l, r);
+
+                ll ans2 = -(1LL << 60);
+
+                rep(i, l, r)
+                    ans2 = max(ans2, naive[i]);
+
+                if (ans1 != ans2) {
+
+                    cout << "WA\n";
+
+                    cout << "N = " << N << '\n';
+
+                    cout << "array:\n";
+
+                    for (auto x : naive)
+                        cout << x << ' ';
+
+                    cout << '\n';
+
+                    cout << "l r = " << l << ' ' << r << '\n';
+
+                    cout << "seg = " << ans1 << '\n';
+
+                    cout << "naive = " << ans2 << '\n';
+
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cout << "AC\n";
+}
+
+void solv(){
+    random_test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+pair<ll,ll> ppow(int d){
+    ll n=1,rec;
+    while(d>1){
+        n*=10;
+        d--;
+    }
+    rec=n;
+    n*=10;
+    n--;
+    return {rec,n};
+}
+
+int main()
+{
+    ll N,M;
+    cin>>N;
+    M=N;
+    ll ans=0;
+    //rはmodmでの2の逆元
+    ll m=998244353,r=499122177;
+    vector<int> v;
+    while(N){
+        v.push_back(N%10);
+        N/=10;
+    }
+    reverse(nall(v));
+    erep(i,1,v.size()){
+        auto p=ppow(i);
+        if(i!=(int)v.size()){
+            ll s=p.second-p.first+1;
+            ans+=((((s%m)*((s+1)%m))%m)*r)%m;
+            ans%=m;
+        }else{
+            ll s=M-p.first+1;
+            ans+=((((s%m)*((s+1)%m))%m)*r)%m;
+            ans%=m;
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

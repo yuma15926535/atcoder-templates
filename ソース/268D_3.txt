@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int N,K;
+    cin>>N>>K;
+    vector<vector<int>>G(N);
+    rep(i,0,N-1){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    vector<bool>V(N,false);
+    int v;
+    rep(i,0,K){
+        cin>>v;
+        v--;
+        V[v]=true;
+    }
+    vector<int>degree(N);
+    //葉から開始するBFSで必要のない葉をすべて落とす
+    queue<int>q;
+    rep(i,0,N){
+        degree[i]=G[i].size();
+        if(degree[i]==1)q.push(i);
+    }
+    int ans=N;
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        if(V[pos])continue;
+        if(degree[pos]==0)continue;
+        degree[pos]=0;
+        ans--;
+        for(int nxt:G[pos]){
+            if(degree[nxt]==0)continue;
+            degree[nxt]--;
+            if(degree[nxt]==1)q.push(nxt);
+        }
+    }
+    cout<<ans<<'\n';
+    return 0;
+}

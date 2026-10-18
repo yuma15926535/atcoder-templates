@@ -1,0 +1,48 @@
+// =============================================================================
+//  商の列挙・床関数の和（⌊N/i⌋ が同じ i をまとめる、Σ⌊N/i⌋、Σ⌊(a i + b)/m⌋・Σ (a i + b) mod m・Σ⌊⌋²、直線の下の格子点、万能ユークリッド）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 06 和・数列
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  機能一覧                                                                    計算量
+//    （N は 0 以上 LLONG_MAX 未満：区間の右端 r = N + 1 が long long に入るように）
+//    for_each_quotient(N, f)          i = 1〜N を ⌊N/i⌋ = q が同じ区間 [l, r) に分けて f(q, l, r)（i の小さい順）   O(√N)
+//    quotient_blocks(N)               上を vector<QuotientBlock{q, l, r}> で
+//    quotient_blocks_ceil(N)          ⌈N/i⌉ = q が同じ区間に分ける
+//    quotient_blocks2(N, M)           i = 1〜min(N, M) を ⌊N/i⌋・⌊M/i⌋ が両方同じ区間に（QuotientBlock2{q1, q2, l, r}）
+//    sum_floor_div(N)                 Σ_{i=1}^{N} ⌊N/i⌋（1〜N の約数の個数の和。Int128）                   O(√N)
+//    sum_i_floor_div(N)               Σ_{i=1}^{N} i·⌊N/i⌋（1〜N の約数の和の和。Int128）
+//    sum_mod_i(N)                     Σ_{i=1}^{N} (N mod i)（Int128）
+//    for_each_quotient で f が bool を返すと、false のところで止まる
+//    linear_floor_sum(n, m, a, b)     Σ_{i=0}^{n−1} ⌊(a i + b) / m⌋（a, b は負でも。Int128。途中で溢れたら止める） O(log m)
+//                                     （引数の順番は ACL の floor_sum と同じ：個数 n、割る数 m、傾き a、切片 b）
+//    linear_mod_sum(n, m, a, b)       Σ_{i=0}^{n−1} ((a i + b) mod m)（a, b は負でも。Int128）                 O(log m)
+//    linear_floor_sum_ext<mint>(n, m, a, b)   FloorSumExt{sum, sum_i, sum_sq}：Σ⌊⌋・Σ i⌊⌋・Σ⌊⌋^2 を mod で       O(log m)
+//    universal_euclid(n, a, b, c, U, R)   万能ユークリッド：y = ⌊(a x + b)/c⌋ に沿って U（y が 1 増える）・R（x が 1 増える）を
+//                                     掛けた積（x = 1〜n。a, b ≥ 0。M は結合的な * と単位元 M() を持つ型。可換でなくてよい）
+//    count_lattice_under_line(a, b, c)    a x + b y ≤ c となる x, y ≥ 0 の組の数（a, b ≥ 1。Int128）      O(log)
+//  （1〜N の約数の個数・約数の和の表は 02_sieve、数列の和の公式は 00_math_base の arith_sum / sum_range）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    quot_test::random_test()  … 1 つずつ数える愚直解との突き合わせ
+//    quot_test::benchmark()    … 速度計測
+//    quot_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

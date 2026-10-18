@@ -1,0 +1,40 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int H,W;
+    cin>>H>>W;
+    vector<vector<int>> A(H,vector<int>(W)),B(H,vector<int>(W));
+    rep(i,0,H)rep(j,0,W)cin>>A[i][j];
+    rep(i,0,H)rep(j,0,W)cin>>B[i][j];
+    rep(i,0,H)rep(j,0,W)A[i][j]-=B[i][j];
+    B=vector<vector<int>>(H,vector<int>(W,0));
+    ll c=0;
+    //操作の順序によらない
+    //角のかえ方は一意
+    //一意を繰り返すことで最小回数も求まる
+    rep(i,0,H-1)rep(j,0,W-1){
+        c+=abs(A[i][j]);
+        A[i+1][j]-=A[i][j];
+        A[i][j+1]-=A[i][j];
+        A[i+1][j+1]-=A[i][j];
+        A[i][j]-=A[i][j];
+    }
+    if(A==B){
+        YES;
+        cout<<c<<"\n";
+    }else NO;
+    return 0;
+}

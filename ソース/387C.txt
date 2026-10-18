@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+map<pair<ll,ll>,ll> m;
+ll lpow(ll a,ll p){
+    if(m.count({a,p}))return m[{a,p}];
+    if(p==1)return m[{a,p}]=a;
+    if(p==0)return m[{a,p}]=1;
+    return m[{a,p}]=a*lpow(a,p-1);
+}
+ll snake(ll n){
+    vector<int> v;
+    while(n){
+        v.push_back(n%10);
+        n/=10;
+    }
+    reverse(nall(v));
+    int l=v.size();
+    ll ret=0;
+    erep(i,2,l){
+        if(i!=l)erep(j,1,9)ret+=lpow(j,i-1);
+        else{
+            erep(j,1,v[0]){
+                if(j!=v[0])ret+=lpow(j,l-1);
+                else{
+                    erep(k,2,l){
+                        if(v[k-1]>=v[0]){
+                            ret+=lpow(v[0],l-k+1);
+                            break;
+                        }else if(k!=l){
+                            ret+=v[k-1]*lpow(v[0],l-k);
+                        }else{
+                            ret+=v[k-1]+1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+int main()
+{
+    ll L,R;
+    cin>>L>>R;
+    cout<<snake(R)-snake(L-1)<<"\n";
+    return 0;
+}

@@ -1,0 +1,128 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+ll power(ll base,ll exp){
+    ll result=1;
+    while(exp>0){
+        if(exp&1)result*=base;
+        base*=base;
+        exp>>=1;
+    }
+    return result;
+}
+
+struct BIT {
+    int n;
+    vector<long long> bit;
+    BIT(int n=0): n(n), bit(n+1,0) {}
+
+    void add(int i,long long v){
+        for(i++; i<=n; i+=i&-i) bit[i]+=v;
+    }
+    long long sum(int i){
+        long long s=0;
+        for(i++; i>0; i-=i&-i) s+=bit[i];
+        return s;
+    }
+    int lower_bound(long long k){
+        int idx=0; long long cur=0;
+        for(int i=1<<20;i>0;i>>=1){
+            if(idx+i<=n && cur+bit[idx+i]<k){
+                cur+=bit[idx+i];
+                idx+=i;
+            }
+        }
+        return idx;
+    }
+};
+
+struct MEX {
+    int N;
+    vector<int> cnt;
+    BIT bit;   // zero 管理
+
+    MEX(int N): N(N), cnt(N,0), bit(N) {
+        for(int i=0;i<N;i++) bit.add(i,1); // 最初は全部欠番
+    }
+
+    void add(int x){
+        if(cnt[x]==0) bit.add(x,-1); // 欠番でなくなる
+        cnt[x]++;
+    }
+    void remove(int x){
+        cnt[x]--;
+        if(cnt[x]==0) bit.add(x,1); // 再び欠番
+    }
+
+    int get_min_missing(){
+        if(bit.sum(N-1)==0) return -1; // 全部存在
+        return bit.lower_bound(1);
+    }
+    int get_max_missing(){
+        long long tot = bit.sum(N-1);
+        if(tot==0) return -1;
+        return bit.lower_bound(tot);
+    }
+
+    int get_kth_missing(long long k){
+        if(bit.sum(N-1) < k) return -1;
+        return bit.lower_bound(k);
+    }
+
+    int get_min_missing_from(int l){
+        if(l >= N) return -1;
+        long long before = (l==0 ? 0 : bit.sum(l-1));
+        long long total = bit.sum(N-1);
+        if(before == total) return -1; // l以降に欠番なし
+        return bit.lower_bound(before + 1);
+    }
+};
+
+void solv(){
+    int N=power(2,20);
+    int Q;
+    cin>>Q;
+    MEX mex(2*N);
+    vector<ll>rec(2*N,-1);
+    rep(_,0,Q){
+        int t;
+        ll x;
+        cin>>t>>x;
+        if(t==1){
+            int h=x%N;
+            h=mex.get_min_missing_from(h);
+            mex.add(h%N);
+            rec[h%N]=x;
+            mex.add(h%N+N);
+            rec[h%N+N]=x;
+        }else cout<<rec[x%N]<<'\n';
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

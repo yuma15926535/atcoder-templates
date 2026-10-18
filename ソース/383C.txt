@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct XY{
+    int x;
+    int y;
+};
+
+int main()
+{
+    int H,W,D;
+    cin>>H>>W>>D;
+    vector<int> dx={-1,1,0,0},dy={0,0,-1,1};
+
+    vector<string> S(H);
+    rep(i,0,H)cin>>S[i];
+    int yet=10000000;
+    vector<vector<int>> k(H,vector<int>(W,yet));
+    queue<XY> q;
+    rep(i,0,H)rep(j,0,W)if(S[i][j]=='H'){
+        XY xy={(int)i,(int)j};
+        q.push(xy);
+        k[i][j]=0;
+    }
+    //多始点BFS
+    //初期化は複数
+    //通常と同じ処理を行う
+    //更新はmin
+    while(!q.empty()){
+        XY xy=q.front();
+        q.pop();
+        rep(i,0,4)if(0<=xy.x+dx[i]&&xy.x+dx[i]<H&&0<=xy.y+dy[i]&&xy.y+dy[i]<W){
+            if(S[xy.x+dx[i]][xy.y+dy[i]]=='#')continue;
+            if(k[xy.x+dx[i]][xy.y+dy[i]]==yet){
+                k[xy.x+dx[i]][xy.y+dy[i]]=k[xy.x][xy.y]+1;
+                XY xy2={xy.x+dx[i],xy.y+dy[i]};
+                q.push(xy2);
+            }else if(k[xy.x+dx[i]][xy.y+dy[i]]>k[xy.x][xy.y]+1){
+                k[xy.x+dx[i]][xy.y+dy[i]]=k[xy.x][xy.y]+1;
+                XY xy2={xy.x+dx[i],xy.y+dy[i]};
+                q.push(xy2);
+            }
+        }
+    }
+    int ans=0;
+    rep(i,0,H)rep(j,0,W)if(S[i][j]!='#'&&k[i][j]<=D)ans++;
+    cout<<ans<<"\n";
+    return 0;
+}

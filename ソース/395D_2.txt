@@ -1,0 +1,404 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+ * FixedBiMap
+ * ----------------------------
+ * 完全1対1対応（双方向対応）を管理する構造体。
+ *
+ * - A <-> B の全単射を保持する（サイズ固定前提）
+ * - A から B、B から A の両方向を O(1) 平均で取得可能
+ *
+ * ■ 前提
+ * - 全要素は常に対応を持つ（未対応状態は存在しない）
+ * - 要素数の増減は行わない（buildでのみ初期化）
+ *
+ * ■ 主な操作
+ * - build(v)        : vector<pair<A,B>> から再構築
+ * - set_a(a,b)      : a と b の対応を張り替え（既存の関係は自動で解除）
+ * - swap_a(a1,a2)   : a1 と a2 の対応先を交換
+ * - get_b(a)        : a に対応する b を取得
+ * - get_a(b)        : b に対応する a を取得
+ *
+ * ■ 計算量
+ * - すべて平均 O(1)（unordered_map 依存）
+ *
+ * ■ 用途
+ * - ID圧縮（値 ↔ index）
+ * - ラベル変換
+ * - 対応関係の管理（置換・swap操作がある問題）
+ */
+template<class A, class B>
+struct FixedBiMap {
+    unordered_map<A, B> ab;
+    unordered_map<B, A> ba;
+
+    // 空コンストラクタ（あとから build する用）
+    FixedBiMap() {}
+
+    // vector<pair<A,B>> から構築
+    FixedBiMap(const vector<pair<A,B>>& v) {
+        build(v);
+    }
+
+    // 完全再構築（既存データはすべて削除）
+    void build(const vector<pair<A,B>>& v) {
+        ab.clear();
+        ba.clear();
+        for (auto& [a,b] : v) {
+            ab[a] = b;
+            ba[b] = a;
+        }
+    }
+
+private:
+    // 内部用：a に対応するペア (a,b) を削除
+    void erase_a_internal(const A& a) {
+        B b = ab[a];
+        ab.erase(a);
+        ba.erase(b);
+    }
+
+public:
+    // a に b を割り当てる（既存の対応はすべて整理して張り替え）
+    void set_a(const A& a, const B& b) {
+        if (ab.count(a) && ab[a] == b) return;
+
+        if (ab.count(a)) {
+            erase_a_internal(a);
+        }
+
+        if (ba.count(b)) {
+            erase_a_internal(ba[b]);
+        }
+
+        ab[a] = b;
+        ba[b] = a;
+    }
+
+    // b に a を割り当てる（set_a の対称操作）
+    void set_b(const B& b, const A& a) {
+        set_a(a, b);
+    }
+
+    // a1, a2 の対応先を交換
+    void swap_a(const A& a1, const A& a2) {
+        B b1 = ab[a1];
+        B b2 = ab[a2];
+        ab[a1] = b2;
+        ab[a2] = b1;
+        ba[b1] = a2;
+        ba[b2] = a1;
+    }
+
+    // b1, b2 の対応元を交換（swap_a の対称操作）
+    void swap_b(const B& b1, const B& b2) {
+        A a1 = ba[b1];
+        A a2 = ba[b2];
+        swap_a(a1, a2);
+    }
+
+    // a に対応する b を取得
+    B get_b(const A& a) const {
+        assert(ab.count(a));
+        return ab.at(a);
+    }
+
+    // b に対応する a を取得
+    A get_a(const B& b) const {
+        assert(ba.count(b));
+        return ba.at(b);
+    }
+
+    // 要素数を取得
+    int size() const {
+        return ab.size();
+    }
+
+    // デバッグ用：整合性チェック（a->b と b->a が一致しているか）
+    void validate() const {
+        for (auto& [a,b] : ab) {
+            assert(ba.at(b) == a);
+        }
+    }
+};
+
+void test_FixedBiMap() {
+    cout << "=== FixedBiMap 衝突なしテスト ===\n";
+
+    // 初期構築（完全1対1）
+    vector<pair<int,int>> v = {
+        {1,10}, {2,20}, {3,30}, {4,40}
+    };
+
+    FixedBiMap<int,int> mp(v);
+
+    // 初期確認
+    cout << "\n初期状態:\n";
+    for (auto& [a,b] : v) {
+        cout << a << " -> " << mp.get_b(a) << "\n";
+    }
+    mp.validate();
+
+    // --- swap_a ---
+    cout << "\nswap_a(1,2):\n";
+    mp.swap_a(1,2);
+
+    cout << "1 -> " << mp.get_b(1) << " (期待:20)\n";
+    cout << "2 -> " << mp.get_b(2) << " (期待:10)\n";
+
+    mp.validate();
+
+    // --- swap_b ---
+    cout << "\nswap_b(30,40):\n";
+    mp.swap_b(30,40);
+
+    cout << "3 -> " << mp.get_b(3) << " (期待:40)\n";
+    cout << "4 -> " << mp.get_b(4) << " (期待:30)\n";
+
+    mp.validate();
+
+    cout << "\nset_a(1, 50):\n";
+    int b1 = 50;
+    mp.set_a(1, b1);
+
+    cout << "1 -> " << mp.get_b(1) << " (期待:" << b1 << ")\n";
+
+    cout << "\nset_b(50, 5):\n";
+    int a1 = 5;
+    mp.set_b(50, a1);
+
+    cout << "50 -> " << mp.get_a(50) << " (期待:" << a1 << ")\n";
+    mp.validate();
+
+    // --- 双方向確認 ---
+    cout << "\n双方向チェック:\n";
+    for (int a : {2,3,4,5}) {
+        int b = mp.get_b(a);
+        int a2 = mp.get_a(b);
+        cout << a << " -> " << b << " -> " << a2 << "\n";
+        assert(a == a2);
+    }
+
+    // --- build再構築 ---
+    cout << "\nbuild再構築:\n";
+    mp.build({{5,50}, {6,60}});
+
+    cout << "5 -> " << mp.get_b(5) << " (期待:50)\n";
+    cout << "6 -> " << mp.get_b(6) << " (期待:60)\n";
+
+    mp.validate();
+
+    cout << "\n=== テスト終了（衝突なしOK） ===\n";
+}
+
+void solv(){
+    //test_FixedBiMap();
+    int N,Q;
+    cin>>N>>Q;
+    FixedBiMap<int,int>label;
+    vector<int>v(N);
+    iota(nall(v),0);
+    {
+        vector<pair<int,int>>tmp(N);
+        rep(i,0,N)tmp[i]=make_pair(i,i);
+        label.build(tmp);
+    }
+    rep(_,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            int a,b;
+            cin>>a>>b;
+            a--;b--;
+            v[a]=label.get_a(b);
+        }else if(q==2){
+            int a,b;
+            cin>>a>>b;
+            a--;b--;
+            label.swap_b(a,b);
+        }else{
+            int a;
+            cin>>a;
+            a--;
+            cout<<label.get_b(v[a])+1<<'\n';
+        }
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

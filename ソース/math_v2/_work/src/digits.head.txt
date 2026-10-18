@@ -1,0 +1,67 @@
+// =============================================================================
+//  桁・進数・回文数（桁和・n 進数・回文数（文字列の大きなものも）・数をつなげる・大きな数の文字列・繰り上がり・桁の数え上げ）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 01 桁・進数
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  機能一覧                                                                    計算量
+//   桁（base は 2 以上。負の数は絶対値で）
+//    digits_of(n, base = 10)            各桁 vector<int>（上の桁から。0 なら {0}。base ≤ 2^31 − 1）  O(桁数)
+//    digit_sum(n, base) / num_digits(n, base)   桁和 / 桁数（0 は 1 桁）
+//    from_digits(ds, base)              桁の並びから数に（溢れたら止める）
+//   n 進数（2〜36 進と −2〜−36 進。10 以上の桁は A〜Z）
+//    to_base(n, base)                   文字列に（0・負の数も。負の進数なら符号なしで表せる）
+//    from_base(s, base)                 文字列から（小文字も可。溢れたら止める）
+//    from_base_cap(s, base, cap)        base は 2 以上いくつでも：min(値, cap)（溢れない）
+//    base_value_leq(s, base, limit)     s を base 進数で読んだ値 ≤ limit か（溢れない。ABC192 D の二分探索に）
+//   回文数（10 進。0 以上。k 番目は 0 から数える：0 番目が 0）
+//    is_palindrome_num(n, base = 10)    回文か
+//    kth_palindrome(k)                  k 番目の回文数（10^18 を超えるので文字列）                O(桁数)
+//    palindrome_rank(n)                 回文数 n が何番目か（kth_palindrome の逆）
+//    count_palindromes_up_to(n) / count_palindromes_below(n)     [0, n] / [0, n) の回文数の個数
+//    count_palindromes_of_length(len)   len 桁の回文数の個数
+//    ceil_palindrome(n) / floor_palindrome(n)    n 以上で最小 / n 以下で最大の回文数
+//    make_palindrome(half, odd)         左半分から作る（123 → odd: 12321 / even: 123321）
+//   大きな回文数（10 進の文字列。long long を超える数に）
+//    ceil_palindrome_str(s) / floor_palindrome_str(s)    s 以上で最小 / s 以下で最大の回文数（文字列）   O(|s|)
+//    count_palindromes_up_to_str(s) / count_palindromes_below_str(s)   [0, s] / [0, s) の回文数の個数（Int128。75 桁まで）
+//    make_palindrome_str(half, odd) / is_palindrome_str(s)   左半分から作る / 文字列が回文か
+//   数をつなげる（0 以上）
+//    concat_value(a, b)                 a の後ろに b（Int128）
+//    repeat_concat_value(x, k)          x を k 回つなげた数（Int128。収まらなければ止める）
+//    concat_mod(a, b, m) / repeat_concat_mod(x, k, m)    つなげた数 mod m / x を k 回つなげた数 mod m   O(log k)
+//    repunit_mod(k, m) / pow10_mod(k, m)                 11…1（k 個）mod m / 10^k mod m
+//   大きな数の文字列（10 進）
+//    str_mod(s, m, base = 10) / str_num_compare(a, b)    値 mod m（base 進数 2〜36 でも）/ 大小（-1 / 0 / 1。符号・先頭の 0 も扱う）  O(桁数)
+//    carry_to_string(c, base = 10)      繰り上がり：c[i] が base^i の係数（下の桁から。畳み込みの結果など）の数を文字列に  O(|c| + 桁数)
+//    substr_value(s, l, r)              s[l, r) の値（溢れたら止める）
+//    DigitPrefix P(s, m)                P.value(l, r)：s[l, r) の値 mod m を O(1)                 前処理 O(|s|)
+//   桁の数え上げ
+//    digit_length_blocks(l, r)          [l, r) を桁数ごとの区間 DigitLengthBlock{len, lo, hi} に分ける
+//    total_digits_up_to(N)              1〜N の桁数の合計（Int128）
+//    count_digit_up_to(N, d)            1〜N を書いたときの数字 d の個数（Int128。先頭の 0 は数えない）  O(桁数)
+//    digit_sum_total_up_to(N)           1〜N の桁和の合計（Int128）
+//    numbers_from_digits(ds, max_len)   数字 ds だけでできた 1〜max_len 桁の数（小さい順）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    dig_test::random_test()  … 文字列・128 ビット・全部数える愚直解との突き合わせ
+//    dig_test::benchmark()    … 速度計測
+//    dig_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

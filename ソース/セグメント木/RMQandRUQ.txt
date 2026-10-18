@@ -1,0 +1,107 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+
+//https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=DSL_2_F&lang=ja
+//区間の更新
+//区間最小値の集計
+struct SegTree{
+    //区間集約とは無関係な値
+    const ll INF=1e15;//★
+    //葉の数
+    ll sz;
+    //完全二分木の配列
+    vector<ll> seg;
+    //遅延評価用の配列
+    vector<ll> lazy;
+    //引数の大きさで初期化
+    void init(vector<ll> &v){
+        int n=v.size();
+        sz=1;
+        while(sz<n)sz*=2;
+        seg.resize(sz*2-1,INF);
+        lazy.resize(sz*2-1,INF);
+        //葉の初期化
+        rep(i,0,n)seg[sz-1+i]=v[i];
+        //葉以外のノードの初期化
+        rrep(i,sz-1,0)seg[i]=min(seg[i*2+1],seg[i*2+2]);//★
+    }
+    //ノードkの遅延評価
+    void eval(int k){
+        if(lazy[k]==INF)return;
+        if(k<sz-1){
+            lazy[k*2+1]=lazy[k];
+            lazy[k*2+2]=lazy[k];
+        }
+        seg[k]=lazy[k];
+        lazy[k]=INF;
+    }
+    //区間[a,b)の更新
+    void update(int a,int b,ll x){
+        sub_update(a,b,x,0,sz,0);
+    }
+    //k:[l,r)を表すノードのindex
+    void sub_update(int a,int b,ll x,int l,int r,int k){
+        eval(k);
+        if(a<=l&&r<=b){
+            lazy[k]=x;//★
+            eval(k);
+        }else if(a<r&&l<b){
+            sub_update(a,b,x,l,(l+r)/2,k*2+1);
+            sub_update(a,b,x,(l+r)/2,r,k*2+2);
+            seg[k]=min(seg[k*2+1],seg[k*2+2]);//★
+        }
+    }
+    //[a,b)を集計
+    ll query(int a,int b){
+        return sub_query(a,b,0,sz,0);
+    }
+    //k:[l,r)を表すノードのindex
+    ll sub_query(int a,int b,int l,int r,int k){
+        eval(k);
+        if(r<=a||b<=l)return INF;
+        if(a<=l&&r<=b)return seg[k];
+        ll vl=sub_query(a,b,l,(l+r)/2,k*2+1);
+        ll vr=sub_query(a,b,(l+r)/2,r,k*2+2);
+        return min(vl,vr);//★
+    }
+    void output(){
+        rep(i,0,sz*2-1)cout<<seg[i]<<' ';
+        cout<<'\n';
+    }
+};
+
+int main(){
+    BUFF;
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>v(N,(1LL<<31)-1);
+    SegTree st;
+    st.init(v);
+    rep(i,0,Q){
+        int q;
+        ll x,y;
+        cin>>q>>x>>y;
+        if(q==0){
+            int num;
+            cin>>num;
+            st.update(x,y+1,num);
+        }else cout<<st.query(x,y+1)<<'\n';
+    }
+    return 0;
+}

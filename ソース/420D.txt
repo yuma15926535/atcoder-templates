@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int H,W;
+    cin>>H>>W;
+    vector<string>A(H);
+    rep(i,0,H)cin>>A[i];
+    vector<vector<int>>open(H,vector<int>(W,1e9));
+    vector<vector<int>>close(H,vector<int>(W,1e9));
+    int sh,sw,gh,gw;
+    rep(i,0,H)rep(j,0,W){
+        if(A[i][j]=='S')sh=i,sw=j;
+        if(A[i][j]=='G')gh=i,gw=j;
+    }
+    open[sh][sw]=0;
+    queue<tuple<int,int,char,int>>q;
+    q.emplace(sh,sw,'x',0);
+    vector<int>dx={-1,1,0,0},dy={0,0,-1,1};
+    while(!q.empty()){
+        auto[h,w,c,dist]=q.front();
+        q.pop();
+        rep(i,0,4){
+            int nx=h+dx[i],ny=w+dy[i];
+            if(nx<0||nx>=H||ny<0||ny>=W)continue;
+            if(A[nx][ny]=='#'||A[nx][ny]==c)continue;
+            char d=c;
+            if(A[nx][ny]=='?'){
+                if(d=='o')d='x';
+                else if(d=='x')d='o';
+            }
+            if(d=='o'){
+                if(close[nx][ny]!=1e9)continue;
+                close[nx][ny]=dist+1;
+                q.emplace(nx,ny,d,dist+1);
+            }else if(d=='x'){
+                if(open[nx][ny]!=1e9)continue;
+                open[nx][ny]=dist+1;
+                q.emplace(nx,ny,d,dist+1);
+            }
+        }
+    }
+    int ans=min(open[gh][gw],close[gh][gw]);
+    if(ans==1e9)cout<<-1<<'\n';
+    else cout<<ans<<'\n';
+    return 0;
+}

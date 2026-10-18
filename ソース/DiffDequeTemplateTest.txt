@@ -1,0 +1,436 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// 差分管理deque
+struct DiffDeque {
+
+    // =====================================================
+    // 内部構造
+    // =====================================================
+
+    deque<long long> dq;
+
+    // 任意2要素系
+    multiset<long long> vals;       // 値のソート集合
+    multiset<long long> pairDiff;   // ソート隣接差
+
+    // 隣接差系
+    multiset<long long> adjDiff;
+    long long adjSum = 0;
+
+    // =====================================================
+    // 汎用 multiset 操作
+    // =====================================================
+
+    // kth (0-index)
+    long long kth(const multiset<long long>& s, int k) {
+        if(k < 0 || k >= (int)s.size()) return -1;
+        auto it = s.begin();
+        advance(it, k);
+        return *it;
+    }
+
+    // rank (≤ x の個数)
+    int rank_le(const multiset<long long>& s, long long x) {
+        return distance(s.begin(), s.upper_bound(x));
+    }
+
+    // 範囲個数
+    int range_count(const multiset<long long>& s, long long L, long long R) {
+        return distance(s.lower_bound(L), s.upper_bound(R));
+    }
+
+    // 重複数
+    int count_val(const multiset<long long>& s, long long x) {
+        return s.count(x);
+    }
+
+    // -------- 最近傍検索 4種 --------
+
+    // ≥ x
+    long long ge(const multiset<long long>& s, long long x) {
+        auto it = s.lower_bound(x);
+        return (it == s.end() ? -1 : *it);
+    }
+
+    // > x
+    long long gt(const multiset<long long>& s, long long x) {
+        auto it = s.upper_bound(x);
+        return (it == s.end() ? -1 : *it);
+    }
+
+    // ≤ x
+    long long le(const multiset<long long>& s, long long x) {
+        auto it = s.upper_bound(x);
+        if(it == s.begin()) return -1;
+        --it;
+        return *it;
+    }
+
+    // < x
+    long long lt(const multiset<long long>& s, long long x) {
+        auto it = s.lower_bound(x);
+        if(it == s.begin()) return -1;
+        --it;
+        return *it;
+    }
+
+    // =====================================================
+    // 任意2要素差：更新
+    // =====================================================
+
+    void addValue(long long x) {
+
+        if(vals.empty()) {
+            vals.insert(x);
+            return;
+        }
+
+        auto it = vals.lower_bound(x);
+
+        if(it != vals.end() && it != vals.begin()) {
+            long long r = *it;
+            long long l = *prev(it);
+
+            pairDiff.erase(pairDiff.find(r - l));
+            pairDiff.insert(x - l);
+            pairDiff.insert(r - x);
+        }
+        else if(it != vals.end()) {
+            pairDiff.insert(*it - x);
+        }
+        else {
+            pairDiff.insert(x - *vals.rbegin());
+        }
+
+        vals.insert(x);
+    }
+
+    void removeValue(long long x) {
+
+        if(vals.size() == 1) {
+            vals.clear();
+            pairDiff.clear();
+            return;
+        }
+
+        auto it = vals.find(x);
+        auto nxt = next(it);
+        auto prv = (it == vals.begin() ? vals.end() : prev(it));
+
+        if(nxt != vals.end() && prv != vals.end()) {
+            pairDiff.erase(pairDiff.find(x - *prv));
+            pairDiff.erase(pairDiff.find(*nxt - x));
+            pairDiff.insert(*nxt - *prv);
+        }
+        else if(nxt != vals.end()) {
+            pairDiff.erase(pairDiff.find(*nxt - x));
+        }
+        else {
+            pairDiff.erase(pairDiff.find(x - *prv));
+        }
+
+        vals.erase(it);
+    }
+
+    // =====================================================
+    // 隣接差：更新
+    // =====================================================
+
+    void addAdj(long long a, long long b) {
+        long long d = llabs(a - b);
+        adjDiff.insert(d);
+        adjSum += d;
+    }
+
+    void removeAdj(long long a, long long b) {
+        long long d = llabs(a - b);
+        adjDiff.erase(adjDiff.find(d));
+        adjSum -= d;
+    }
+
+    // =====================================================
+    // deque 操作
+    // =====================================================
+
+    void push_back(long long x) {
+        if(!dq.empty()) addAdj(dq.back(), x);
+        dq.push_back(x);
+        addValue(x);
+    }
+
+    void push_front(long long x) {
+        if(!dq.empty()) addAdj(x, dq.front());
+        dq.push_front(x);
+        addValue(x);
+    }
+
+    void pop_back() {
+        if(dq.size() >= 2)
+            removeAdj(dq[dq.size()-2], dq.back());
+
+        removeValue(dq.back());
+        dq.pop_back();
+    }
+
+    void pop_front() {
+        if(dq.size() >= 2)
+            removeAdj(dq.front(), dq[1]);
+
+        removeValue(dq.front());
+        dq.pop_front();
+    }
+
+    // =====================================================
+    // 任意2要素差クエリ
+    // =====================================================
+
+    long long global_max_diff() {
+        if(vals.size() < 2) return -1;
+        return *vals.rbegin() - *vals.begin();
+    }
+
+    long long global_min_diff() {
+        if(pairDiff.empty()) return -1;
+        return *pairDiff.begin();
+    }
+
+    // 値集合系
+    int vals_range(long long L, long long R) { return range_count(vals, L, R); }
+    long long vals_kth(int k) { return kth(vals, k); }
+    int vals_rank(long long x) { return rank_le(vals, x); }
+    int vals_count(long long x) { return count_val(vals, x); }
+
+    long long vals_ge(long long x) { return ge(vals, x); }
+    long long vals_gt(long long x) { return gt(vals, x); }
+    long long vals_le(long long x) { return le(vals, x); }
+    long long vals_lt(long long x) { return lt(vals, x); }
+
+    // =====================================================
+    // 隣接差クエリ
+    // =====================================================
+
+    long long adj_max() {
+        if(adjDiff.empty()) return -1;
+        return *adjDiff.rbegin();
+    }
+
+    long long adj_min() {
+        if(adjDiff.empty()) return -1;
+        return *adjDiff.begin();
+    }
+
+    long long adj_sum() { return adjSum; }
+
+    // 境界変動量
+    long long boundary_diff() {
+        if(dq.size() < 2) return 0;
+        return llabs(dq.front() - dq.back());
+    }
+
+    // 隣接差集合系
+    int adj_range(long long L, long long R) { return range_count(adjDiff, L, R); }
+    long long adj_kth(int k) { return kth(adjDiff, k); }
+    int adj_rank(long long x) { return rank_le(adjDiff, x); }
+    int adj_count(long long x) { return count_val(adjDiff, x); }
+
+    long long adj_ge(long long x) { return ge(adjDiff, x); }
+    long long adj_gt(long long x) { return gt(adjDiff, x); }
+    long long adj_le(long long x) { return le(adjDiff, x); }
+    long long adj_lt(long long x) { return lt(adjDiff, x); }
+
+    // =====================================================
+
+    int size() { return dq.size(); }
+
+};
+
+void solv(){
+    DiffDeque dq;
+
+    cout << "=============================\n";
+    cout << " DiffDeque 動作確認テスト\n";
+    cout << "=============================\n\n";
+
+    // ---------------------------
+    // push 操作
+    // ---------------------------
+
+    cout << "【push 操作】\n";
+
+    dq.push_back(10);
+    dq.push_back(3);
+    dq.push_front(7);
+    dq.push_back(20);
+    dq.push_front(5);
+
+    cout << "現在サイズ: " << dq.size() << "\n\n";
+
+
+    // ---------------------------
+    // 任意2要素差系
+    // ---------------------------
+
+    cout << "【任意2要素の差】\n";
+
+    cout << "最大差: " << dq.global_max_diff() << "\n";
+    cout << "最小差: " << dq.global_min_diff() << "\n";
+
+    cout << "k番目(2): " << dq.vals_kth(2) << "\n";
+    cout << "rank(10): " << dq.vals_rank(10) << "\n";
+    cout << "値10の個数: " << dq.vals_count(10) << "\n";
+
+    cout << "範囲[5,15]の個数: " << dq.vals_range(5,15) << "\n";
+
+    cout << "≥8: " << dq.vals_ge(8) << "\n";
+    cout << ">8: " << dq.vals_gt(8) << "\n";
+    cout << "≤8: " << dq.vals_le(8) << "\n";
+    cout << "<8: " << dq.vals_lt(8) << "\n\n";
+
+
+    // ---------------------------
+    // 隣接差系
+    // ---------------------------
+
+    cout << "【隣接要素の差】\n";
+
+    cout << "最大差: " << dq.adj_max() << "\n";
+    cout << "最小差: " << dq.adj_min() << "\n";
+    cout << "差の総和: " << dq.adj_sum() << "\n";
+    cout << "境界変動量: " << dq.boundary_diff() << "\n";
+
+    cout << "k番目(1): " << dq.adj_kth(1) << "\n";
+    cout << "rank(5): " << dq.adj_rank(5) << "\n";
+    cout << "値5の個数: " << dq.adj_count(5) << "\n";
+
+    cout << "範囲[1,10]の個数: " << dq.adj_range(1,10) << "\n";
+
+    cout << "≥4: " << dq.adj_ge(4) << "\n";
+    cout << ">4: " << dq.adj_gt(4) << "\n";
+    cout << "≤4: " << dq.adj_le(4) << "\n";
+    cout << "<4: " << dq.adj_lt(4) << "\n\n";
+
+
+    // ---------------------------
+    // pop 操作
+    // ---------------------------
+
+    cout << "【pop 操作】\n";
+
+    dq.pop_front();
+    dq.pop_back();
+
+    cout << "サイズ after pop: " << dq.size() << "\n";
+    cout << "最大差 after pop: " << dq.global_max_diff() << "\n";
+
+
+    cout << "\n=============================\n";
+    cout << " 動作確認終了\n";
+    cout << "=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

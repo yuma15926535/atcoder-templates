@@ -1,0 +1,268 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+========================================
+ Dinic 法（最大フロー）
+========================================
+ - 最大フローを高速に解く標準アルゴリズム
+ - 二部マッチングにもそのまま使える
+*/
+struct Dinic {
+    struct Edge {
+        int to;
+        ll cap;
+        int rev;
+        ll orig_cap;   // 復元用：元の容量
+    };
+
+    int N;
+    vector<vector<Edge>> G;
+    vector<int> level, iter;
+
+    Dinic(int n) : N(n), G(n), level(n), iter(n) {}
+
+    // 辺を追加（逆辺も自動で追加）
+    void add_edge(int from, int to, ll cap) {
+        Edge fwd = {to, cap, (int)G[to].size(), cap};
+        Edge rev = {from, 0, (int)G[from].size(), 0};
+        G[from].push_back(fwd);
+        G[to].push_back(rev);
+    }
+
+    // BFS でレベルグラフを作る
+    void bfs(int s) {
+        fill(level.begin(), level.end(), -1);
+        queue<int> q;
+        level[s] = 0;
+        q.push(s);
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (auto &e : G[v]) {
+                if (e.cap > 0 && level[e.to] < 0) {
+                    level[e.to] = level[v] + 1;
+                    q.push(e.to);
+                }
+            }
+        }
+    }
+
+    // DFS でフローを流す
+    ll dfs(int v, int t, ll f) {
+        if (v == t) return f;
+        for (int &i = iter[v]; i < (int)G[v].size(); i++) {
+            auto &e = G[v][i];
+            if (e.cap > 0 && level[v] < level[e.to]) {
+                ll d = dfs(e.to, t, min(f, e.cap));
+                if (d > 0) {
+                    e.cap -= d;
+                    G[e.to][e.rev].cap += d;
+                    return d;
+                }
+            }
+        }
+        return 0;
+    }
+
+    // 最大フローを計算
+    ll max_flow(int s, int t) {
+        ll flow = 0;
+        while (true) {
+            bfs(s);
+            if (level[t] < 0) return flow;
+            fill(iter.begin(), iter.end(), 0);
+            ll f;
+            while ((f = dfs(s, t, LLONG_MAX)) > 0) {
+                flow += f;
+            }
+        }
+    }
+};
+
+/*
+========================================
+ 最小費用流（ポテンシャル法）
+========================================
+ - 一定量のフローを最小コストで流す
+ - 二部マッチング（コスト付き）にも対応
+*/
+struct MinCostFlow {
+    struct Edge {
+        int to, rev;
+        ll cap, cost;
+        ll orig_cap;   // 復元用
+    };
+
+    int N;
+    vector<vector<Edge>> G;
+    vector<ll> h, dist;
+    vector<int> prevv, preve;
+
+    MinCostFlow(int n) : N(n), G(n), h(n), dist(n), prevv(n), preve(n) {}
+
+    // 辺を追加（逆辺も追加）
+    void add_edge(int from, int to, ll cap, ll cost) {
+        G[from].push_back({to, (int)G[to].size(), cap, cost, cap});
+        G[to].push_back({from, (int)G[from].size() - 1, 0, -cost, 0});
+    }
+
+    // s → t に f 流す最小コスト
+    ll min_cost_flow(int s, int t, ll f) {
+        ll res = 0;
+        fill(h.begin(), h.end(), 0);
+
+        while (f > 0) {
+            priority_queue<pair<ll,int>, vector<pair<ll,int>>, greater<>> pq;
+            fill(dist.begin(), dist.end(), LLONG_MAX);
+            dist[s] = 0;
+            pq.push({0, s});
+
+            while (!pq.empty()) {
+                auto [d, v] = pq.top(); pq.pop();
+                if (dist[v] < d) continue;
+                for (int i = 0; i < (int)G[v].size(); i++) {
+                    auto &e = G[v][i];
+                    if (e.cap > 0) {
+                        ll nd = dist[v] + e.cost + h[v] - h[e.to];
+                        if (dist[e.to] > nd) {
+                            dist[e.to] = nd;
+                            prevv[e.to] = v;
+                            preve[e.to] = i;
+                            pq.push({nd, e.to});
+                        }
+                    }
+                }
+            }
+
+            if (dist[t] == LLONG_MAX) return -1;
+
+            for (int v = 0; v < N; v++) h[v] += dist[v];
+
+            ll d = f;
+            for (int v = t; v != s; v = prevv[v]) {
+                d = min(d, G[prevv[v]][preve[v]].cap);
+            }
+
+            f -= d;
+            res += d * h[t];
+            for (int v = t; v != s; v = prevv[v]) {
+                auto &e = G[prevv[v]][preve[v]];
+                e.cap -= d;
+                G[v][e.rev].cap += d;
+            }
+        }
+        return res;
+    }
+};
+
+void solv(){
+    // --- Dinic 単体動作確認 ---
+    cout << "=== Dinic 最大フロー 単体動作確認 ===\n";
+    {
+        Dinic mf(4);
+        mf.add_edge(0, 1, 2);
+        mf.add_edge(0, 2, 1);
+        mf.add_edge(1, 3, 1);
+        mf.add_edge(2, 3, 2);
+
+        cout << "最大フロー量 = " << mf.max_flow(0, 3) << "\n\n";
+    }
+
+    // --- Dinic 二部マッチング（復元付き） ---
+    cout << "=== Dinic 二部マッチング（復元付き） ===\n";
+    {
+        int L = 2, R = 2;
+        int S = 4, T = 5;
+        Dinic mf(6);
+
+        for (int i = 0; i < L; i++) mf.add_edge(S, i, 1);
+        for (int j = 0; j < R; j++) mf.add_edge(L + j, T, 1);
+
+        mf.add_edge(0, 2, 1);
+        mf.add_edge(0, 3, 1);
+        mf.add_edge(1, 3, 1);
+
+        cout << "最大マッチング数 = " << mf.max_flow(S, T) << "\n";
+        cout << "マッチング結果:\n";
+
+        for (int i = 0; i < L; i++) {
+            for (auto &e : mf.G[i]) {
+                if (e.to >= L && e.to < L + R &&
+                    e.orig_cap == 1 && e.cap == 0) {
+                    cout << "左 " << i << " - 右 " << (e.to - L) << "\n";
+                }
+            }
+        }
+        cout << "\n";
+    }
+
+    // --- 最小費用流 単体動作確認 ---
+    cout << "=== 最小費用流 単体動作確認 ===\n";
+    {
+        MinCostFlow mcf(4);
+        mcf.add_edge(0, 1, 1, 1);
+        mcf.add_edge(0, 2, 1, 2);
+        mcf.add_edge(1, 3, 1, 1);
+        mcf.add_edge(2, 3, 1, 0);
+
+        cout << "流量2を流す最小コスト = "
+             << mcf.min_cost_flow(0, 3, 2) << "\n\n";
+    }
+
+    // --- 最小費用流 二部マッチング（復元付き） ---
+    cout << "=== 最小費用流 二部マッチング（復元付き） ===\n";
+    {
+        int L = 2, R = 2;
+        int S = 4, T = 5;
+        MinCostFlow mcf(6);
+
+        for (int i = 0; i < L; i++) mcf.add_edge(S, i, 1, 0);
+        for (int j = 0; j < R; j++) mcf.add_edge(L + j, T, 1, 0);
+
+        mcf.add_edge(0, 2, 1, 3);
+        mcf.add_edge(0, 3, 1, 1);
+        mcf.add_edge(1, 2, 1, 1);
+        mcf.add_edge(1, 3, 1, 2);
+
+        cout << "最小コスト = " << mcf.min_cost_flow(S, T, 2) << "\n";
+        cout << "マッチング結果:\n";
+
+        for (int i = 0; i < L; i++) {
+            for (auto &e : mcf.G[i]) {
+                if (e.to >= L && e.to < L + R &&
+                    e.orig_cap == 1 && e.cap == 0) {
+                    cout << "左 " << i << " - 右 " << (e.to - L) << "\n";
+                }
+            }
+        }
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

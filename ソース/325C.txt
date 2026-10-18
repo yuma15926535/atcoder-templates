@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W;
+vector<string> S;
+vector<vector<bool>> visited;
+vector<int> dh={-1,-1,-1,0,0,1,1,1};
+vector<int> dw={-1,0,1,-1,1,-1,0,1};
+bool sensor(int h,int w){
+    return S[h][w]=='#'&&visited[h][w];
+}
+bool range(int h,int w){
+    return 0<=h&&h<H&&0<=w&&w<W&&sensor(h,w);
+}
+void dfs(int h,int w){
+    visited[h][w]=false;
+    rep(i,0,8)if(range(h+dh[i],w+dw[i]))dfs(h+dh[i],w+dw[i]);
+    return;
+}
+
+int main()
+{
+    cin>>H>>W;
+    S.resize(H);
+    rep(i,0,H)cin>>S[i];
+    //二次元配列をresizeを使って初期化
+    visited.resize(H,vector<bool>(W,true));
+    int ans=0;
+    rep(i,0,H)rep(j,0,W){
+        if(sensor(i,j)){
+            dfs(i,j);
+            ans++;
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

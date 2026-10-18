@@ -1,0 +1,1698 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================================
+// DynamicBinarySequence  --  AtCoder用 "全部入り" 動的0/1列テンプレート
+// ----------------------------------------------------------------------------
+// 実装方式 : Implicit Treap (要素1個=1ノード)。 DynamicSequence<T> と同じ
+//            設計方針を採用し, 0/1に特化した集約 (run長, popcount等) を持つ。
+//
+// 区間は常に半開区間 [l, r), 添字はすべて 0-based で統一する。
+//
+// ---------------------------------------------------------------------------
+// 【API一覧と計算量】 (N = size())
+//
+//  size/empty/get/operator[]/front/back   O(log N)  (size/emptyはO(1))
+//  set(i,b) / flip(i)                     O(log N)
+//  push_back/pop_back/push_front/pop_front O(log N)
+//  insert(i,b) / erase(i) / erase(l,r)    O(log N)
+//  to_vector() / to_vector(l,r)           O(N) / O(r-l)
+//  split(k) / merge / concat / extract / splice  O(log N)
+//  reverse(l,r) / rotate(l,r,k) / shift_left/right / move(l,r,pos) O(log N)
+//  swap_range(l1,r1,l2,r2)                O(log N)
+//
+//  --- Range Lazy ---
+//  assign(l,r,0/1) / flip(l,r)            O(log N)
+//
+//  --- Count / Rank / Select ---
+//  count1(l,r) / count0(l,r)              O(log N)
+//  rank1(pos) / rank0(pos)                O(log N)   ([0,pos)内の1/0の数)
+//  select1(k) / select0(k)                O(log N)   (0-based: k=0が最初の1/0)
+//  kth_one(l,r,k) / kth_zero(l,r,k)        O(log N)   ([l,r)内, 0-based)
+//
+//  --- 検索 ---
+//  find_first_one/zero(l,r)               O(log N)   (無ければ r を返す)
+//  find_last_one/zero(l,r)                O(log N)   (無ければ l-1 を返す)
+//  find_first_change(l,r) / find_last_change(l,r)  O(log N)
+//
+//  --- Run長 ---
+//  longest_zero_run(l,r) / longest_one_run(l,r) / longest_run(l,r) O(log N)
+//  count_runs(l,r)                        O(log N)
+//  prefix_zero_run/suffix_zero_run/prefix_one_run/suffix_one_run(l,r) O(log N)
+//
+//  --- Alternating (交互列) ---
+//  longest_alternating(l,r)               O(len)  (下記「実装対象外」節参照)
+//
+//  --- Pattern Search ---
+//  find_pattern(l,r,pattern) / count_pattern(l,r,pattern)  O(len+|pattern|)
+//     (下記「実装対象外」節参照。 KMPによるO(N+M)のnaive実装のみ提供)
+//
+//  --- debug ---
+//  dump()/print()/check()/validate()
+//
+// ---------------------------------------------------------------------------
+// 【Lazyの合成】
+//   3種類の lazy (rev: 反転, flip: 0/1反転, assign: 定数代入) を持つ。
+//   - rev と flip は独立で可換 (どちらを先に適用しても結果は同じ)。
+//   - assign が pending な場合、flip は assign_val を直接 1-assign_val に
+//     書き換えるだけで吸収できる (assign後の状態が既に確定しているため)。
+//   これにより (has_assign, assign_val, flip, rev) の4つのフィールドで
+//   任意の組み合わせを O(1) で合成できる。
+//
+// 【実装対象外の機能とその理由】
+//   - longest_alternating(l,r) の O(log N) 維持
+//       : 0/1 run長 (longest0/1) は「同じ値が連続する」条件だけで判定できる
+//         ので merge が値非依存 (0 or 1のどちらであるかに関わらず対称) だが,
+//         alternating (交互) 条件は「隣接する2要素の値が異なるか」という
+//         "境界の実際の値" (first_val/last_val) の比較に依存する。
+//         理論上は同様のmerge手法 (first_val/last_val を追跡し, 境界の値が
+//         異なる場合のみ run を延長する) で O(log N) 化は可能だが,
+//         insert/erase/reverse/flip/assign すべてに対して境界値追跡を
+//         正しく保つには実装量・バグ混入リスクが大きく増える。
+//         本テンプレートでは正確性を優先し, O(len) の fallback
+//         (to_vectorしてスキャン) のみを提供する。
+//   - 任意パターンの高速検索 (find_pattern/count_pattern の O(log N or log^2 N))
+//       : 0/1文字列に対する任意パターン一致は本質的に Rolling Hash や
+//         Suffix Automaton 等の別構造が必要であり, insert/erase/reverse/flip
+//         と両立する動的版は非常に重い。本テンプレートは K M P 法による
+//         O(N+M) の素朴な実装のみ提供する (DynamicStringのhashベース検索の
+//         方が高速な場合はそちらを利用すること)。
+//
+// 【Node pool】 DynamicSequence<T> と同じ static shared pool + free list方式。
+// 【コピー】 copy禁止, move許可。深いコピーは clone() で明示的に行う。
+// 【乱数】 mt19937_64 (chrono seed)。
+// ============================================================================
+struct DynamicBinarySequence {
+    struct Node {
+        int ch[2] = {-1, -1};
+        unsigned long long pri = 0;
+        int sz = 1;
+        int val = 0; // 0 or 1
+        int cnt1 = 0;
+        int pre0 = 0, suf0 = 0, len0 = 0;
+        int pre1 = 0, suf1 = 0, len1 = 0;
+        int run_cnt = 0;
+        int first_val = 0, last_val = 0;
+        bool rev = false;
+        bool flip = false;
+        bool has_assign = false;
+        int assign_val = 0;
+    };
+
+    static inline vector<Node> pool;
+    static inline vector<int> free_list;
+    static inline mt19937_64 rng{(unsigned long long)chrono::steady_clock::now().time_since_epoch().count()};
+
+    int root = -1;
+
+    // ------------------------------------------------------------------
+    static int alloc_node(int b) {
+        int idx;
+        if (!free_list.empty()) { idx = free_list.back(); free_list.pop_back(); pool[idx] = Node(); }
+        else { pool.emplace_back(); idx = (int)pool.size() - 1; }
+        Node& nd = pool[idx];
+        nd.val = b; nd.cnt1 = b;
+        nd.pre0 = nd.suf0 = nd.len0 = (b == 0);
+        nd.pre1 = nd.suf1 = nd.len1 = (b == 1);
+        nd.run_cnt = 1;
+        nd.first_val = nd.last_val = b;
+        nd.pri = rng();
+        return idx;
+    }
+    static void free_subtree(int t) {
+        if (t == -1) return;
+        free_subtree(pool[t].ch[0]);
+        free_subtree(pool[t].ch[1]);
+        free_list.push_back(t);
+    }
+    static int SZ(int t) { return t == -1 ? 0 : pool[t].sz; }
+    static int CNT1(int t) { return t == -1 ? 0 : pool[t].cnt1; }
+    static int CNT0(int t) { return t == -1 ? 0 : SZ(t) - CNT1(t); }
+    static int PRE0(int t) { return t == -1 ? 0 : pool[t].pre0; }
+    static int SUF0(int t) { return t == -1 ? 0 : pool[t].suf0; }
+    static int LEN0(int t) { return t == -1 ? 0 : pool[t].len0; }
+    static int PRE1(int t) { return t == -1 ? 0 : pool[t].pre1; }
+    static int SUF1(int t) { return t == -1 ? 0 : pool[t].suf1; }
+    static int LEN1(int t) { return t == -1 ? 0 : pool[t].len1; }
+    static int RUNCNT(int t) { return t == -1 ? 0 : pool[t].run_cnt; }
+    static int FIRSTV(int t) { return t == -1 ? -1 : pool[t].first_val; }
+    static int LASTV(int t) { return t == -1 ? -1 : pool[t].last_val; }
+
+    // ------------------------------------------------------------------
+    // pull : 子から親を再計算。 O(1)
+    // ------------------------------------------------------------------
+    static void pull(int t) {
+        Node& nd = pool[t];
+        int lc = nd.ch[0], rc = nd.ch[1];
+        nd.sz = SZ(lc) + 1 + SZ(rc);
+        nd.cnt1 = CNT1(lc) + nd.val + CNT1(rc);
+        int v = nd.val;
+
+        // prefix/suffix/longest run (0)
+        nd.pre0 = (PRE0(lc) == SZ(lc) && v == 0) ? SZ(lc) + 1 + PRE0(rc) : (SZ(lc) > 0 ? PRE0(lc) : (v == 0 ? 1 + PRE0(rc) : 0));
+        nd.suf0 = (SUF0(rc) == SZ(rc) && v == 0) ? SZ(rc) + 1 + SUF0(lc) : (SZ(rc) > 0 ? SUF0(rc) : (v == 0 ? 1 + SUF0(lc) : 0));
+        nd.len0 = max({LEN0(lc), LEN0(rc), (v == 0 ? SUF0(lc) + 1 + PRE0(rc) : 0)});
+
+        // prefix/suffix/longest run (1)
+        nd.pre1 = (PRE1(lc) == SZ(lc) && v == 1) ? SZ(lc) + 1 + PRE1(rc) : (SZ(lc) > 0 ? PRE1(lc) : (v == 1 ? 1 + PRE1(rc) : 0));
+        nd.suf1 = (SUF1(rc) == SZ(rc) && v == 1) ? SZ(rc) + 1 + SUF1(lc) : (SZ(rc) > 0 ? SUF1(rc) : (v == 1 ? 1 + SUF1(lc) : 0));
+        nd.len1 = max({LEN1(lc), LEN1(rc), (v == 1 ? SUF1(lc) + 1 + PRE1(rc) : 0)});
+
+        // run count
+        int rc_total = RUNCNT(lc) + 1 + RUNCNT(rc);
+        if (lc != -1 && LASTV(lc) == v) rc_total--;
+        if (rc != -1 && FIRSTV(rc) == v) rc_total--;
+        nd.run_cnt = rc_total;
+
+        nd.first_val = (lc != -1) ? FIRSTV(lc) : v;
+        nd.last_val = (rc != -1) ? LASTV(rc) : v;
+    }
+
+    // ------------------------------------------------------------------
+    // apply
+    // ------------------------------------------------------------------
+    static void apply_assign(int t, int v) {
+        Node& nd = pool[t];
+        int n = nd.sz;
+        nd.val = v;
+        nd.cnt1 = v ? n : 0;
+        if (v == 0) { nd.pre0 = nd.suf0 = nd.len0 = n; nd.pre1 = nd.suf1 = nd.len1 = 0; }
+        else { nd.pre1 = nd.suf1 = nd.len1 = n; nd.pre0 = nd.suf0 = nd.len0 = 0; }
+        nd.run_cnt = (n > 0) ? 1 : 0;
+        nd.first_val = nd.last_val = v;
+        nd.has_assign = true;
+        nd.assign_val = v;
+        nd.flip = false;
+    }
+    static void apply_flip(int t) {
+        Node& nd = pool[t];
+        if (nd.has_assign) { apply_assign(t, 1 - nd.assign_val); return; }
+        nd.flip = !nd.flip;
+        nd.val = 1 - nd.val;
+        nd.cnt1 = nd.sz - nd.cnt1;
+        swap(nd.pre0, nd.pre1); swap(nd.suf0, nd.suf1); swap(nd.len0, nd.len1);
+        nd.first_val = 1 - nd.first_val;
+        nd.last_val = 1 - nd.last_val;
+    }
+    static void apply_rev(int t) {
+        Node& nd = pool[t];
+        nd.rev = !nd.rev;
+        swap(nd.ch[0], nd.ch[1]);
+        swap(nd.pre0, nd.suf0);
+        swap(nd.pre1, nd.suf1);
+        swap(nd.first_val, nd.last_val);
+    }
+    static void push(int t) {
+        Node& nd = pool[t];
+        if (nd.rev) {
+            if (nd.ch[0] != -1) apply_rev(nd.ch[0]);
+            if (nd.ch[1] != -1) apply_rev(nd.ch[1]);
+            nd.rev = false;
+        }
+        if (nd.flip) {
+            if (nd.ch[0] != -1) apply_flip(nd.ch[0]);
+            if (nd.ch[1] != -1) apply_flip(nd.ch[1]);
+            nd.flip = false;
+        }
+        if (nd.has_assign) {
+            if (nd.ch[0] != -1) apply_assign(nd.ch[0], nd.assign_val);
+            if (nd.ch[1] != -1) apply_assign(nd.ch[1], nd.assign_val);
+            nd.has_assign = false;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    static pair<int,int> split(int t, int k) {
+        if (t == -1) return {-1, -1};
+        push(t);
+        int lc = pool[t].ch[0];
+        if (SZ(lc) >= k) {
+            auto [a, b] = split(lc, k);
+            pool[t].ch[0] = b; pull(t);
+            return {a, t};
+        } else {
+            auto [a, b] = split(pool[t].ch[1], k - SZ(lc) - 1);
+            pool[t].ch[1] = a; pull(t);
+            return {t, b};
+        }
+    }
+    static int merge(int a, int b) {
+        if (a == -1) return b;
+        if (b == -1) return a;
+        if (pool[a].pri > pool[b].pri) { push(a); pool[a].ch[1] = merge(pool[a].ch[1], b); pull(a); return a; }
+        else { push(b); pool[b].ch[0] = merge(a, pool[b].ch[0]); pull(b); return b; }
+    }
+    static int build(const vector<int>& a, int l, int r) {
+        if (l >= r) return -1;
+        if (r - l == 1) return alloc_node(a[l]);
+        int mid = (l + r) / 2;
+        return merge(build(a, l, mid), build(a, mid, r));
+    }
+
+    // ------------------------------------------------------------------
+    DynamicBinarySequence() = default;
+    explicit DynamicBinarySequence(const vector<int>& a) { root = build(a, 0, (int)a.size()); }
+    explicit DynamicBinarySequence(const string& s) {
+        vector<int> a(s.size());
+        for (size_t i = 0; i < s.size(); i++) { assert(s[i]=='0'||s[i]=='1'); a[i] = s[i]-'0'; }
+        root = build(a, 0, (int)a.size());
+    }
+    DynamicBinarySequence(const DynamicBinarySequence&) = delete;
+    DynamicBinarySequence& operator=(const DynamicBinarySequence&) = delete;
+    DynamicBinarySequence(DynamicBinarySequence&& o) noexcept : root(o.root) { o.root = -1; }
+    DynamicBinarySequence& operator=(DynamicBinarySequence&& o) noexcept {
+        if (this != &o) { free_subtree(root); root = o.root; o.root = -1; }
+        return *this;
+    }
+    ~DynamicBinarySequence() { free_subtree(root); }
+
+    DynamicBinarySequence clone() const { DynamicBinarySequence res; res.root = clone_subtree(root); return res; }
+    static int clone_subtree(int t) {
+        if (t == -1) return -1;
+        push(t);
+        int idx = alloc_node(pool[t].val);
+        pool[idx].pri = pool[t].pri;
+        pool[idx].ch[0] = clone_subtree(pool[t].ch[0]);
+        pool[idx].ch[1] = clone_subtree(pool[t].ch[1]);
+        pull(idx);
+        return idx;
+    }
+
+    int size() const { return SZ(root); }        // O(1)
+    bool empty() const { return root == -1; }     // O(1)
+
+    int get(int i) const {                        // O(log N)
+        assert(0 <= i && i < size());
+        int t = root;
+        while (true) {
+            push(t);
+            int lc = pool[t].ch[0], cs = SZ(lc);
+            if (i < cs) t = lc;
+            else if (i == cs) return pool[t].val;
+            else { i -= cs + 1; t = pool[t].ch[1]; }
+        }
+    }
+    int operator[](int i) const { return get(i); }
+    int front() const { assert(!empty()); return get(0); }
+    int back() const { assert(!empty()); return get(size()-1); }
+
+    void set(int i, int b) { assert(0<=i&&i<size()); assert(b==0||b==1); set_impl(root,i,b); } // O(log N)
+    static void set_impl(int t, int i, int b) {
+        push(t);
+        int lc = pool[t].ch[0], cs = SZ(lc);
+        if (i < cs) set_impl(lc, i, b);
+        else if (i == cs) { pool[t].val = b; }
+        else set_impl(pool[t].ch[1], i - cs - 1, b);
+        pull(t);
+    }
+    void flip_at(int i) { assert(0<=i&&i<size()); set(i, 1-get(i)); } // O(log N)  ("flip"は区間版と名前が同じにできないためflip_atとflip(l,r)を分ける
+
+    void insert(int i, int b) { // O(log N)
+        assert(0<=i&&i<=size()); assert(b==0||b==1);
+        auto [a,c] = split(root, i);
+        int nd = alloc_node(b);
+        root = merge(merge(a, nd), c);
+    }
+    void erase(int i) { assert(0<=i&&i<size()); erase(i, i+1); } // O(log N)
+    void erase(int l, int r) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        if (l==r) return;
+        auto [a,bc] = split(root,l);
+        auto [b,c] = split(bc, r-l);
+        free_subtree(b);
+        root = merge(a,c);
+    }
+    void push_back(int b) { insert(size(), b); }
+    void pop_back() { assert(!empty()); erase(size()-1); }
+    void push_front(int b) { insert(0, b); }
+    void pop_front() { assert(!empty()); erase(0); }
+
+    vector<int> to_vector() const { return to_vector(0, size()); } // O(N)
+    vector<int> to_vector(int l, int r) const {                    // O(r-l)
+        assert(0<=l&&l<=r&&r<=size());
+        vector<int> res; res.reserve(r-l);
+        collect(root, l, r, res);
+        return res;
+    }
+    static void collect(int t, int l, int r, vector<int>& res) {
+        if (t==-1||l>=r) return;
+        push(t);
+        int lc = pool[t].ch[0], cs = SZ(lc);
+        if (l < cs) collect(lc, l, std::min(r,cs), res);
+        if (l <= cs && cs < r) res.push_back(pool[t].val);
+        if (r > cs+1) collect(pool[t].ch[1], std::max(0,l-cs-1), r-cs-1, res);
+    }
+    string to_string_bits() const { auto v=to_vector(); string s(v.size(),'0'); for(size_t i=0;i<v.size();i++) s[i]=char('0'+v[i]); return s; } // O(N)
+
+    // ------------------------------------------------------------------
+    pair<DynamicBinarySequence, DynamicBinarySequence> split(int k) { // O(log N)
+        assert(0<=k&&k<=size());
+        auto [a,b] = split(root,k);
+        root=-1;
+        DynamicBinarySequence L,R; L.root=a; R.root=b;
+        return {std::move(L), std::move(R)};
+    }
+    void merge(DynamicBinarySequence& other) { root = merge(root, other.root); other.root=-1; } // O(log N)
+    static DynamicBinarySequence merge(DynamicBinarySequence& a, DynamicBinarySequence& b) {
+        DynamicBinarySequence res; res.root = merge(a.root,b.root); a.root=-1; b.root=-1; return res;
+    }
+    static DynamicBinarySequence concat(vector<DynamicBinarySequence>& seqs) {
+        DynamicBinarySequence res; for (auto& s: seqs) res.merge(s); return res;
+    }
+
+    void reverse(int l, int r) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        if (r-l<=1) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,r-l);
+        if (b!=-1) apply_rev(b);
+        root=merge(merge(a,b),c);
+    }
+    void rotate(int l, int r, long long k) { // O(log N)  [l,r)を右にk回rotate
+        assert(0<=l&&l<=r&&r<=size());
+        int len=r-l; if (len<=1) return;
+        k%=len; if(k<0) k+=len; if(k==0) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,len);
+        auto [b1,b2]=split(b, len-(int)k);
+        root = merge(merge(a, merge(b2,b1)), c);
+    }
+    void shift_right(int l,int r,long long k){ rotate(l,r,k); }
+    void shift_left(int l,int r,long long k){ rotate(l,r,-k); }
+
+    void move(int l, int r, int pos) { // O(log N)  意味はDynamicSequenceのmoveと同一
+        assert(0<=l&&l<=r&&r<=size());
+        int len=r-l; assert(0<=pos&&pos<=size()-len);
+        if (len==0) return;
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,len);
+        int red = merge(a,c);
+        auto [r1,r2]=split(red,pos);
+        root = merge(merge(r1,b), r2);
+    }
+    void swap_range(int l1,int r1,int l2,int r2) { // O(log N)
+        assert(0<=l1&&l1<=r1); assert(0<=l2&&l2<=r2);
+        if (l1>l2){ swap(l1,l2); swap(r1,r2); }
+        assert(r1<=l2 && "swap_range: 区間が重複しています");
+        assert(r2<=size());
+        if (r1-l1==0 && r2-l2==0) return;
+        auto [a,rest1]=split(root,l1);
+        auto [seg1,rest2]=split(rest1,r1-l1);
+        auto [b,rest3]=split(rest2,l2-r1);
+        auto [seg2,c]=split(rest3,r2-l2);
+        root = merge(merge(merge(merge(a,seg2),b),seg1),c);
+    }
+    DynamicBinarySequence extract(int l, int r) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size());
+        auto [a,bc]=split(root,l);
+        auto [b,c]=split(bc,r-l);
+        root=merge(a,c);
+        DynamicBinarySequence res; res.root=b; return res;
+    }
+    void splice(int pos, DynamicBinarySequence& other, int l, int r) { // O(log N)
+        assert(0<=pos&&pos<=size());
+        assert(0<=l&&l<=r&&r<=other.size());
+        auto [oa,obc]=split(other.root,l);
+        auto [seg,oc]=split(obc,r-l);
+        other.root=merge(oa,oc);
+        auto [a,b]=split(root,pos);
+        root=merge(merge(a,seg),b);
+    }
+
+    // ==================================================================
+    // Range Lazy: assign / flip
+    // ==================================================================
+    void assign(int l, int r, int b) { // O(log N)
+        assert(0<=l&&l<=r&&r<=size()); assert(b==0||b==1);
+        if (l==r) return;
+        auto [a,bc]=split(root,l);
+        auto [seg,c]=split(bc,r-l);
+        if (seg!=-1) apply_assign(seg,b);
+        root=merge(merge(a,seg),c);
+    }
+    void flip(int l, int r) { // O(log N)  "0<->1"
+        assert(0<=l&&l<=r&&r<=size());
+        if (l==r) return;
+        auto [a,bc]=split(root,l);
+        auto [seg,c]=split(bc,r-l);
+        if (seg!=-1) apply_flip(seg);
+        root=merge(merge(a,seg),c);
+    }
+
+    // ==================================================================
+    // Count / Rank / Select
+    // ==================================================================
+    int count1(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); return query_cnt1(root,l,r); } // O(log N)
+    int count0(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); return (r-l) - count1(l,r); }   // O(log N)
+    static int query_cnt1(int t, int l, int r) {
+        if (t==-1||l>=r) return 0;
+        push(t);
+        int lc=pool[t].ch[0], cs=SZ(lc);
+        if (l<=0 && r>=SZ(t)) return pool[t].cnt1;
+        int res=0;
+        if (l<cs) res += query_cnt1(lc,l,std::min(r,cs));
+        if (l<=cs && cs<r) res += pool[t].val;
+        if (r>cs+1) res += query_cnt1(pool[t].ch[1], std::max(0,l-cs-1), r-cs-1);
+        return res;
+    }
+    int rank1(int pos) const { assert(0<=pos&&pos<=size()); return count1(0,pos); } // O(log N)
+    int rank0(int pos) const { assert(0<=pos&&pos<=size()); return count0(0,pos); } // O(log N)
+
+    // k: 0-based (k=0が最初の1/0)。 全体でk番目の1/0が存在しないならassert。
+    int select1(int k) const { // O(log N)
+        assert(0<=k && k<CNT1(root));
+        int t=root, pos_offset=0;
+        while (true) {
+            push(t);
+            int lc=pool[t].ch[0]; int lc1=CNT1(lc);
+            if (k<lc1) { t=lc; }
+            else if (pool[t].val==1 && k==lc1) { return pos_offset+SZ(lc); }
+            else { k -= lc1 + pool[t].val; pos_offset += SZ(lc)+1; t=pool[t].ch[1]; }
+        }
+    }
+    int select0(int k) const { // O(log N)
+        assert(0<=k && k<CNT0(root));
+        int t=root, pos_offset=0;
+        while (true) {
+            push(t);
+            int lc=pool[t].ch[0]; int lc0=SZ(lc)-CNT1(lc);
+            if (k<lc0) { t=lc; }
+            else if (pool[t].val==0 && k==lc0) { return pos_offset+SZ(lc); }
+            else { k -= lc0 + (1-pool[t].val); pos_offset += SZ(lc)+1; t=pool[t].ch[1]; }
+        }
+    }
+    int kth_one(int l, int r, int k) const { // [l,r)内で0-basedk番目の1の位置。 O(log N)
+        assert(0<=l&&l<r&&r<=size());
+        int base = rank1(l);
+        assert(0<=k && k<count1(l,r));
+        int p = select1(base+k);
+        assert(p<r);
+        return p;
+    }
+    int kth_zero(int l, int r, int k) const { // O(log N)
+        assert(0<=l&&l<r&&r<=size());
+        int base = rank0(l);
+        assert(0<=k && k<count0(l,r));
+        int p = select0(base+k);
+        assert(p<r);
+        return p;
+    }
+
+    // ==================================================================
+    // 検索: [l,r)内で最初/最後の1/0の位置。見つからなければ番兵を返す。
+    // ==================================================================
+    static int find_first_val_rec(int t, int l, int r, int offset, int target) { // O(log N)
+        if (t==-1) return -1;
+        int lo=offset, hi=offset+SZ(t);
+        if (hi<=l || r<=lo) return -1;
+        bool has = (target==1) ? (CNT1(t)>0) : (SZ(t)-CNT1(t)>0);
+        if (!has) return -1;
+        push(t);
+        int lc=pool[t].ch[0], rc=pool[t].ch[1], cs=SZ(lc);
+        int res = find_first_val_rec(lc,l,r,offset,target);
+        if (res!=-1) return res;
+        int selfpos = offset+cs;
+        if (l<=selfpos && selfpos<r && pool[t].val==target) return selfpos;
+        res = find_first_val_rec(rc,l,r,offset+cs+1,target);
+        if (res!=-1) return res;
+        return -1;
+    }
+    static int find_last_val_rec(int t, int l, int r, int offset, int target) { // O(log N)
+        if (t==-1) return -1;
+        int lo=offset, hi=offset+SZ(t);
+        if (hi<=l || r<=lo) return -1;
+        bool has = (target==1) ? (CNT1(t)>0) : (SZ(t)-CNT1(t)>0);
+        if (!has) return -1;
+        push(t);
+        int lc=pool[t].ch[0], rc=pool[t].ch[1], cs=SZ(lc);
+        int res = find_last_val_rec(rc,l,r,offset+cs+1,target);
+        if (res!=-1) return res;
+        int selfpos = offset+cs;
+        if (l<=selfpos && selfpos<r && pool[t].val==target) return selfpos;
+        res = find_last_val_rec(lc,l,r,offset,target);
+        if (res!=-1) return res;
+        return -1;
+    }
+    int find_first_one(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); int p=find_first_val_rec(root,l,r,0,1); return p==-1? r : p; } // O(log N)
+    int find_first_zero(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); int p=find_first_val_rec(root,l,r,0,0); return p==-1? r : p; } // O(log N)
+    int find_last_one(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); int p=find_last_val_rec(root,l,r,0,1); return p==-1? l-1 : p; } // O(log N)
+    int find_last_zero(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); int p=find_last_val_rec(root,l,r,0,0); return p==-1? l-1 : p; } // O(log N)
+
+    // [l,r)内で最初/最後に隣接要素が異なる境界位置iを返す (a[i]!=a[i+1])。
+    // 「a[l]の値と異なる最初の要素」の一つ前、として求める。無ければ r-1(見つからない)を意味するため
+    // 番兵として r を返す (last版は l-1)。 O(log N)
+    int find_first_change(int l, int r) const {
+        assert(0<=l&&l<r&&r<=size());
+        int v = get(l);
+        int p = (v==0) ? find_first_one(l+1,r) : find_first_zero(l+1,r);
+        return (p==r) ? r : p-1;
+    }
+    int find_last_change(int l, int r) const {
+        assert(0<=l&&l<r&&r<=size());
+        int v = get(r-1);
+        int p = (v==0) ? find_last_one(l,r-1) : find_last_zero(l,r-1);
+        return (p==l-1) ? l-1 : p;
+    }
+
+    // ==================================================================
+    // Run長 (aggregate)
+    // ==================================================================
+    struct RunAcc {
+        bool has=false;
+        int sz=0, cnt1=0;
+        int pre0=0,suf0=0,len0=0, pre1=0,suf1=0,len1=0, run_cnt=0, first_val=-1, last_val=-1;
+    };
+    static RunAcc single(int t) {
+        RunAcc r; r.has=true; Node& nd=pool[t];
+        r.sz=nd.sz; r.cnt1=nd.cnt1;
+        r.pre0=nd.pre0; r.suf0=nd.suf0; r.len0=nd.len0;
+        r.pre1=nd.pre1; r.suf1=nd.suf1; r.len1=nd.len1;
+        r.run_cnt=nd.run_cnt; r.first_val=nd.first_val; r.last_val=nd.last_val;
+        return r;
+    }
+    static RunAcc combine(const RunAcc& L, int v, const RunAcc& R) {
+        RunAcc res; res.has=true;
+        int Lsz=L.has?L.sz:0, Rsz=R.has?R.sz:0;
+        res.sz = Lsz+1+Rsz;
+        res.cnt1 = (L.has?L.cnt1:0) + v + (R.has?R.cnt1:0);
+        auto PRE0=[&](const RunAcc&X){return X.has?X.pre0:0;};
+        auto SUF0=[&](const RunAcc&X){return X.has?X.suf0:0;};
+        auto LEN0=[&](const RunAcc&X){return X.has?X.len0:0;};
+        auto PRE1=[&](const RunAcc&X){return X.has?X.pre1:0;};
+        auto SUF1=[&](const RunAcc&X){return X.has?X.suf1:0;};
+        auto LEN1=[&](const RunAcc&X){return X.has?X.len1:0;};
+        res.pre0 = (PRE0(L)==Lsz && v==0) ? Lsz+1+PRE0(R) : (Lsz>0?PRE0(L):(v==0?1+PRE0(R):0));
+        res.suf0 = (SUF0(R)==Rsz && v==0) ? Rsz+1+SUF0(L) : (Rsz>0?SUF0(R):(v==0?1+SUF0(L):0));
+        res.len0 = max({LEN0(L),LEN0(R), (v==0? SUF0(L)+1+PRE0(R):0)});
+        res.pre1 = (PRE1(L)==Lsz && v==1) ? Lsz+1+PRE1(R) : (Lsz>0?PRE1(L):(v==1?1+PRE1(R):0));
+        res.suf1 = (SUF1(R)==Rsz && v==1) ? Rsz+1+SUF1(L) : (Rsz>0?SUF1(R):(v==1?1+SUF1(L):0));
+        res.len1 = max({LEN1(L),LEN1(R), (v==1? SUF1(L)+1+PRE1(R):0)});
+        int rc = (L.has?L.run_cnt:0) + 1 + (R.has?R.run_cnt:0);
+        if (L.has && L.last_val==v) rc--;
+        if (R.has && R.first_val==v) rc--;
+        res.run_cnt = rc;
+        res.first_val = L.has? L.first_val : v;
+        res.last_val = R.has? R.last_val : v;
+        return res;
+    }
+    static RunAcc query(int t, int l, int r) {
+        if (t==-1||l>=r) return RunAcc{};
+        push(t);
+        int lc=pool[t].ch[0], cs=SZ(lc);
+        if (l<=0 && r>=SZ(t)) return single(t);
+        RunAcc L = (l<cs)? query(lc,l,std::min(r,cs)) : RunAcc{};
+        RunAcc mid{};
+        bool midpresent = (l<=cs && cs<r);
+        if (midpresent) { mid.has=true; mid.sz=1; mid.cnt1=pool[t].val;
+            mid.pre0=mid.suf0=mid.len0=(pool[t].val==0);
+            mid.pre1=mid.suf1=mid.len1=(pool[t].val==1);
+            mid.run_cnt=1; mid.first_val=mid.last_val=pool[t].val;
+        }
+        RunAcc R = (r>cs+1)? query(pool[t].ch[1], std::max(0,l-cs-1), r-cs-1) : RunAcc{};
+        if (!midpresent) {
+            if (L.has && !R.has) return L;
+            if (!L.has && R.has) return R;
+            if (!L.has && !R.has) return RunAcc{};
+        }
+        return combine(L, midpresent?pool[t].val:0, R);
+    }
+    int longest_zero_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).len0; } // O(log N)
+    int longest_one_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).len1; }  // O(log N)
+    int longest_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; auto a=query(root,l,r); return std::max(a.len0,a.len1); } // O(log N)
+    int count_runs(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).run_cnt; } // O(log N)
+    int prefix_zero_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).pre0; } // O(log N)
+    int suffix_zero_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).suf0; } // O(log N)
+    int prefix_one_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).pre1; }  // O(log N)
+    int suffix_one_run(int l, int r) const { assert(l<=r&&r<=size()); if(l==r) return 0; return query(root,l,r).suf1; }  // O(log N)
+
+    // longest_alternating : O(log N)維持は実装対象外 (ヘッダコメント参照)。
+    // O(len) fallback を提供する。
+    int longest_alternating(int l, int r) const {
+        assert(0<=l&&l<=r&&r<=size());
+        if (l==r) return 0;
+        auto v = to_vector(l,r);
+        int best=1, cur=1;
+        for (size_t i=1;i<v.size();i++) { if (v[i]!=v[i-1]) cur++; else cur=1; best=max(best,cur); }
+        return best;
+    }
+
+    // ==================================================================
+    // Pattern Search (O(N+M) の素朴な実装。詳細はヘッダコメント参照)
+    // ==================================================================
+    int find_pattern(int l, int r, const vector<int>& pattern) const { // O((r-l)+|pattern|)
+        assert(0<=l&&l<=r&&r<=size());
+        auto text = to_vector(l,r);
+        int n=(int)text.size(), m=(int)pattern.size();
+        if (m==0) return l;
+        if (m>n) return r; // 見つからない
+        vector<int> fail(m,0);
+        for (int i=1,k=0;i<m;i++) { while(k>0&&pattern[i]!=pattern[k]) k=fail[k-1]; if(pattern[i]==pattern[k]) k++; fail[i]=k; }
+        for (int i=0,k=0;i<n;i++) {
+            while (k>0 && text[i]!=pattern[k]) k=fail[k-1];
+            if (text[i]==pattern[k]) k++;
+            if (k==m) return l + i - m + 1;
+        }
+        return r; // 見つからない
+    }
+    int count_pattern(int l, int r, const vector<int>& pattern) const { // O((r-l)+|pattern|)
+        assert(0<=l&&l<=r&&r<=size());
+        auto text = to_vector(l,r);
+        int n=(int)text.size(), m=(int)pattern.size();
+        if (m==0 || m>n) return 0;
+        vector<int> fail(m,0);
+        for (int i=1,k=0;i<m;i++) { while(k>0&&pattern[i]!=pattern[k]) k=fail[k-1]; if(pattern[i]==pattern[k]) k++; fail[i]=k; }
+        int cnt=0;
+        for (int i=0,k=0;i<n;i++) {
+            while (k>0 && text[i]!=pattern[k]) k=fail[k-1];
+            if (text[i]==pattern[k]) k++;
+            if (k==m) { cnt++; k=fail[k-1]; }
+        }
+        return cnt;
+    }
+
+    // ==================================================================
+    // Debug
+    // ==================================================================
+    void print() const { cerr << to_string_bits() << "\n"; } // O(N)
+    void dump() const { dump_rec(root,0); } // O(N)
+    static void dump_rec(int t, int depth) {
+        if (t==-1) return;
+        push(t);
+        dump_rec(pool[t].ch[1], depth+1);
+        cerr << string(depth*2,' ') << pool[t].val << " (sz=" << pool[t].sz << ")\n";
+        dump_rec(pool[t].ch[0], depth+1);
+    }
+    bool validate() const { return check_rec(root) >= 0; }
+    bool check() const { return validate(); }
+    static int check_rec(int t) {
+        if (t==-1) return 0;
+        push(t);
+        int lc=pool[t].ch[0], rc=pool[t].ch[1];
+        if (lc!=-1) assert(pool[t].pri>=pool[lc].pri);
+        if (rc!=-1) assert(pool[t].pri>=pool[rc].pri);
+        int lsz=check_rec(lc), rsz=check_rec(rc);
+        int expect=lsz+1+rsz;
+        assert(pool[t].sz==expect);
+        return expect;
+    }
+};
+
+// ============================================================================
+// 動作確認 / Random Stress Test
+// AtCoderに提出する際はこの #ifdef LOCAL ブロックごと削除してよい。
+// ============================================================================
+#ifdef LOCAL
+#include <cassert>
+
+void stress_test_binary() {
+    mt19937 rng(20260822);
+    int n0 = rng() % 8;
+    vector<int> ref(n0);
+    for (auto& x : ref) x = rng() % 2;
+    DynamicBinarySequence ds(ref);
+
+    int OPS = 20000;
+    for (int op = 0; op < OPS; op++) {
+        int type = rng() % 15;
+        int n = (int)ref.size();
+        if (type==0) { int b=rng()%2; ref.push_back(b); ds.push_back(b); }
+        else if (type==1 && n>0) { ref.pop_back(); ds.pop_back(); }
+        else if (type==2) { int b=rng()%2; ref.insert(ref.begin(),b); ds.push_front(b); }
+        else if (type==3 && n>0) { ref.erase(ref.begin()); ds.pop_front(); }
+        else if (type==4) { int i=rng()%(n+1); int b=rng()%2; ref.insert(ref.begin()+i,b); ds.insert(i,b); }
+        else if (type==5 && n>0) { int i=rng()%n; ref.erase(ref.begin()+i); ds.erase(i); }
+        else if (type==6 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); ref.erase(ref.begin()+l,ref.begin()+r); ds.erase(l,r); }
+        else if (type==7 && n>0) { int i=rng()%n; int b=rng()%2; ref[i]=b; ds.set(i,b); }
+        else if (type==8 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); std::reverse(ref.begin()+l,ref.begin()+r); ds.reverse(l,r); }
+        else if (type==9 && n>0) {
+            int l=rng()%n,r=l+rng()%(n-l+1);
+            if (r>l) { long long k=(long long)(rng()%(2*(r-l)+1))-(r-l); long long kk=((k%(r-l))+(r-l))%(r-l);
+                std::rotate(ref.begin()+l, ref.begin()+(l+((r-l)-(int)kk)%(r-l)), ref.begin()+r); ds.rotate(l,r,k); }
+        }
+        else if (type==10 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); if(r>l){ for(int i=l;i<r;i++) ref[i]^=1; ds.flip(l,r);} }
+        else if (type==11 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); if(r>l){ int b=rng()%2; for(int i=l;i<r;i++) ref[i]=b; ds.assign(l,r,b);} }
+        else if (type==12 && n>0) {
+            int l=rng()%n,r=l+rng()%(n-l+1); int len=r-l; int pos=rng()%(n-len+1);
+            vector<int> seg(ref.begin()+l, ref.begin()+r);
+            ref.erase(ref.begin()+l, ref.begin()+r); ref.insert(ref.begin()+pos, seg.begin(), seg.end());
+            ds.move(l,r,pos);
+        }
+        else if (type==13 && n>0) {
+            int a1=rng()%n,b1=a1+rng()%(n-a1+1); if(b1>=n) continue;
+            int a2=b1+rng()%(n-b1+1); if(a2>n) continue; int b2v=a2+rng()%(n-a2+1); if(b2v>n) continue;
+            if(!(a1<=b1&&b1<=a2&&a2<=b2v)) continue;
+            vector<int> s1(ref.begin()+a1, ref.begin()+b1), s2(ref.begin()+a2, ref.begin()+b2v);
+            vector<int> nref(ref.begin(), ref.begin()+a1);
+            nref.insert(nref.end(), s2.begin(), s2.end());
+            nref.insert(nref.end(), ref.begin()+b1, ref.begin()+a2);
+            nref.insert(nref.end(), s1.begin(), s1.end());
+            nref.insert(nref.end(), ref.begin()+b2v, ref.end());
+            ref = nref; ds.swap_range(a1,b1,a2,b2v);
+        }
+        else if (type==14 && n>0) { int i=rng()%n; ref[i]^=1; ds.flip_at(i); }
+
+        assert((int)ref.size() == ds.size());
+        assert(ds.to_vector() == ref);
+        ds.validate();
+        if (!ref.empty()) {
+            int l=rng()%ref.size(), r=l+rng()%(ref.size()-l+1);
+            if (r>l) {
+                int c1=0; for(int i=l;i<r;i++) c1+=ref[i];
+                assert(ds.count1(l,r)==c1);
+                assert(ds.count0(l,r)==(r-l)-c1);
+
+                int len0=0,cur0=0,len1=0,cur1=0;
+                int pre0=0,suf0=0,pre1=0,suf1=0; bool pre0done=false,pre1done=false;
+                int runs=1;
+                for (int i=l;i<r;i++) {
+                    if (ref[i]==0) { cur0++; cur1=0; } else { cur1++; cur0=0; }
+                    len0=max(len0,cur0); len1=max(len1,cur1);
+                    if (i>l && ref[i]!=ref[i-1]) runs++;
+                }
+                for (int i=l;i<r;i++){ if(!pre0done){ if(ref[i]==0) pre0++; else pre0done=true; } if(!pre1done){ if(ref[i]==1) pre1++; else pre1done=true; } }
+                bool suf0done=false, suf1done=false;
+                for (int i=r-1;i>=l;i--){ if(!suf0done){ if(ref[i]==0) suf0++; else suf0done=true; } if(!suf1done){ if(ref[i]==1) suf1++; else suf1done=true; } }
+                assert(ds.longest_zero_run(l,r)==len0);
+                assert(ds.longest_one_run(l,r)==len1);
+                assert(ds.count_runs(l,r)==runs);
+                assert(ds.prefix_zero_run(l,r)==pre0);
+                assert(ds.prefix_one_run(l,r)==pre1);
+                assert(ds.suffix_zero_run(l,r)==suf0);
+                assert(ds.suffix_one_run(l,r)==suf1);
+
+                // rank/select
+                int pos = l + (int)(rng()%(r-l+1));
+                assert(ds.rank1(pos) == count(ref.begin(), ref.begin()+pos, 1));
+                if (ds.count1(0,ds.size())>0) {
+                    int k = rng() % ds.count1(0,ds.size());
+                    int p = ds.select1(k);
+                    assert(ref[p]==1);
+                    assert(count(ref.begin(), ref.begin()+p, 1) == k);
+                }
+                // find_first/last
+                {
+                    int ffo = ds.find_first_one(l,r);
+                    int expect_ffo = r; for(int i=l;i<r;i++) if(ref[i]==1){expect_ffo=i;break;}
+                    assert(ffo==expect_ffo);
+                    int flo = ds.find_last_one(l,r);
+                    int expect_flo = l-1; for(int i=r-1;i>=l;i--) if(ref[i]==1){expect_flo=i;break;}
+                    assert(flo==expect_flo);
+                }
+                // longest_alternating
+                {
+                    int best=1,cur=1;
+                    for (int i=l+1;i<r;i++){ if(ref[i]!=ref[i-1]) cur++; else cur=1; best=max(best,cur); }
+                    assert(ds.longest_alternating(l,r)==best);
+                }
+            }
+        }
+    }
+    cerr << "[DynamicBinarySequence] stress_test_binary OK (" << OPS << " ops, final size=" << ref.size() << ")\n";
+}
+
+void stress_test_binary_extra() {
+    mt19937 rng(7241001);
+
+    // extract/splice/concat, string constructor
+    {
+        DynamicBinarySequence ds(string("10110100"));
+        assert(ds.to_vector() == vector<int>({1,0,1,1,0,1,0,0}));
+        auto sub = ds.extract(2,5); // {1,1,0}
+        assert(sub.to_vector() == vector<int>({1,1,0}));
+        assert(ds.to_vector() == vector<int>({1,0,1,0,0}));
+        ds.splice(1, sub, 0, 2); // insert {1,1}
+        assert(ds.to_vector() == vector<int>({1,1,1,0,1,0,0}));
+        assert(sub.to_vector() == vector<int>({0}));
+
+        vector<DynamicBinarySequence> parts;
+        parts.push_back(DynamicBinarySequence(string("11")));
+        parts.push_back(DynamicBinarySequence(string("00")));
+        parts.push_back(DynamicBinarySequence(string("10")));
+        auto cc = DynamicBinarySequence::concat(parts);
+        assert(cc.to_vector() == vector<int>({1,1,0,0,1,0}));
+    }
+
+    // kth_one/kth_zero, find_first_change/find_last_change, pattern search
+    for (int iter = 0; iter < 300; iter++) {
+        int n = 1 + rng()%20;
+        vector<int> a(n);
+        for (auto& e : a) e = rng()%2;
+        DynamicBinarySequence ds(a);
+        int l = rng()%n, r = l + rng()%(n-l+1);
+        if (r<=l) continue;
+
+        int c1 = count(a.begin()+l, a.begin()+r, 1);
+        int c0 = (r-l)-c1;
+        if (c1>0) {
+            int k = rng()%c1;
+            int p = ds.kth_one(l,r,k);
+            assert(a[p]==1);
+            assert(count(a.begin()+l, a.begin()+p, 1)==k);
+        }
+        if (c0>0) {
+            int k = rng()%c0;
+            int p = ds.kth_zero(l,r,k);
+            assert(a[p]==0);
+            assert(count(a.begin()+l, a.begin()+p, 0)==k);
+        }
+        // find_first_change / find_last_change
+        {
+            int expect = r; // r = 見つからない
+            for (int i=l;i+1<r;i++) if (a[i]!=a[i+1]) { expect=i; break; }
+            assert(ds.find_first_change(l,r)==expect);
+            int expectL = l-1;
+            for (int i=r-2;i>=l;i--) if (a[i]!=a[i+1]) { expectL=i; break; }
+            assert(ds.find_last_change(l,r)==expectL);
+        }
+        // pattern search (小さいpatternをtextから抜き出して確実にヒットさせる)
+        {
+            vector<int> seg(a.begin()+l, a.begin()+r);
+            int plen = 1 + rng()%(int)seg.size();
+            int ps = rng()%((int)seg.size()-plen+1);
+            vector<int> pat(seg.begin()+ps, seg.begin()+ps+plen);
+            int found = ds.find_pattern(l,r,pat);
+            // 見つかった位置で実際に一致するか確認 (最初の出現である必要はここでは問わない)
+            assert(found < r);
+            for (int i=0;i<plen;i++) assert(ds.get(found+i)==pat[i]);
+            int cnt = ds.count_pattern(l,r,pat);
+            int brute=0;
+            for (int i=0;i+plen<=(int)seg.size();i++) { bool ok=true; for(int j=0;j<plen;j++) if(seg[i+j]!=pat[j]){ok=false;break;} if(ok) brute++; }
+            assert(cnt==brute);
+        }
+    }
+    cerr << "[DynamicBinarySequence] stress_test_binary_extra OK\n";
+}
+
+void test_DynamicBinarySequence() {
+    cout << "=== DynamicBinarySequence 動作確認 ===\n";
+
+    // ================================================================
+    // 基本操作
+    // ================================================================
+    {
+        cout << "\n--- 基本操作 ---\n";
+
+        DynamicBinarySequence s("0010110");
+
+        cout << "初期値: " << s.to_string_bits() << "\n";
+        cout << "size: " << s.size() << "\n";
+        cout << "empty: " << (s.empty() ? "true" : "false") << "\n";
+
+        // get / operator[]
+        cout << "get(2): " << s.get(2) << "\n";
+        cout << "s[4]: " << s[4] << "\n";
+
+        // front / back
+        cout << "front: " << s.front() << "\n";
+        cout << "back: " << s.back() << "\n";
+
+        // set(i,b): i番目を0/1に変更。
+        // 前提: 0 <= i < size(), bは0または1。
+        s.set(2, 1);
+        cout << "set(2,1): " << s.to_string_bits() << "\n";
+
+        // flip_at(i): i番目の0/1を反転。
+        // 前提: 0 <= i < size()。
+        s.flip_at(2);
+        cout << "flip_at(2): " << s.to_string_bits() << "\n";
+
+        // insert(i,b): i番目の位置に挿入。
+        // i==size()なら末尾に追加。
+        // 前提: 0 <= i <= size(), bは0または1。
+        s.insert(3, 1);
+        cout << "insert(3,1): " << s.to_string_bits() << "\n";
+
+        // erase(i): i番目を削除。
+        // 前提: 0 <= i < size()。
+        s.erase(3);
+        cout << "erase(3): " << s.to_string_bits() << "\n";
+
+        // erase(l,r): [l,r) を削除。
+        // 前提: 0 <= l <= r <= size()。
+        s.erase(2, 4);
+        cout << "erase(2,4): " << s.to_string_bits() << "\n";
+
+        // push_back / pop_back
+        // pop_backは空列では使用不可。
+        s.push_back(1);
+        cout << "push_back(1): " << s.to_string_bits() << "\n";
+
+        s.pop_back();
+        cout << "pop_back(): " << s.to_string_bits() << "\n";
+
+        // push_front / pop_front
+        // pop_frontは空列では使用不可。
+        s.push_front(1);
+        cout << "push_front(1): " << s.to_string_bits() << "\n";
+
+        s.pop_front();
+        cout << "pop_front(): " << s.to_string_bits() << "\n";
+
+        // to_vector(l,r): [l,r) をvectorとして取得。
+        // 前提: 0 <= l <= r <= size()。
+        auto v = s.to_vector(1, 4);
+
+        cout << "to_vector(1,4): ";
+        for (int x : v) cout << x;
+        cout << "\n";
+    }
+
+    // ================================================================
+    // split / merge / concat
+    // ================================================================
+    {
+        cout << "\n--- split / merge / concat ---\n";
+
+        DynamicBinarySequence s("00101101");
+
+        // split(k):
+        // [0,k) と [k,size()) に分割。
+        // 前提: 0 <= k <= size()。
+        auto [L, R] = s.split(3);
+
+        cout << "split(3):\n";
+        cout << "  L = " << L.to_string_bits() << "\n";
+        cout << "  R = " << R.to_string_bits() << "\n";
+
+        // merge(other):
+        // 現在の列の後ろにotherを連結。
+        // merge後、otherは空列になる。
+        L.merge(R);
+
+        cout << "L.merge(R): "
+             << L.to_string_bits() << "\n";
+
+        DynamicBinarySequence A("001");
+        DynamicBinarySequence B("110");
+
+        // static merge:
+        // AとBを連結した新しい列を作る。
+        // A,Bはmerge後に空列になる。
+        auto C = DynamicBinarySequence::merge(A, B);
+
+        cout << "static merge: "
+             << C.to_string_bits() << "\n";
+
+        vector<DynamicBinarySequence> seqs;
+        seqs.emplace_back("01");
+        seqs.emplace_back("101");
+        seqs.emplace_back("0011");
+
+        // concat:
+        // 複数列を順番に連結。
+        // 各要素の所有権がresに移る。
+        auto D = DynamicBinarySequence::concat(seqs);
+
+        cout << "concat: "
+             << D.to_string_bits() << "\n";
+    }
+
+    // ================================================================
+    // clone
+    // ================================================================
+    {
+        cout << "\n--- clone ---\n";
+
+        DynamicBinarySequence s("0010110");
+
+        // clone:
+        // 完全に独立したコピーを作る。
+        auto t = s.clone();
+
+        cout << "元:    " << s.to_string_bits() << "\n";
+        cout << "clone: " << t.to_string_bits() << "\n";
+
+        t.flip(1, 5);
+
+        cout << "cloneをflip(1,5):\n";
+        cout << "  元:    " << s.to_string_bits() << "\n";
+        cout << "  clone: " << t.to_string_bits() << "\n";
+    }
+
+    // ================================================================
+    // reverse / rotate / shift
+    // ================================================================
+    {
+        cout << "\n--- reverse / rotate / shift ---\n";
+
+        DynamicBinarySequence s("00110110");
+
+        // reverse(l,r):
+        // [l,r) を反転。
+        // 前提: 0 <= l <= r <= size()。
+        s.reverse(1, 7);
+
+        cout << "reverse(1,7): "
+             << s.to_string_bits() << "\n";
+
+        // rotate(l,r,k):
+        // [l,r) を右にk回回転。
+        // kは負でもよい。
+        // 前提: 0 <= l <= r <= size()。
+        s.rotate(1, 7, 2);
+
+        cout << "rotate(1,7,2): "
+             << s.to_string_bits() << "\n";
+
+        // 負のkは左回転。
+        s.rotate(1, 7, -2);
+
+        cout << "rotate(1,7,-2): "
+             << s.to_string_bits() << "\n";
+
+        // shift_right = rotate(..., k)
+        s.shift_right(1, 7, 1);
+
+        cout << "shift_right(1,7,1): "
+             << s.to_string_bits() << "\n";
+
+        // shift_left = rotate(..., -k)
+        s.shift_left(1, 7, 1);
+
+        cout << "shift_left(1,7,1): "
+             << s.to_string_bits() << "\n";
+    }
+
+    // ================================================================
+    // move / swap_range
+    // ================================================================
+    {
+        cout << "\n--- move / swap_range ---\n";
+
+        DynamicBinarySequence s("00110011");
+
+        // move(l,r,pos):
+        // [l,r) を一旦取り除き、残った列のposの位置に挿入。
+        //
+        // 前提:
+        // 0 <= l <= r <= size()
+        // 0 <= pos <= size()-(r-l)
+        s.move(2, 5, 1);
+
+        cout << "move(2,5,1): "
+             << s.to_string_bits() << "\n";
+
+        DynamicBinarySequence t("00110011");
+
+        // swap_range:
+        // [l1,r1) と [l2,r2) を交換。
+        //
+        // 前提:
+        // 2つの区間は重ならない。
+        // 内部でl1 > l2の場合は入れ替えて処理する。
+        t.swap_range(1, 3, 5, 7);
+
+        cout << "swap_range(1,3,5,7): "
+             << t.to_string_bits() << "\n";
+    }
+
+    // ================================================================
+    // extract / splice
+    // ================================================================
+    {
+        cout << "\n--- extract / splice ---\n";
+
+        DynamicBinarySequence s("001011001");
+
+        // extract(l,r):
+        // [l,r) を元の列から切り離して新しい列として返す。
+        // 前提: 0 <= l <= r <= size()。
+        auto t = s.extract(2, 6);
+
+        cout << "extract(2,6):\n";
+        cout << "  元:   " << s.to_string_bits() << "\n";
+        cout << "  抽出: " << t.to_string_bits() << "\n";
+
+        DynamicBinarySequence a("0011");
+        DynamicBinarySequence b("1010");
+
+        // splice(pos,other,l,r):
+        // otherの[l,r)を切り出し、現在の列のposに挿入。
+        // 切り出した部分はotherから消える。
+        //
+        // 前提:
+        // 0 <= pos <= size()
+        // 0 <= l <= r <= other.size()
+        a.splice(2, b, 1, 3);
+
+        cout << "splice(2,b,1,3):\n";
+        cout << "  a = " << a.to_string_bits() << "\n";
+        cout << "  b = " << b.to_string_bits() << "\n";
+    }
+
+    // ================================================================
+    // Range Lazy
+    // ================================================================
+    {
+        cout << "\n--- range assign / flip ---\n";
+
+        DynamicBinarySequence s("0010110011");
+
+        // assign(l,r,b):
+        // [l,r) の全要素をbにする。
+        // 前提: 0 <= l <= r <= size(), bは0または1。
+        s.assign(2, 7, 1);
+
+        cout << "assign(2,7,1): "
+             << s.to_string_bits() << "\n";
+
+        // flip(l,r):
+        // [l,r) の0/1を反転。
+        // 前提: 0 <= l <= r <= size()。
+        s.flip(1, 8);
+
+        cout << "flip(1,8): "
+             << s.to_string_bits() << "\n";
+
+        // Lazy tagが重なっても正しく処理できることを確認。
+        s.assign(0, 6, 0);
+        s.flip(2, 5);
+        s.reverse(1, 7);
+
+        cout << "assign -> flip -> reverse: "
+             << s.to_string_bits() << "\n";
+    }
+
+    // ================================================================
+    // Count / Rank / Select
+    // ================================================================
+    {
+        cout << "\n--- count / rank / select ---\n";
+
+        DynamicBinarySequence s("00101100101");
+
+        cout << "列: " << s.to_string_bits() << "\n";
+
+        // count1 / count0:
+        // [l,r) に含まれる1/0の個数。
+        // 前提: 0 <= l <= r <= size()。
+        cout << "count1(2,9): "
+             << s.count1(2,9) << "\n";
+
+        cout << "count0(2,9): "
+             << s.count0(2,9) << "\n";
+
+        // rank1 / rank0:
+        // [0,pos) に含まれる1/0の個数。
+        // 前提: 0 <= pos <= size()。
+        cout << "rank1(7): "
+             << s.rank1(7) << "\n";
+
+        cout << "rank0(7): "
+             << s.rank0(7) << "\n";
+
+        // select1(k):
+        // 全体で0-based k番目の1の位置。
+        //
+        // 前提:
+        // 0 <= k < 全体の1の個数。
+        cout << "select1(0): "
+             << s.select1(0) << "\n";
+
+        cout << "select1(2): "
+             << s.select1(2) << "\n";
+
+        // select0(k):
+        // 全体で0-based k番目の0の位置。
+        //
+        // 前提:
+        // 0 <= k < 全体の0の個数。
+        cout << "select0(0): "
+             << s.select0(0) << "\n";
+
+        cout << "select0(2): "
+             << s.select0(2) << "\n";
+
+        // kth_one(l,r,k):
+        // [l,r)内で0-based k番目の1の「位置」を返す。
+        //
+        // 前提:
+        // [l,r)にk番目の1が存在する。
+        cout << "kth_one(2,9,1): "
+             << s.kth_one(2,9,1) << "\n";
+
+        // kth_zero(l,r,k):
+        // [l,r)内で0-based k番目の0の「位置」を返す。
+        //
+        // 前提:
+        // [l,r)にk番目の0が存在する。
+        cout << "kth_zero(2,9,1): "
+             << s.kth_zero(2,9,1) << "\n";
+    }
+
+    // ================================================================
+    // find_first / find_last
+    // ================================================================
+    {
+        cout << "\n--- find_first / find_last ---\n";
+
+        DynamicBinarySequence s("0001100110");
+
+        cout << "列: " << s.to_string_bits() << "\n";
+
+        // find_first_one:
+        // [l,r)内で最初の1の位置。
+        // 見つからなければrを返す。
+        cout << "find_first_one(0,10): "
+             << s.find_first_one(0,10) << "\n";
+
+        // find_first_zero:
+        // [l,r)内で最初の0の位置。
+        // 見つからなければrを返す。
+        cout << "find_first_zero(3,8): "
+             << s.find_first_zero(3,8) << "\n";
+
+        // find_last_one:
+        // [l,r)内で最後の1の位置。
+        // 見つからなければl-1を返す。
+        cout << "find_last_one(0,10): "
+             << s.find_last_one(0,10) << "\n";
+
+        // find_last_zero:
+        // [l,r)内で最後の0の位置。
+        // 見つからなければl-1を返す。
+        cout << "find_last_zero(3,8): "
+             << s.find_last_zero(3,8) << "\n";
+
+        // 見つからない場合も確認。
+        cout << "find_first_one(0,3): "
+             << s.find_first_one(0,3)
+             << "  (見つからないのでr=3)\n";
+
+        cout << "find_last_one(0,3): "
+             << s.find_last_one(0,3)
+             << "  (見つからないのでl-1=-1)\n";
+    }
+
+    // ================================================================
+    // find_first_change / find_last_change
+    // ================================================================
+    {
+        cout << "\n--- find_first_change / find_last_change ---\n";
+
+        DynamicBinarySequence s("0001110011");
+
+        cout << "列: " << s.to_string_bits() << "\n";
+
+        // find_first_change(l,r):
+        // [l,r)内でa[i] != a[i+1]となる最初の境界i。
+        //
+        // 前提:
+        // 0 <= l < r <= size()
+        //
+        // 見つからなければrを返す。
+        cout << "find_first_change(0,10): "
+             << s.find_first_change(0,10) << "\n";
+
+        // find_last_change(l,r):
+        // [l,r)内でa[i] != a[i+1]となる最後の境界i。
+        //
+        // 前提:
+        // 0 <= l < r <= size()
+        //
+        // 見つからなければl-1を返す。
+        cout << "find_last_change(0,10): "
+             << s.find_last_change(0,10) << "\n";
+    }
+
+    // ================================================================
+    // Run aggregate
+    // ================================================================
+    {
+        cout << "\n--- Run aggregate ---\n";
+
+        DynamicBinarySequence s("000111001100011");
+
+        cout << "列: " << s.to_string_bits() << "\n";
+
+        // 以下はすべて [l,r) が対象。
+        // 前提: 0 <= l <= r <= size()。
+        // 空区間の場合は0。
+
+        // 0の最長連続長
+        cout << "longest_zero_run(0,15): "
+             << s.longest_zero_run(0,15) << "\n";
+
+        // 1の最長連続長
+        cout << "longest_one_run(0,15): "
+             << s.longest_one_run(0,15) << "\n";
+
+        // 0/1を問わない最長連続長
+        cout << "longest_run(0,15): "
+             << s.longest_run(0,15) << "\n";
+
+        // 連続区間の個数
+        cout << "count_runs(0,15): "
+             << s.count_runs(0,15) << "\n";
+
+        // 区間先頭から続く0
+        cout << "prefix_zero_run(0,15): "
+             << s.prefix_zero_run(0,15) << "\n";
+
+        // 区間末尾から続く0
+        cout << "suffix_zero_run(0,15): "
+             << s.suffix_zero_run(0,15) << "\n";
+
+        // 区間先頭から続く1
+        cout << "prefix_one_run(0,15): "
+             << s.prefix_one_run(0,15) << "\n";
+
+        // 区間末尾から続く1
+        cout << "suffix_one_run(0,15): "
+             << s.suffix_one_run(0,15) << "\n";
+
+        // 部分区間でもaggregateを取得。
+        cout << "longest_run(2,12): "
+             << s.longest_run(2,12) << "\n";
+
+        // 空区間は0。
+        cout << "longest_run(5,5): "
+             << s.longest_run(5,5) << "\n";
+    }
+
+    // ================================================================
+    // longest_alternating
+    // ================================================================
+    {
+        cout << "\n--- longest_alternating ---\n";
+
+        DynamicBinarySequence s("001011010011");
+
+        cout << "列: " << s.to_string_bits() << "\n";
+
+        // longest_alternating:
+        // 隣接要素がすべて異なる部分列の最大長。
+        //
+        // 注意:
+        // この関数はO(log N)のaggregateではない。
+        // [l,r)をto_vectorして調べるO(r-l)のfallback実装。
+        //
+        // 前提: 0 <= l <= r <= size()。
+        cout << "longest_alternating(0,12): "
+             << s.longest_alternating(0,12) << "\n";
+
+        cout << "longest_alternating(2,10): "
+             << s.longest_alternating(2,10) << "\n";
+    }
+
+    // ================================================================
+    // Pattern Search
+    // ================================================================
+    {
+        cout << "\n--- pattern search ---\n";
+
+        DynamicBinarySequence s("001011001011001");
+
+        cout << "列: " << s.to_string_bits() << "\n";
+
+        vector<int> pattern = {1,0,1};
+
+        // find_pattern:
+        // [l,r)内でpatternが最初に現れる位置。
+        // 見つからなければrを返す。
+        //
+        // 前提: 0 <= l <= r <= size()。
+        // 計算量: O((r-l)+|pattern|)
+        cout << "find_pattern(0,15,[101]): "
+             << s.find_pattern(0,15,pattern) << "\n";
+
+        // count_pattern:
+        // [l,r)内でpatternが現れる回数。
+        // 重複する出現も数える。
+        //
+        // 前提: 0 <= l <= r <= size()。
+        // 計算量: O((r-l)+|pattern|)
+        cout << "count_pattern(0,15,[101]): "
+             << s.count_pattern(0,15,pattern) << "\n";
+
+        // 空パターン:
+        // find_patternはlを返す。
+        vector<int> empty_pattern;
+
+        cout << "find_pattern(3,10,[]): "
+             << s.find_pattern(3,10,empty_pattern) << "\n";
+
+        // 見つからない場合。
+        vector<int> not_found = {1,1,1,1};
+
+        cout << "find_pattern(0,15,[1111]): "
+             << s.find_pattern(0,15,not_found)
+             << "  (見つからないのでr=15)\n";
+    }
+
+    // ================================================================
+    // 空列
+    // ================================================================
+    {
+        cout << "\n--- 空列 ---\n";
+
+        DynamicBinarySequence s;
+
+        cout << "empty: "
+             << (s.empty() ? "true" : "false") << "\n";
+
+        cout << "size: "
+             << s.size() << "\n";
+
+        // 空列でもinsert/pushは使用可能。
+        s.push_back(1);
+        s.push_front(0);
+
+        cout << "push_back(1), push_front(0): "
+             << s.to_string_bits() << "\n";
+
+        s.pop_front();
+        s.pop_back();
+
+        cout << "pop_front(), pop_back(): "
+             << s.to_string_bits() << "\n";
+
+        // front / back / get / set / pop_* は
+        // 空列ではassertになるので呼ばない。
+    }
+
+    // ================================================================
+    // Debug
+    // ================================================================
+    {
+        cout << "\n--- debug ---\n";
+
+        DynamicBinarySequence s("00101100101");
+
+        // validate / check:
+        // Treapのヒープ条件・size等を検査。
+        // 壊れていなければtrue。
+        cout << "validate: "
+             << (s.validate() ? "OK" : "NG") << "\n";
+
+        cout << "check: "
+             << (s.check() ? "OK" : "NG") << "\n";
+
+        // print:
+        // 列をそのまま表示。
+        cout << "print: ";
+        s.print();
+
+        // dump:
+        // Treap内部の木構造を確認したいときに使う。
+        cout << "dump:\n";
+        s.dump();
+    }
+
+    cout << "\n=== 動作確認終了 ===\n";
+}
+#endif
+
+void solv(){
+    #ifdef LOCAL
+    stress_test_binary();
+    stress_test_binary_extra();
+    cerr << "ALL TESTS PASSED\n";
+    test_DynamicBinarySequence();
+    #endif
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

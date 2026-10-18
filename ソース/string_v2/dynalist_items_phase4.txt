@@ -1,0 +1,88 @@
+01_set_hash（集合・多重集合のハッシュ：先頭からの集合・区間の多重集合が等しいか O(1)・追加と削除ができる集合）
+	説明
+		value_hash(x)（値ごとの乱数）
+		prefix_set_hashes(a)（r[i] = a[0, i) に現れる値の集合のハッシュ。重複は 1 回）／ prefix_multiset_hashes(a)
+		MultisetPrefix mp(a)：mp.get(l, r)（a[l, r) の多重集合のハッシュ。O(1)）／ mp.same(l1, r1, l2, r2)（並べ替えて同じか）／ size()
+		MultisetHash h：h.add(x, k = 1) ／ remove(x, k = 1) ／ merge(o) ／ ==（value と count を持つ。個数は数えない）
+		SetHash S：S.add(x) ／ remove(x)（入っていなければ false）／ count(x) ／ distinct() ／ ==（0 個 ⇔ 1 個以上が変わったときだけハッシュが変わる）
+	メモ
+		値ごとに実行ごとの乱数を割り当てて mod 2^61−1 で足す。同じ実行の中では同じ値に同じ乱数なので、別の列どうしでも比べられる。衝突は 1 回あたり約 2^-61
+		string も数の列もそのまま。MultisetHash の個数 k は |k| < 2^61−1
+		類題：ABC250 E（prefix_set_hashes(a)[x] == prefix_set_hashes(b)[y]）、ABC367 F（長さが同じで MultisetPrefix の get が等しいか）
+	C:\atcoder_template\典型90\ソース\string_v2\01_set_hash.cpp
+02_aho_corasick（Aho–Corasick：多数のパターンの出現回数・最初の出現・含まないようにする DP・パターンどうしの包含関係）
+	説明
+		AhoCorasick ac(A)：ac.add(p)（番号 0, 1, … を返す。同じ文字列を何度足してもよい）→ ac.build()
+		ac.count_each(t)（パターンごとの出現回数）／ count_total(t) ／ first_occurrence_each(t)（最初の開始位置。なければ -1）／ contains_any(t)
+		ac.for_each_match(t, f)（すべての出現で f(開始位置, 番号)。終わる位置の順）
+		ac.contained_patterns(id)（パターン id に部分文字列として現れるほかのパターンの番号。包含関係）
+		状態（DP 用）：ac.next(state, c) ／ next_id(state, id)（O(1)）／ match_count(state)（そこで終わるパターンの数。リンクの先も）／ match_ids(state) ／ longest_match(state)
+		ac.depth(state) ／ link(state) ／ bfs_order() ／ size() ／ pattern_count() ／ node_of(id) ／ pattern_length(id)
+	メモ
+		遷移の表は ノード数 × σ 個の int（パターンの長さの合計 10^6・σ = 26 で約 100MB）。本文の文字も Alphabet の範囲で
+		含まないようにする数え上げ：状態を頂点に next で遷移する DP（長さが大きければ math_v2 の行列累乗）
+		包含関係で最大の選び方（反鎖）：contained_patterns を辺にした 2 部グラフの最大流（ACL mf_graph／graph_grid_v2 08_max_flow）
+		類題：ABC362 G（count_each）、ABC268 Ex（match_count が正になったらその文字を * にして根へ）、ABC354 G（同じ文字列をまとめてから contained_patterns ＋ 最大流）
+	C:\atcoder_template\典型90\ソース\string_v2\02_aho_corasick.cpp
+02_wildcard_match（ワイルドカードつきの一致・ずらしごとの不一致の数（畳み込み））
+	説明
+		mismatch_counts(text, pat)（ずらし i ごとに pat[j] ≠ text[i + j] の数。長さ N − M + 1）／ mismatch_counts(text, pat, wild)（両方とも wild でない位置だけ）
+		match_with_k_mismatches(text, pat, k) ／ match_with_k_mismatches(text, pat, k, wild)（不一致が k 以下のずらしの一覧）
+		wildcard_match(text, pat)（'?' を任意の 1 文字として一致するずらしの一覧。text と pat のどちらの ? も使える）／ wildcard_match(text, pat, wild)
+	メモ
+		NTT（mod 998244353）を中に持つ（math_v2 には依存しない）。text の長さは 2^23 まで
+		mismatch_counts は正確で O(σ' N log N)（σ' は text と pat の両方に現れる値の数）。wildcard_match は乱数を使い O(N log N)（違うのに一致とする確率は 1 か所あたり約 10^-17）
+		数の列では wildcard_match の wild を必ず渡す（省くとコンパイルエラー）
+		類題：ABC196 F（mismatch_counts の最小）
+	C:\atcoder_template\典型90\ソース\string_v2\02_wildcard_match.cpp
+03_suffix_automaton（接尾辞オートマトン：部分文字列か・出現回数・最初の出現・異なる部分文字列の数（オンライン）・k 番目・最長共通部分文字列・状態の DP）
+	説明
+		SuffixAutomaton sam(s, A)：sam.contains(t) ／ count_occurrences(t) ／ first_occurrence(t)：O(|t|)
+		sam.count_distinct_substrings() ／ total_length_distinct()（1 文字足すたびに更新。O(1)）／ count_substrings_with_dup()
+		sam.kth_substring(k, with_dup = false)（辞書順 k 番目の string。with_dup なら位置が違えば別）／ kth_substring_ids(k, with_dup)
+		sam.longest_common_substring(t)（t の部分文字列でこちらにも現れる最長のもの。t での StrSpan）
+		sam.extend(c)（1 文字ずつ。オンライン）／ add_string(t)（別の文字列として足す。複数の文字列の部分文字列をまとめて数える）
+		状態（DP 用）：size() ／ len(v) ／ link(v) ／ next(v, c) ／ next_id(v, id) ／ endpos_count(v) ／ first_end(v) ／ order_by_len() ／ last()
+	メモ
+		状態は 2N 以下。遷移の表は 状態数 × σ 個の int（N = 5×10^5・σ = 26 で約 100MB）
+		出現回数・k 番目は足した後の最初の呼び出しで数え直す（1 文字ごとに回数を聞くと O(N^2)）
+		部分文字列の問い合わせ（contains など）の t は種類の外の文字を含んでもよい（現れない文字として扱う）
+		答えが長い k 番目を多数聞くなら 03_suffix_array の kth_substring ／ kth_substring_with_dup（O(log N)。ABC280 Ex）
+		類題：ABC362 G（count_occurrences。02_aho_corasick の count_each でもよい）、Library Checker Number of Substrings
+	C:\atcoder_template\典型90\ソース\string_v2\03_suffix_automaton.cpp
+04_palindromic_tree（回文木：異なる回文の種類と出現回数・回文の包含関係・回文への最小分割と分割の数（N = 10^6 でも））
+	説明
+		PalindromicTree pt(s, A) ／ pt.add(c)（オンライン。今の最長の回文接尾辞のノードを返す）
+		pt.count_distinct() ／ count_total()（回文の部分文字列の数）／ occurrences()（ノードごとの出現回数）／ palindromes()（異なる回文の最初の出現）／ span(v)
+		pt.min_partition() ／ min_partition_spans() ／ min_partition_prefix() ／ count_partitions<T>() ／ count_partitions_prefix<T>()：O(N log N)
+		ノード：size() ／ length() ／ len(v) ／ link(v)（最長の真の回文接尾辞）／ parent(v)（両端を除いた回文）／ next(v, c)（両側に c を足した回文）／ node_of_prefix(i) ／ first_end(v)
+	メモ
+		ノード 0 は長さ −1 の根、1 は空文字列、2 以降が回文（最初に現れた順）
+		回文 v に含まれる回文 = link と parent をたどって着くもの
+		遷移は ノード数 × σ 個の int（値の種類が多い数の列には向かない）。count_partitions<long long> は答えが溢れたら止める（mod なら ModInt998）
+		N ≤ 5000 程度の回文分割なら 04_palindrome の palindrome_partition_min でもよい
+		類題：ABC237 Ex（link・parent の閉包 ＋ 二部マッチング）、Library Checker Eertree
+	C:\atcoder_template\典型90\ソース\string_v2\04_palindromic_tree.cpp
+05_lyndon（Lyndon 分解・各接頭辞の最小の接尾辞・Lyndon 配列・極大な繰り返し（runs）・平方の数）
+	説明
+		lyndon_factorization(s)（vector<StrSpan>。辞書順で増えない Lyndon 語の並びに一意に分ける）／ is_lyndon(s)
+		min_suffix_of_prefixes(s)（r[i] = s[0, i) の辞書順最小の接尾辞の開始位置。長さ N + 1）
+		lyndon_array(s)（λ[i] = i から始まる最長の Lyndon 語の長さ）
+		maximal_repetitions(s)（runs の一覧：Repetition{l, r, period}。len()）／ count_square_substrings(s)（xx の形の部分文字列の数）
+	メモ
+		Lyndon 配列と runs は 03_suffix_array（同梱）を使う。runs は N = 10^6 で約 0.8 秒・約 220MB
+		最後の因子は辞書順最小の接尾辞。最小の回転は 05_lex_order の min_rotation
+		類題：Library Checker Lyndon Factorization・Enumerate Runs（ABC では G・Ex でまれ）
+	C:\atcoder_template\典型90\ソース\string_v2\05_lyndon.cpp
+09_mutable_string（1 文字の書き換えがある文字列：区間のハッシュ・回文判定・LCP と比較・区間の文字の数・昇順か・k 番目の文字）
+	説明
+		MutableString ms(s, A)：ms.set(i, c) ／ get(i)（値。char は 0〜255）／ size()
+		ms.hash(l, r) ／ reversed_hash(l, r)（StrHash。01_rolling_hash と同じ値）／ same(l1, r1, l2, r2) ／ is_palindrome(l, r)：O(log N)
+		ms.lcp(i, j) ／ compare(l1, r1, l2, r2)（-1 / 0 / 1）：O(log² N)
+		ms.count(l, r, c) ／ counts(l, r)（番号ごとの数。long long）／ is_sorted(l, r)（Alphabet の順で広義単調増加か）／ kth_char(l, r, k)（区間を並べ替えた k 番目）
+		ms.values() ／ to_string() ／ alphabet()
+	メモ
+		フェニック木で O(log N)。ハッシュの基数は 01_rolling_hash と同じなので、hash_of や RollingHash で作ったほかの文字列とも比べられる
+		文字の数の表は初めて使うときに作る（(N+1)σ 個の int）
+		類題：ABC331 F（is_palindrome）、ABC285 F（is_sorted と、区間の最小と最大の間の文字が全体と同じ数だけあるかを counts で）
+	C:\atcoder_template\典型90\ソース\string_v2\09_mutable_string.cpp

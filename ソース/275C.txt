@@ -1,0 +1,194 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+// ================================
+// 90度回転（任意中心・左右統合）
+// ================================
+// left = true : 左90度（反時計）
+// left = false: 右90度（時計）
+pair<ll,ll> rot90(pair<ll,ll> p, pair<ll,ll> c, bool left){
+    ll x = p.first  - c.first;
+    ll y = p.second - c.second;
+
+    ll nx, ny;
+    if(left){
+        nx = -y;
+        ny =  x;
+    }else{
+        nx =  y;
+        ny = -x;
+    }
+    return {nx + c.first, ny + c.second};
+}
+
+// ================================
+// グリッド範囲判定（動的サイズ対応）
+// ================================
+struct GridRange {
+    int H, W;
+
+    GridRange(int h, int w) : H(h), W(w) {}
+
+    GridRange(const vector<string>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    template<class T>
+    GridRange(const vector<vector<T>>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    bool in(int x, int y) const {
+        return (0 <= x && x < H && 0 <= y && y < W);
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// トーラスグリッド（上下左右が接続）
+// ================================
+struct TorusGrid {
+    int H, W;
+
+    TorusGrid(int h, int w) : H(h), W(w) {}
+
+    TorusGrid(const vector<string>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    template<class T>
+    TorusGrid(const vector<vector<T>>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    pair<int,int> norm(int x, int y) const {
+        x = (x % H + H) % H;
+        y = (y % W + W) % W;
+        return {x, y};
+    }
+};
+
+// ================================
+// マンハッタン距離制限
+// ================================
+struct Manhattan {
+    int cx, cy, D;
+
+    Manhattan(int x, int y, int d) : cx(x), cy(y), D(d) {}
+
+    bool in(int x, int y) const {
+        return abs(x - cx) + abs(y - cy) <= D;
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// チェビシェフ距離制限
+// ================================
+struct Chebyshev {
+    int cx, cy, D;
+
+    Chebyshev(int x, int y, int d) : cx(x), cy(y), D(d) {}
+
+    bool in(int x, int y) const {
+        return max(abs(x - cx), abs(y - cy)) <= D;
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// 円（ユークリッド距離）制限
+// ================================
+struct Circle {
+    ll cx, cy, R2;
+
+    Circle(ll x, ll y, ll r) : cx(x), cy(y), R2(r*r) {}
+
+    bool in(ll x, ll y) const {
+        ll dx = x - cx;
+        ll dy = y - cy;
+        return dx*dx + dy*dy <= R2;
+    }
+
+    bool in(pair<ll,ll> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// BFS用 近傍ジェネレータ
+// ================================
+struct Neighbors {
+    vector<pair<int,int>> d;
+
+    // 4近傍
+    static Neighbors four(){
+        return {{{1,0},{-1,0},{0,1},{0,-1}}};
+    }
+
+    // 8近傍
+    static Neighbors eight(){
+        return {{{1,0},{-1,0},{0,1},{0,-1},
+                 {1,1},{1,-1},{-1,1},{-1,-1}}};
+    }
+};
+
+void solv(){
+    vector<string>S(9);
+    rep(i,0,9)cin>>S[i];
+    ll ans=0;
+    auto gr=GridRange(9,9);
+    rep(i,0,9)rep(j,0,9)rep(k,0,9)rep(l,0,9){
+        if(i==k&&j==l)continue;
+        if(S[i][j]!='#')continue;
+        if(S[k][l]!='#')continue;
+        auto p=rot90(make_pair(i,j),make_pair(k,l),true);
+        if((!gr.in(p))||S[p.first][p.second]!='#')continue;
+        p=rot90(make_pair(k,l),p,true);
+        if((!gr.in(p))||S[p.first][p.second]!='#')continue;
+        ans++;
+    }
+    cout<<ans/4<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

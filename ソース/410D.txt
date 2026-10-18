@@ -1,0 +1,54 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int N,M;
+    cin>>N>>M;
+    vector<vector<pair<int,ll>>>G(N);
+    rep(i,0,M){
+        int a,b;
+        ll w;
+        cin>>a>>b>>w;
+        a--;b--;
+        G[a].emplace_back(b,w);
+    }
+    //頂点倍化
+    //ansの最大値1024*Nの最大値1000個の頂点に倍加させて考える
+    vector<bool>visited(1024*N,true);
+    auto cng1=[&](int n)->pair<int,int>{
+        return {n/1024,n%1024};
+    };
+    auto cng2=[&](pair<int,int>p)->int{
+        return p.first*1024+p.second;
+    };
+    int ans=1e9;
+    auto dfs=[&](int pos,auto dfs)->void{
+        auto [now,num]=cng1(pos);
+        visited[pos]=false;
+        if(now==N-1)chmin(ans,num);
+        for(auto [nxt,wgt]:G[now])if(visited[cng2({nxt,num^wgt})])dfs(cng2({nxt,num^wgt}),dfs);
+    };
+    dfs(0,dfs);
+    if(ans==1e9)cout<<-1<<'\n';
+    else cout<<ans<<'\n';
+    return 0;
+}

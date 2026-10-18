@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W;
+vector<vector<char>> S;
+vector<vector<vector<int>>> A;
+struct edge{
+    int x;
+    int y;
+    int dir;
+};
+//BFS
+//方向転換の回数が等しくても向きの更新があるので各頂点で4方向分必要
+//4方向をdx,dyで持ちindexで管理することで0,1,2,3だけでいい
+void bfs(int sx,int sy){
+    queue<edge> q;
+    rep(i,0,4){
+        edge e;
+        e.x=sx;e.y=sy;e.dir=i;
+        q.push(e);
+        A[sx][sy][i]=0;
+    }
+    vector<int> dx={-1,1,0,0},dy={0,0,-1,1};
+    while(!q.empty()){
+        edge e=q.front();q.pop();
+        rep(i,0,4){
+            int x=e.x+dx[i],y=e.y+dy[i],cost;
+            if(i==e.dir)cost=0;
+            else cost=1;
+            if(0<=x&&x<H&&0<=y&&y<W&&S[x][y]=='.'&&
+            A[x][y][i]>A[e.x][e.y][e.dir]+cost){
+                A[x][y][i]=A[e.x][e.y][e.dir]+cost;
+                edge enew;enew.x=x;enew.y=y;enew.dir=i;
+                q.push(enew);
+            }
+        }
+    }
+}
+
+int main()
+{
+    int sx,sy,gx,gy;
+    cin>>H>>W>>sx>>sy>>gx>>gy;
+    sx--;sy--;gx--;gy--;
+    S=vector<vector<char>>(H,vector<char>(W));
+    rep(i,0,H)rep(j,0,W)cin>>S[i][j];
+    A=vector<vector<vector<int>>>(H,vector<vector<int>>(W,vector<int>(4,1000000000)));
+    bfs(sx,sy);
+    int ans=1000000000;
+    rep(i,0,4)ans=min(ans,A[gx][gy][i]);
+    cout<<ans<<"\n";
+    return 0;
+}

@@ -1,0 +1,55 @@
+// =============================================================================
+//  分数（Fraction：いつも既約・分母 > 0。誤差なしの四則演算・比較・切り捨て・小数表示・近い分数・あいだの最も簡単な分数・連分数）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 08 分数・大きな数
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      Fraction a(1, 3), b = 2;             // 1/3 と 2（long long。分子・分母が 10^18 を超えるなら Fraction128）
+//      cout << a + b << '\n';               // 7/3
+//      sort(v.begin(), v.end());            // 比率で誤差なく並べる（< が使える）
+//  途中の計算は 128 ビット。結果が型に収まらなければメッセージを出して止める
+//
+//  機能一覧                                                                    計算量
+//    Fraction x(n, d) / Fraction x = n    n/d（約分する。d ≠ 0）/ 整数。x.num・x.den で分子・分母    O(log)
+//    + − × ÷ 単項− += −= ×= ÷=            整数と混ざった式も（x * 2 + 1 など）                       O(log)
+//    == != < > <= >= / compare(x, y)      誤差なしの比較 / −1・0・1                                  O(1)（Fraction128 は O(log)）
+//    x.floor() / x.ceil() / x.round()     ⌊x⌋ / ⌈x⌉ / 四捨五入（ちょうど .5 は 0 から遠い方）
+//    x.sign() / x.abs() / x.reciprocal() / x.is_integer()
+//    x.to_real()                          long double に
+//    x.to_decimal(k)                      小数第 k 位まで（それより下は切り捨て）の文字列                 O(k)
+//    cout << x / cin >> x                 "p/q"（整数なら "p"）で出す / "p/q"・"p"・"-1.25" を読む
+//    unordered_map<Fraction, V>           std::hash を用意してある
+//    best_rational_approx(p, q, max_den)  p/q にいちばん近い、分母が max_den 以下の分数（同じ近さなら分母、値の小さい方） O(log)
+//    rational_floor(p, q, max_den) / rational_ceil(p, q, max_den)   分母が max_den 以下で p/q 以下の最大 / 以上の最小     O(log)
+//    simplest_between(x, y)           x < r < y となる分数 r で分母が最小のもの（|分子| も最小。開区間）               O(log)
+//    continued_fraction(p, q) / from_continued_fraction(cf)   連分数展開 [a0; a1, …]（vector<long long>）/ その値         O(log)
+//    Fraction128                          分子・分母が Int128 のもの（使い方は同じ）
+//  （分数 a/b と c/d の大小を 1 回だけ比べるなら 00_math_base の frac_compare でもよい）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    frac_test::random_test()  … 128 ビットの掛け算での検算・全部調べる愚直解との突き合わせ
+//    frac_test::benchmark()    … 速度計測
+//    frac_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>

@@ -1,0 +1,61 @@
+// =============================================================================
+//  modint（ModInt<MOD>：定数の mod / DynModInt：入力で決まる mod）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 00 基盤（組合せ・行列・畳み込みなど mod で数えるテンプレートはこれを同梱している）
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）。ACL は使わない
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方（mint という名前はテンプレートでは定義しない。使う側で 1 行書く）
+//      using mint = ModInt998;          // 998244353。10^9+7 なら ModInt107、ほかの定数なら ModInt<M>
+//      using mint = DynModInt;          // mod が入力で決まるとき。mint::set_mod(M); を最初に呼ぶ
+//      mint a = -3, b = 10;  cout << a * b / 7 << '\n';   // val() を書かずに出せる
+//
+//  機能一覧（ModInt と DynModInt で同じ）                                      計算量
+//    mint x = 整数                   int・long long・unsigned・Int128 から（負の数でもよい）     O(1)
+//    mint::raw(x)                    0 ≤ x < mod が分かっているときの速い作り方
+//    + - * / 単項- ++ -- += -= *= /= 整数と混ざった式も（a * 2 + 1 など）                      O(1)（/ は逆元）
+//    == != < > <= >=                 値（0〜mod-1）での比較（< は map のキー・sort 用）
+//    x.val() / mint::mod()           値（int）/ mod（int）
+//    x.pow(e)                        x^e（e は long long。負なら逆元の (-e) 乗）                O(log |e|)
+//                                    （指数が N − 2 などの式で負になりうるときは注意：エラーにならず逆元の累乗になる）
+//    x.inv() / x.try_inv()           逆元（mod が合成数でも gcd = 1 なら。ないと止まる / Maybe で返す）  O(log mod)
+//    x.is_unit()                     逆元があるか（gcd(x, mod) = 1）
+//    if (x)                          0 でないか
+//    cout << x / cin >> x            そのまま出す / 読む（long long を超える長さの数も読める）
+//    unordered_map<mint, V>          std::hash を用意してある
+//    ModInt<M>::IS_PRIME             M が素数か（コンパイル時の定数）
+//    DynModInt::set_mod(M)           mod を設定（1 ≤ M < 2^31。素数でなくてよい・偶数でもよい）
+//    DynModInt::mod_is_prime()       今の mod が素数か
+//    DynModIntT<ID>                  ID を変えると別の mod を同時に持てる（DynModInt = DynModIntT<0>）
+//    rational_reconstruct(x)         RationalGuess{ok, num, den}：mint の値を小さい分数に戻す（デバッグ用）
+//
+//  注意
+//    - mod は 1 以上 2^31 未満（int の範囲）。それより大きい mod は 00_math_base の mod_mul / mod_pow を使う
+//    - 内部はモンゴメリ乗算（奇数の mod）。偶数の mod は普通の剰余（DynModInt は Barrett）で、どちらも正しく動く
+//    - DynModInt の set_mod を途中で変えると、それまでに作った値は意味がなくなる（作り直す）
+//    - 0 の逆元・mod と互いに素でない数の逆元は、メッセージを出して止まる（try_inv なら止まらない）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    mint_test::random_test()  … 128 ビットの愚直計算と全機能を突き合わせるランダムテスト（いろいろな mod で）
+//    mint_test::benchmark()    … 速度計測
+//    mint_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

@@ -1,0 +1,44 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+ll gets(ll l){
+    ll r=1;
+    rep(i,1,l)r=r*10;
+    return r;
+}
+ll gete(ll l){
+    string r="";
+    rep(i,0,l)r+='9';
+    return stoll(r);
+}
+
+int main()
+{
+    ll L,R;
+    cin>>L>>R;
+    int sl=to_string(L).size(),sr=to_string(R).size();
+    const int m=1000000007;
+    ll ans=0;
+    //群数列+数列の和 つまり数列の問題
+    erep(l,sl,sr){
+        ll s,e;
+        if(l==sl)s=L;
+        else s=gets(l);
+        if(l==sr)e=R;
+        else e=gete(l);
+        ans=(ans+(e-s+1)%m*(s%m+e%m)%m*500000004%m*l)%m;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

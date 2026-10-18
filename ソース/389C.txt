@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct hebi{
+    vector<ll> v;
+    int nuke;
+    int next;
+    hebi(){
+        //累積和のために初期化
+        v.push_back(0);
+        nuke=0;
+        next=0;
+    }
+    void query1(int l){
+        //頭の座標なので加算がずれる
+        v.push_back(v[(int)v.size()-1]+next);
+        next=l;
+    }
+    void query2(){
+        //削除はせずにindexの参照をずらす
+        nuke++;
+    }
+    ll query3(int k){
+        return v[k+nuke]-v[nuke+1];
+    }
+};
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int Q;
+    cin>>Q;
+    hebi h=hebi();
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            int l;
+            cin>>l;
+            h.query1(l);
+        }else if(q==2)h.query2();
+        else{
+            int k;
+            cin>>k;
+            cout<<h.query3(k)<<"\n";
+        }
+    }
+    return 0;
+}

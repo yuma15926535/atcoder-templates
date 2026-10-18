@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+vector<set<int>>G;
+vector<bool>visited;
+//DFSで連結成分の頂点数-1を返却
+int dfs(int pos){
+    int ret=0;
+    visited[pos]=false;
+    for(int nxt:G[pos])if(visited[nxt]){
+        ret++;
+        ret+=dfs(nxt);
+    }
+    return ret;
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<int>A(N);
+    rep(i,0,N)cin>>A[i];
+    G.resize(2e5+1);
+    rep(i,0,N)if(A[i]!=A[N-i-1]){
+        G[A[i]].insert(A[N-i-1]);
+        G[A[N-i-1]].insert(A[i]);
+    }
+    visited.resize(2e5+1,true);
+    int ans=0;
+    erep(i,0,2e5)if(visited[i]){
+        int ret=dfs(i);
+        ans+=ret;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

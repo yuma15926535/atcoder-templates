@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//エラストテネスの篩(llver)
+vector<ll> makepl(int n){
+    vector<bool> rec(n+1,true);
+    vector<ll> ret;
+    erep(i,2,n)if(rec[i]){
+        ret.push_back(i);
+        for(ll j=2;i*j<=n;j++)rec[i*j]=false;
+    }
+    return ret;
+}
+
+int main()
+{
+    ll N;
+    cin>>N;
+    vector<ll> pl=makepl(1e6);
+    ll ans=0;
+    for(ll q:pl){
+        if(q*q*q>N)break;
+        for(ll p:pl){
+            if(p*q*q*q>N||p>=q)break;
+            ans++;
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

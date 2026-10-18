@@ -1,0 +1,808 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+SmallKSumPQ
+
+【概要】
+動的集合に対して「小さい順k個」を管理するデータ構造
+add / erase に対応しつつ以下を高速に取得できる
+
+- kth（小さい順k番目）
+- sum_k_smallest（小さい順k個の和）
+
+【内部構造】
+- small：小さい方k個（max-heap）
+- large：残り（min-heap）
+- sum_small：smallの総和
+- lazy削除（unordered_map）でerase対応
+- 論理サイズ(sz_small, sz_large)で管理
+
+【計算量】
+- add / erase / kth / sum：すべて O(log N)
+
+【不変条件】
+- smallは常に「小さい方k個」
+- sz_small == min(k, 全体サイズ)
+- smallの最大値 = kth
+
+【実装のポイント】
+- sumは「smallに入る/出るときだけ更新」
+- lazy削除ではsumを触らない（重要）
+- top参照前に必ずprune
+- rebalanceはsz_small基準（heap.size()は使わない）
+
+【使いどころ】
+- 小さい順k個の和を動的に管理
+- スライド最小k和、貪欲＋データ構造系
+
+【注意】
+- kthやsumは要素数 < k のときは無効（-1など返す）
+*/
+struct SmallKSumPQ {
+    int k;
+    int sz_small = 0;
+    int sz_large = 0;
+    ll sum_small = 0;
+
+    // 小さい方k個（最大ヒープ）
+    priority_queue<ll> small;
+
+    // 残り（最小ヒープ）
+    priority_queue<ll, vector<ll>, greater<ll>> large;
+
+    unordered_map<ll,int> del_small, del_large;
+
+    SmallKSumPQ(int _k) : k(_k) {}
+
+    // ============================
+    // ゴミ削除
+    // ============================
+    void prune_small() {
+        while (!small.empty()) {
+            ll x = small.top();
+            if (del_small[x]) {
+                del_small[x]--;
+                small.pop();
+            } else break;
+        }
+    }
+
+    void prune_large() {
+        while (!large.empty()) {
+            ll x = large.top();
+            if (del_large[x]) {
+                del_large[x]--;
+                large.pop();
+            } else break;
+        }
+    }
+
+    // ============================
+    // バランス調整
+    // ============================
+    void rebalance() {
+        prune_small();
+        prune_large();
+
+        while (sz_small > k) {
+            ll x = small.top(); small.pop();
+            sum_small -= x;
+            large.push(x);
+            sz_small--;
+            sz_large++;
+        }
+
+        while (sz_small < k && sz_large > 0) {
+            ll x = large.top(); large.pop();
+            sum_small += x;
+            small.push(x);
+            sz_small++;
+            sz_large--;
+        }
+
+        prune_small();
+        prune_large();
+    }
+
+    // ============================
+    // add
+    // ============================
+    void add(ll x) {
+        if ((int)small.size() < k) {
+            small.push(x);
+            sum_small += x;
+            sz_small++;
+        } else {
+            prune_small();
+            if (!small.empty() && x <= small.top()) {
+                small.push(x);
+                sum_small += x;
+                sz_small++;
+            } else {
+                large.push(x);
+                sz_large++;
+            }
+        }
+        rebalance();
+    }
+
+    // ============================
+    // erase（1個削除）
+    // ============================
+    void erase(ll x) {
+        prune_small();
+        if (!small.empty() && x <= small.top()) {
+            del_small[x]++;
+            sum_small -= x;
+            sz_small--;
+            if (x == small.top()) prune_small();
+        } else {
+            del_large[x]++;
+            sz_large--;
+            if (!large.empty() && x == large.top()) prune_large();
+        }
+        rebalance();
+    }
+
+    // ============================
+    // kth（小さい順k番目）
+    // ============================
+    ll kth() {
+        prune_small();
+        if (sz_small < k) return -1;
+        return small.top();
+    }
+
+    ll sum_k_smallest() {
+        if (sz_small < k) return -1;
+        return sum_small;
+    }
+};
+
+/*
+LargeKSumPQ
+
+【概要】
+動的集合に対して「大きい順k個」を管理するデータ構造
+add / erase に対応しつつ以下を高速に取得できる
+
+- kth（大きい順k番目）
+- sum_k_largest（大きい順k個の和）
+
+【内部構造】
+- small：大きい方k個（min-heap）
+- large：残り（max-heap）
+- sum_small：smallの総和（＝答え）
+- lazy削除（unordered_map）でerase対応
+- 論理サイズ(sz_small, sz_large)で管理
+
+【計算量】
+- add / erase / kth / sum：すべて O(log N)
+
+【不変条件】
+- smallは常に「大きい方k個」
+- sz_small == min(k, 全体サイズ)
+- smallの最小値 = kth
+
+【実装のポイント】
+- SmallKSumPQの「完全反転版」
+- 比較は x >= small.top()
+- sumはsmallの出入りのみ更新
+- lazy削除ではsumを触らない（重要）
+- top参照前に必ずprune
+
+【使いどころ】
+- 大きい順k個の和を動的に管理
+- 貪欲（最大側）＋データ構造
+
+【注意】
+- kthやsumは要素数 < k のときは無効（-1など返す）
+*/
+struct LargeKSumPQ {
+    int k;
+    int sz_small = 0;
+    int sz_large = 0;
+    ll sum_small = 0;
+
+    // 大きい方k個（最小ヒープ）
+    priority_queue<ll, vector<ll>, greater<ll>> small;
+
+    // 残り（最大ヒープ）
+    priority_queue<ll> large;
+
+    unordered_map<ll,int> del_small, del_large;
+
+    LargeKSumPQ(int _k) : k(_k) {}
+
+    // ============================
+    // ゴミ削除
+    // ============================
+    void prune_small() {
+        while (!small.empty()) {
+            ll x = small.top();
+            if (del_small[x]) {
+                del_small[x]--;
+                small.pop();
+            } else break;
+        }
+    }
+
+    void prune_large() {
+        while (!large.empty()) {
+            ll x = large.top();
+            if (del_large[x]) {
+                del_large[x]--;
+                large.pop();
+            } else break;
+        }
+    }
+
+    // ============================
+    // バランス調整
+    // ============================
+    void rebalance() {
+        prune_small();
+        prune_large();
+
+        while (sz_small > k) {
+            ll x = small.top(); small.pop();
+            sum_small -= x;
+            large.push(x);
+            sz_small--;
+            sz_large++;
+        }
+
+        while (sz_small < k && sz_large > 0) {
+            ll x = large.top(); large.pop();
+            sum_small += x;
+            small.push(x);
+            sz_small++;
+            sz_large--;
+        }
+
+        prune_small();
+        prune_large();
+    }
+
+    // ============================
+    // add
+    // ============================
+    void add(ll x) {
+        if ((int)small.size() < k) {
+            small.push(x);
+            sum_small += x;
+            sz_small++;
+        } else {
+            prune_small();
+            if (!small.empty() && x >= small.top()) {
+                small.push(x);
+                sum_small += x;
+                sz_small++;
+            } else {
+                large.push(x);
+                sz_large++;
+            }
+        }
+        rebalance();
+    }
+
+    // ============================
+    // erase（1個削除）
+    // ============================
+    void erase(ll x) {
+        prune_small();
+        if (!small.empty() && x >= small.top()) {
+            del_small[x]++;
+            sum_small -= x;
+            sz_small--;
+            if (x == small.top()) prune_small();
+        } else {
+            del_large[x]++;
+            sz_large--;
+            if (!large.empty() && x == large.top()) prune_large();
+        }
+        rebalance();
+    }
+
+    // ============================
+    // kth（小さい順k番目）
+    // ============================
+    ll kth() {
+        prune_small();
+        if (sz_small < k) return -1;
+        return small.top();
+    }
+
+    ll sum_k_largest() {
+        if (sz_small < k) return -1;
+        return sum_small;
+    }
+};
+
+void random_test_SmallKSumPQ_step0() {
+    mt19937 rng(0);
+
+    for (int tc = 0; tc < 1000; tc++) {
+        int k = uniform_int_distribution<int>(1, 5)(rng);
+
+        SmallKSumPQ pq(k);
+        vector<ll> v;
+
+        for (int step = 0; step < 100; step++) {
+            ll x = uniform_int_distribution<int>(0, 20)(rng);
+
+            pq.add(x);
+            v.push_back(x);
+
+            if ((int)v.size() >= k) {
+                vector<ll> tmp = v;
+                sort(tmp.begin(), tmp.end());
+
+                ll expected = tmp[k-1];
+                ll actual = pq.kth();
+
+                if (expected != actual) {
+                    cout << "ERROR\n";
+                    cout << "k = " << k << "\n";
+                    cout << "expected = " << expected << "\n";
+                    cout << "actual = " << actual << "\n";
+
+                    cout << "v = ";
+                    for (auto x : v) cout << x << " ";
+                    cout << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+    cout << "OK\n";
+}
+
+void random_test_SmallKSumPQ_step1() {
+    mt19937 rng(0);
+
+    for (int tc = 0; tc < 1000; tc++) {
+        int k = uniform_int_distribution<int>(1, 5)(rng);
+
+        SmallKSumPQ pq(k);
+        multiset<ll> st;
+
+        for (int step = 0; step < 100; step++) {
+            int op = uniform_int_distribution<int>(0, 1)(rng);
+
+            if (op == 0 || st.empty()) {
+                // add
+                ll x = uniform_int_distribution<int>(0, 20)(rng);
+                pq.add(x);
+                st.insert(x);
+            } else {
+                // erase
+                int idx = uniform_int_distribution<int>(0, (int)st.size()-1)(rng);
+                auto it = st.begin();
+                advance(it, idx);
+                ll x = *it;
+
+                pq.erase(x);
+                st.erase(it);
+            }
+
+            if ((int)st.size() >= k) {
+                vector<ll> v(st.begin(), st.end());
+                sort(v.begin(), v.end());
+
+                ll expected = v[k-1];
+                ll actual = pq.kth();
+
+                if (expected != actual) {
+                    cout << "ERROR\n";
+                    cout << "k = " << k << "\n";
+                    cout << "expected = " << expected << "\n";
+                    cout << "actual = " << actual << "\n";
+
+                    cout << "v = ";
+                    for (auto x : v) cout << x << " ";
+                    cout << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+    cout << "OK\n";
+}
+
+void random_test_SmallKSumPQ_step2() {
+    mt19937 rng(0);
+
+    for (int tc = 0; tc < 1000; tc++) {
+        int k = uniform_int_distribution<int>(1, 5)(rng);
+
+        SmallKSumPQ pq(k);
+        multiset<ll> st;
+
+        for (int step = 0; step < 100; step++) {
+            int op = uniform_int_distribution<int>(0, 1)(rng);
+
+            if (op == 0 || st.empty()) {
+                ll x = uniform_int_distribution<int>(0, 20)(rng);
+                pq.add(x);
+                st.insert(x);
+            } else {
+                int idx = uniform_int_distribution<int>(0, (int)st.size()-1)(rng);
+                auto it = st.begin();
+                advance(it, idx);
+                ll x = *it;
+
+                pq.erase(x);
+                st.erase(it);
+            }
+
+            if ((int)st.size() >= k) {
+                vector<ll> v(st.begin(), st.end());
+                sort(v.begin(), v.end());
+
+                ll expected_sum = 0;
+                for (int i = 0; i < k; i++) expected_sum += v[i];
+
+                ll actual_sum = pq.sum_k_smallest();
+
+                if (expected_sum != actual_sum) {
+                    cout << "ERROR SUM\n";
+                    cout << "k = " << k << "\n";
+                    cout << "expected = " << expected_sum << "\n";
+                    cout << "actual = " << actual_sum << "\n";
+
+                    cout << "v = ";
+                    for (auto x : v) cout << x << " ";
+                    cout << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+    cout << "OK\n";
+}
+
+void random_test_LargeKSumPQ() {
+    mt19937 rng(0);
+
+    for (int tc = 0; tc < 1000; tc++) {
+        int k = uniform_int_distribution<int>(1, 5)(rng);
+
+        LargeKSumPQ pq(k);
+        multiset<ll> st;
+
+        for (int step = 0; step < 100; step++) {
+            int op = uniform_int_distribution<int>(0, 1)(rng);
+
+            if (op == 0 || st.empty()) {
+                ll x = uniform_int_distribution<int>(0, 20)(rng);
+                pq.add(x);
+                st.insert(x);
+            } else {
+                int idx = uniform_int_distribution<int>(0, (int)st.size()-1)(rng);
+                auto it = st.begin();
+                advance(it, idx);
+                ll x = *it;
+
+                pq.erase(x);
+                st.erase(it);
+            }
+
+            if ((int)st.size() >= k) {
+                vector<ll> v(st.begin(), st.end());
+                sort(v.begin(), v.end());
+
+                ll expected_sum = 0;
+                for (int i = 0; i < k; i++) {
+                    expected_sum += v[(int)v.size()-1-i];
+                }
+
+                ll actual_sum = pq.sum_k_largest();
+
+                if (expected_sum != actual_sum) {
+                    cout << "ERROR\n";
+                    cout << "k = " << k << "\n";
+                    cout << "expected = " << expected_sum << "\n";
+                    cout << "actual = " << actual_sum << "\n";
+
+                    cout << "v = ";
+                    for (auto x : v) cout << x << " ";
+                    cout << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+    cout << "OK\n";
+}
+
+void check_SmallKSumPQ() {
+    cout << "=== SmallKSumPQ 動作確認 ===\n";
+
+    SmallKSumPQ pq(3);
+    vector<ll> v;
+
+    auto show = [&]() {
+        vector<ll> tmp = v;
+        sort(tmp.begin(), tmp.end());
+
+        cout << "現在の要素: ";
+        for (auto x : tmp) cout << x << " ";
+        cout << "\n";
+
+        if ((int)tmp.size() >= 3) {
+            ll sum = tmp[0] + tmp[1] + tmp[2];
+            cout << "期待 (小さい順3個の和): " << sum << "\n";
+            cout << "構造体: " << pq.sum_k_smallest() << "\n";
+
+            cout << "期待 kth: " << tmp[2] << "\n";
+            cout << "構造体 kth: " << pq.kth() << "\n";
+        } else {
+            cout << "要素数が足りない\n";
+        }
+
+        cout << "----------------------\n";
+    };
+
+    // add
+    cout << "[add] 5\n"; pq.add(5); v.push_back(5); show();
+    cout << "[add] 1\n"; pq.add(1); v.push_back(1); show();
+    cout << "[add] 10\n"; pq.add(10); v.push_back(10); show();
+    cout << "[add] 3\n"; pq.add(3); v.push_back(3); show();
+    cout << "[add] 8\n"; pq.add(8); v.push_back(8); show();
+
+    // erase
+    cout << "[erase] 3\n";
+    pq.erase(3);
+    v.erase(find(v.begin(), v.end(), 3));
+    show();
+
+    cout << "[erase] 1\n";
+    pq.erase(1);
+    v.erase(find(v.begin(), v.end(), 1));
+    show();
+
+    cout << "=== end ===\n";
+}
+
+void check_LargeKSumPQ() {
+    cout << "=== LargeKSumPQ 動作確認 ===\n";
+
+    LargeKSumPQ pq(3);
+    vector<ll> v;
+
+    auto show = [&]() {
+        vector<ll> tmp = v;
+        sort(tmp.begin(), tmp.end());
+
+        cout << "現在の要素: ";
+        for (auto x : tmp) cout << x << " ";
+        cout << "\n";
+
+        if ((int)tmp.size() >= 3) {
+            int n = tmp.size();
+            ll sum = tmp[n-1] + tmp[n-2] + tmp[n-3];
+
+            cout << "期待 (大きい順3個の和): " << sum << "\n";
+            cout << "構造体: " << pq.sum_k_largest() << "\n";
+
+            cout << "期待 kth: " << tmp[n-3] << "\n";
+            cout << "構造体 kth: " << pq.kth() << "\n";
+        } else {
+            cout << "要素数が足りない\n";
+        }
+
+        cout << "----------------------\n";
+    };
+
+    // add
+    cout << "[add] 5\n"; pq.add(5); v.push_back(5); show();
+    cout << "[add] 1\n"; pq.add(1); v.push_back(1); show();
+    cout << "[add] 10\n"; pq.add(10); v.push_back(10); show();
+    cout << "[add] 3\n"; pq.add(3); v.push_back(3); show();
+    cout << "[add] 8\n"; pq.add(8); v.push_back(8); show();
+
+    // erase
+    cout << "[erase] 3\n";
+    pq.erase(3);
+    v.erase(find(v.begin(), v.end(), 3));
+    show();
+
+    cout << "[erase] 10\n";
+    pq.erase(10);
+    v.erase(find(v.begin(), v.end(), 10));
+    show();
+
+    cout << "=== end ===\n";
+}
+
+void solv(){
+    random_test_SmallKSumPQ_step0();
+    random_test_SmallKSumPQ_step1();
+    random_test_SmallKSumPQ_step2();
+    random_test_LargeKSumPQ();
+    check_SmallKSumPQ();
+    check_LargeKSumPQ();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

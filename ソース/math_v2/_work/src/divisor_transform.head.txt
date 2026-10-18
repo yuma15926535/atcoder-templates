@@ -1,0 +1,48 @@
+// =============================================================================
+//  約数・倍数の変換（約数・倍数のゼータ・メビウス変換、gcd・lcm の畳み込み、gcd ごとの組の数、Σφ・Σμ、ディリクレ積、大きな M の約数の上の変換）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 素数・約数
+//  依存       : 00_int_common, 00_math_base, 02_factorize, 02_sieve（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  配列は 1〜N を使う（長さ N + 1。f[0] は使わない）。T は long long（溢れたら止める）・double・mint（00_modint を貼れば）など
+//  （long long は途中の値（ゼータ変換の和など）が溢れても止まる。答えだけ収まる場合もあるので、大きくなりそうなら mint で）
+//
+//  機能一覧                                                                    計算量
+//    divisor_zeta(f, op) / divisor_mobius(f, inv_op)     g[n] = Σ_{d | n} f[d] / その逆（op を渡すと max・gcd なども） O(N log log N)
+//    multiple_zeta(f, op) / multiple_mobius(f, inv_op)   g[d] = Σ_{d | n} f[n]（倍数の和）/ その逆
+//    gcd_convolution(a, b) / lcm_convolution(a, b)       c[k] = Σ_{gcd(i,j)=k} a[i] b[j] / lcm の版（k ≤ N）
+//    count_pairs_by_gcd(cnt)          値 v の個数 cnt[v] から、gcd がちょうど g の組 {i < j} の数（全部の g）
+//    dirichlet_convolution(a, b)      ディリクレ積 c[n] = Σ_{d|n} a[d] b[n/d]（n = 1〜N）                          O(N log N)
+//    DivisorsOf D(M)                  M（≤ 10^18）の約数の上の変換。f は約数の番号で引く（長さ D.size()）          構築 分解 + O(D ω)
+//      D.divisors() / D.size() / D[i] / D.index(d) / D.factors()     約数（昇順）/ 個数 / i 番目 / d の番号（約数でなければ -1）/ 素因数分解
+//      D.zeta(f, op) / D.mobius(f, inv_op)                g[d] = Σ_{e|d} f[e] / その逆                                   O(D ω(M))
+//      D.multiple_zeta(f, op) / D.multiple_mobius(f, inv_op)   g[d] = Σ_{d|e|M} f[e] / その逆
+//    phi_sum(N) / mertens(N)          Σ_{i≤N} φ(i)（Int128）/ Σ_{i≤N} μ(i)（N = 10^10 で約 0.3 秒、10^11 で約 1.5 秒。N ≤ 10^13） O(N^{2/3})
+//    count_coprime_pairs(N)           1 ≤ a, b ≤ N で gcd = 1 の組の数（順序あり。Int128）
+//    sum_gcd_tuples(K, len, m)        値が 1〜K で長さ len の列すべての gcd の和 mod m（ABC162 E。K ≤ 10^13） O(K^{2/3} + √K log len)
+//  （φ・μ・約数の個数の表は 02_sieve：このファイルに入っている）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    divt_test::random_test()  … 全部調べる愚直解・1 つ前との差（φ(N)・μ(N)）との突き合わせ
+//    divt_test::benchmark()    … 速度計測
+//    divt_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

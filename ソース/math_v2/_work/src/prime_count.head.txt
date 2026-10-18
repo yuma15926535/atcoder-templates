@@ -1,0 +1,41 @@
+// =============================================================================
+//  素数の個数・和（N が大きい π(N)・素数の和、⌊N/i⌋ ごとの π の表、素因数がすべて P 以下の数の個数、乗法的関数の和（Min_25））   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 素数・約数
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  機能一覧                                                                    計算量
+//    prime_count(N)                   N 以下の素数の個数（N = 10^11 で約 0.3 秒、10^12 で約 1.3 秒）       O(N^{3/4} / log N)
+//    prime_sum(N)                     N 以下の素数の和（Int128）
+//    PrimeCountTable P(N)             ⌊N/i⌋ の形のすべての v での π(v)：P.count(v) / P(v)（v ≤ √N でもよい）
+//    count_smooth(N, P)               N 以下で素因数がすべて P 以下の数の個数（1 も数える。P ≤ 100 程度。(10^16, 97) で約 0.8 秒。
+//                                     素数を 2 組に分けて作った数を合わせる。作る数が 4×10^7 個を超えると止める）
+//    multiplicative_sum<T>(N, coef, fpe)   Σ_{i≤N} f(i)（f は乗法的。Min_25 篩）。素数で f(p) = Σ coef[k] p^k（3 次まで）、
+//                                     素数の累乗で f(p^e) = fpe(p, e)。T は mint・long long・Int128（整数は溢れたら止める）
+//                                     例 d：{2}, e+1 ／ φ：{−1, 1}, p^e − p^(e−1) ／ μ：{−1}, (e == 1 ? −1 : 0)
+//                                     N ≤ 10^12（mint で 10^10 なら約 0.2 秒、10^11 で約 1 秒）                  O(N^{3/4} / log N) 程度
+//  （N ≤ 10^8 なら 02_sieve の Sieve / primes_up_to の方が速く、区間の素数は segment_primes）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    pcnt_test::random_test()  … 篩で数えた値・よく知られた値との突き合わせ
+//    pcnt_test::benchmark()    … 速度計測
+//    pcnt_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

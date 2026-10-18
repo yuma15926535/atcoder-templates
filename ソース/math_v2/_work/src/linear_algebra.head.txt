@@ -1,0 +1,53 @@
+// =============================================================================
+//  線形代数（ガウスの消去法：階数・行列式・逆行列・連立一次方程式、合成数 mod の行列式、行列木定理、特性多項式・det(A + xB)）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 05 行列・線形代数
+//  依存       : 00_int_common, 00_math_base, 00_modint, 05_matrix（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt998;
+//      Matrix<mint> A = {{1, 2}, {3, 4}};
+//      mint d = mat_det(A);                                   // −2
+//      LinearSolution<mint> s = solve_linear(A, {mint(5), mint(6)});   // s.ok なら A s.x = b
+//  T は「割り算ができる」型：mint（mod は素数）・double・long double・08_fraction の Fraction（long long などの整数型はコンパイルエラーにする）
+//  （double は絶対値最大のピボット。|x| < 1e-12 は 0 とみなす。mod 2 の方程式は 05_xor_basis の Gf2System が速い）
+//
+//  機能一覧                                                                    計算量
+//    mat_rank(A)                      階数                                                        O(n m min(n, m))
+//    mat_det(A)                       行列式                                                      O(n^3)
+//    mat_inverse(A)                   逆行列（Maybe：ok が false なら逆行列なし）                  O(n^3)
+//    solve_linear(A, b)               A x = b（A は n × m）。LinearSolution{ok, x, kernel}：x は解の 1 つ、
+//                                     kernel は A y = 0 の解の基底（解は x + kernel の一次結合で全部）  O(n m min(n, m))
+//    det_mod_any(A, m)                Matrix<long long> の行列式を mod m で（m は合成数でもよい。≤ 10^18）  O(n^3 log m)
+//    count_spanning_trees<T>(n, us, vs)        無向グラフの全域木の数（多重辺は別々に数える）  O(n^3)
+//    count_arborescences<T>(n, us, vs, root)   有向グラフで root から全頂点へ向かう有向木の数
+//    char_poly(A)                     特性多項式 det(x I − A) の係数（低い次数から）                O(n^3)
+//    det_affine(A, B)                 det(A + x B) の係数（低い次数から。B が正則でなくてよい）       O(n^3)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    linalg_test::random_test()  … 置換の和の行列式・全部試す全域木などの愚直解との突き合わせ
+//    linalg_test::benchmark()    … 速度計測
+//    linalg_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+bool comp(int a,int b){
+    return a>b;
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<int> v;
+    while(N){
+        v.push_back(N%10);
+        N/=10;
+    }
+    int l=v.size();
+    ll ans=0;
+    rep(i,1,(1<<l)-1){
+        vector<int> v1,v2;
+        rep(j,0,l){
+            if(((i>>j)&1)==1)v1.push_back(v[j]);
+            else v2.push_back(v[j]);
+        }
+        sort(nall(v1),comp);
+        sort(nall(v2),comp);
+        if(v1[0]==0||v2[0]==0)continue;
+        string s1="",s2="";
+        //vector->strong->llに変換
+        for(int a:v1)s1+=a+'0';
+        for(int a:v2)s2+=a+'0';
+        ans=max(ans,stoll(s1)*stoll(s2));
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

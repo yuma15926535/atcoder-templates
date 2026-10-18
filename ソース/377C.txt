@@ -1,0 +1,35 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+vector<int> dx={0,2,1,-1,-2,-2,-1,1,2};
+vector<int> dy={0,1,2,2,1,-1,-2,-2,-1};
+
+int main()
+{
+    ll N,M;
+    cin>>N>>M;
+    //setではsortする順番が決まっていないstructを指定できない
+    set<pair<ll,ll>> s;
+    rep(i,0,M){
+        ll a,b;
+        cin>>a>>b;
+        rep(i,0,9)if(1<=a+dx[i]&&a+dx[i]<=N&&1<=b+dy[i]&&b+dy[i]<=N){
+            pair<ll,ll> p;
+            p.first=a+dx[i];
+            p.second=b+dy[i];
+            s.insert(p);
+        }
+    }
+    cout<<N*N-(int)s.size()<<"\n";
+    return 0;
+}

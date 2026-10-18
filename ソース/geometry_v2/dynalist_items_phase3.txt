@@ -1,0 +1,101 @@
+01_arg_sort（偏角：偏角の比較・並べ替え・扇形の中の点の数・角の大きさの比較。整数で厳密）
+	説明
+		arg_cmp(a, b)（-1 / 0 / 1）/ arg_less(a, b)（sort の比較関数に）/ same_direction(a, b) / arg_half(v)
+		arg_sort(ps, 原点 = {0,0}, far_first = false) / arg_sort_idx（番号で）：原点と同じ点が先頭、同じ向きは近い順（far_first なら遠い順）
+		arg_sort_from(ps, 原点, 向き) / arg_sort_idx_from：向きから反時計回りに一周する順
+		unique_directions(ps, 原点, keep_far) / unique_directions_idx：向きごとに 1 点（近い点 / 遠い点）
+		ArgSorted S(ps, 原点)：S.size() / S.order[k] / S.vec[k] / S.zeros / S.lower_bound(dir) / S.upper_bound(dir) / S.groups()
+		S.count(l, r, include_l = true, include_r = false)：向き l から反時計回りに r までの点の数（0 度をまたいでよい）/ S.exists(...)
+		angle_cmp(a, b, c, d) / angle_less：∠(a, b) と ∠(c, d)（なす角 [0, π]）を誤差なしで比べる
+		count_in_open_half(ps, 原点)：各点の左側（偏角が (θ, θ + π)）にある点の数
+	メモ
+		幾何基盤を同梱済み。偏角は x 軸の正の向きから反時計回りに [0, 2π)。ベクトルの成分は 2×10^9 まで
+		原点を含む三角形の数 = C(N, 3) - Σ C(h_i, 2)（h = count_in_open_half。原点を通る直線の上に 2 点が並ばないとき）
+		類題：ABC139 F（偏角の順の連続した区間）、ABC225 E（角度の区間を貪欲に。デモに型）、典型90 009 は 06_point_set の max_angle
+	C:\atcoder_template\典型90\ソース\geometry_v2\01_arg_sort.cpp
+02_line（直線・線分・半直線：交差判定・位置関係・交点・距離・射影・直線の正規化 LineKey・格子点）
+	説明
+		Line l(a, b)（直線 a→b）/ Segment s(a, b)（線分）。整数なら判定は厳密、LineD / SegmentD は誤差つき
+		is_parallel / is_orthogonal / on_line(l, p) / on_segment(s, p) / side(l, p)（左 +1・右 -1・上 0）
+		intersects(s1, s2)（端点・重なりも含む）/ intersects_strict(s1, s2) / intersects(l, s) / line_relation(l1, l2)（LINE_CROSS / LINE_PARALLEL / LINE_SAME）
+		segment_relation(s1, s2)：SEGMENT_SEPARATE / SEGMENT_TOUCH（1 点で接する）/ SEGMENT_CROSS（真に交差）/ SEGMENT_OVERLAP（一直線で重なる）
+		cross_point(l1, l2) / cross_point(l, s) / cross_points(s1, s2)（vector<PointD>。重なるなら両端）/ cross_point_frac(l1, l2)（既約分数 FracPoint）
+		projection(l, p) / reflection(l, p) / dist(図形, 図形)（点・直線・線分のどの組でも）/ dist2_cmp(l or s, p, D2)（誤差なしの比較）
+		perpendicular(l, p) / parallel_through(l, p) / bisector(a, b)
+		LineKey k = line_key(p, q)：a x + b y = c を正規化（同じ直線なら同じ）。k.contains(p) / k.dir_key() / k.line() / LineKeyHash / bisector_key(p, q)
+		lattice_points_on(s)（gcd + 1）/ cells_crossed(s)（|dx| + |dy| - gcd）
+		Ray r(a, b)（半直線。a を含む）：on_ray(r, p) / intersects(r, 直線・線分・半直線) / cross_point(r, l or r2)（1 点のときだけ）/ cross_points(r, s)（重なりは両端）/ dist / dist2_cmp
+	メモ
+		幾何基盤を同梱済み。交点は整数の入力なら分子を 128 ビットで正確に求めてから割る
+		類題：ARC042 B（dist(Segment, p)）、ABC248 E（line_key。数え上げは 06_point_set）、ABC016 D（intersects_strict の数 / 2 + 1）、ABC426 E（相対運動の線分と原点の dist）
+	C:\atcoder_template\典型90\ソース\geometry_v2\02_line.cpp
+03_polygon（多角形・三角形：面積・内外判定・位置関係・凸か・単純か・重心・ピックの定理・三角形の種類・頂点の区間の面積）
+	説明
+		area2(poly)（符号付き面積の 2 倍。整数で厳密）/ area(poly) / is_ccw(poly) / make_ccw(poly)
+		contains(poly, p)：OUTSIDE / ON_BORDER / INSIDE（凸でなくてよい。O(N)）
+		is_convex(poly, strict = false)（strict なら 180 度の頂点も不可。向きはどちらでもよい）/ is_simple(poly)（O(N^2)）
+		perimeter(poly) / centroid(poly)
+		boundary_lattice_points(poly) / interior_lattice_points(poly)（ピックの定理）
+		triangle_area2(a, b, c) / triangle_kind(a, b, c)（TRIANGLE_ACUTE / TRIANGLE_RIGHT / TRIANGLE_OBTUSE / TRIANGLE_DEGENERATE）/ in_triangle(a, b, c, p)
+		位置関係（周を含む閉じた領域として。凸でなくてよい）：contains(poly, s)（線分が入るか）/ contains(P, Q) / intersects(poly, s or l or r) / intersects(P, Q)
+		dist(poly, p or s) / dist(P, Q)（中・共有点なら 0）/ boundary_dist(poly, p)（周まで）
+		PolygonPrefix pp(poly)：pp.area2(i, j)（Int128）/ pp.area(i, j) / pp.centroid(i, j)：頂点 v[i..j]（n で割った余り）で囲む部分を O(1)
+	メモ
+		幾何基盤・02_line を同梱済み。多角形は vector<Point>（始点を末尾に繰り返さない）。|x|, |y| ≤ 10^9 の単純多角形なら面積の 2 倍は long long に収まる
+		類題：ABC266 C（is_convex）、ABC362 B（triangle_kind）、典型90 041（凸包と一緒に。04_convex_hull）、ABC250 F（PolygonPrefix を尺取り）、ARC042 B（boundary_dist）
+	C:\atcoder_template\典型90\ソース\geometry_v2\03_polygon.cpp
+04_convex_hull（凸包：凸包・上下の凸包・最も遠い 2 点・凸多角形の内外判定 O(log N)・凸包の中の格子点）
+	説明
+		convex_hull(ps, keep_collinear = false) / convex_hull_idx：反時計回り、(x, y) 最小の点から。keep_collinear なら辺の上の点も
+		lower_hull(ps) / upper_hull(ps)（x の小さい順）
+		farthest_pair(ps)：FarthestPair{i, j, d2}（番号は ps の中）/ convex_diameter(h)
+		convex_contains(h, p)：OUTSIDE / ON_BORDER / INSIDE（O(log N)。h は convex_hull の結果。入力の凸多角形も convex_hull(P, true) を通す）/ convex_contains(h, Q)：多角形 Q が入るか
+		lattice_points_in_convex(h)：凸包の内部と周の上の格子点の数（点・線分の退化した形も可）
+	メモ
+		幾何基盤・02_line・03_polygon を同梱済み（area2(h) / is_convex / contains / intersects などもそのまま使える）
+		全部が一直線なら：keep_collinear = false → 両端の 2 点、true → 端から端へ全部
+		類題：典型90 041（lattice_points_in_convex(convex_hull(ps)) - N）、ABC296 G（convex_contains）
+	C:\atcoder_template\典型90\ソース\geometry_v2\04_convex_hull.cpp
+05_circle（円：位置関係・交点・接線・外接円・内接円・2 点を通る円・円の中の格子点・円板としての位置関係・円周の上の弦）
+	説明
+		Circle c(中心, r) / CircleD。contains(c, p)（OUTSIDE / ON_BORDER / INSIDE）
+		circle_relation(c1, c2)：CIRCLE_SEPARATE(4) / CIRCLE_EXTERNAL(3) / CIRCLE_INTERSECT(2) / CIRCLE_INTERNAL(1) / CIRCLE_CONTAIN(0) / CIRCLE_SAME(5)
+		has_common_point(c1, c2)：円周どうしが共有点を持つか / count_cross(c, l or s)：交点の数（誤差なし）
+		cross_points(c, l) / cross_points(c, s) / cross_points(c1, c2)（vector<PointD>）
+		tangent_points(c, p) / common_tangents(c1, c2)（LineD。a は c1 との接点）
+		circumcircle(a, b, c) / incircle(a, b, c)（一直線なら r = -1）/ circle_with_diameter(a, b) / circles_through(a, b, r)
+		lattice_points_in_circle(cx, cy, r, scale = 1, include_border = true)：中心・半径を scale 倍した整数で渡す
+		arc_length(r, θ) / sector_area(r, θ) / in_circumcircle(a, b, c, p)（3 点を通る円の内外。4 点が同じ円の上 ⇔ ON_BORDER。厳密）
+		count_cross(c, r) / cross_points(c, r)：円周と半直線 Ray
+		円板（中身を含む）として：disk_intersects(c, s or l or r or c2) / disk_contains(c, s or c2) / disk_dist(c, 図形) / circumference_dist(c, p or c2)（円周まで）
+		弦（円周の上の位置で表す）：chords_cross(a, b, c, d) / chord_direction_key(a, b, n)（(a + b) mod n。平行 ⇔ 同じ）/ count_crossing_chords(弦) / chord_cross_counts(弦, クエリ) / ChordSet cs(n)：add / crosses（位置 0〜n）
+	メモ
+		幾何基盤・02_line を同梱済み。整数の円なら位置関係・交点の数は厳密（中心・半径 10^9 まで）
+		count_cross は円周との交点の数（中にある線分は 0）。円の内側と共有点を持つかは disk_intersects
+		類題：ABC259 D（has_common_point ＋ Union-Find）、ABC191 D（read_fixed(4) と lattice_points_in_circle(X, Y, R, 10000)）、ABC157 F（時間を二分探索して 2 円の交点を候補に）
+		弦の類題：ABC338 E（count_crossing_chords > 0）、典型90 017（count_crossing_chords）、ABC405 F（chord_cross_counts）、ABC424 F（ChordSet）、ABC402 D（chord_direction_key）、ARC076 E（08_rect の boundary_position と）
+	C:\atcoder_template\典型90\ソース\geometry_v2\05_circle.cpp
+06_point_set（点の集合：最近点対・距離 D 以内の組・一直線・三角形・直線の数・角の分類・最大の角・長方形などの数）
+	説明
+		closest_pair(ps)：ClosestPair{i, j, d2} / pairs_within(ps, D) / pairs_within_d2(ps, D2)：距離 D 以内の組 (i, j)
+		count_collinear_triples(ps) / count_triangles(ps) / max_collinear(ps)（MaxCollinear{count, i, j}）
+		lines_through(ps)（LineCount{key, count}）/ count_lines_with_at_least(ps, K)（無限なら -1）
+		count_triangles_by_angle(ps)（TriangleCounts{acute, right, obtuse}）/ max_angle(ps)（MaxAngle{angle, i, j, k}。j が頂点）
+		count_axis_rectangles(ps) / count_squares(ps) / count_parallelograms(ps) / count_trapezoids(ps)（平行四辺形を含む）
+	メモ
+		幾何基盤・02_line・01_arg_sort を同梱済み。数え上げは O(N^2 log N)（N = 2000 で 0.1〜0.7 秒程度）
+		三角形・直線は番号の組で数える（同じ点も別の点）。長方形などの図形は同じ点を 1 つにまとめてから数える
+		類題：ABC304 C、ABC181 C、ABC224 C、ABC248 E、ABC033 D、典型90 009、ABC218 D、ABC275 C
+	C:\atcoder_template\典型90\ソース\geometry_v2\06_point_set.cpp
+07_manhattan（マンハッタン距離・チェビシェフ距離：45 度回転・最も遠い点・距離の和・1 次元の距離の和の表）
+	説明
+		manhattan(a, b) / chebyshev(a, b) / in_diamond(中心, D, p)
+		manhattan_to_chebyshev(p)（(x + y, x - y)）/ chebyshev_to_manhattan(q)
+		ManhattanFarthest F(ps)：F.max_pair()（ManhattanPair{i, j, d}）/ F.farthest(q)（ManhattanFar{i, d}）
+		DynamicManhattan M：M.add(p) → 番号 / M.erase(番号) / M.size() / M.alive(番号) / M.max_pair() / M.farthest(q)
+		sum_manhattan_pairs(ps) / sum_chebyshev_pairs(ps)（Int128）/ sum_manhattan_from_each(ps) / manhattan_median(ps)
+		AbsSum S(xs [, ws])：S(x) = Σ w_i |x - x_i|（Int128。O(log N)）/ S.argmin()（重み付きの中央値）/ abs_sum_table(xs, lo, hi)：x = lo..hi の Σ |x - x_i| の表
+	メモ
+		幾何基盤を同梱済み。グラフ・グリッドの 10_grid_transform の manhattan_to_chebyshev(x, y) と一緒に貼ってよい（Point 版の重ね定義）
+		類題：典型90 036（F.farthest）、ABC351 E（x + y の偶奇で分けて sum_chebyshev_pairs）、ABC366 E（x と y で abs_sum_table を作って尺取り）
+	C:\atcoder_template\典型90\ソース\geometry_v2\07_manhattan.cpp

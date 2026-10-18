@@ -1,0 +1,54 @@
+// =============================================================================
+//  素因数分解（1 つの大きな数の素数判定・素因数分解・約数・φ・μ、n! の素因数、累乗数の数など）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 素数・約数
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い分け：N 以下（N ≤ 5×10^7 程度）の数を何度も分解するなら 02_sieve の Sieve（このファイルを同梱している）。
+//            1 つ・少数の大きな数（10^18 まで）ならこのファイル
+//
+//  機能一覧（n < 2^63）                                                       計算量
+//    PrimePower{p, e}                      素因数分解の 1 項 p^e（cout << で "p^e"、e = 1 なら "p"）
+//    is_prime(n)                           素数か（決定的ミラー・ラビン。誤判定なし）               O(log n)
+//    factorize(n)                          素因数分解 vector<PrimePower>（p の昇順。n ≥ 1。1 なら空）  期待 O(n^{1/4})
+//    factorize_trial(n)                    試し割りの素因数分解（確かめ用）                          O(√n)
+//    prime_factors(n)                      異なる素因数（昇順）
+//    divisors_of(n)                        約数（昇順）
+//    divisors_from_factors(fs) / for_each_divisor(fs, f)   素因数分解から約数（昇順）/ 約数を f(d) に渡す
+//    count_divisors(n) / sum_divisors(n)   約数の個数 / 約数の和（Int128）
+//    euler_phi(n) / mobius(n)              オイラーの φ / メビウスの μ
+//    omega(n) / big_omega(n)               異なる素因数の個数 ω / 重複を含めた素因数の個数 Ω（12 → 2 / 3）
+//    largest_prime_factor(n) / radical(n)  最大の素因数 / 異なる素因数の積
+//    square_free_decompose(n)              SquareFreeParts{a, b}：n = a^2 · b（b は平方因子なし）
+//    is_square_free(n) / is_prime_power(n) 平方因子を持たないか / 素数の累乗か
+//    factorial_exponent(n, p)              n! が素数 p で何回割れるか（ルジャンドル）                O(log n)
+//    factorial_max_power(n, k)             k^e が n! を割り切る最大の e（k は合成数でもよい）
+//    min_factorial_multiple(k)             k が n! を割り切る最小の n
+//    is_perfect_power(n)                   a^b（a ≥ 1, b ≥ 2）と書けるか（1 は true）
+//    count_perfect_powers(N)               1 以上 N 以下の a^b（b ≥ 2）の形の数の個数（1 も数える）   O(N^{1/3} log)
+//    count_coprime_up_to(N, M)             1 以上 N 以下で M と互いに素な数の個数（包除）           O(2^ω(M))
+//    lcm_mod_of(vs, m)                     多くの数の lcm を mod m で（mod を取りながら lcm を取ると誤るため。vector<int> も可）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    fac_test::random_test()  … 試し割り・篩・作り方の分かっている数との突き合わせ
+//    fac_test::benchmark()    … 速度計測
+//    fac_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

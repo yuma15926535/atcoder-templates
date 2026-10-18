@@ -1,0 +1,34 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+ll N;
+//N以下のxの倍数の和
+ll fb(ll x){
+    ll m=N/x;
+    ll ret=m*(m+1)/2*x;
+    return ret;
+}
+
+int main()
+{
+    ll A,B;
+    cin>>N>>A>>B;
+    ll ans=N*(N+1)/2;
+    ll C=lcm(A,B);
+    ans-=fb(A);
+    ans-=fb(B);
+    ans+=fb(C);
+    cout<<ans<<"\n";
+    return 0;
+}

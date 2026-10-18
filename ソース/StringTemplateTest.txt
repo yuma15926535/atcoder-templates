@@ -1,0 +1,468 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+ StringAlgo (string系全部入り)
+ ==========
+ 競技プログラミング用の文字列アルゴリズム総合テンプレート。
+*/
+struct StringAlgo {
+    string s;
+    int n;
+
+    /* ---------- Z ---------- */
+    vector<int> z;
+
+    /* ---------- SA / LCP ---------- */
+    vector<int> sa, lcp, rank;
+
+    /* ---------- kth substring ---------- */
+    vector<long long> pref; // 各 suffix が生む substring の累積
+
+    /* ---------- Rolling Hash ---------- */
+    static constexpr long long MOD = (1LL << 61) - 1;
+    static constexpr long long BASE = 911382323;
+    vector<long long> h, p;
+
+    /* ---------- Manacher ---------- */
+    vector<int> man;
+
+    /* ---------- constructor ---------- */
+    // 文字列 s を受け取り、全ての文字列アルゴリズム用の前処理を一括で構築する
+    // 各 build_* は O(N)～O(N log N)
+    StringAlgo(const string& s_) : s(s_), n(s_.size()) {
+        build_z();
+        build_sa();
+        build_kth();
+        build_hash();
+        build_manacher();
+    }
+
+    /* =====================================================
+       Z Algorithm
+    ===================================================== */
+    // Z配列を構築する
+    // z[i] = s[0..] と s[i..] の最長共通接頭辞長
+    void build_z() {
+        z = atcoder::z_algorithm(s);
+    }
+
+    /* =====================================================
+       Suffix Array / LCP
+    ===================================================== */
+    // suffix array, lcp array, rank 配列を構築する
+    // rank[i] = suffix i が SA 上で何番目か
+    void build_sa() {
+        sa = atcoder::suffix_array(s);
+        lcp = atcoder::lcp_array(s, sa);
+        rank.resize(n);
+        for (int i = 0; i < n; i++)
+            rank[sa[i]] = i;
+    }
+
+    // 文字列中で最も長く繰り返し現れる部分文字列の長さを返す
+    // LCP の最大値に相当
+    int longest_repeat() {
+        return lcp.empty() ? 0 : *max_element(lcp.begin(), lcp.end());
+    }
+
+    // 異なる部分文字列の個数を返す
+    // 全部分文字列数 − LCP の総和
+    long long count_distinct_substrings() {
+        long long res = 1LL * n * (n + 1) / 2;
+        for (int x : lcp) res -= x;
+        return res;
+    }
+
+    /* =====================================================
+       kth substring
+    ===================================================== */
+    // 各 suffix が新たに生み出す部分文字列数の累積和を構築する
+    // kth_substring_log 用の前処理
+    void build_kth() {
+        pref.assign(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            long long cnt = (n - sa[i]) - (i == 0 ? 0 : lcp[i - 1]);
+            pref[i + 1] = pref[i] + cnt;
+        }
+    }
+
+    // 辞書順 K 番目の部分文字列を O(N) で取得する
+    string kth_substring(long long K) {
+        for (int i = 0; i < n; i++) {
+            long long cnt = (n - sa[i]) - (i == 0 ? 0 : lcp[i - 1]);
+            if (K > cnt) K -= cnt;
+            else return s.substr(sa[i], (i == 0 ? 0 : lcp[i - 1]) + K);
+        }
+        return "";
+    }
+
+    // 辞書順 K 番目の部分文字列を O(log N) で取得する
+    // 累積和 + 二分探索を利用
+    string kth_substring_log(long long K) {
+        int i = lower_bound(pref.begin(), pref.end(), K) - pref.begin() - 1;
+        long long used = pref[i];
+        long long off = K - used;
+        int len = (i == 0 ? 0 : lcp[i - 1]) + off;
+        return s.substr(sa[i], len);
+    }
+
+    /* =====================================================
+       Rolling Hash
+    ===================================================== */
+    // 2^61-1 mod による高速な乗算を行う
+    static long long modmul(long long a, long long b) {
+        __int128 t = (__int128)a * b;
+        t = (t >> 61) + (t & MOD);
+        if (t >= MOD) t -= MOD;
+        return (long long)t;
+    }
+
+    // prefix hash と base の累乗を構築する
+    // h[i] = s[0..i) のハッシュ
+    void build_hash() {
+        h.assign(n + 1, 0);
+        p.assign(n + 1, 1);
+        for (int i = 0; i < n; i++) {
+            h[i + 1] = modmul(h[i], BASE) + s[i];
+            if (h[i + 1] >= MOD) h[i + 1] -= MOD;
+            p[i + 1] = modmul(p[i], BASE);
+        }
+    }
+
+    // 部分文字列 s[l..r) のハッシュ値を返す
+    long long get_hash(int l, int r) {
+        long long res = h[r] - modmul(h[l], p[r - l]);
+        if (res < 0) res += MOD;
+        return res;
+    }
+
+    /* =====================================================
+       Manacher
+    ===================================================== */
+    // Manacher 法により、全中心の回文半径を計算する
+    void build_manacher() {
+        string t = "$";
+        for (char c : s) {
+            t.push_back('#');
+            t.push_back(c);
+        }
+        t.push_back('#');
+
+        int m = t.size();
+        man.assign(m, 0);
+        int c = 0, r = 0;
+        for (int i = 0; i < m; i++) {
+            int mir = 2 * c - i;
+            if (i < r) man[i] = min(r - i, man[mir]);
+            while (i - man[i] - 1 >= 0 &&
+                   i + man[i] + 1 < m &&
+                   t[i - man[i] - 1] == t[i + man[i] + 1])
+                man[i]++;
+            if (i + man[i] > r) {
+                c = i;
+                r = i + man[i];
+            }
+        }
+    }
+
+    /* =====================================================
+       最長回文部分文字列を返す
+       計算量：O(N)
+    ===================================================== */
+    // Manacher の結果から、最長回文部分文字列を1つ返す
+    string longest_palindrome() const {
+        int best_len = 0;
+        int best_pos = 0;
+
+        for (int i = 0; i < (int)man.size(); i++) {
+            if (man[i] > best_len) {
+                best_len = man[i];
+                best_pos = i;
+            }
+        }
+
+        int start = (best_pos - best_len) / 2;
+        return s.substr(start, best_len);
+    }
+
+    /* =====================================================
+       2文字列 LCS（長さ・実体・全列挙）
+    ===================================================== */
+    // 2文字列 a, b の最長共通部分文字列の「長さ」を返す
+    static int lcs_len(const string& a, const string& b) {
+        string s = a + "$" + b;
+        auto sa = atcoder::suffix_array(s);
+        auto lcp = atcoder::lcp_array(s, sa);
+        int border = a.size(), res = 0;
+        for (int i = 0; i + 1 < (int)s.size(); i++) {
+            if ((sa[i] < border) != (sa[i + 1] < border))
+                res = max(res, lcp[i]);
+        }
+        return res;
+    }
+
+    // 2文字列 a, b の最長共通部分文字列を1つ返す
+    static string lcs_str(const string& a, const string& b) {
+        string s = a + "$" + b;
+        auto sa = atcoder::suffix_array(s);
+        auto lcp = atcoder::lcp_array(s, sa);
+        int border = a.size();
+        int best = 0, pos = -1;
+        for (int i = 0; i + 1 < (int)s.size(); i++) {
+            if ((sa[i] < border) != (sa[i + 1] < border)) {
+                if (lcp[i] > best) {
+                    best = lcp[i];
+                    pos = sa[i];
+                }
+            }
+        }
+        return best == 0 ? "" : s.substr(pos, best);
+    }
+
+    // 2文字列 a, b の最長共通部分文字列をすべて列挙する
+    static set<string> lcs_all(const string& a, const string& b) {
+        string s = a + "$" + b;
+        auto sa = atcoder::suffix_array(s);
+        auto lcp = atcoder::lcp_array(s, sa);
+        int border = a.size(), best = 0;
+        for (int i = 0; i + 1 < (int)s.size(); i++)
+            if ((sa[i] < border) != (sa[i + 1] < border))
+                best = max(best, lcp[i]);
+
+        set<string> res;
+        for (int i = 0; i + 1 < (int)s.size(); i++)
+            if ((sa[i] < border) != (sa[i + 1] < border) && lcp[i] == best)
+                res.insert(s.substr(sa[i], best));
+        return res;
+    }
+
+    /* =====================================================
+       汎用 k文字列 LCS
+       strings.size() = K
+       戻り値：最長共通部分文字列の長さ
+    ===================================================== */
+    // K 個の文字列すべてに共通する最長部分文字列の「長さ」を返す
+    static int lcs_k(const vector<string>& strs) {
+        string s;
+        vector<int> id;
+        int K = strs.size();
+
+        for (int i = 0; i < K; i++) {
+            for (char c : strs[i]) {
+                s.push_back(c);
+                id.push_back(i);
+            }
+            s.push_back(char('{' + i));
+            id.push_back(-1);
+        }
+
+        auto sa = atcoder::suffix_array(s);
+        auto lcp = atcoder::lcp_array(s, sa);
+
+        vector<int> cnt(K, 0);
+        int kind = 0, res = 0;
+        deque<int> dq;
+
+        for (int l = 0, r = 0; r < (int)sa.size(); r++) {
+            int who = id[sa[r]];
+            if (who >= 0 && cnt[who]++ == 0) kind++;
+
+            if (r > 0) {
+                while (!dq.empty() && lcp[dq.back()] >= lcp[r - 1])
+                    dq.pop_back();
+                dq.push_back(r - 1);
+            }
+
+            while (kind == K) {
+                res = max(res, lcp[dq.front()]);
+                int w = id[sa[l]];
+                if (w >= 0 && --cnt[w] == 0) kind--;
+                if (!dq.empty() && dq.front() == l) dq.pop_front();
+                l++;
+            }
+        }
+        return res;
+    }
+
+    /* =====================================================
+       汎用 k文字列 LCS（実体を1つ返す）
+       戻り値：最長共通部分文字列（1つ）
+       計算量：O(N)
+    ===================================================== */
+    // K 個の文字列すべてに共通する最長部分文字列を1つ返す
+    static string lcs_k_str(const vector<string>& strs) {
+        string s;
+        vector<int> id;
+        int K = strs.size();
+
+        for (int i = 0; i < K; i++) {
+            for (char c : strs[i]) {
+                s.push_back(c);
+                id.push_back(i);
+            }
+            s.push_back(char('{' + i));
+            id.push_back(-1);
+        }
+
+        auto sa  = atcoder::suffix_array(s);
+        auto lcp = atcoder::lcp_array(s, sa);
+
+        vector<int> cnt(K, 0);
+        int kind = 0;
+        int best_len = 0;
+        int best_pos = -1;
+
+        deque<int> dq;
+
+        for (int l = 0, r = 0; r < (int)sa.size(); r++) {
+            int who = id[sa[r]];
+            if (who >= 0 && cnt[who]++ == 0) kind++;
+
+            if (r > 0) {
+                while (!dq.empty() && lcp[dq.back()] >= lcp[r - 1])
+                    dq.pop_back();
+                dq.push_back(r - 1);
+            }
+
+            while (kind == K) {
+                int cur_len = lcp[dq.front()];
+                if (cur_len > best_len) {
+                    best_len = cur_len;
+                    best_pos = sa[dq.front()];
+                }
+
+                int w = id[sa[l]];
+                if (w >= 0 && --cnt[w] == 0) kind--;
+                if (!dq.empty() && dq.front() == l) dq.pop_front();
+                l++;
+            }
+        }
+
+        if (best_len == 0) return "";
+        return s.substr(best_pos, best_len);
+    }
+};
+
+void solv(){
+    /* =============================
+       基本テスト文字列
+    ============================= */
+    string s = "banana";
+    StringAlgo SA(s);
+
+    cout << "[string]\n";
+    cout << s << "\n\n";
+
+    /* =============================
+       Z Algorithm
+    ============================= */
+    cout << "[Z Algorithm]\n";
+    cout << "z: ";
+    for (int x : SA.z) cout << x << " ";
+    cout << "\n\n";
+
+    /* =============================
+       Suffix Array / LCP
+    ============================= */
+    cout << "[Suffix Array]\n";
+    for (int i = 0; i < (int)SA.sa.size(); i++) {
+        cout << i << ": sa=" << SA.sa[i];
+        if (i > 0) cout << ", lcp=" << SA.lcp[i - 1];
+        cout << "\n";
+    }
+    cout << "\n";
+
+    cout << "longest_repeat = " << SA.longest_repeat() << "\n";
+    cout << "distinct_substrings = " << SA.count_distinct_substrings() << "\n\n";
+
+    /* =============================
+       kth substring
+    ============================= */
+    cout << "[kth substring]\n";
+    long long K = 5;
+    cout << "k = " << K << "\n";
+    cout << "O(N)     : " << SA.kth_substring(K) << "\n";
+    cout << "O(log N) : " << SA.kth_substring_log(K) << "\n\n";
+
+    /* =============================
+       Rolling Hash
+    ============================= */
+    cout << "[Rolling Hash]\n";
+    // "ana" == s[1..4)
+    long long h1 = SA.get_hash(1, 4);
+    long long h2 = SA.get_hash(3, 6);
+    cout << "hash(s[1,4)) = " << h1 << "\n";
+    cout << "hash(s[3,6)) = " << h2 << "\n";
+    cout << "equal? " << (h1 == h2) << "\n\n";
+
+    /* =============================
+       Manacher
+    ============================= */
+    cout << "[Manacher]\n";
+    cout << "longest_palindrome = " << SA.longest_palindrome() << "\n\n";
+
+    /* =============================
+       2文字列 LCS
+    ============================= */
+    cout << "[2-string LCS]\n";
+    string a = "ababc";
+    string b = "babca";
+
+    cout << "a = " << a << "\n";
+    cout << "b = " << b << "\n";
+
+    cout << "lcs_len = " << StringAlgo::lcs_len(a, b) << "\n";
+    cout << "lcs_str = " << StringAlgo::lcs_str(a, b) << "\n";
+
+    auto all = StringAlgo::lcs_all(a, b);
+    cout << "lcs_all:\n";
+    for (auto& x : all) cout << "  " << x << "\n";
+    cout << "\n";
+
+    /* =============================
+       k文字列 LCS
+    ============================= */
+    cout << "[k-string LCS]\n";
+    vector<string> strs = {
+        "banana",
+        "ananas",
+        "nana"
+    };
+
+    cout << "strings:\n";
+    for (auto& x : strs) cout << "  " << x << "\n";
+
+    cout << "lcs_k_len = " << StringAlgo::lcs_k(strs) << "\n";
+    cout << "lcs_k_str = " << StringAlgo::lcs_k_str(strs) << "\n";
+
+    cout << "\n=== end ===\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

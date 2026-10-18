@@ -1,0 +1,175 @@
+01_bfs（BFS：辺の本数での最短距離・多始点・隣接を自分で書く本体 bfs_core）
+	説明
+		auto r = bfs(G, s) / bfs(G, {s1, s2, ...}) / bfs(G, s, t)（t の距離が決まったら打ち切る）
+		r.dist[v]（届かなければ DIST_INF）/ r.par[v] / r.reached(v) / r.path(t) / r.nearest_source() / auto [dist, par] = bfs(G, s);
+		bfs_core(n, s / starts, [&](int v, auto&& push) { ... push(u); ... })：グラフが書かれていないとき（状態・数の操作・辺を消したグラフ）
+	メモ
+		グラフ基盤を同梱済み。グリッドは 09_grid_bfs
+		状態つきは 00_state_id の StateId で番号を付けて bfs_core に渡す
+		類題：ABC218 F（辺を 1 本ずつ消す）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\01_bfs.cpp
+01_zero_one_bfs（0-1 BFS：重みが 0 か 1 の最短距離）
+	説明
+		auto r = zero_one_bfs(G, s) / zero_one_bfs(G, {s1, ...}) / zero_one_bfs(G, s, t)（e.w は 0 か 1）
+		zero_one_bfs_core(n, s / starts, [&](int v, auto&& push) { ... push(u, 0 か 1); ... })
+	メモ
+		グラフ基盤を同梱済み。グリッドの壁破壊は 09_grid_01bfs
+		向きを変えるとコスト 1 などは、状態 (頂点, 向き) にして zero_one_bfs_core
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\01_zero_one_bfs.cpp
+01_dfs（非再帰 DFS：行きがけ順・帰りがけ順・訪問列・DFS 木）
+	説明
+		auto d = dfs(G, s) / dfs(G, {s1, ...}) / dfs_all(G)（番号の小さい頂点から全部）/ dfs_core(n, s / starts, adj)
+		d.pre / d.post（行きがけ順 / 帰りがけ順）/ d.tour（入るときと子から戻るたびに書く列。ABC213 D）
+		d.par / d.par_edge / d.depth / d.in / d.out（DFS 木の部分木 = pre[in[v] .. out[v])）/ d.roots / d.reached(v)
+	メモ
+		グラフ基盤を同梱済み。再帰しないので深いグラフ（一直線 10^6）でも落ちない
+		隣接を小さい順に訪問したいときは先に G.sort_adj()
+		木なら 05_rooted_tree のほうが機能が多い
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\01_dfs.cpp
+01_components（連結成分：成分番号・成分ごとの頂点・辺の本数）
+	説明
+		auto c = components(G)（無向）/ weak_components(G)（有向で向きを無視）/ components_core(n, adj[, alive])
+		c.count / c.id[v] / c.group(k)（頂点の昇順）/ c.size_of(k) / c.comp_size(v) / c.same(u, v) / c.sizes() / c.max_size() / c.groups()
+		component_edge_counts(G, c)：成分ごとの辺の本数（辺の本数 = 頂点数 なら閉路がちょうど 1 つ。ABC292 D）
+	メモ
+		グラフ基盤を同梱済み。グリッドは 09_grid_components
+		辺を足しながら聞かれる・オンラインなら 03_union_find
+		alive(v) = false の頂点は対象外（id = -1）。頂点を消したグラフの成分に使う
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\01_components.cpp
+01_bipartite（二部グラフ判定・2 色塗り分け・偶奇の矛盾判定）
+	説明
+		auto b = bipartite(G)：b.ok / b.color[v]（0 / 1）/ b.comp[v] / b.comp_count() / b.cnt[c]（成分 c の {色 0 の数, 色 1 の数}）/ b.comp_ok[c] / b.odd_cycle
+		auto x = xor_coloring(G)：辺の重みが奇数なら両端の色が違う、偶数なら同じ、という条件で塗る（「同じ・違う」の制約の矛盾判定）
+	メモ
+		グラフ基盤を同梱済み。辺の向きは無視する
+		類題：ABC282 D（二部グラフに足せる辺の数 = 色の違う組 − 既存の辺）
+		矛盾しない塗り方のうち色 0 を最小にするなど、成分ごとの選択は b.cnt と DP
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\01_bipartite.cpp
+01_cycle（閉路の検出・出力・なもりグラフ）
+	説明
+		auto c = find_cycle_directed(G) / find_cycle_undirected(G)：c.found() / c.vs（頂点列）/ c.es（辺番号の列）/ c.size()
+		shortest_cycle_directed(G, s)：s を通る辺の本数最小の有向閉路（ABC376 D）
+		two_core(G)：次数 1 以下を削り続けて残る頂点（1 / 0）。なもりグラフ（連結で辺 N 本）なら閉路の頂点
+	メモ
+		グラフ基盤を同梱済み。無向は多重辺（長さ 2）・自己ループ（長さ 1）も閉路として見つける
+		有向グラフの閉路の有無だけなら 04_topo_sort の is_dag でもよい
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\01_cycle.cpp
+02_dijkstra（ダイクストラ：重み 0 以上の最短距離）
+	説明
+		auto r = dijkstra(G, s) / dijkstra(G, {s1, ...}) / dijkstra(G, {{s1, c1}, {s2, c2}})（始点ごとの初期コスト）/ dijkstra(G, s, t)
+		dijkstra_core(n, s / starts, [&](int v, auto&& push) { ... push(u, w); ... })
+		dijkstra_dense(n, s / starts, cost)：cost(u, v) が重み（辺なしは DIST_INF）。辺が N^2 本近いとき O(N^2)
+	メモ
+		グラフ基盤を同梱済み。結果は bfs と同じ SearchResult（r.dist / r.par / r.path(t)）
+		状態つき（クーポン・残り回数など）は 00_state_id ＋ dijkstra_core
+		最短路の本数・必ず通る頂点は 02_shortest_path_dag
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\02_dijkstra.cpp
+02_shortest_path_dag（最短路の本数・最短路に乗る頂点と辺・必ず通る頂点と辺）
+	説明
+		count_shortest_paths(G, r, mod)：r = bfs / zero_one_bfs / dijkstra の結果から、各頂点への最短路の本数（ABC211 D）
+		ShortestPathDag P(G, s, t, mod = 998244353)：P.best / P.reachable() / P.count() / P.path()
+		P.on_vertex(v) / P.on_edge(id)（どれかの最短路に乗る）/ P.must_vertex(v) / P.must_edge(id)（すべての最短路が通る = 消すと最短距離が変わる）
+		P.count_through_vertex(v) / P.count_through_edge(id) / P.ds / P.dt / P.cnt_s / P.cnt_t / order_by_dist(r)
+	メモ
+		グラフ基盤・ダイクストラを同梱済み。重みは 0 以上（重み 0 の閉路の先は本数 -1）
+		「辺 i を消したときの最短距離」は must_edge(i) でないなら変わらない（ABC218 F 型の判定）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\02_shortest_path_dag.cpp
+03_union_find（Union-Find：9/23 版 ＋ union_find_from）
+	説明
+		UnionFind uf(n) / uf.unite(x, y) / uf.same(x, y) / uf.find(x) / uf.size(x) / uf.group_count() / uf.groups() / uf.members(x)
+		uf.unite(x, y, f)（併合したとき f(新しい根, 吸収された根)）/ uf.edge_count(x) / uf.group_ids() / uf.roots() / uf.add() / uf.init(n)
+		union_find_from(G)：グラフの全辺を unite した UnionFind
+	メモ
+		9/23 版をそのまま採用（API は同じ）。グラフ基盤を同梱済み
+		辺を消していく問題は逆順に見て「足していく」形にする
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\03_union_find.cpp
+03_kruskal（最小・最大全域木）
+	説明
+		auto m = kruskal(G) / kruskal_max(G) / kruskal(G, uf)（uf で unite 済みの組はつながっているものとして始める）
+		m.cost / m.edges（選んだ辺の番号）/ m.connected / m.components / m.tree(G)（選んだ辺だけのグラフ。LCA などに）
+	メモ
+		グラフ基盤・Union-Find を同梱済み。辺の向きは無視する
+		必ず使う辺がある → uf で先に unite して kruskal(G, uf)（cost にその辺の重みは入らない）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\03_kruskal.cpp
+04_topo_sort（トポロジカルソート・DAG の最長路と経路数）
+	説明
+		auto t = topo_sort(G) / topo_sort_lex_min(G) / topo_sort_lex_max(G)：t.order / t.pos[v] / t.is_dag / t.unique（順序が 1 通りか。ABC291 E）
+		auto d = dag_longest_path(G)：d.dist[v]（v で終わる最長路）/ d.best / d.path() / d.path(v)
+		dag_count_paths(G, s, mod)：s から各頂点への路の本数
+	メモ
+		グラフ基盤を同梱済み。辺 u → v は「u が v より先」
+		DAG 上の DP の型：for (int v : t.order) for (auto& e : G[v]) dp[e.to] = max(dp[e.to], dp[v] + e.w);
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\04_topo_sort.cpp
+05_lca（LCA・2点間距離・k個上の祖先・パス：HLD）
+	説明
+		LCA L(T)（RootedTree から）/ LCA L(G, root = 0)
+		L.lca(u, v) / L.lca({v1, v2, ...}) / L.dist(u, v) / L.wdist(u, v) / L.kth_ancestor(v, k) / L.jump(u, v, k)（u → v のパスの k 番目）
+		L.path(u, v) / L.on_path(u, v, a) / L.is_ancestor(u, v) / L.same_tree(u, v) / L.subtree_range(v)
+		L.path_segments(u, v, edge = false)：パスを HLD の順の区間 (a, b) に分ける（セグ木でパスの集計をするとき）
+	メモ
+		グラフ基盤・根付き木を同梱済み。前処理 O(N)、クエリ O(log N)
+		類題：ABC014 D（dist）、ABC267 F（jump）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\05_lca.cpp
+05_tree_diameter（木の直径・中心・各頂点から最も遠い頂点までの距離）
+	説明
+		auto d = tree_diameter(G, start = 0)：d.length / d.u, d.v / d.path / d.edges() / d.centers（1 つか 2 つ）/ d.ecc[x]（離心数）
+	メモ
+		グラフ基盤を同梱済み（根付き木は使わない）。重みつきにも対応
+		類題：ABC222 F（ecc と頂点の重みの工夫）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\05_tree_diameter.cpp
+06_functional_graph（各頂点から辺が 1 本：K 回後の位置・サイクル・到達回数）
+	説明
+		FunctionalGraph F(nxt) / F(nxt, w)（w[v] = v → nxt[v] の重み）/ read_next(N, base = 1)
+		F.kth(v, K)（K ≤ 10^18）/ F.kth_sum(v, K)（重みの和。ABC241 E）/ F.reach(u, v)（何回で初めて着くか。着かなければ -1）
+		F.on_cycle(v) / F.cycle_id[v] / F.cycle_pos[v] / F.to_cycle[v] / F.entry[v] / F.to_cycle_w[v]
+		F.cycle_count() / F.cycle(c) / F.cycle_len(c) / F.cycle_len_of(v) / F.cycle_weight(c)
+	メモ
+		グラフ基盤を同梱済み。ダブリングの表を作らないので N = 10^6 でも軽い
+		順列なら 06_perm_cycles のほうが機能が多い
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\06_functional_graph.cpp
+06_perm_cycles（順列のサイクル分解・K 乗・交換回数・周期）
+	説明
+		PermCycles C(p) / read_perm(N, base = 1) / perm_compose(a, b)（r[i] = a[b[i]]）
+		C.count() / C.cycle(c) / C.cycle_len(c) / C.len_of(i) / C.cycle_id[i] / C.cycle_pos[i]
+		C.kth(i, K)（K < 0 も可）/ C.pow(K) / C.inverse() / C.min_swaps() / C.sort_swaps()（手順。ABC350 C）/ C.parity()
+		C.period(limit = 4e18)（周期。超えたら -1）/ C.period_mod(mod)
+	メモ
+		グラフ基盤を同梱済み
+		隣どうしの交換の最小回数は転倒数（BIT）。偶奇だけなら parity()
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\06_perm_cycles.cpp
+09_grid_bfs（グリッドの BFS：迷路の最短手数・多始点・8 方向・ジャンプ・囲まれたマス）
+	説明
+		auto r = grid_bfs(g, s, walls = '#')（s = g.id(i, j)。{s1, s2} や g.find_all('S') で多始点）/ grid_bfs8(g, s, walls)
+		grid_bfs_offsets(g, s, offs, walls)（桂馬・ジャンプ）/ enclosed_cells(g, walls)（外周から入れないマス）
+		r.dist[t]（届かなければ DIST_INF）/ r.path(t) / g.path_to_dirs(r.path(t))
+		walls は '#' / "#X" / ~CharSet(".SG")。grid_bfs(g, s, t) はコンパイルエラー（3 つ目は壁の文字）
+	メモ
+		グラフ基盤・グリッド基盤・BFS を同梱済み
+		ワープ（ABC184 E）・向きつき・氷の上を滑る（ABC311 D）・トーラスは bfs_core に g.for_each4 などを渡す（使い方デモに例）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\09_grid_bfs.cpp
+09_grid_01bfs（グリッドの 0-1 BFS：壁を壊す最小回数・ワープ・パンチ・曲がる回数）
+	説明
+		auto r = grid_01bfs(g, s, walls = '#')：r.dist[t] = 壊す壁の最小の数
+		zero_one_bfs_core(g.size(), s, [&](int v, auto&& push) { g.for_each4(v, ...push(u, 0)...); g.for_each_offsets(v, offs, ...push(u, 1)...); })
+	メモ
+		グラフ基盤・グリッド基盤・0-1 BFS を同梱済み
+		類題（使い方デモに例）：ABC176 D（5×5 のワープ）、ABC213 E（パンチ）、ABC246 E（角行：向きを状態に）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\09_grid_01bfs.cpp
+09_grid_components（グリッドの連結成分：島の数・大きさ・同じ色の領域）
+	説明
+		auto c = grid_components(g, walls = '#', eight = false)：c.count / c.id[id]（壁は -1）/ c.group(k) / c.size_of(k) / c.max_size()
+		grid_components(g, ~CharSet('#'))：'#' の塊を数える / grid_components_same(g, eight = false)：同じ文字どうしの領域
+	メモ
+		グラフ基盤・グリッド基盤・連結成分を同梱済み
+		類題：ABC325 C（8 方向）。マスを後から足していくなら 03_union_find
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\09_grid_components.cpp
+10_grid_transform（グリッドの回転・反転・切り取り・形の一致・点の回転・45 度回転）
+	説明
+		rotate_cw(a) / rotate_ccw(a) / rotate180(a) / rotate_k(a, k) / all_rotations(a) / transpose(a) / flip_lr(a) / flip_ud(a) / shift_torus(a, di, dj)
+		trim(a, '.') / match_rotation(a, b, '.')（ABC218 C）/ match_symmetry(a, b, '.')（裏返しも）/ find_subgrid(a, pat [, '?'])
+		rotate_point_cw(i, j, ci, cj) / rotate_point_ccw / rotate_point(i, j, ci, cj, k)（ABC275 C）
+		manhattan_to_chebyshev(x, y) / chebyshev_to_manhattan(u, v)（マンハッタン距離の最大など。ABC178 E）
+	メモ
+		依存なし（単独で貼る）。vector<string>（Grid なら g.s）と vector<vector<T>> の両方に使える
+		類題：ABC300 B（shift_torus）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\10_grid_transform.cpp

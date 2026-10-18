@@ -1,0 +1,971 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+struct Dinic {
+    struct Edge {
+        int to;
+        ll cap;
+        int rev;
+        ll orig_cap;   // 復元用：元の容量
+    };
+
+    int N;
+    vector<vector<Edge>> G;
+    vector<int> level, iter;
+
+    Dinic(int n) : N(n), G(n), level(n), iter(n) {}
+
+    // 辺を追加（逆辺も自動で追加）
+    void add_edge(int from, int to, ll cap) {
+        Edge fwd = {to, cap, (int)G[to].size(), cap};
+        Edge rev = {from, 0, (int)G[from].size(), 0};
+        G[from].push_back(fwd);
+        G[to].push_back(rev);
+    }
+
+    // BFS でレベルグラフを作る
+    void bfs(int s) {
+        fill(level.begin(), level.end(), -1);
+        queue<int> q;
+        level[s] = 0;
+        q.push(s);
+        while (!q.empty()) {
+            int v = q.front(); q.pop();
+            for (auto &e : G[v]) {
+                if (e.cap > 0 && level[e.to] < 0) {
+                    level[e.to] = level[v] + 1;
+                    q.push(e.to);
+                }
+            }
+        }
+    }
+
+    // DFS でフローを流す
+    ll dfs(int v, int t, ll f) {
+        if (v == t) return f;
+        for (int &i = iter[v]; i < (int)G[v].size(); i++) {
+            auto &e = G[v][i];
+            if (e.cap > 0 && level[v] < level[e.to]) {
+                ll d = dfs(e.to, t, min(f, e.cap));
+                if (d > 0) {
+                    e.cap -= d;
+                    G[e.to][e.rev].cap += d;
+                    return d;
+                }
+            }
+        }
+        return 0;
+    }
+
+    // 最大フローを計算
+    ll max_flow(int s, int t) {
+        ll flow = 0;
+        while (true) {
+            bfs(s);
+            if (level[t] < 0) return flow;
+            fill(iter.begin(), iter.end(), 0);
+            ll f;
+            while ((f = dfs(s, t, LLONG_MAX)) > 0) {
+                flow += f;
+            }
+        }
+    }
+};
+
+/*
+=====================================================
+★ 二部マッチング（Dinic版）
+=====================================================
+
+【概要】
+- 二部グラフの最大マッチングを求める
+- 内部では Dinic による最大流へ変換して解く
+- 頂点は long long で管理できる
+- 座圧は内部で行う
+- マッチした組の復元が可能
+
+-----------------------------------------------------
+【想定用途】
+-----------------------------------------------------
+
+・グリッド問題
+・座標問題
+・値同士の対応付け
+・ドミノ配置判定
+・完全マッチング判定
+・組み合わせ復元
+
+-----------------------------------------------------
+【制約・前提】
+-----------------------------------------------------
+
+・頂点は add_point() で事前登録する
+
+・同じ値を左右両方に登録してはいけない
+
+    add_point(10, false);
+    add_point(10, true);
+
+  は禁止
+
+・add_edge() は登録済み頂点同士のみ追加可能
+
+・辺の向きは気にしなくてよい
+
+    add_edge(left, right)
+    add_edge(right, left)
+
+  のどちらでもよい
+
+-----------------------------------------------------
+【使用手順】
+-----------------------------------------------------
+
+① 頂点登録
+
+    add_point(x, side);
+
+② 辺追加
+
+    add_edge(a, b);
+
+③ 座圧
+
+    build_point();
+
+④ Dinicグラフ構築
+
+    build_graph();
+
+⑤ 最大マッチング
+
+    max_matching();
+
+⑥ 必要なら復元
+
+    matching_pairs();
+
+⑦ 必要なら完全マッチング判定
+
+    is_perfect_matching();
+
+-----------------------------------------------------
+【注意】
+-----------------------------------------------------
+
+・max_matching() は1回だけ呼ぶ想定
+
+・max_matching() 実行後に
+  matching_size が保存される
+
+・is_perfect_matching() は
+  max_matching() 実行後に呼ぶこと
+
+・matching_pairs() は
+  max_matching() 実行後に呼ぶこと
+
+=====================================================
+*/
+struct BipartiteMatching {
+    map<ll, bool> side_of;
+    vector<ll> left_values;
+    vector<ll> right_values;
+    vector<pair<ll,ll>> raw_edges;
+
+    map<ll,int> lid;
+    map<ll,int> rid;
+
+    vector<ll> revL;
+    vector<ll> revR;
+
+    int S = -1;
+    int T = -1;
+
+    int matching_size = -1;
+
+    unique_ptr<Dinic> mf;
+
+    struct MatchingEdge {
+        int left_node;
+        int edge_idx;
+
+        ll left_value;
+        ll right_value;
+    };
+
+    vector<MatchingEdge> matching_edges;
+
+    // 頂点を追加する
+    // side=false : 左集合
+    // side=true  : 右集合
+    // 同じ頂点を異なる side で登録すると assert
+    void add_point(ll x, bool side) {
+        if (side_of.count(x)) {
+            assert(side_of[x] == side);
+            return;
+        }
+
+        side_of[x] = side;
+
+        if (side) {
+            right_values.push_back(x);
+        } else {
+            left_values.push_back(x);
+        }
+    }
+
+    // 辺を追加する
+    // 頂点は事前に add_point() 済みであること
+    // 引数の順番は自由
+    // 内部では (左,右) の形に正規化して保存する
+    void add_edge(ll a, ll b) {
+        assert(side_of.count(a));
+        assert(side_of.count(b));
+
+        assert(side_of[a] != side_of[b]);
+
+        if (side_of[a] == false) {
+            raw_edges.push_back({a, b});
+        } else {
+            raw_edges.push_back({b, a});
+        }
+    }
+
+    // 頂点を座圧する
+    // build_graph() の前に必ず呼ぶ
+    void build_point() {
+        lid.clear();
+        rid.clear();
+
+        revL = left_values;
+        revR = right_values;
+
+        for (int i = 0; i < (int)revL.size(); i++) {
+            lid[revL[i]] = i;
+        }
+
+        for (int i = 0; i < (int)revR.size(); i++) {
+            rid[revR[i]] = i;
+        }
+    }
+
+    // Dinic 用グラフを構築する
+    // build_point() の後に呼ぶ
+    void build_graph() {
+        int L = (int)left_values.size();
+        int R = (int)right_values.size();
+
+        S = 0;
+        T = L + R + 1;
+
+        mf = make_unique<Dinic>(T + 1);
+
+        matching_edges.clear();
+
+        // source → 左
+        for (int i = 0; i < L; i++) {
+            int left_node = 1 + i;
+            mf->add_edge(S, left_node, 1);
+        }
+
+        // 右 → sink
+        for (int i = 0; i < R; i++) {
+            int right_node = 1 + L + i;
+            mf->add_edge(right_node, T, 1);
+        }
+
+        // 左 → 右
+        for (auto [left_value, right_value] : raw_edges) {
+            int li = lid.at(left_value);
+            int ri = rid.at(right_value);
+
+            int left_node  = 1 + li;
+            int right_node = 1 + L + ri;
+
+            int edge_idx = (int)mf->G[left_node].size();
+
+            mf->add_edge(left_node, right_node, 1);
+
+            matching_edges.push_back({
+                left_node,
+                edge_idx,
+                left_value,
+                right_value
+            });
+        }
+    }
+
+    // 最大マッチング数を求める
+    // matching_size に結果を保存する
+    // 1回だけ呼ぶ想定
+    int max_matching() {
+        assert(mf);
+
+        matching_size = (int)mf->max_flow(S, T);
+
+        return matching_size;
+    }
+
+    // マッチした組を復元する
+    // max_matching() 実行後に呼ぶこと
+    vector<pair<ll,ll>> matching_pairs() {
+        vector<pair<ll,ll>> res;
+
+        for (auto &info : matching_edges) {
+
+            auto &e =
+                mf->G[info.left_node][info.edge_idx];
+
+            if (
+                e.orig_cap == 1 &&
+                e.cap == 0
+            ) {
+                res.push_back({
+                    info.left_value,
+                    info.right_value
+                });
+            }
+        }
+
+        return res;
+    }
+
+    // 完全マッチングか判定する
+    // max_matching() 実行後に呼ぶこと
+    bool is_perfect_matching() {
+        assert(matching_size != -1);
+
+        int L = (int)left_values.size();
+        int R = (int)right_values.size();
+
+        return L == R
+            && matching_size == L;
+    }
+};
+
+void random_test_step3() {
+    mt19937 rng(
+        (uint32_t)chrono::steady_clock::now()
+        .time_since_epoch()
+        .count()
+    );
+
+    for (int tc = 0; tc < 10000; tc++) {
+        BipartiteMatching bm;
+
+        set<ll> used;
+
+        int L = rng() % 20 + 1;
+        int R = rng() % 20 + 1;
+
+        vector<ll> lefts;
+        vector<ll> rights;
+
+        while ((int)lefts.size() < L) {
+            ll x = rng() % 1000000;
+
+            if (used.insert(x).second) {
+                lefts.push_back(x);
+                bm.add_point(x, false);
+            }
+        }
+
+        while ((int)rights.size() < R) {
+            ll x = rng() % 1000000;
+
+            if (used.insert(x).second) {
+                rights.push_back(x);
+                bm.add_point(x, true);
+            }
+        }
+
+        bm.build_point();
+
+        // 左側チェック
+        for (ll x : lefts) {
+            assert(bm.lid.count(x));
+
+            int id = bm.lid[x];
+
+            assert(0 <= id);
+            assert(id < (int)bm.revL.size());
+
+            assert(bm.revL[id] == x);
+        }
+
+        // 右側チェック
+        for (ll x : rights) {
+            assert(bm.rid.count(x));
+
+            int id = bm.rid[x];
+
+            assert(0 <= id);
+            assert(id < (int)bm.revR.size());
+
+            assert(bm.revR[id] == x);
+        }
+    }
+
+    cout << "Random Test OK\n";
+}
+
+void random_test_step4() {
+    mt19937 rng(
+        (uint32_t)chrono::steady_clock::now()
+        .time_since_epoch()
+        .count()
+    );
+
+    for (int tc = 0; tc < 10000; tc++) {
+
+        BipartiteMatching bm;
+
+        int L = rng() % 20 + 1;
+        int R = rng() % 20 + 1;
+
+        vector<ll> lefts(L);
+        vector<ll> rights(R);
+
+        for (int i = 0; i < L; i++) {
+            lefts[i] = 1000 + i;
+            bm.add_point(lefts[i], false);
+        }
+
+        for (int i = 0; i < R; i++) {
+            rights[i] = 2000 + i;
+            bm.add_point(rights[i], true);
+        }
+
+        int M = rng() % 100;
+
+        for (int i = 0; i < M; i++) {
+            ll l = lefts[rng() % L];
+            ll r = rights[rng() % R];
+
+            bm.add_edge(l, r);
+        }
+
+        bm.build_point();
+        bm.build_graph();
+
+        // 頂点数確認
+        assert(
+            bm.mf->N
+            ==
+            L + R + 2
+        );
+
+        // source
+        assert(bm.S == 0);
+
+        // sink
+        assert(
+            bm.T
+            ==
+            L + R + 1
+        );
+
+        // 復元対象辺数
+        assert(
+            (int)bm.matching_edges.size()
+            ==
+            (int)bm.raw_edges.size()
+        );
+
+        // source→左
+        assert(
+            (int)bm.mf->G[bm.S].size()
+            ==
+            L
+        );
+    }
+
+    cout << "Random Test OK\n";
+}
+
+int brute_force_matching(
+    int L,
+    int R,
+    const vector<pair<int,int>>& edges
+)
+{
+    vector<vector<int>> g(L);
+
+    for (auto [l, r] : edges) {
+        g[l].push_back(r);
+    }
+
+    int ans = 0;
+
+    function<void(int, vector<int>&, int)> dfs =
+        [&](int v, vector<int>& usedR, int cnt)
+    {
+        if (v == L) {
+            ans = max(ans, cnt);
+            return;
+        }
+
+        dfs(v + 1, usedR, cnt);
+
+        for (int r : g[v]) {
+            if (usedR[r]) continue;
+
+            usedR[r] = true;
+            dfs(v + 1, usedR, cnt + 1);
+            usedR[r] = false;
+        }
+    };
+
+    vector<int> usedR(R);
+
+    dfs(0, usedR, 0);
+
+    return ans;
+}
+
+void random_test_step5() {
+    mt19937 rng(
+        (uint32_t)chrono::steady_clock::now()
+        .time_since_epoch()
+        .count()
+    );
+
+    for (int tc = 0; tc < 10000; tc++) {
+
+        BipartiteMatching bm;
+
+        int L = rng() % 7 + 1;
+        int R = rng() % 7 + 1;
+
+        vector<ll> lefts(L);
+        vector<ll> rights(R);
+
+        for (int i = 0; i < L; i++) {
+            lefts[i] = 1000 + i;
+            bm.add_point(lefts[i], false);
+        }
+
+        for (int i = 0; i < R; i++) {
+            rights[i] = 2000 + i;
+            bm.add_point(rights[i], true);
+        }
+
+        vector<pair<int,int>> brute_edges;
+
+        for (int l = 0; l < L; l++) {
+            for (int r = 0; r < R; r++) {
+
+                if (rng() % 2 == 0) continue;
+
+                bm.add_edge(lefts[l], rights[r]);
+
+                brute_edges.push_back({l, r});
+            }
+        }
+
+        bm.build_point();
+        bm.build_graph();
+
+        int got =
+            bm.max_matching();
+
+        int expected =
+            brute_force_matching(
+                L,
+                R,
+                brute_edges
+            );
+
+        assert(got == expected);
+    }
+
+    cout << "Random Test OK\n";
+}
+
+void random_test_step6() {
+    mt19937 rng(
+        (uint32_t)chrono::steady_clock::now()
+        .time_since_epoch()
+        .count()
+    );
+
+    for (int tc = 0; tc < 10000; tc++) {
+
+        BipartiteMatching bm;
+
+        int L = rng() % 7 + 1;
+        int R = rng() % 7 + 1;
+
+        vector<ll> lefts(L);
+        vector<ll> rights(R);
+
+        for (int i = 0; i < L; i++) {
+            lefts[i] = 1000 + i;
+            bm.add_point(lefts[i], false);
+        }
+
+        for (int i = 0; i < R; i++) {
+            rights[i] = 2000 + i;
+            bm.add_point(rights[i], true);
+        }
+
+        set<pair<ll,ll>> edge_set;
+
+        for (int l = 0; l < L; l++) {
+            for (int r = 0; r < R; r++) {
+
+                if (rng() % 2 == 0) continue;
+
+                bm.add_edge(
+                    lefts[l],
+                    rights[r]
+                );
+
+                edge_set.insert({
+                    lefts[l],
+                    rights[r]
+                });
+            }
+        }
+
+        bm.build_point();
+        bm.build_graph();
+
+        int flow =
+            bm.max_matching();
+
+        auto pairs =
+            bm.matching_pairs();
+
+        // 個数一致
+        assert(
+            (int)pairs.size()
+            ==
+            flow
+        );
+
+        set<ll> used_left;
+        set<ll> used_right;
+
+        for (auto [l, r] : pairs) {
+
+            // 元の辺に存在
+            assert(
+                edge_set.count({l, r})
+            );
+
+            // 左重複なし
+            assert(
+                !used_left.count(l)
+            );
+
+            // 右重複なし
+            assert(
+                !used_right.count(r)
+            );
+
+            used_left.insert(l);
+            used_right.insert(r);
+        }
+    }
+
+    cout << "Random Test OK\n";
+}
+
+void random_test_is_perfect_matching() {
+    mt19937 rng(
+        (uint32_t)chrono::steady_clock::now()
+        .time_since_epoch()
+        .count()
+    );
+
+    for (int tc = 0; tc < 10000; tc++) {
+
+        BipartiteMatching bm;
+
+        int L = rng() % 6 + 1;
+        int R = rng() % 6 + 1;
+
+        vector<ll> lefts(L);
+        vector<ll> rights(R);
+
+        for (int i = 0; i < L; i++) {
+            lefts[i] = 1000 + i;
+            bm.add_point(lefts[i], false);
+        }
+
+        for (int i = 0; i < R; i++) {
+            rights[i] = 2000 + i;
+            bm.add_point(rights[i], true);
+        }
+
+        for (int l = 0; l < L; l++) {
+            for (int r = 0; r < R; r++) {
+                if (rng() % 2) {
+                    bm.add_edge(lefts[l], rights[r]);
+                }
+            }
+        }
+
+        bm.build_point();
+        bm.build_graph();
+
+        int flow = bm.max_matching();
+
+        bool expected =
+            (L == R && flow == L);
+
+        assert(
+            bm.is_perfect_matching()
+            == expected
+        );
+    }
+
+    cout << "Random Test OK\n";
+}
+
+void test_bipartite_matching() {
+    BipartiteMatching bm;
+
+    // 左集合
+    bm.add_point(1, false);
+    bm.add_point(2, false);
+    bm.add_point(3, false);
+
+    // 右集合
+    bm.add_point(10, true);
+    bm.add_point(20, true);
+    bm.add_point(30, true);
+
+    // 辺
+    bm.add_edge(1, 10);
+    bm.add_edge(1, 20);
+
+    bm.add_edge(2, 20);
+    bm.add_edge(2, 30);
+
+    bm.add_edge(3, 30);
+
+    bm.build_point();
+    bm.build_graph();
+
+    int matching = bm.max_matching();
+
+    cout << "=== 二部マッチング動作確認 ===\n";
+
+    cout << "左集合サイズ : "
+         << bm.left_values.size()
+         << "\n";
+
+    cout << "右集合サイズ : "
+         << bm.right_values.size()
+         << "\n";
+
+    cout << "最大マッチング数 : "
+         << matching
+         << "\n";
+
+    cout << "完全マッチングか : "
+         << (bm.is_perfect_matching()
+                 ? "YES"
+                 : "NO")
+         << "\n";
+
+    cout << "\nマッチした組\n";
+
+    for (auto [l, r] : bm.matching_pairs()) {
+        cout << l
+             << " - "
+             << r
+             << "\n";
+    }
+
+    cout << "============================\n";
+}
+
+void solv(){
+    random_test_step3();
+    random_test_step4();
+    random_test_step5();
+    random_test_step6();
+    random_test_is_perfect_matching();
+    test_bipartite_matching();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

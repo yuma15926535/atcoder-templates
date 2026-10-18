@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N;
+vector<vector<int>> G;
+vector<int> result;
+const int yet=-1;
+
+//BFS
+void bfs(int start){
+    result=vector<int>(N+1,yet);
+    queue<int> q;
+    q.push(start);
+    result[start]=0;
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        for(int to:G[pos])if(result[to]==yet){
+            result[to]=result[pos]+1;
+            q.push(to);
+        }
+    }
+}
+
+int main()
+{
+    cin>>N;
+    G=vector<vector<int>>(N+1);
+    rep(i,1,N){
+        int a,b;
+        cin>>a>>b;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    bfs(1);
+    //最大値を取るイテレータをインデックスに変換
+    //インデックスと頂点は恒等写像で対応している
+    int a=max_element(result.begin()+1,result.end())-result.begin();
+    bfs(a);
+    cout<<*max_element(result.begin()+1,result.end())+1<<"\n";
+    return 0;
+}

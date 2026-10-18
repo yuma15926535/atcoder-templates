@@ -1,0 +1,49 @@
+00_graph_base（グラフ基盤：Graph・入力・変換・探索の結果 SearchResult）
+	説明
+		Graph G(n) / G.add_edge(u, v, w = 1)（有向）/ G.add_undirected(u, v, w = 1) / G.add(u, v, w, DIRECTED or UNDIRECTED) → 辺番号
+		for (auto& e : G[v]) { e.to; e.w; e.id; } / G.es[id] = {from, to, w} / G.size() / G.edge_count()
+		read_undirected(N, M) / read_directed(N, M) / read_undirected_w / read_directed_w / read_tree(N) / read_tree_w(N) / read_parents(N)（最後の引数 base は既定 1）
+		graph_from_adj(adj)（vector<vector<int>> / vector<vector<pair<int, W>>>）/ graph_from_edges(n, us, vs, [ws,] UNDIRECTED, base) / graph_from_parents(par, [w,] base)
+		G.reversed() / G.sort_adj() / G.in_degrees() / G.out_degrees() / G.add_vertex() / G.adj_list() / G.adj_list_w()
+		SearchResult r：r.dist[v] / r.par[v] / r.reached(v) / r.path(t) / r.nearest_source() / auto [dist, par] = bfs(G, s);
+		parent_edges(G, r) / path_edges(G, r, t) / restore_path(par, t) / IntSpan（children などが返す参照）
+	メモ
+		第二世代のグラフ系テンプレートはすべてこれを同梱済み。単独で貼るのは、自分で探索を書くときだけ
+		Cost = long long、到達不能は DIST_INF = 1LL << 60（Main_base の LINF と同じ値）。頂点・辺番号の「なし」は -1
+		辺に追加の情報があるときは、別の配列を辺番号 e.id で引く
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\00_graph_base.cpp
+00_grid_base（グリッド基盤：Grid・CharSet・隣接・移動リスト・入力）
+	説明
+		Grid g = read_grid(H, W) / read_grid()（H W から）/ Grid g(H, W, '.') / read_matrix<T>(H, W)（数値のグリッド）
+		g.H, g.W, g.s[i][j], g(i, j), g.at(id) / g.id(i, j) / g.pos(id) / g.in(i, j) / g.size()
+		g.find(c) / g.find_all(c) / g.count(c) / g.mask(c)（c は '#'・"#X"・CharSet）
+		g.for_each4(id, f) / g.for_each8(id, f)（f(u) か f(u, 方向)）/ (i, j) 版 / g.neighbor(id, d)
+		g.for_each_offsets(id, offs, f) / Grid::offsets_manhattan(D) / offsets_chebyshev(D) / offsets_euclid_sq(d2) / offsets_knight()
+		トーラス：g.wrap(i, j) / g.wrap_id(i, j) / g.for_each4_torus / for_each8_torus / for_each_offsets_torus
+		g.slide(id, d, walls)（滑る）/ g.padded('#') / g.border_cells() / g.is_border(id) / g.path_to_dirs(path)（"URDL"）
+		方向：0 上 1 右 2 下 3 左 4~7 斜め。Grid::DI / DJ / DIR_CHAR / dir_of(c)（U, ^ なども可）/ reverse_dir / turn_right / turn_left
+		CharSet walls("#X") / ~CharSet(".")（補集合）/ cout << g
+	メモ
+		09 のグリッド探索はこれを同梱済み。マスは番号 id = i * W + j で扱う（探索の結果もマスの番号）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\00_grid_base.cpp
+00_state_id（状態の番号付け StateId）
+	説明
+		StateId S(A, B[, C[, D]]) / S.size() / S.id(a, b[, c[, d]]) / S.get(x)（pair）/ S.get3(x) / S.get4(x)（array）
+		S.first(x)（1 つ目の成分だけ）/ S.in(a, b, ...) / S.ids_of(a)（1 つ目の成分が a の状態すべて）
+	メモ
+		状態付き探索 = StateId で番号を付けて、bfs_core / zero_one_bfs_core / dijkstra_core に隣接を渡す
+		ほかのファイルには同梱しないので、使うときに一緒に貼る
+		状態の数は 10^7 程度まで（int に収まること）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\00_state_id.cpp
+05_rooted_tree（根付き木：親・深さ・部分木・行きがけ順・in/out・子・集計）
+	説明
+		RootedTree T(G, root = 0) / RootedTree T(G, {r1, r2}) / RootedTree::forest(G)（非再帰。森・木でないグラフにも対応）
+		T.par / T.par_edge / T.par_w / T.depth / T.wdepth / T.sz / T.order（行きがけ順）/ T.in / T.out（部分木 = [in, out)）
+		T.children(v) / T.child_count(v) / T.is_leaf(v) / T.subtree(v) / T.is_ancestor(u, v) / T.edge_child[id]
+		T.root / T.roots / T.root_of[v] / T.path_to_root(v) / T.leaves() / T.bfs_order() / T.postorder() / T.euler_tour()
+		T.heights() / T.wheights() / T.subtree_sum(val) / T.subtree_fold(val, op) / T.root_path_sum(val) / T.root_path_fold(val, op)
+	メモ
+		木DP の型：for (int k = N - 1; k >= 0; --k) { int v = T.order[k]; for (int c : T.children(v)) {...} }
+		グラフ基盤を同梱済み。05_lca・05_tree_diameter はこれを同梱している
+		類題：ABC138 D（root_path_sum）、ABC146 D（辺の彩色）、ABC213 D（euler_tour）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\05_rooted_tree.cpp

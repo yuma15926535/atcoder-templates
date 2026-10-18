@@ -1,0 +1,421 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief HashSet
+ * @details unordered_set を競技プログラミング向けにラップした集合。
+ *          イテレータを隠蔽し、直感的な API を提供する。
+ *
+ * 【計算量】
+ *   insert      : 平均 O(1)
+ *   erase       : 平均 O(1)
+ *   contains    : 平均 O(1)
+ *   random      : O(1)
+ *   values      : O(N)
+ *   clear       : O(N)
+ *   size/empty  : O(1)
+ */
+template<class T, class Hash = std::hash<T>>
+struct HashSet {
+private:
+    unordered_set<T, Hash> st;
+
+public:
+
+    /**
+     * @brief 要素を追加する
+     * @param x 追加する要素
+     * @return 新しく追加された場合 true
+     */
+    bool insert(const T& x) {
+        return st.insert(x).second;
+    }
+
+    /**
+     * @brief 要素を削除する
+     * @param x 削除する要素
+     * @return 要素が存在し削除できた場合 true
+     */
+    bool erase(const T& x) {
+        return st.erase(x);
+    }
+
+    /**
+     * @brief 複数の要素を追加する
+     * @param v 追加する要素列
+     */
+    void insert(const vector<T>& v) {
+        for (const auto& x : v) st.insert(x);
+    }
+
+    /**
+     * @brief 複数の要素を削除する
+     * @param v 削除する要素列
+     */
+    void erase(const vector<T>& v) {
+        for (const auto& x : v) st.erase(x);
+    }
+
+    /**
+     * @brief 要素が存在するか判定する
+     * @param x 判定する要素
+     * @return 存在する場合 true
+     */
+    bool contains(const T& x) const {
+        return st.find(x) != st.end();
+    }
+
+    /**
+     * @brief 全要素を削除する
+     */
+    void clear() {
+        st.clear();
+    }
+
+    /**
+     * @brief 要素数を取得する
+     * @return 要素数
+     */
+    ll size() const {
+        return (ll)st.size();
+    }
+
+    /**
+     * @brief 空か判定する
+     * @return 空なら true
+     */
+    bool empty() const {
+        return st.empty();
+    }
+
+    /**
+     * @brief 全要素を取得する
+     * @return 全要素を格納した vector（順序は保証されない）
+     */
+    vector<T> values() const {
+        return vector<T>(st.begin(), st.end());
+    }
+
+    /**
+     * @brief 適当な 1 要素を取得する
+     * @details 内部の begin() の要素を返す。
+     *          返される要素はランダムではなく、順序は保証されない。
+     * @return 集合内の要素
+     * @pre empty() == false
+     */
+    T random() const {
+        return *st.begin();
+    }
+};
+
+void RandomTest_HashSet() {
+    mt19937 rng(0);
+
+    HashSet<int> hs;
+    unordered_set<int> st;
+
+    rep(_, 100000) {
+        int op = rng() % 8;
+        int x = rng() % 100;
+
+        switch (op) {
+        case 0: {
+            bool a = hs.insert(x);
+            bool b = st.insert(x).second;
+            assert(a == b);
+            break;
+        }
+        case 1: {
+            bool a = hs.erase(x);
+            bool b = (bool)st.erase(x);
+            assert(a == b);
+            break;
+        }
+        case 2: {
+            assert(hs.contains(x) == (st.find(x) != st.end()));
+            break;
+        }
+        case 3: {
+            assert(hs.size() == (ll)st.size());
+            break;
+        }
+        case 4: {
+            assert(hs.empty() == st.empty());
+            break;
+        }
+        case 5: {
+            auto a = hs.values();
+            vector<int> b(st.begin(), st.end());
+            sort(a.begin(), a.end());
+            sort(b.begin(), b.end());
+            assert(a == b);
+            break;
+        }
+        case 6: {
+            if (!st.empty()) {
+                int y = hs.random();
+                assert(st.count(y));
+            }
+            break;
+        }
+        case 7: {
+            hs.clear();
+            st.clear();
+            break;
+        }
+        }
+
+        assert(hs.size() == (ll)st.size());
+    }
+
+    cout << "HashSet Random Test : OK\n";
+}
+
+void test_HashSet() {
+    cout << "===== HashSet 動作確認 =====\n";
+
+    HashSet<int> st;
+
+    cout << "\n【初期状態】\n";
+    cout << "空判定 : " << (st.empty() ? "true" : "false") << '\n';
+    cout << "要素数 : " << st.size() << '\n';
+
+    cout << "\n【insert】\n";
+    cout << "10 を追加 : " << (st.insert(10) ? "成功" : "失敗") << '\n';
+    cout << "30 を追加 : " << (st.insert(30) ? "成功" : "失敗") << '\n';
+    cout << "20 を追加 : " << (st.insert(20) ? "成功" : "失敗") << '\n';
+    cout << "20 を追加 : " << (st.insert(20) ? "成功" : "失敗（重複）") << '\n';
+
+    cout << "\n【insert(vector)】\n";
+    st.insert(vector<int>{40, 50, 30});
+    cout << "{40, 50, 30} を追加\n";
+
+    cout << "\n【contains】\n";
+    cout << "20 は存在するか : " << (st.contains(20) ? "Yes" : "No") << '\n';
+    cout << "99 は存在するか : " << (st.contains(99) ? "Yes" : "No") << '\n';
+
+    cout << "\n【size / empty】\n";
+    cout << "要素数 : " << st.size() << '\n';
+    cout << "空判定 : " << (st.empty() ? "true" : "false") << '\n';
+
+    cout << "\n【values】\n";
+    auto v = st.values();
+    sort(v.begin(), v.end());
+    cout << "全要素 : ";
+    for (auto x : v) cout << x << ' ';
+    cout << '\n';
+
+    cout << "\n【random】\n";
+    cout << "取得した要素 : " << st.random() << '\n';
+
+    cout << "\n【erase】\n";
+    cout << "20 を削除 : " << (st.erase(20) ? "成功" : "失敗") << '\n';
+    cout << "99 を削除 : " << (st.erase(99) ? "成功" : "失敗（存在しない）") << '\n';
+
+    cout << "\n【erase(vector)】\n";
+    st.erase(vector<int>{10, 40, 100});
+    cout << "{10, 40, 100} を削除\n";
+
+    cout << "\n【現在の要素】\n";
+    v = st.values();
+    sort(v.begin(), v.end());
+    cout << "全要素 : ";
+    for (auto x : v) cout << x << ' ';
+    cout << '\n';
+
+    cout << "\n【clear】\n";
+    st.clear();
+    cout << "全削除\n";
+    cout << "要素数 : " << st.size() << '\n';
+    cout << "空判定 : " << (st.empty() ? "true" : "false") << '\n';
+}
+
+void solv(){
+    RandomTest_HashSet();
+    test_HashSet();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

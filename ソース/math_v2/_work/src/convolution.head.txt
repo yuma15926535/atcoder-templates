@@ -1,0 +1,53 @@
+// =============================================================================
+//  畳み込み（mint の列：NTT・任意の mod は自動で 3 つの素数、整数のまま（long long・Int128）、多くの多項式の積、相関、巡回、オンライン）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 07 畳み込み・多項式
+//  依存       : 00_int_common, 00_math_base, 00_modint（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）。ACL は使わない
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt998;                       // 10^9+7（ModInt107）や DynModInt でもそのまま使える
+//      vector<mint> c = convolve(a, b);              // c[k] = Σ_{i+j=k} a[i] b[j]
+//      vector<long long> d = convolve_ll(x, y);      // mod なしで厳密に（負の数も）
+//
+//  機能一覧                                                                    計算量
+//    convolve(a, b)                   mint の列の畳み込み。mod が 998244353 などの NTT 素数なら NTT、         O((n+m) log(n+m))
+//                                     10^9+7・合成数・偶数の mod は 3 つの素数で計算してガーナーで戻す（自動）
+//    convolve_ll(a, b)                long long の列を厳密に（負も。結果が long long に収まらなければ止める）
+//    convolve_i128(a, b)              同じく結果を Int128 で（|結果| < 2^126 程度まで。必要なら 5 つの素数）
+//    convolve_mod(a, b, m)            long long の列を mod m で（1 ≤ m < 2^31）
+//    convolve_many(ps)                多くの多項式の積（短いものから 2 つずつ）                               O(N log^2 N)
+//    correlate(a, b)                  c[k] = Σ_i a[k+i]·b[i]（k = 0〜|a|−|b|。b を a の上でずらして重ねる）
+//    convolve_cyclic(a, b, n)         巡回畳み込み c[k] = Σ_{(i+j) mod n = k} a[i] b[j]（長さ n）
+//    RelaxedConvolution<mint> rc      オンラインの畳み込み：rc.push(a_n, b_n) が c_n = Σ_{i+j=n} a_i b_j を返す（2×10^5 回で約 0.4 秒）  全体 O(N log^2 N)
+//                                     （f_{n+1} = Σ f_i g_{n−i} のように答えを次の入力に使う DP に。rc.get(n) / rc.size()）
+//    ntt(a) / intt(a)                 長さ 2^h の NTT とその逆（結果はビットを逆にした順。点ごとの積に使う）
+//  長さは 2^23 程度まで。短い方の長さが 60 以下なら愚直に掛ける（そのほうが速い）
+//  （形式的冪級数（逆数・log・exp）は 07_fps、OR・AND・XOR の畳み込みは 07_subset_transform）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    conv_test::random_test()  … 愚直な掛け算（128 ビット・いろいろな mod）との突き合わせ
+//    conv_test::benchmark()    … 速度計測
+//    conv_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

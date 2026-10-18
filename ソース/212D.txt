@@ -1,0 +1,56 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//値の追加と最小値の取得を高速で行うpriority_queue
+//全体加算する値を別で持ち取得時に処理
+//追加時に加算する値を引くことで以後の加算地のみ反映される
+//加算では全体の大小関係は変化しない
+struct QueryingMultiset{
+    priority_queue<ll, vector<ll>, greater<ll>>pq;
+    ll offset;
+    QueryingMultiset(){
+        offset=0;
+    }
+    void query1(ll x){
+        pq.push(x-offset);
+    }
+    void query2(ll x){
+        offset+=x;
+    }
+    ll query3(){
+        ll val=pq.top();
+        pq.pop();
+        return val+offset;
+    }
+};
+
+int main(){
+    int Q;
+    cin>>Q;
+    QueryingMultiset qm;
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            ll x;
+            cin>>x;
+            qm.query1(x);
+        }else if(q==2){
+            ll x;
+            cin>>x;
+            qm.query2(x);
+        }else cout<<qm.query3()<<"\n";
+    }
+    return 0;
+}

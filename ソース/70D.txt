@@ -1,0 +1,152 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+// LCA (木の2頂点の根から一番遠い共通祖先)
+//2頂点の根から一番遠い共通祖先の取得、2頂点の距離、k番目の祖先、パス上の頂点の有無判定、パスの取得
+struct LCA {
+    int N, LOG;
+    vector<vector<pair<int,ll>>> g;     // to, weight
+    vector<int> depth;
+    vector<vector<int>> parent;
+    vector<ll> dist_from_root;
+
+    LCA(int n=0){ init(n); }
+
+    void init(int n){
+        N = n;
+        LOG = 1;
+        while((1<<LOG) <= N) LOG++;
+        g.assign(N, {});
+        depth.assign(N, 0);
+        parent.assign(LOG, vector<int>(N, -1));
+        dist_from_root.assign(N, 0);
+    }
+
+    // 辺の追加
+    void add_edge(int u, int v, ll w){
+        g[u].push_back({v,w});
+        g[v].push_back({u,w});
+    }
+
+    // rootの設定
+    void build(int root = 0){
+        dfs(root, -1, 0, 0);
+        for(int k=0;k+1<LOG;k++){
+            for(int v=0;v<N;v++){
+                if(parent[k][v] < 0) parent[k+1][v] = -1;
+                else parent[k+1][v] = parent[k][ parent[k][v] ];
+            }
+        }
+    }
+
+    void dfs(int v, int p, int d, ll dist){
+        parent[0][v] = p;
+        depth[v] = d;
+        dist_from_root[v] = dist;
+        for(auto [to,w] : g[v]){
+            if(to == p) continue;
+            dfs(to, v, d+1, dist + w);
+        }
+    }
+
+    // LCAの取得
+    int lca(int a, int b){
+        if(depth[a] < depth[b]) swap(a, b);
+        int diff = depth[a] - depth[b];
+        for(int k=0;k<LOG;k++) if(diff&(1<<k)) a = parent[k][a];
+        if(a == b) return a;
+        for(int k=LOG-1;k>=0;k--){
+            if(parent[k][a] != parent[k][b]){
+                a = parent[k][a];
+                b = parent[k][b];
+            }
+        }
+        return parent[0][a];
+    }
+
+    // 2頂点の距離
+    ll dist(int u, int v){
+        int c = lca(u, v);
+        return dist_from_root[u] + dist_from_root[v] - 2 * dist_from_root[c];
+    }
+
+    // 2頂点のk番目の祖先
+    int kth_parent(int v, int k){
+        for(int i=0;i<LOG;i++){
+            if(k & (1<<i)) v = parent[i][v];
+        }
+        return v;
+    }
+
+    // u–v パス上に a があるか？
+    bool on_path(int u, int v, int a){
+        return dist(u,v) == dist(u,a) + dist(a,v);
+    }
+
+    // u → v のパス（頂点列）を返す
+    vector<int> get_path(int u, int v){
+        int c = lca(u, v);
+        vector<int> path1, path2;
+
+        // u → c
+        while(u != c){
+            path1.push_back(u);
+            u = parent[0][u];
+        }
+        path1.push_back(c);
+
+        // c → v
+        while(v != c){
+            path2.push_back(v);
+            v = parent[0][v];
+        }
+        reverse(path2.begin(), path2.end());
+
+        for(int x : path2) path1.push_back(x);
+        return path1;
+    }
+};
+
+int main(){
+    BUFF;
+    int N;
+    cin>>N;
+    LCA lca(N);
+    rep(i,0,N-1){
+        int a,b;
+        ll c;
+        cin>>a>>b>>c;
+        a--;b--;
+        lca.add_edge(a,b,c);
+    }
+    int Q,K;
+    cin>>Q>>K;
+    K--;
+    lca.build(K);
+    rep(_,0,Q){
+        int x,y;
+        cin>>x>>y;
+        x--;y--;
+        cout<<lca.dist(x,K)+lca.dist(K,y)<<'\n';
+    }
+    return 0;
+}

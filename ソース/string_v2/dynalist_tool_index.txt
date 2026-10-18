@@ -1,0 +1,146 @@
+▼ 文字列道具選択（第二世代）
+	▼ 使い方
+		1. 問題の特徴で大分類を選ぶ（文字・連続する文字／一致・出現／部分文字列の比較／回文／辞書順・回転／部分列／括弧／文字列の集合／操作・更新）
+		2. 聞かれていることで小分類を選ぶ
+		3. 書いてあるファイルを貼る（依存するファイルは同梱済み。1回のコピーで動く）
+		範囲は半開区間 [l, r)（0 始まり）。「L 文字目から R 文字目」は (L - 1, R)。位置が「ない」ときは -1。k 番目は 0 から
+		文字列も数の列（vector<int>・vector<long long>）もそのまま渡せる
+		文字の種類は Alphabet で（既定は英小文字。Alphabet::upper()・Alphabet::of("()[]")・Alphabet::ints(K) など）
+		記号・大文字が混ざる文字列は Alphabet::bytes()（番号 = 文字コード）か Alphabet::lower().with("@#")
+		数（個数）は long long で返す（受け取る変数も ll に。chmax(int&, ll) はコンパイルエラー）。1 文字も長さ 1 の列として渡せる（find_all(S, 'a')）
+		mod で数えるときは math_v2 の using mint = ModInt998;（10^9+7 なら ModInt107）を書いて count_xxx<mint>(…)
+	▼ 文字・連続する文字　00_str_base
+		文字の個数・区間 [l, r) の中の文字 c の個数 → count_chars ／ CharPrefix（count(l, r, c)。番号で回すなら count_id ／ total_id）
+		区間の文字の数の差・偶奇が条件の部分文字列を数える → 先頭からの差（偶奇）を map で数える（ABC455 E・ABC418 D）
+		位置 i 以降で最初の c・i より前で最後の c・k 番目の c → CharPrefix（next ／ prev。O(1)）／ CharPositions（next ／ prev ／ kth。省メモリ）
+		連続する同じ文字をまとめる（ランレングス圧縮）・元に戻す → run_length ／ run_length_decode（ABC259 C・ABC329 C・典型90 084）
+		「今ある c を全部 d に」を何度も → CharMap::replace ／ apply（ABC342 C）
+		大文字・小文字・シーザー暗号 → to_lower ／ to_upper ／ swap_case ／ caesar_shift（1 文字の版も。ABC232 B）
+		文字を番号に（'a' → 0）・独自の文字の順 → Alphabet::lower().id(c) ／ to_ids ／ Alphabet::of(順番)
+		数の列を 0〜K−1 に → compress_values
+		区切って分ける・つなげる（答えの出力） → split（1 文字・文字列で）／ join（vector・set など。区切りは文字列か 1 文字）
+		前後の空白・特定の文字を除く → strip ／ strip_left ／ strip_right（ABC367 B）
+		隣どうしの条件で区切る（隣が違う区間など） → split_runs_by（ABC456 C）
+		隣が同じにならないように並べ替える・その辞書順最小 → rearrange_no_adjacent_equal ／ lex_smallest_no_adjacent_equal（ABC459 D）
+		向きを区別しない（s と反転のうち小さい方） → min_with_reverse（ABC310 C）
+		共通の接頭辞・接尾辞の長さ・違う位置の数 → common_prefix_length ／ common_suffix_length ／ hamming_distance
+		巨大な文字列の k 文字目（倍々・置き換えの繰り返し） → 使い方デモ（ABC380 D・ABC242 D）
+		S_n = S_{n-1} + S_{n-2} のような巨大な文字列の区間の文字の数 → 使い方デモ（長さと文字の数だけ持つ。ABC450 E）
+	▼ 一致・出現（パターン検索）
+		T が S のどこに現れるか・回数・最初・最後 → 02_pattern_match　find_all ／ count_occurrences ／ find_first ／ find_last
+		重ならない出現の数・全部置き換える → count_non_overlapping ／ replace_all（1 回）
+		置き換え・消すを現れなくなるまで繰り返す → rewrite_until_stable ／ erase_until_stable（ABC394 C・ABC328 D・ABC454 D）
+		区間 [l, r) に T が現れるか・何回か（クエリ） → Occurrences::exists ／ count（ABC477 C）
+		各位置から T と何文字一致するか（Z） → match_lengths ／ z_array（ABC257 G）
+		数の列の一致（差や XOR の列にして） → find_all ／ rotation_offsets（ABC150 F）
+		最小周期・s = t^k か・境界 → min_period ／ repetition_root ／ all_borders ／ all_periods ／ prefix_min_periods
+		回転して一致するか・何回まわすか → rotation_offsets ／ is_rotation（ABC430 E）
+		T を無限に繰り返した中での出現 → find_all_cyclic（ABC135 F）
+		a の後ろと b の前が最大何文字重なるか → max_overlap（ABC343 G）
+		T を含まない文字列を数える DP → KmpAutomaton
+		多数のパターンの出現（それぞれの回数・最初の出現・どれかを含むか） → 02_aho_corasick　AhoCorasick::count_each ／ first_occurrence_each ／ contains_any（ABC362 G）
+		多数のパターンを含まないようにする・DP → AhoCorasick::next ／ match_count（ABC268 Ex）
+		パターンどうしの包含関係 → AhoCorasick::contained_patterns（ABC354 G）
+		ワイルドカード（?）つきの一致 → 02_wildcard_match　wildcard_match
+		? 込みで前から・後ろから何文字一致するか → 00_str_base　common_prefix_length(a, b, '?') ／ common_suffix_length（ABC287 D）
+		ずらしごとの不一致の数・k 個以下の不一致での一致 → mismatch_counts ／ match_with_k_mismatches（ABC196 F）
+		大きなグリッドの中で模様を探す → 01_rolling_hash　RollingHash2D::find_all（小さければ graph_grid_v2 find_subgrid）
+	▼ 部分文字列の比較・同じ部分文字列
+		2 つの部分文字列が等しいか（何度も） → 01_rolling_hash　RollingHash::get(l, r) ／ same（ABC284 F・典型90 047）
+		長さを二分探索して同じ部分文字列を map で探す → RollingHash::get ＋ unordered_map<StrHash, …>（ABC141 E）
+		部分文字列の LCP・辞書順の比較 → RollingHash::lcp ／ compare（O(log N)）、03_suffix_array　SuffixArray::lcp ／ compare（O(1)）
+		つなげた・挿入した文字列のハッシュ → StrHash の + ／ repeat
+		接尾辞配列そのもの（ACL と同じ） → make_suffix_array ／ make_lcp_array
+		異なる部分文字列の数・辞書順 k 番目の部分文字列 → 03_suffix_array　count_distinct_substrings ／ kth_substring ／ kth_substring_with_dup（ABC280 Ex）
+		2 回以上現れる最長の部分文字列（重なり可・不可） → longest_repeated ／ longest_repeated_non_overlapping（ABC141 E）
+		2 つ・K 個の文字列の最長共通部分文字列（連続） → longest_common_substring ／ longest_common_substrings_all ／ longest_common_substring_k
+		各接尾辞と全部の接尾辞の LCP の和 → sum_lcp_with_all（ABC213 F）
+		パターンや部分文字列の出現回数を何度も → SuffixArray::count ／ count_occurrences(l, r)（ABC362 G）
+		部分文字列を辞書順に処理する DP（辞書順に増える部分文字列の列など） → 03_suffix_array　rank・lcp_adj で（LCP が続く区間の左端, 長さ）を並べるキーに（ABC240 Ex）
+		回転どうしの比較・複数の文字列をまとめて → make_suffix_array(S + S + '$' + T + T + '~')（ABC272 F）／ SuffixArray::of_strings（ABC280 Ex）
+		部分文字列か・出現回数・1 文字足すたびに異なる部分文字列の数 → 03_suffix_automaton　SuffixAutomaton::contains ／ count_occurrences ／ count_distinct_substrings（ABC362 G）
+		部分文字列を状態にした DP（出現位置の集合でまとめる） → SuffixAutomaton::len ／ link ／ next ／ endpos_count ／ order_by_len
+		集合・多重集合が等しいか（並べ替えて同じか） → 01_set_hash　prefix_set_hashes ／ MultisetPrefix（ABC250 E・ABC367 F）
+		追加・削除しながら集合・多重集合が等しいか → SetHash ／ MultisetHash
+	▼ 回文
+		区間 [l, r) が回文か（何度も） → 04_palindrome　Palindromes::is_palindrome
+		最長の回文の部分文字列・回文の個数 → Palindromes::longest ／ count_all（ABC320 B）
+		各位置を中心とする回文の長さ → radius_odd ／ radius_even ／ center_palindrome_lengths
+		最長の回文の接頭辞・接尾辞・各位置から始まる最長 → longest_prefix_palindrome ／ longest_suffix_palindrome ／ longest_starting_at
+		後ろ・前に足して回文にする最短 → min_palindrome_with_prefix ／ min_palindrome_with_suffix（ABC398 F）
+		両端の文字を数えて間が回文か → Palindromes::is_palindrome（ABC237 C）
+		回文にする最小の書き換え・並べ替えて回文にできるか → min_changes_to_palindrome ／ can_rearrange_to_palindrome
+		最長回文部分列（飛び飛び）・回文の部分列の数 → longest_palindromic_subsequence ／ count_palindromic_subsequences<mint>
+		k 文字まで書き換えてよい回文（中心ごとの最長・数） → 01_rolling_hash　center_palindrome_lengths_with_changes（ABC468 D）
+		回転してから回文にする最小の書き換え → 回転ごとに min_changes_to_palindrome（ABC286 C）
+		同じ長さで s 以下の回文の数（mod） → count_palindromes_leq<mint>(S, A)（ABC242 E）
+		長さ 3 の回文の部分列（S_i = S_k）の数 → CharPrefix で真ん中ごとに 左の数 × 右の数（ABC375 D）
+		回文に分割する最小の数・分け方の数 → palindrome_partition_min（N が大きいなら 04_palindromic_tree　PalindromicTree::min_partition ／ count_partitions<mint>）
+		異なる回文の種類・それぞれの出現回数 → PalindromicTree::count_distinct ／ occurrences ／ count_total
+		回文どうしの包含関係（含まない最大の選び方） → PalindromicTree::link ／ parent をたどる ＋ 二部マッチング（ABC237 Ex）
+		書き換えがある回文判定 → 09_mutable_string　MutableString::is_palindrome（ABC331 F）
+	▼ 辞書順・回転・名前の番号
+		並べてつなげて辞書順最小 → 05_lex_order　concat_order ／ min_concat（ABC225 F）
+		独自の文字の順で並べる → lex_less_by(order)（ABC219 C）
+		a, …, z, aa, … の番号（表計算の列名） → bijective_to_string ／ bijective_from_string（ABC171 C・ABC285 C）
+		同じ長さの文字列の中での辞書順の番号（mod） → lex_rank_same_length<mint>(S, A)
+		同じ文字の個数が決まった並べ替えの辞書順 k 番目・何番目か → math_v2 04_permutation　multiset_perm_unrank ／ multiset_perm_rank（ABC202 D・ABC215 C）
+		隣の入れ替えで T にする最小回数 → to_ids(S, Alphabet::of(T)) ＋ math_v2 04_permutation inversion_count（ABC264 D）
+		長さ L 以下の全部の文字列の中での辞書順の番号・k 番目・次の文字列 → dict_rank ／ dict_unrank ／ next_string
+		辞書順最小・最大の回転 → min_rotation ／ max_rotation（ABC223 B）
+		Lyndon 分解・各接頭辞の最小の接尾辞・Lyndon 配列 → 05_lyndon　lyndon_factorization ／ min_suffix_of_prefixes ／ lyndon_array
+		極大な繰り返し（runs）・xx の形の部分文字列の数 → maximal_repetitions ／ count_square_substrings
+	▼ 部分列（飛び飛び）
+		T が S の部分列か・先頭から何文字まで入るか → 06_subsequence　NextTable ／ prefix_match_lengths ／ suffix_match_lengths（ABC324 E）
+		部分列として当てはめた位置 → 00_str_base　subsequence_positions(t, s)（ABC352 B。is_subsequence(t, s) と同じく拾う方 t が先）
+		各開始位置から T を部分列として含む最短の終わり → NextTable::match_end（ABC452 D）
+		次の文字 c の位置を何度も → NextTable::next ／ prev
+		長さ K の辞書順最小・最大の部分列 → lex_smallest_subsequence ／ lex_largest_subsequence（典型90 006）
+		部分列にならない最短の文字列 → shortest_non_subsequence（ARC081 E）
+		T が部分列として何回現れるか → count_subsequence_occurrences<mint>（ABC211 C・典型90 008）
+		異なる部分列の数（隣を選ばないなども） → count_distinct_subsequences<mint>（ABC214 F・ABC230 F）
+		位置で区別して条件つきの部分列を数える（隣が同じでないなど） → 末尾の文字を状態にした DP（ABC456 D。count_distinct_subsequences は異なる文字列の数で別物）
+		最長共通部分列（LCS）・復元・それを含む最短 → 06_lcs_edit　lcs_length ／ lcs_restore ／ shortest_common_supersequence（EDPC F）
+		編集距離・操作の列 → edit_distance ／ edit_script（ABC185 E）
+		1 回の操作で一致するか・K 回以内か → within_one_edit ／ edit_distance_bounded（ABC324 C・ABC386 C・ABC386 F）
+		最長増加部分列（LIS）・復元・各位置で終わる / 始まる長さ → 06_lis　lis_length ／ lis_restore ／ lis_ending_at ／ lis_starting_at（ABC360 G）
+		どれかの LIS・すべての LIS に入る位置 → lis_members（ABC354 F）
+		LIS の数 → count_lis<mint>
+		増加列（減少列）に分ける最小の数 → min_increasing_cover ／ min_decreasing_cover（ABC134 E）
+		2 次元の LIS（箱の入れ子） → lis_2d（ABC038 D）
+	▼ 括弧列　07_bracket
+		正しい括弧列か（種類が複数でも） → is_balanced(s, "()[]<>")（ABC394 D）
+		対応する括弧の位置・深さ・入れ子の木 → match_brackets ／ bracket_depths ／ bracket_parents（ABC350 F）
+		対応する括弧を中身ごと消す → erase_matched_pairs（ABC307 D）
+		1 文字ずつ足す・消すたびに正しいか → BracketBalance を積む（balance_of(c) を + する）（ABC428 C）
+		括弧列を並べ替えてつなげる → bracket_concat_order（ABC167 F）
+		最小の挿入で正しくする → min_insertions_to_balance ／ fix_brackets
+		正しい括弧列の部分文字列の数・最長 → count_balanced_substrings ／ longest_balanced_substring
+		区間が正しい括弧列か（書き換えなし・あり） → StaticBracket ／ BracketSegTree（ABC223 F）
+		正しい括弧列をすべて辞書順に → for_each_balanced（典型90 002）
+		? を開き・閉じに決めて正しい括弧列にする方法の数 → count_balanced_completions<mint>（ABC312 D）
+		途中で閉じが開きより多くならないか（区間・書き換えあり。括弧でない 2 文字でも） → BracketSegTree(S, "AB").balance(l, r).need_open == 0（ABC473 F）
+	▼ 文字列の集合（接頭辞）　08_trie
+		p で始まる文字列の数・最長共通接頭辞 → Trie::count_prefix ／ max_lcp（ABC287 E）
+		全部の組の LCP の和 → Trie::sum_lcp_pairs（ABC353 E）
+		接頭辞である数・自分で始まる数（順位の期待値） → Trie::count_prefixes_of ／ count_prefix（ABC268 G）
+		辞書順 k 番目・何番目か → Trie::kth ／ rank
+		追加・削除しながら接頭辞を調べる・p で始まるものを全部消す → Trie::insert ／ erase ／ erase_prefix（ABC403 E）
+		Trie の上で DP（各ノードの数・深さ） → find ／ path ／ child ／ pass_count ／ preorder（ABC377 G）
+	▼ 操作・更新のある文字列
+		前後に足す・反転を何度も → 09_reversible_deque　ReversibleDeque（ABC158 D・ABC237 D）
+		回転（前半と後半の入れ替え）・反転を何度も → RotatableArray（ABC199 C）
+		1 文字の書き換えと区間の比較・回文判定 → 09_mutable_string　MutableString::same ／ lcp ／ is_palindrome（ABC331 F）
+		1 文字の書き換えと区間の文字の数・昇順か・k 番目の文字 → MutableString::count ／ counts ／ is_sorted ／ kth_char（ABC285 F）
+		挿入・削除・区間の反転を何度も → 体系外（データ構造：DynamicString）
+	▼ ほかの第二世代と組み合わせる
+		mod で数える → math_v2 00_modint　count_xxx<mint>(…)
+		パターンを含まない長さ N（10^18 まで）の文字列の数 → KmpAutomaton（複数なら AhoCorasick）の遷移を math_v2 05_matrix　Matrix<mint>::pow
+		ある文字列が別の文字列に含まれる関係で最大の選び方（反鎖） → AhoCorasick::contained_patterns ／ PalindromicTree の link・parent ＋ graph_grid_v2 08_bipartite_matching ／ 08_max_flow（ABC354 G・ABC237 Ex）
+		重なり（max_overlap）を重みにして bit DP → math_v2 09_bit（ABC343 G）
+		周期的に一致する位置を辺にしてたどる → find_all_cyclic ＋ graph_grid_v2 06_functional_graph（ABC135 F）
+		回文の条件から列を作る → graph_grid_v2 03_union_find で等しい組をまとめ、04_palindrome center_palindrome_lengths で確かめる（ABC349 G）
+		文字列を頂点にした最短路 → graph_grid_v2 00_state_id ＋ 01_bfs
+		数字の文字列・回文数・大きな数の余り → math_v2 01_digits
+		答えが巨大な数（10^i の係数を繰り上げて出力） → math_v2 01_digits　carry_to_string（ABC379 E）
+		縦書き（文字列の列を 90 度回す） → graph_grid_v2 10_grid_transform　rotate_cw（ABC366 B）

@@ -1,0 +1,204 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//https://onlinejudge.u-aizu.ac.jp/courses/library/3/DSL/all/DSL_2_G
+//セグメント木（遅延あり）
+//区間加算、区間和
+struct LazySegTree {
+    using S = long long;   // ★ ノードの型
+    using F = long long;   // ★ lazy の型
+
+    int n;
+    vector<S> seg;
+    // 操作の記録
+    vector<F> lazy;
+
+    // ★ 単位元（区間和）
+    S e() { return 0; }
+
+    // ★ マージ
+    // 子の区間2つから親の更新
+    S op(S a, S b){
+        return a + b;
+    }
+
+    // ★ lazy を node に適用
+    // 値がx、長さがlenの区間に操作fを適用
+    S mapping(F f, S x, int len){
+        // 区間全てにfを足す場合
+        return x + f * len;
+    }
+
+    // ★ lazy の合成（あとから来た f が上）
+    // 操作gに後からfが来た場合の操作
+    F composition(F f, F g){
+        // 区間全てに足す操作の場合
+        return f + g;
+    }
+
+    // ★ lazy の単位元
+    F id(){ return 0; }
+
+    LazySegTree(int _n){
+        n = 1;
+        while(n < _n) n <<= 1;
+        seg.assign(2*n, e());
+        lazy.assign(2*n, id());
+    }
+
+    void build(const vector<S>& v){
+        // 葉に値をセット
+        for(int i=0;i<(int)v.size();i++){
+            seg[i + n] = v[i];
+        }
+        // 内部ノードを構築
+        for(int i=n-1;i>0;i--){
+            seg[i] = op(seg[i<<1], seg[i<<1|1]);
+        }
+    }
+
+    void push(int k, int len){
+        if(lazy[k] == id()) return;
+
+        seg[k] = mapping(lazy[k], seg[k], len);
+
+        if(k < n){
+            lazy[k<<1] = composition(lazy[k], lazy[k<<1]);
+            lazy[k<<1|1] = composition(lazy[k], lazy[k<<1|1]);
+        }
+
+        lazy[k] = id();
+    }
+
+    void range_apply(int a, int b, F x, int k, int l, int r){
+        push(k, r-l);
+        if(r <= a || b <= l) return;
+        if(a <= l && r <= b){
+            lazy[k] = composition(x, lazy[k]);
+            push(k, r-l);
+            return;
+        }
+        int m = (l+r)>>1;
+        range_apply(a,b,x,k<<1,l,m);
+        range_apply(a,b,x,k<<1|1,m,r);
+        seg[k] = op(seg[k<<1], seg[k<<1|1]);
+    }
+
+    // 区間更新時に呼び出す関数
+    void range_apply(int l, int r, F x){
+        range_apply(l,r,x,1,0,n);
+    }
+
+    S range_query(int a, int b, int k, int l, int r){
+        push(k, r-l);
+        if(r <= a || b <= l) return e();
+        if(a <= l && r <= b) return seg[k];
+        int m = (l+r)>>1;
+        return op(
+            range_query(a,b,k<<1,l,m),
+            range_query(a,b,k<<1|1,m,r)
+        );
+    }
+
+    // 区間取得時に呼び出す関数
+    S range_query(int l, int r){
+        return range_query(l,r,1,0,n);
+    }
+
+    // f(op(a[l..r))) == true となる最大の r を返す
+    //fとしてboolを返却する関数を渡す
+    //最小のrを返却したいならfalseとなる関数を渡す
+    int max_right(int l, function<bool(S)> f){
+        S sm = e();
+        return max_right(l, f, 1, 0, n, sm);
+    }
+
+    int max_right(int l, function<bool(S)> f,
+                  int k, int a, int b, S &sm){
+        push(k, b-a);
+
+        if(b <= l) return l;
+
+        if(l <= a){
+            S nxt = op(sm, seg[k]);
+            if(f(nxt)){
+                sm = nxt;
+                return b;
+            }
+            if(b - a == 1){
+                return a;
+            }
+        }
+
+        int m = (a + b) >> 1;
+        int res = max_right(l, f, k<<1, a, m, sm);
+        if(res < m) return res;
+        return max_right(l, f, k<<1|1, m, b, sm);
+    }
+
+    // f(op(a[l..r))) == true となる最小の l を返す
+    int min_left(int r, function<bool(S)> f){
+        S sm = e();
+        return min_left(r, f, 1, 0, n, sm);
+    }
+
+    int min_left(int r, function<bool(S)> f,
+                 int k, int a, int b, S &sm){
+        push(k, b-a);
+
+        if(r <= a) return r;
+
+        if(b <= r){
+            S nxt = op(seg[k], sm);
+            if(f(nxt)){
+                sm = nxt;
+                return a;
+            }
+            if(b - a == 1){
+                return b;
+            }
+        }
+
+        int m = (a + b) >> 1;
+        int res = min_left(r, f, k<<1|1, m, b, sm);
+        if(res > m) return res;
+        return min_left(r, f, k<<1, a, m, sm);
+    }
+};
+
+int main(){
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>A(N,0);
+    LazySegTree lst(N);
+    lst.build(A);
+    rep(_,0,Q){
+        int a,s,t;
+        cin>>a>>s>>t;
+        if(a==0){
+            int x;
+            cin>>x;
+            lst.range_apply(s-1,t,x);
+        }else cout<<lst.range_query(s-1,t)<<'\n';
+    }
+    return 0;
+}

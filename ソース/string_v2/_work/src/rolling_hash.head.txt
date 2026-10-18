@@ -1,0 +1,60 @@
+// =============================================================================
+//  ローリングハッシュ（部分文字列の一致・LCP・辞書順の比較・連結・2 次元）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 01 ハッシュ
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）。unsigned __int128 を使う（GCC / Clang）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  方式：mod 2^61 - 1 の 1 本。基数は実行ごとの乱数で、すべての文字列で共通（別の文字列の部分文字列どうし、
+//        つなげたものどうしも比べられる）。累乗の表は基数を変えずに伸ばす。1 回の比較で衝突する確率は約 N / 2^61
+//  列は string でも vector<int>・vector<long long> でもよい（値はそのまま区別する。10^18 級・負の値も）
+//  範囲は半開区間 [l, r)。「L 文字目から R 文字目」は (L - 1, R)
+//
+//  機能一覧                                                                       計算量
+//    StrHash{value, len}                   部分文字列のハッシュ（長さも持つ）
+//      a + b / a += b                      つなげたもの（途中に挿入・削除した文字列も作れる）          O(1)
+//      a.repeat(k)                         k 回つなげたもの                                          O(log k)
+//      == / != / <（map・sort 用）          unordered_map<StrHash, V> もそのまま使える
+//    hash_of(s) / hash_of_char(c) / empty_hash()   列全体 / 1 文字 / 空のハッシュ                       O(N) / O(1)
+//    RollingHash H(s)                      前処理 O(N)
+//      H.get(l, r) / get_len(l, len)       s[l, r) / s[l, l + len) のハッシュ                       O(1)
+//      H.prefix(r) / suffix(l) / all()     s[0, r) / s[l, N) / 全体
+//      H.same(l1, r1, l2, r2)              s[l1, r1) == s[l2, r2) か                                 O(1)
+//      H.lcp(i, j) / H.lcp(i, T, j)        s[i..) と s[j..)（t[j..)）の最長共通接頭辞の長さ          O(log N)
+//      H.common_suffix(i, j) / (i, T, j)   s[0, i) と s[0, j)（t[0, j)）の最長共通接尾辞の長さ        O(log N)
+//      H.compare(l1, r1, l2, r2) / (l1, r1, T, l2, r2)   辞書順の比較（-1 / 0 / 1）                  O(log N)
+//      H.find_all(pat) / count(pat)        pat の出現位置（重なりも）/ 数（pat は列でも StrHash でも）   O(N)
+//      H.code(i) / size()                  i 文字目の値（char は 0〜255）/ 長さ
+//    RollingHash2D G(grid)                 グリッドの長方形のハッシュ（vector<string> でも vector<vector<int>> でも）  前処理 O(HW)
+//      G.get(i1, j1, i2, j2)               行 [i1, i2) × 列 [j1, j2) のハッシュ（GridHash{value, h, w}）  O(1)
+//      G.find_all(pat)                     pat と一致する左上の位置 (i, j) の一覧                     O(HW)
+//      G.all() / rows() / cols()
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    rh_test::random_test()  … 愚直な比較（std::string の比較・全部の位置）と全機能を突き合わせるランダムテスト
+//    rh_test::benchmark()    … 速度計測
+//    rh_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

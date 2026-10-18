@@ -1,0 +1,57 @@
+// =============================================================================
+//  二項係数（Binomial<mint>：階乗の表で nCr・nPr・nHr、n が大きい nCr、Lucas、合成数の mod、厳密な値、パスカルの三角形、Σ_{i≤m} C(n, i) を Mo で）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 04 数え上げ
+//  依存       : 00_int_common, 00_math_base, 00_modint（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt998;          // 10^9+7 なら ModInt107。mod が入力で決まるなら DynModInt
+//      Binomial<mint> B(200000);        // 0〜200000 の階乗の表（足りなければ自動で伸びる。mod は素数）
+//      cout << B.C(n, r) << '\n';
+//
+//  機能一覧                                                                    計算量
+//    Binomial<mint> B(N)              階乗・階乗の逆元の表（n > N が来たら表を伸ばす。n < mod、n ≤ 10^8）    O(N)
+//      B.C(n, r) / B.P(n, r) / B.H(n, r)       nCr / nPr / nHr（範囲外は 0。H(n, 0) = 1）                    O(1)
+//      B.fact(n) / B.inv_fact(n) / B.inv(n)    n! / 1/n! / 1/n
+//      B.multinomial(ks)                       (Σk)! / Π k!（ks は vector か {2, 3, 1}）
+//      B.catalan(n)                            カタラン数
+//      B.paths(x, y)                           (0, 0) → (x, y) の右・上だけの道の数
+//      B.paths_not_crossing(x, y, k)           そのうち、ずっと y ≤ x + k のもの（k ≥ 0。鏡像法）
+//    BinomialPrefix<mint> P(max_n)    S(n, m) = Σ_{i≤m} C(n, i) を、n・m を 1 ずつ動かして保つ（Mo のアルゴリズムに）  移動 1 回 O(1)
+//      P.move_to(n, m) / P.inc_n() / P.dec_n() / P.inc_m() / P.dec_m() / P.value() / P.n() / P.m()   （mod は 3 以上の素数）
+//    binom_large_n<mint>(n, r)        n ≤ 10^18 で r が小さい nCr（r < mod）                                  O(r)
+//    binom_lucas(n, r, p)             nCr mod p（p は 10^7 以下の素数。n, r ≤ 10^18）                         O(log_p n)・前処理 O(p)
+//    binom_mod_any(n, r, m)           nCr mod m（m は合成数でもよい。m の素数べきの部分はそれぞれ 10^7 以下）     前処理 O(Σ p^e)
+//    binom_exact(n, r)                厳密な nCr（long long に収まらなければ止める）                          O(min(r, 64))
+//    binom_cap(n, r, cap)             min(nCr, cap)（溢れない）
+//    pascal_table<T>(N)               t[n][r] = nCr（0 ≤ r ≤ n ≤ N）。T は何でも（DynModInt なら合成数の mod でも。
+//                                     long long は N ≤ 66、溢れたら止める）                                   O(N^2)
+//  （スターリング数・分割数・包除原理は 04_combinatorics、順列の番号・転倒数は 04_permutation）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    binom_test::random_test()  … パスカルの三角形・128 ビットの厳密な値との突き合わせ
+//    binom_test::benchmark()    … 速度計測
+//    binom_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

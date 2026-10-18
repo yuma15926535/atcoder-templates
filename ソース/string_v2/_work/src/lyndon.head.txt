@@ -1,0 +1,47 @@
+// =============================================================================
+//  Lyndon 分解・Lyndon 語か・各接頭辞の最小の接尾辞・Lyndon 配列・極大な繰り返し（runs）・平方の数   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 05 辞書順・回転
+//  依存       : 00_str_base、03_suffix_array（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  Lyndon 語 = 自分のどの真の接尾辞よりも辞書順で小さい（空でない）文字列（例：ab、aab、abb。aba・aa は違う）
+//  辞書順は std::string と同じ（接頭辞は小さい）。列は string でも数の列でもよい
+//  runs（極大な繰り返し）：s[l, r) の最小の周期 p が 2p ≤ r − l を満たし、左右に 1 文字伸ばすと周期 p でなくなるもの（個数は N 未満）
+//
+//  機能一覧                                                                       計算量
+//    lyndon_factorization(s)               Lyndon 分解 s = l1 l2 … lk（l1 ≥ l2 ≥ …。StrSpan の列。Duval）       O(N)
+//    is_lyndon(s)                          Lyndon 語か                                                    O(N)
+//    min_suffix_of_prefixes(s)             r[i] = s[0, i) の辞書順最小の接尾辞の開始位置                     O(N)
+//    lyndon_array(s)                       λ[i] = i から始まる最長の Lyndon 語の長さ                         O(N)（接尾辞配列）
+//    maximal_repetitions(s)                runs の一覧（Repetition{l, r, period}。l, r の昇順）              O(N log N)
+//    count_square_substrings(s)            xx の形の部分文字列（位置が違えば別）の数                         O(N log N)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    lyn_test::random_test()  … 定義どおりの愚直解と全機能を突き合わせるランダムテスト
+//    lyn_test::benchmark()    … 速度計測
+//    lyn_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

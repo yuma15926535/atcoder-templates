@@ -1,0 +1,49 @@
+// =============================================================================
+//  部分集合の変換（高速ゼータ・メビウス変換、OR・AND・XOR の畳み込み、部分集合の畳み込み・exp・log）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 07 畳み込み・多項式
+//  依存       : 00_int_common, 00_math_base, 00_modint（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  配列の長さは 2^n（i 番目が集合 i：i ビット目が 1 ⇔ 要素 i を含む）。T は mint・long long（溢れたら止める）・double など
+//  （modint は数え上げで使うことが多いので同梱している）
+//  long long は途中の値（ゼータ変換の和など）が溢れても止まる。答えだけ収まる場合もあるので、大きくなりそうなら mint で
+//  xor_convolution・walsh_hadamard(f, true) は 2^n で割るので、mint の mod は奇数（DynModInt の偶数の mod では使えない）
+//
+//  機能一覧                                                                    計算量
+//    subset_zeta(f, op) / subset_mobius(f, inv_op)       f[S] ← Σ_{T ⊆ S} f[T] / その逆（op を渡すと max・gcd などでも） O(n 2^n)
+//    superset_zeta(f, op) / superset_mobius(f, inv_op)   f[S] ← Σ_{T ⊇ S} f[T] / その逆
+//    walsh_hadamard(f, inverse)       アダマール変換（XOR の畳み込み用。inverse なら 2^n で割る）
+//    or_convolution(a, b)             c[k] = Σ_{i | j = k} a[i] b[j]（長さは 2 の冪にそろえる）
+//    and_convolution(a, b)            c[k] = Σ_{i & j = k} a[i] b[j]
+//    xor_convolution(a, b)            c[k] = Σ_{i ^ j = k} a[i] b[j]
+//    subset_convolution(a, b)         c[S] = Σ_{T ⊆ S} a[T] b[S∖T]（集合を 2 つに分ける）                O(n^2 2^n)
+//    subset_exp(f) / subset_log(f)    g[S] = Σ_{S の組分け} Π f[組]（f[∅] = 0）/ その逆（f[∅] = 1）。連結な部分の数え上げ  O(n^2 2^n)
+//                                     （割り算を使わないので long long・合成数の mod でも。2^18 で exp 約 0.3 秒、log 約 0.5 秒）
+//  （部分集合の列挙は 09_bit、約数・倍数のゼータ変換は 02_divisor_transform）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    subt_test::random_test()  … 全部の組を調べる愚直解との突き合わせ
+//    subt_test::benchmark()    … 速度計測
+//    subt_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

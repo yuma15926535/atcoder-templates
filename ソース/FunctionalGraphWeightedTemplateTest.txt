@@ -1,0 +1,558 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+============================================================
+ Functional Graph COMPLETE (FINAL)
+------------------------------------------------------------
+ outdegree = 1 graph 専用
+
+取得可能:
+ ★ cycle 判定
+ ★ cycle entry
+ ★ cycle size
+ ★ depth（cycleまで距離）
+ ★ k回後頂点
+ ★ k回総和
+ ★ 無限操作後
+ ★ loop総和 O(1)
+
+計算量:
+ build : O(N)
+ query : O(1) or O(logdepth)
+============================================================
+*/
+struct WeightedDoubling {
+
+    using ll = long long;
+
+    int n,LOG;
+    vector<vector<int>> nxt;
+    vector<vector<ll>> sum;
+
+    WeightedDoubling(int n,ll max_k=(1LL<<60)):n(n){
+
+        LOG=0;
+        while((1LL<<LOG)<=max_k) LOG++;
+
+        nxt.assign(LOG,vector<int>(n,-1));
+        sum.assign(LOG,vector<ll>(n,0));
+    }
+
+    void set_next(int v,int to,ll cost){
+        nxt[0][v]=to;
+        sum[0][v]=cost;
+    }
+
+    void build(){
+        for(int k=1;k<LOG;k++){
+            for(int v=0;v<n;v++){
+
+                int mid=nxt[k-1][v];
+                if(mid==-1) continue;
+
+                nxt[k][v]=nxt[k-1][mid];
+                sum[k][v]=sum[k-1][v]+sum[k-1][mid];
+            }
+        }
+    }
+
+    pair<int,ll> jump(int v,ll K) const{
+
+        ll res=0;
+
+        for(int i=0;i<LOG;i++){
+            if(!(K&(1LL<<i))) continue;
+
+            res+=sum[i][v];
+            v=nxt[i][v];
+        }
+        return {v,res};
+    }
+
+    int jump_vertex(int v,ll k)const{
+        return jump(v,k).first;
+    }
+
+    ll jump_sum(int v,ll k)const{
+        return jump(v,k).second;
+    }
+};
+
+//============================================================
+
+struct FunctionalGraph {
+
+    using ll = long long;
+
+    int N;
+    vector<int> to;
+
+    vector<int> indeg;
+    vector<int> depth;
+    vector<int> comp;
+    vector<int> pos;
+    vector<int> entry;
+
+    vector<vector<int>> cycles;
+    vector<int> cycle_sz;
+
+    // ⭐ 完成体追加
+    vector<vector<ll>> cycle_prefix;
+    vector<ll> cycle_sum;
+
+    FunctionalGraph(int n)
+        :N(n),
+         to(n),
+         indeg(n,0),
+         depth(n,-1),
+         comp(n,-1),
+         pos(n,-1),
+         entry(n,-1){}
+
+    //------------------------------------------------
+    void set_edge(int u,int v){
+        to[u]=v;
+        indeg[v]++;
+    }
+
+    //------------------------------------------------
+    void build(){
+
+        queue<int> q;
+
+        for(int i=0;i<N;i++)
+            if(indeg[i]==0)
+                q.push(i);
+
+        while(!q.empty()){
+            int v=q.front();q.pop();
+            if(--indeg[to[v]]==0)
+                q.push(to[v]);
+        }
+
+        vector<int> used(N);
+
+        for(int i=0;i<N;i++){
+            if(indeg[i]>0&&!used[i]){
+
+                vector<int> cyc;
+                int v=i;
+
+                while(!used[v]){
+                    used[v]=1;
+                    cyc.push_back(v);
+                    v=to[v];
+                }
+
+                int id=cycles.size();
+
+                for(int j=0;j<(int)cyc.size();j++){
+                    int x=cyc[j];
+                    comp[x]=id;
+                    pos[x]=j;
+                    depth[x]=0;
+                    entry[x]=x;
+                }
+
+                cycles.push_back(cyc);
+                cycle_sz.push_back(cyc.size());
+            }
+        }
+
+        vector<vector<int>> rev(N);
+        for(int i=0;i<N;i++)
+            rev[to[i]].push_back(i);
+
+        queue<int> qq;
+        for(int i=0;i<N;i++)
+            if(depth[i]==0)
+                qq.push(i);
+
+        while(!qq.empty()){
+            int v=qq.front();qq.pop();
+
+            for(int u:rev[v]){
+                if(depth[u]!=-1) continue;
+
+                depth[u]=depth[v]+1;
+                comp[u]=comp[v];
+                entry[u]=entry[v];
+                qq.push(u);
+            }
+        }
+    }
+
+    //------------------------------------------------
+    void build_weighted(
+        WeightedDoubling& db,
+        const vector<ll>& cost
+    ){
+
+        for(int i=0;i<N;i++)
+            db.set_next(i,to[i],cost[i]);
+
+        db.build();
+
+        int C=cycles.size();
+
+        cycle_prefix.assign(C,{});
+        cycle_sum.assign(C,0);
+
+        for(int cid=0;cid<C;cid++){
+
+            int sz=cycles[cid].size();
+            cycle_prefix[cid].assign(sz+1,0);
+
+            for(int i=0;i<sz;i++){
+                int v=cycles[cid][i];
+                cycle_prefix[cid][i+1]
+                    =cycle_prefix[cid][i]+cost[v];
+            }
+
+            cycle_sum[cid]=cycle_prefix[cid][sz];
+        }
+    }
+
+    //------------------------------------------------
+    bool in_cycle(int v)const{
+        return depth[v]==0;
+    }
+
+    int cycle_entry(int v)const{
+        return entry[v];
+    }
+
+    int cycle_size(int v)const{
+        return cycle_sz[comp[v]];
+    }
+
+    //------------------------------------------------
+    int after_infinite(
+        int v,
+        const WeightedDoubling& db
+    )const{
+        return db.jump_vertex(v,depth[v]);
+    }
+
+    //------------------------------------------------
+    template<class WDB>
+    pair<int,long long>
+    move_weighted(int v,long long k,const WDB& db) const{
+
+        long long ans=0;
+
+        // ---- 木部分 ----
+        long long take=min<long long>(k,depth[v]);
+
+        auto [nv,sum]=db.jump(v,take);
+        ans+=sum;
+        v=nv;
+        k-=take;
+
+        if(k==0) return {v,ans};
+
+        // ---- cycle ----
+        int cid=comp[v];
+        int sz=cycle_sz[cid];
+
+        auto [_,loop_sum]=db.jump(v,sz);
+
+        ans+=(k/sz)*loop_sum;
+
+        k%=sz;
+
+        auto [fv,last]=db.jump(v,k);
+        ans+=last;
+
+        return {fv,ans};
+    }
+};
+
+void solv(){
+    cout<<"=============================\n";
+    cout<<" Functional Graph 最終動作確認\n";
+    cout<<"=============================\n";
+
+    /*
+        構造:
+
+        0 → 1 → 2 → 3 → 4
+                  ↑     ↓
+                  ← ← ←
+
+        cycle = {2,3,4}
+    */
+
+    int N=5;
+
+    FunctionalGraph fg(N);
+
+    fg.set_edge(0,1);
+    fg.set_edge(1,2);
+    fg.set_edge(2,3);
+    fg.set_edge(3,4);
+    fg.set_edge(4,2);
+
+    vector<long long> cost={
+        10,20,30,40,50
+    };
+
+    //------------------------------------------------
+    cout<<"\n▼ build\n";
+
+    fg.build();
+
+    WeightedDoubling db(N,1000);
+    fg.build_weighted(db,cost);
+
+    //------------------------------------------------
+    cout<<"\n▼ 基本情報\n";
+
+    for(int v=0;v<N;v++){
+
+        cout<<"頂点 "<<v<<"\n";
+        cout<<"  次頂点: "<<fg.to[v]<<"\n";
+        cout<<"  cycleまで距離: "<<fg.depth[v]<<"\n";
+        cout<<"  cycle入口: "<<fg.cycle_entry(v)<<"\n";
+        cout<<"  cycleサイズ: "<<fg.cycle_size(v)<<"\n";
+        cout<<"  cycle上か: "
+            <<(fg.in_cycle(v)?"はい":"いいえ")<<"\n\n";
+    }
+
+    //------------------------------------------------
+    cout<<"-----------------------------\n";
+    cout<<"▼ 1回遷移確認\n";
+
+    for(int v=0;v<N;v++){
+        auto [nv,sum]=db.jump(v,1);
+
+        cout<<"頂点 "<<v
+            <<" → "<<nv
+            <<" / 加算="<<sum<<"\n";
+    }
+
+    //------------------------------------------------
+    cout<<"-----------------------------\n";
+    cout<<"▼ k回遷移 + 総和 (start=0)\n";
+
+    for(int k=0;k<=12;k++){
+
+        auto [v,sum]
+            =fg.move_weighted(0,k,db);
+
+        cout<<k<<" 回後 → "
+            <<"頂点 "<<v
+            <<" / 総和="<<sum<<"\n";
+    }
+
+    //------------------------------------------------
+    cout<<"-----------------------------\n";
+    cout<<"▼ cycle1周確認\n";
+
+    int entry=fg.cycle_entry(0);
+    int sz=fg.cycle_size(entry);
+
+    auto [_,loop_sum]=db.jump(entry,sz);
+
+    cout<<"cycleサイズ = "<<sz<<"\n";
+    cout<<"1周コスト総和 = "<<loop_sum<<"\n";
+
+    //------------------------------------------------
+    cout<<"-----------------------------\n";
+    cout<<"▼ 無限操作後\n";
+
+    for(int v=0;v<N;v++){
+        cout<<"頂点 "<<v
+            <<" → "
+            <<fg.after_infinite(v,db)
+            <<"\n";
+    }
+
+    //------------------------------------------------
+    cout<<"-----------------------------\n";
+    cout<<"▼ 超巨大Kテスト (1e18)\n";
+
+    long long BIG=1e18;
+
+    auto [v,sum]
+        =fg.move_weighted(0,BIG,db);
+
+    cout<<"1e18 回後\n";
+    cout<<"頂点 = "<<v<<"\n";
+    cout<<"総和 = "<<sum<<"\n";
+
+    cout<<"=============================\n";
+    return;
+}
+
+int main(){
+    //BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

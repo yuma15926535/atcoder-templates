@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+vector<int> makepl(int n){
+    vector<bool> rec(n+1,true);
+    vector<int> ret;
+    erep(i,2,n)if(rec[i]){
+        ret.push_back(i);
+        for(ll j=2;i*j<=n;j++)rec[i*j]=false;
+    }
+    return ret;
+}
+
+int main(){
+    auto pl=makepl(1e7);
+    int N;
+    cin>>N;
+    //区間の素因数分解はエラトステネスの篩っぽいアルゴリズムが使える
+    vector<vector<int>>v(N+1);
+    for(int p:pl){
+        if(p>N)break;
+        int idx=p;
+        v[idx].push_back(2);
+        while(idx+p<=N){
+            idx+=p;
+            ll c=1,n=idx;
+            while(n%p==0){
+                n/=p;
+                c++;
+            }
+            v[idx].push_back(c);
+        }
+    }
+    ll ans=0;
+    erep(i,1,N){
+        ll cnt=1;
+        for(int j:v[i])cnt*=j;
+        ans+=i*cnt;
+    }
+    cout<<ans<<'\n';
+    return 0;
+}

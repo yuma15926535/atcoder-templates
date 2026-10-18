@@ -1,0 +1,58 @@
+// =============================================================================
+//  形式的冪級数（Fps<mint>：逆数・log・exp・累乗・平方根・多項式の割り算・テイラーシフト・P/Q の K 次の係数・多点評価・補間・べき乗和）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 07 畳み込み・多項式
+//  依存       : 00_int_common, 00_math_base, 00_modint, 07_convolution（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt998;               // 998244353 がいちばん速い（ほかの mod でも 3 つの素数の畳み込みで動く）
+//      Fps<mint> f = {1, 1};                 // 係数は低い次数から（1 + x）
+//      Fps<mint> g = fps_inv(f, 10);         // 1/f の最初の 10 項（x^0〜x^9）
+//
+//  機能一覧（n を渡すものは最初の n 項を返す）                                    計算量
+//    Fps<mint>                        vector<mint> と同じ。+ − ×（畳み込み）・スカラー倍・単項 −、f.pre(n)（最初の n 項）、f.eval(x)、
+//                                     cout << f（係数を空白区切りで）
+//    fps_inv(f, n)                    1/f（f[0] ≠ 0）                                                      O(n log n)
+//    fps_log(f, n) / fps_exp(f, n)    log f（f[0] = 1）/ exp f（f[0] = 0）
+//    fps_pow(f, k, n)                 f^k（k ≤ 10^18。f[0] = 0 でもよい）
+//    fps_sqrt(f, n)                   √f（Maybe：ok が false なら平方根なし）
+//    fps_divmod(f, g)                 多項式の割り算 FpsDivMod{q, r}（f = q g + r）
+//    fps_derivative(f) / fps_integral(f)    微分 / 積分（定数項 0）                                      O(n)
+//    taylor_shift(f, c)               f(x + c) の係数                                                       O(n log n)
+//    fps_coeff_of_fraction(P, Q, K)   [x^K] P/Q（K ≤ 10^18。Bostan–Mori。線形漸化式の第 K 項）            O(d log d log K)
+//    prod_linear(as)                  Π (1 + a_i x)                                                         O(n log^2 n)
+//    multipoint_eval(f, xs)           f(x_0), …, f(x_{m−1})（多点評価。10^5 点で約 0.4 秒）                  O(n log n + m log^2 m)
+//    interpolate(xs, ys)              点 (x_i, y_i)（x は異なる）を通る次数 n − 1 以下の多項式                 O(n log^2 n)
+//    power_sums(as, n, ws)            べき乗和 p_k = Σ w_i a_i^k（k = 0〜n−1。ws を省くと 1）                 O(m log^2 m + n log n)
+//    fps_sum_of_fractions(nums, dens) Σ nums[i] / dens[i] を 1 つの分数 FpsFraction{num, den} に（通分だけ）  O(N log^2 N)
+//  log・exp・pow・integral・taylor_shift は mod が項の数より大きい素数のとき（998244353 など）、sqrt は mod が奇素数のとき
+//  （漸化式の推測と第 K 項は 06_linear_recurrence、次数の小さい多項式の補間は 06_series）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    fps_test::random_test()  … 1 項ずつ決める愚直な漸化式との突き合わせ
+//    fps_test::benchmark()    … 速度計測
+//    fps_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

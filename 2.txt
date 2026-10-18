@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N;
+    cin>>N;
+    queue<string> ans;
+    //20なのでbit全探索可能
+    rep(i,0,1<<N){
+        int c=0;string s="";bool b=true;
+        rrep(j,N,0){
+            if(((i>>j)&1)!=1){
+                s+='(';
+                c++;
+            }else{
+                s+=')';
+                c--;
+            }
+            if(c<0)b=false;
+        }
+        if(c!=0)b=false;
+        if(b)ans.push(s);
+    }
+    while(!ans.empty()){
+        cout<<ans.front()<<"\n";
+        ans.pop();
+    }
+    return 0;
+}

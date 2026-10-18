@@ -1,0 +1,51 @@
+// =============================================================================
+//  多倍長整数（BigInt：long long・Int128 に収まらない整数の四則演算・比較・累乗・平方根・gcd・lcm・入出力）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 08 有理数・多倍長
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      BigInt a("123456789012345678901234567890"), b = 10;   // 文字列・整数から（cin >> a でもよい）
+//      BigInt c = a * b + 1;                                   // int・long long と混ぜて書ける
+//      cout << c / 7 << ' ' << c % 7 << '\n';
+//  割り算は C++ の整数と同じ（0 の方向に切り捨て。% の符号は割られる数と同じ）
+//  mod 998244353 などで足りるなら mint の方がずっと速い。答えが Int128 に収まるなら Int128 で
+//
+//  機能一覧                                                                    計算量（n, m は桁数）
+//    BigInt(long long / Int128 / "文字列")   作る（文字列は先頭に + − を付けてよい）
+//    + − × ÷ % 単項 −、+= など、++ −−、== < など、compare(a, b)
+//                                     × は短ければ筆算、長ければカラツバ（10^5 桁同士で約 0.15 秒、10^6 桁同士は数秒）  × O(n^1.58)、÷ O(n m)
+//    divmod(a, b)                     {商, 余り}
+//    pow(a, e) / isqrt(a) / gcd(a, b) / abs(a)    累乗 / ⌊√a⌋（O(n^2)）/ 最大公約数（互除法 O(n^2)。2×10^4 桁で約 1 秒）/ 絶対値
+//    lcm(a, b)                        最小公倍数（0 以上。どちらかが 0 なら 0。整数と混ぜてもよい）
+//    a.to_string() / cout << a / cin >> a
+//    a.fits_ll() / a.to_ll() / a.to_i128()   long long に収まるか / 変換（収まらなければ止める）
+//    a.to_ld()                        おおよその値（long double）
+//    a.num_digits() / a.digit_sum()   10 進の桁数 / 各桁の和
+//    a.mod_ll(m)                      a mod m（[0, m)。巨大な数の mod を取るとき）              O(n)
+//    a.sign() / a.is_zero() / a.is_even()
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    big_test::random_test()  … Int128 の計算・mod での検算との突き合わせ
+//    big_test::benchmark()    … 速度計測
+//    big_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>

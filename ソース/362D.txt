@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct edge{
+    ll to;
+    ll cost;
+};
+vector<vector<edge>> G;
+vector<ll> A;
+const ll INF=1LL<<60;
+vector<ll> dis;
+vector<int> pre;
+//ダイクストラ法
+//重み付きの単一始点最短距離を解く
+//重みは正に限る
+//全体で最小の距離が確定していく
+void dijkstra(int s){
+    int N=G.size();
+    dis.resize(N,INF);
+    pre.resize(N,-1);
+    priority_queue<pair<ll,int>,vector<pair<ll,int>>,greater<pair<ll,int>>> pq;
+    dis[s]=A[s];
+    pq.push({dis[s],s});
+    while(!pq.empty()){
+        auto p=pq.top();
+        pq.pop();
+        int pos=p.second;
+        if(dis[pos]<p.first)continue;
+        //頂点にも重みがついてるのでAがある
+        for(auto e:G[pos])if(dis[e.to]>dis[pos]+e.cost+A[e.to]){
+            dis[e.to]=dis[pos]+e.cost+A[e.to];
+            pre[e.to]=pos;
+            pq.push({dis[e.to],e.to});
+        }
+    }
+}
+//経路を取得
+vector<int> get_path(int t){
+    vector<int> path;
+    for(int cur=t;cur!=-1;cur=pre[cur])path.push_back(cur);
+    reverse(nall(path));
+    return path;
+}
+
+int main()
+{
+    int N,M;
+    cin>>N>>M;
+    A.resize(N);
+    rep(i,0,N)cin>>A[i];
+    G.resize(N);
+    rep(i,0,M){
+        int u,v,b;
+        cin>>u>>v>>b;
+        u--;
+        v--;
+        G[u].push_back({v,b});
+        G[v].push_back({u,b});
+    }
+    dijkstra(0);
+    rep(i,1,N)cout<<dis[i]<<"\n";
+    return 0;
+}

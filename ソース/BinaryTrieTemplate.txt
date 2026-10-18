@@ -1,0 +1,1443 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief Binary Trie（64bit整数専用）
+ *
+ * long long専用の順序付き多重集合（Ordered Multiset）。
+ *
+ * 通常の順序付き集合としての操作に加え、
+ * XOR最小・最大探索、XOR順位探索、Lazy XOR（一括XOR）を高速に行える。
+ *
+ * 特徴
+ * ・long long固定
+ * ・multiset対応（重複可）
+ * ・負数対応
+ * ・0対応
+ * ・64bit全域対応
+ * ・Lazy XOR対応
+ * ・動的ノード生成
+ * ・再帰不使用
+ *
+ * 計算量
+ * ・insert / erase / contains / count      : O(64)
+ * ・min / max / kth                         : O(64)
+ * ・lower_bound / upper_bound               : O(64)
+ * ・prev / next                             : O(64)
+ * ・xor_min / xor_max                       : O(64)
+ * ・xor_kth                                 : O(64)
+ * ・count_xor_*                             : O(64)
+ * ・xor_all                                 : O(1)
+ * ・vec                                     : O(N)
+ */
+struct BinaryTrie {
+    static constexpr ll NOT_FOUND = LLONG_MIN;
+
+    struct Node {
+        Node* ch[2] = {nullptr, nullptr};
+        ll size = 0;
+    };
+
+    Node* root = nullptr;
+    ull lazy = 0;
+
+    BinaryTrie() : root(nullptr), lazy(0) {}
+
+    ~BinaryTrie() {
+        clear();
+    }
+
+    BinaryTrie(const BinaryTrie&) = delete;
+    BinaryTrie& operator=(const BinaryTrie&) = delete;
+
+    BinaryTrie(BinaryTrie&& other) noexcept : root(other.root), lazy(other.lazy) {
+        other.root = nullptr;
+        other.lazy = 0;
+    }
+
+    BinaryTrie& operator=(BinaryTrie&& other) noexcept {
+        if (this != &other) {
+            clear();
+            root = other.root;
+            lazy = other.lazy;
+            other.root = nullptr;
+            other.lazy = 0;
+        }
+        return *this;
+    }
+
+    /**
+     * @brief 全要素を削除する
+     *
+     * @complexity O(N)
+     */
+    void clear() {
+        if (!root) return;
+        std::vector<Node*> q;
+        q.push_back(root);
+        size_t head = 0;
+        while (head < q.size()) {
+            Node* curr = q[head++];
+            if (curr->ch[0]) q.push_back(curr->ch[0]);
+            if (curr->ch[1]) q.push_back(curr->ch[1]);
+        }
+        for (auto* node : q) {
+            delete node;
+        }
+        root = nullptr;
+        lazy = 0;
+    }
+
+    /**
+     * @brief 要素数を取得する
+     *
+     * @return 要素数
+     *
+     * @complexity O(1)
+     */
+    ll size() const {
+        return root ? root->size : 0;
+    }
+
+    /**
+     * @brief 空か判定する
+     *
+     * @return 空なら true
+     *
+     * @complexity O(1)
+     */
+    bool empty() const {
+        return size() == 0;
+    }
+
+    /**
+     * @brief 要素を1個追加する
+     *
+     * @param x 追加する値
+     *
+     * @note 重複可
+     *
+     * @complexity O(64)
+     */
+    void insert(ll x) {
+        ull u = (ull)x ^ (1ULL << 63);
+        ull v = u ^ lazy;
+        if (!root) {
+            root = new Node();
+        }
+        Node* curr = root;
+        curr->size++;
+        for (int i = 63; i >= 0; --i) {
+            int b = (v >> i) & 1;
+            if (!curr->ch[b]) {
+                curr->ch[b] = new Node();
+            }
+            curr = curr->ch[b];
+            curr->size++;
+        }
+    }
+
+    /**
+     * @brief 要素数を取得する
+     *
+     * @param x 値
+     * @return x の個数
+     *
+     * @complexity O(64)
+     */
+    ll count(ll x) const {
+        ull u = (ull)x ^ (1ULL << 63);
+        ull v = u ^ lazy;
+        Node* curr = root;
+        for (int i = 63; i >= 0; --i) {
+            if (!curr) return 0;
+            int b = (v >> i) & 1;
+            curr = curr->ch[b];
+        }
+        return curr ? curr->size : 0;
+    }
+
+    /**
+     * @brief 要素が存在するか判定する
+     *
+     * @param x 判定する値
+     * @return 存在すれば true
+     *
+     * @complexity O(64)
+     */
+    bool contains(ll x) const {
+        return count(x) > 0;
+    }
+
+    /**
+     * @brief 要素を1個削除する
+     *
+     * @param x 削除する値
+     * @return 削除したら true、存在しなければ false
+     *
+     * @complexity O(64)
+     */
+    bool erase(ll x) {
+        if (count(x) == 0) return false;
+        ull u = (ull)x ^ (1ULL << 63);
+        ull v = u ^ lazy;
+        Node* curr = root;
+        curr->size--;
+        for (int i = 63; i >= 0; --i) {
+            int b = (v >> i) & 1;
+            Node* next_node = curr->ch[b];
+            next_node->size--;
+            if (next_node->size == 0) {
+                delete next_node;
+                curr->ch[b] = nullptr;
+                break;
+            } else {
+                curr = next_node;
+            }
+        }
+        if (root && root->size == 0) {
+            delete root;
+            root = nullptr;
+        }
+        return true;
+    }
+
+    /**
+     * @brief 指定した値をすべて削除する
+     *
+     * @param x 削除する値
+     * @return 削除した個数
+     *
+     * @complexity O(64)
+     */
+    ll erase_all(ll x) {
+        ll cnt = count(x);
+        if (cnt == 0) return 0;
+        ull u = (ull)x ^ (1ULL << 63);
+        ull v = u ^ lazy;
+        Node* curr = root;
+        curr->size -= cnt;
+        for (int i = 63; i >= 0; --i) {
+            int b = (v >> i) & 1;
+            Node* next_node = curr->ch[b];
+            next_node->size -= cnt;
+            if (next_node->size == 0) {
+                delete next_node;
+                curr->ch[b] = nullptr;
+                break;
+            } else {
+                curr = next_node;
+            }
+        }
+        if (root && root->size == 0) {
+            delete root;
+            root = nullptr;
+        }
+        return cnt;
+    }
+
+    /**
+     * @brief XOR値が最小となる要素を取得する
+     *
+     * @param mask XORする値
+     * @return XOR値が最小となる元の要素
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll xor_min_element(ll mask) const {
+        if (empty()) return NOT_FOUND;
+        ull effective_mask = lazy ^ (ull)mask;
+        Node* curr = root;
+        ull v = 0;
+        for (int i = 63; i >= 0; --i) {
+            int b = (effective_mask >> i) & 1;
+            if (curr->ch[b]) {
+                curr = curr->ch[b];
+                v |= ((ull)b << i);
+            } else {
+                curr = curr->ch[1 - b];
+                v |= ((ull)(1 - b) << i);
+            }
+        }
+        ull u = v ^ lazy;
+        return (ll)(u ^ (1ULL << 63));
+    }
+
+    /**
+     * @brief XOR値が最大となる要素を取得する
+     *
+     * @param mask XORする値
+     * @return XOR値が最大となる元の要素
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll xor_max_element(ll mask) const {
+        if (empty()) return NOT_FOUND;
+        ull effective_mask = lazy ^ (ull)mask;
+        Node* curr = root;
+        ull v = 0;
+        for (int i = 63; i >= 0; --i) {
+            int b = (effective_mask >> i) & 1;
+            if (curr->ch[1 - b]) {
+                curr = curr->ch[1 - b];
+                v |= ((ull)(1 - b) << i);
+            } else {
+                curr = curr->ch[b];
+                v |= ((ull)b << i);
+            }
+        }
+        ull u = v ^ lazy;
+        return (ll)(u ^ (1ULL << 63));
+    }
+
+    /**
+     * @brief 最小XOR値を取得する
+     *
+     * @param mask XORする値
+     * @return 最小の XOR 値
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll xor_min(ll mask) const {
+        if (empty()) return NOT_FOUND;
+        return xor_min_element(mask) ^ mask;
+    }
+
+    /**
+     * @brief 最大XOR値を取得する
+     *
+     * @param mask XORする値
+     * @return 最大の XOR 値
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll xor_max(ll mask) const {
+        if (empty()) return NOT_FOUND;
+        return xor_max_element(mask) ^ mask;
+    }
+
+    /**
+     * @brief 最小値を取得する
+     *
+     * @return 最小値
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll min() const {
+        return xor_min_element(0);
+    }
+
+    /**
+     * @brief 最大値を取得する
+     *
+     * @return 最大値
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll max() const {
+        return xor_max_element(0);
+    }
+
+    /**
+     * @brief 最小値を取り出して削除する
+     *
+     * @return 最小値
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll pop_min() {
+        ll val = min();
+        if (val != NOT_FOUND) {
+            erase(val);
+        }
+        return val;
+    }
+
+        /**
+     * @brief 最大値を取り出して削除する
+     *
+     * @return 最大値
+     *         空なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll pop_max() {
+        ll val = max();
+        if (val != NOT_FOUND) {
+            erase(val);
+        }
+        return val;
+    }
+
+    /**
+     * @brief XOR後にk番目となる要素を取得する
+     *
+     * @param mask XORする値
+     * @param k 0-index
+     * @return (要素 ^ mask) を昇順に並べたとき
+     *         k番目となる元の要素
+     *         範囲外なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll xor_kth(ll mask, ll k) const {
+        if (k < 0 || k >= size()) return NOT_FOUND;
+        ull effective_mask = lazy ^ (ull)mask;
+        Node* curr = root;
+        ull v = 0;
+        for (int i = 63; i >= 0; --i) {
+            int b = (effective_mask >> i) & 1;
+            ll left_sz = curr->ch[b] ? curr->ch[b]->size : 0;
+            if (k < left_sz) {
+                curr = curr->ch[b];
+                v |= ((ull)b << i);
+            } else {
+                k -= left_sz;
+                curr = curr->ch[1 - b];
+                v |= ((ull)(1 - b) << i);
+            }
+        }
+        ull u = v ^ lazy;
+        return (ll)(u ^ (1ULL << 63));
+    }
+
+    /**
+     * @brief k番目の要素を取得する
+     *
+     * @param k 0-index
+     * @return 昇順で k 番目の要素
+     *         範囲外なら NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll kth(ll k) const {
+        return xor_kth(0, k);
+    }
+
+    ll count_less_helper(ull effective_mask, ull target) const {
+        ll count = 0;
+        Node* curr = root;
+        for (int i = 63; i >= 0; --i) {
+            if (!curr) break;
+            int b = (effective_mask >> i) & 1;
+            int t = (target >> i) & 1;
+            if (t == 1) {
+                if (curr->ch[b]) {
+                    count += curr->ch[b]->size;
+                }
+                curr = curr->ch[1 - b];
+            } else {
+                curr = curr->ch[b];
+            }
+        }
+        return count;
+    }
+
+    ll count_less_equal_helper(ull effective_mask, ull target) const {
+        ll count = 0;
+        Node* curr = root;
+        for (int i = 63; i >= 0; --i) {
+            if (!curr) break;
+            int b = (effective_mask >> i) & 1;
+            int t = (target >> i) & 1;
+            if (t == 1) {
+                if (curr->ch[b]) {
+                    count += curr->ch[b]->size;
+                }
+                curr = curr->ch[1 - b];
+            } else {
+                curr = curr->ch[b];
+            }
+        }
+        if (curr) {
+            count += curr->size;
+        }
+        return count;
+    }
+
+    /**
+     * @brief XOR後に指定値未満となる要素数を取得する
+     *
+     * @param mask XORする値
+     * @param value 比較値
+     * @return (要素 ^ mask) < value の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_xor_less(ll mask, ll value) const {
+        ull effective_mask = lazy ^ (ull)mask;
+        ull target = (ull)value ^ (1ULL << 63);
+        return count_less_helper(effective_mask, target);
+    }
+
+    /**
+     * @brief XOR後に指定値以下となる要素数を取得する
+     *
+     * @param mask XORする値
+     * @param value 比較値
+     * @return (要素 ^ mask) <= value の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_xor_less_equal(ll mask, ll value) const {
+        ull effective_mask = lazy ^ (ull)mask;
+        ull target = (ull)value ^ (1ULL << 63);
+        return count_less_equal_helper(effective_mask, target);
+    }
+
+    /**
+     * @brief XOR後に指定値より大きい要素数を取得する
+     *
+     * @param mask XORする値
+     * @param value 比較値
+     * @return (要素 ^ mask) > value の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_xor_greater(ll mask, ll value) const {
+        return size() - count_xor_less_equal(mask, value);
+    }
+
+    /**
+     * @brief XOR後に指定値以上となる要素数を取得する
+     *
+     * @param mask XORする値
+     * @param value 比較値
+     * @return (要素 ^ mask) >= value の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_xor_greater_equal(ll mask, ll value) const {
+        return size() - count_xor_less(mask, value);
+    }
+
+    /**
+     * @brief 指定値未満の要素数を取得する
+     *
+     * @param x 値
+     * @return x 未満の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_less(ll x) const {
+        return count_xor_less(0, x);
+    }
+
+    /**
+     * @brief 指定値以下の要素数を取得する
+     *
+     * @param x 値
+     * @return x 以下の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_less_equal(ll x) const {
+        return count_xor_less_equal(0, x);
+    }
+
+    /**
+     * @brief 指定値より大きい要素数を取得する
+     *
+     * @param x 値
+     * @return x より大きい個数
+     *
+     * @complexity O(64)
+     */
+    ll count_greater(ll x) const {
+        return count_xor_greater(0, x);
+    }
+
+    /**
+     * @brief 指定値以上の要素数を取得する
+     *
+     * @param x 値
+     * @return x 以上の個数
+     *
+     * @complexity O(64)
+     */
+    ll count_greater_equal(ll x) const {
+        return count_xor_greater_equal(0, x);
+    }
+
+    /**
+     * @brief 指定値未満の要素数を取得する
+     *
+     * @param x 値
+     * @return x 未満の個数
+     *
+     * @complexity O(64)
+     */
+    ll index(ll x) const {
+        return count_less(x);
+    }
+
+    /**
+     * @brief x以上の最小要素を取得する
+     *
+     * @param x 値
+     * @return x以上の最小値
+     *         存在しなければ NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll lower_bound(ll x) const {
+        ll idx = index(x);
+        if (idx < size()) {
+            return kth(idx);
+        }
+        return NOT_FOUND;
+    }
+
+    /**
+     * @brief xより大きい最小要素を取得する
+     *
+     * @param x 値
+     * @return xより大きい最小値
+     *         存在しなければ NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll upper_bound(ll x) const {
+        ll idx = count_less_equal(x);
+        if (idx < size()) {
+            return kth(idx);
+        }
+        return NOT_FOUND;
+    }
+
+    /**
+     * @brief x未満の最大要素を取得する
+     *
+     * @param x 値
+     * @return x未満の最大値
+     *         存在しなければ NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll prev(ll x) const {
+        ll idx = count_less(x);
+        if (idx > 0) {
+            return kth(idx - 1);
+        }
+        return NOT_FOUND;
+    }
+
+    /**
+     * @brief x以下の最大要素を取得する
+     *
+     * @param x 値
+     * @return x以下の最大値
+     *         存在しなければ NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll prev_equal(ll x) const {
+        ll idx = count_less_equal(x);
+        if (idx > 0) {
+            return kth(idx - 1);
+        }
+        return NOT_FOUND;
+    }
+
+    /**
+     * @brief xより大きい最小要素を取得する
+     *
+     * @param x 値
+     * @return xより大きい最小値
+     *         存在しなければ NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll next(ll x) const {
+        return upper_bound(x);
+    }
+
+    /**
+     * @brief x以上の最小要素を取得する
+     *
+     * @param x 値
+     * @return x以上の最小値
+     *         存在しなければ NOT_FOUND
+     *
+     * @complexity O(64)
+     */
+    ll next_equal(ll x) const {
+        return lower_bound(x);
+    }
+
+    /**
+     * @brief 全要素にXORを適用する
+     *
+     * @param mask XORする値
+     *
+     * @note Lazy XOR により O(1)
+     *
+     * @complexity O(1)
+     */
+    void xor_all(ll mask) {
+        lazy ^= (ull)mask;
+    }
+
+    /**
+     * @brief 全要素を昇順で取得する
+     *
+     * @return 昇順の要素列（重複含む）
+     *
+     * @complexity O(N)
+     */
+    std::vector<ll> vec() const {
+        std::vector<ll> res;
+        res.reserve(size());
+        if (empty()) return res;
+
+        struct StackFrame {
+            Node* node;
+            int bit_idx;
+            ull cur_v;
+            int state;
+        };
+        std::vector<StackFrame> stk;
+        stk.push_back({root, 63, 0ULL, 0});
+
+        while (!stk.empty()) {
+            auto& frame = stk.back();
+            if (frame.bit_idx == -1) {
+                ull u = frame.cur_v ^ lazy;
+                ll val = (ll)(u ^ (1ULL << 63));
+                for (ll c = 0; c < frame.node->size; ++c) {
+                    res.push_back(val);
+                }
+                stk.pop_back();
+                continue;
+            }
+
+            int b = (lazy >> frame.bit_idx) & 1;
+            if (frame.state == 0) {
+                frame.state = 1;
+                Node* preferred = frame.node->ch[b];
+                if (preferred) {
+                    stk.push_back({preferred, frame.bit_idx - 1, frame.cur_v | ((ull)b << frame.bit_idx), 0});
+                }
+            } else if (frame.state == 1) {
+                frame.state = 2;
+                Node* other = frame.node->ch[1 - b];
+                if (other) {
+                    stk.push_back({other, frame.bit_idx - 1, frame.cur_v | ((ull)(1 - b) << frame.bit_idx), 0});
+                }
+            } else {
+                stk.pop_back();
+            }
+        }
+        return res;
+    }
+};
+
+void random_test_BinaryTrie() {
+    std::mt19937_64 rng(1337);
+    BinaryTrie trie;
+    std::multiset<ll> ref;
+
+    auto get_random_value = [&]() -> ll {
+        int type = rng() % 8;
+        if (type == 0) return 0;
+        if (type == 1) return 1;
+        if (type == 2) return -1;
+        if (type == 3) return LLONG_MIN;
+        if (type == 4) return LLONG_MAX;
+        if (type == 5) {
+            int k = rng() % 63;
+            return 1LL << k;
+        }
+        if (type == 6) {
+            int k = rng() % 63;
+            return -(1LL << k);
+        }
+        return (ll)rng();
+    };
+
+    auto check_failure = [&](int op_idx, const std::string& op_name, const std::string& details, ll got, ll expected) {
+        std::cerr << "Mismatch at operation " << op_idx << ": " << op_name << "\n";
+        std::cerr << "Details: " << details << "\n";
+        std::cerr << "Got:      " << got << "\n";
+        std::cerr << "Expected: " << expected << "\n";
+        std::exit(1);
+    };
+
+    int num_ops = 1000000;
+    for (int op = 1; op <= num_ops; ++op) {
+        int choice = rng() % 35;
+
+        if (ref.empty()) {
+            choice = 0;
+        }
+
+        if (ref.size() > 1500 && choice == 0) {
+            choice = 1;
+        }
+
+        if (choice == 0) {
+            ll val = get_random_value();
+            trie.insert(val);
+            ref.insert(val);
+        } else if (choice == 1) {
+            ll val = get_random_value();
+            if (rng() % 2 == 0 && !ref.empty()) {
+                auto it = ref.begin();
+                std::advance(it, rng() % ref.size());
+                val = *it;
+            }
+            bool trie_res = trie.erase(val);
+            auto it = ref.find(val);
+            bool ref_res = (it != ref.end());
+            if (ref_res) {
+                ref.erase(it);
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "erase", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 2) {
+            ll val = get_random_value();
+            if (rng() % 2 == 0 && !ref.empty()) {
+                auto it = ref.begin();
+                std::advance(it, rng() % ref.size());
+                val = *it;
+            }
+            ll trie_res = trie.erase_all(val);
+            ll ref_res = ref.count(val);
+            if (ref_res > 0) {
+                ref.erase(val);
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "erase_all", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 3) {
+            ll val = get_random_value();
+            bool trie_res = trie.contains(val);
+            bool ref_res = ref.count(val) > 0;
+            if (trie_res != ref_res) {
+                check_failure(op, "contains", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 4) {
+            ll val = get_random_value();
+            ll trie_res = trie.count(val);
+            ll ref_res = ref.count(val);
+            if (trie_res != ref_res) {
+                check_failure(op, "count", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 5) {
+            ll trie_res = trie.size();
+            ll ref_res = ref.size();
+            if (trie_res != ref_res) {
+                check_failure(op, "size", "", trie_res, ref_res);
+            }
+        } else if (choice == 6) {
+            bool trie_res = trie.empty();
+            bool ref_res = ref.empty();
+            if (trie_res != ref_res) {
+                check_failure(op, "empty", "", trie_res, ref_res);
+            }
+        } else if (choice == 7) {
+            ll trie_res = trie.min();
+            ll ref_res = ref.empty() ? BinaryTrie::NOT_FOUND : *ref.begin();
+            if (trie_res != ref_res) {
+                check_failure(op, "min", "", trie_res, ref_res);
+            }
+        } else if (choice == 8) {
+            ll trie_res = trie.max();
+            ll ref_res = ref.empty() ? BinaryTrie::NOT_FOUND : *ref.rbegin();
+            if (trie_res != ref_res) {
+                check_failure(op, "max", "", trie_res, ref_res);
+            }
+        } else if (choice == 9) {
+            ll trie_res = trie.pop_min();
+            ll ref_res = ref.empty() ? BinaryTrie::NOT_FOUND : *ref.begin();
+            if (ref_res != BinaryTrie::NOT_FOUND) {
+                ref.erase(ref.begin());
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "pop_min", "", trie_res, ref_res);
+            }
+        } else if (choice == 10) {
+            ll trie_res = trie.pop_max();
+            ll ref_res = ref.empty() ? BinaryTrie::NOT_FOUND : *ref.rbegin();
+            if (ref_res != BinaryTrie::NOT_FOUND) {
+                ref.erase(std::prev(ref.end()));
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "pop_max", "", trie_res, ref_res);
+            }
+        } else if (choice == 11) {
+            ll k = (rng() % (ref.size() + 2)) - 1;
+            ll trie_res = trie.kth(k);
+            ll ref_res = BinaryTrie::NOT_FOUND;
+            if (k >= 0 && k < (ll)ref.size()) {
+                auto it = ref.begin();
+                std::advance(it, k);
+                ref_res = *it;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "kth", "k=" + std::to_string(k), trie_res, ref_res);
+            }
+        } else if (choice == 12) {
+            ll val = get_random_value();
+            ll trie_res = trie.index(val);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if (x < val) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "index", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 13) {
+            ll val = get_random_value();
+            ll trie_res = trie.count_less(val);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if (x < val) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_less", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 14) {
+            ll val = get_random_value();
+            ll trie_res = trie.count_less_equal(val);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if (x <= val) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_less_equal", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 15) {
+            ll val = get_random_value();
+            ll trie_res = trie.count_greater(val);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if (x > val) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_greater", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 16) {
+            ll val = get_random_value();
+            ll trie_res = trie.count_greater_equal(val);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if (x >= val) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_greater_equal", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 17) {
+            ll val = get_random_value();
+            ll trie_res = trie.lower_bound(val);
+            auto it = ref.lower_bound(val);
+            ll ref_res = (it == ref.end()) ? BinaryTrie::NOT_FOUND : *it;
+            if (trie_res != ref_res) {
+                check_failure(op, "lower_bound", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 18) {
+            ll val = get_random_value();
+            ll trie_res = trie.upper_bound(val);
+            auto it = ref.upper_bound(val);
+            ll ref_res = (it == ref.end()) ? BinaryTrie::NOT_FOUND : *it;
+            if (trie_res != ref_res) {
+                check_failure(op, "upper_bound", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 19) {
+            ll val = get_random_value();
+            ll trie_res = trie.prev(val);
+            auto it = ref.lower_bound(val);
+            ll ref_res = BinaryTrie::NOT_FOUND;
+            if (it != ref.begin()) {
+                ref_res = *std::prev(it);
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "prev", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 20) {
+            ll val = get_random_value();
+            ll trie_res = trie.prev_equal(val);
+            auto it = ref.upper_bound(val);
+            ll ref_res = BinaryTrie::NOT_FOUND;
+            if (it != ref.begin()) {
+                ref_res = *std::prev(it);
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "prev_equal", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 21) {
+            ll val = get_random_value();
+            ll trie_res = trie.next(val);
+            auto it = ref.upper_bound(val);
+            ll ref_res = (it == ref.end()) ? BinaryTrie::NOT_FOUND : *it;
+            if (trie_res != ref_res) {
+                check_failure(op, "next", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 22) {
+            ll val = get_random_value();
+            ll trie_res = trie.next_equal(val);
+            auto it = ref.lower_bound(val);
+            ll ref_res = (it == ref.end()) ? BinaryTrie::NOT_FOUND : *it;
+            if (trie_res != ref_res) {
+                check_failure(op, "next_equal", "val=" + std::to_string(val), trie_res, ref_res);
+            }
+        } else if (choice == 23) {
+            ll mask = get_random_value();
+            ll trie_min_el = trie.xor_min_element(mask);
+            ll trie_min = trie.xor_min(mask);
+
+            ll ref_min_el = BinaryTrie::NOT_FOUND;
+            ll ref_min = BinaryTrie::NOT_FOUND;
+            if (!ref.empty()) {
+                bool first = true;
+                for (ll x : ref) {
+                    ll val = x ^ mask;
+                    if (first || val < ref_min) {
+                        ref_min = val;
+                        ref_min_el = x;
+                        first = false;
+                    }
+                }
+            }
+
+            if (trie_min_el != ref_min_el) {
+                check_failure(op, "xor_min_element", "mask=" + std::to_string(mask), trie_min_el, ref_min_el);
+            }
+            if (trie_min != ref_min) {
+                check_failure(op, "xor_min", "mask=" + std::to_string(mask), trie_min, ref_min);
+            }
+        } else if (choice == 24) {
+            ll mask = get_random_value();
+            ll trie_max_el = trie.xor_max_element(mask);
+            ll trie_max = trie.xor_max(mask);
+
+            ll ref_max_el = BinaryTrie::NOT_FOUND;
+            ll ref_max = BinaryTrie::NOT_FOUND;
+            if (!ref.empty()) {
+                bool first = true;
+                for (ll x : ref) {
+                    ll val = x ^ mask;
+                    if (first || val > ref_max) {
+                        ref_max = val;
+                        ref_max_el = x;
+                        first = false;
+                    }
+                }
+            }
+
+            if (trie_max_el != ref_max_el) {
+                check_failure(op, "xor_max_element", "mask=" + std::to_string(mask), trie_max_el, ref_max_el);
+            }
+            if (trie_max != ref_max) {
+                check_failure(op, "xor_max", "mask=" + std::to_string(mask), trie_max, ref_max);
+            }
+        } else if (choice == 25) {
+            ll mask = get_random_value();
+            trie.xor_all(mask);
+            std::multiset<ll> nxt;
+            for (ll x : ref) {
+                nxt.insert(x ^ mask);
+            }
+            ref.swap(nxt);
+        } else if (choice == 26) {
+            ll mask = get_random_value();
+            ll k = (rng() % (ref.size() + 2)) - 1;
+            ll trie_res = trie.xor_kth(mask, k);
+            ll ref_res = BinaryTrie::NOT_FOUND;
+            if (k >= 0 && k < (ll)ref.size()) {
+                std::vector<std::pair<ll, ll>> v;
+                for (ll x : ref) {
+                    v.push_back({x ^ mask, x});
+                }
+                std::sort(v.begin(), v.end());
+                ref_res = v[k].second;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "xor_kth", "mask=" + std::to_string(mask) + " k=" + std::to_string(k), trie_res, ref_res);
+            }
+        } else if (choice == 27) {
+            ll mask = get_random_value();
+            ll value = get_random_value();
+            ll trie_res = trie.count_xor_less(mask, value);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if ((x ^ mask) < value) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_xor_less", "mask=" + std::to_string(mask) + " value=" + std::to_string(value), trie_res, ref_res);
+            }
+        } else if (choice == 28) {
+            ll mask = get_random_value();
+            ll value = get_random_value();
+            ll trie_res = trie.count_xor_less_equal(mask, value);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if ((x ^ mask) <= value) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_xor_less_equal", "mask=" + std::to_string(mask) + " value=" + std::to_string(value), trie_res, ref_res);
+            }
+        } else if (choice == 29) {
+            ll mask = get_random_value();
+            ll value = get_random_value();
+            ll trie_res = trie.count_xor_greater(mask, value);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if ((x ^ mask) > value) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_xor_greater", "mask=" + std::to_string(mask) + " value=" + std::to_string(value), trie_res, ref_res);
+            }
+        } else if (choice == 30) {
+            ll mask = get_random_value();
+            ll value = get_random_value();
+            ll trie_res = trie.count_xor_greater_equal(mask, value);
+            ll ref_res = 0;
+            for (ll x : ref) {
+                if ((x ^ mask) >= value) ref_res++;
+            }
+            if (trie_res != ref_res) {
+                check_failure(op, "count_xor_greater_equal", "mask=" + std::to_string(mask) + " value=" + std::to_string(value), trie_res, ref_res);
+            }
+        } else if (choice == 31) {
+            std::vector<ll> trie_res = trie.vec();
+            std::vector<ll> ref_res(ref.begin(), ref.end());
+            if (trie_res != ref_res) {
+                check_failure(op, "vec", "", trie_res.size(), ref_res.size());
+            }
+        } else if (choice == 32) {
+            for (int i = 0; i < 100; ++i) {
+                ll mask = get_random_value();
+                trie.xor_all(mask);
+                std::multiset<ll> nxt;
+                for (ll x : ref) {
+                    nxt.insert(x ^ mask);
+                }
+                ref.swap(nxt);
+            }
+        } else if (choice == 33) {
+            trie.xor_all(0);
+        } else if (choice == 34) {
+            trie.clear();
+            ref.clear();
+            if (trie.size() != 0 || !trie.empty()) {
+                check_failure(op, "clear", "size not zero", trie.size(), 0);
+            }
+        }
+    }
+
+    std::cout << "ALL RANDOM TESTS PASSED" << std::endl;
+}
+
+void test_BinaryTrie() {
+    cout << "===== BinaryTrie 動作確認 =====\n";
+
+    BinaryTrie bt;
+
+    cout << "\n【初期状態】\n";
+    cout << "空         : " << (bt.empty() ? "はい" : "いいえ") << '\n';
+    cout << "要素数     : " << bt.size() << '\n';
+
+    vector<ll> A = {5, 1, 7, 3, 5, -2, 10};
+
+    cout << "\n【挿入】\n";
+    cout << "追加 : ";
+    for (ll x : A) {
+        cout << x << ' ';
+        bt.insert(x);
+    }
+    cout << '\n';
+
+    cout << "全要素     : ";
+    for (ll x : bt.vec()) cout << x << ' ';
+    cout << '\n';
+
+    cout << "\n【基本操作】\n";
+    cout << "contains(5)      : " << (bt.contains(5) ? "true" : "false") << '\n';
+    cout << "contains(100)    : " << (bt.contains(100) ? "true" : "false") << '\n';
+    cout << "count(5)         : " << bt.count(5) << '\n';
+    cout << "要素数           : " << bt.size() << '\n';
+
+    cout << "\n【最小・最大】\n";
+    cout << "最小値           : " << bt.min() << '\n';
+    cout << "最大値           : " << bt.max() << '\n';
+
+    cout << "\n【順序統計】\n";
+    for (ll k = 0; k < bt.size(); k++) {
+        cout << "kth(" << k << ")        : " << bt.kth(k) << '\n';
+    }
+
+    cout << "\n";
+    cout << "index(5)         : " << bt.index(5) << '\n';
+    cout << "count_less(5)    : " << bt.count_less(5) << '\n';
+    cout << "count_le(5)      : " << bt.count_less_equal(5) << '\n';
+    cout << "count_gt(5)      : " << bt.count_greater(5) << '\n';
+    cout << "count_ge(5)      : " << bt.count_greater_equal(5) << '\n';
+
+    cout << "\n【前後検索】\n";
+    cout << "lower_bound(4)   : " << bt.lower_bound(4) << '\n';
+    cout << "upper_bound(5)   : " << bt.upper_bound(5) << '\n';
+    cout << "prev(5)          : " << bt.prev(5) << '\n';
+    cout << "prev_equal(5)    : " << bt.prev_equal(5) << '\n';
+    cout << "next(5)          : " << bt.next(5) << '\n';
+    cout << "next_equal(5)    : " << bt.next_equal(5) << '\n';
+
+    ll mask = 6;
+
+    cout << "\n【XOR操作】\n";
+    cout << "mask             : " << mask << '\n';
+    cout << "xor_min_element  : " << bt.xor_min_element(mask) << '\n';
+    cout << "xor_max_element  : " << bt.xor_max_element(mask) << '\n';
+    cout << "xor_min          : " << bt.xor_min(mask) << '\n';
+    cout << "xor_max          : " << bt.xor_max(mask) << '\n';
+
+    cout << "\n";
+    cout << "xor_kth\n";
+    for (ll k = 0; k < bt.size(); k++) {
+        cout << "  k=" << k << " : " << bt.xor_kth(mask, k) << '\n';
+    }
+
+    cout << "\n";
+    cout << "count_xor_less(6)          : "
+         << bt.count_xor_less(mask, 6) << '\n';
+    cout << "count_xor_less_equal(6)    : "
+         << bt.count_xor_less_equal(mask, 6) << '\n';
+    cout << "count_xor_greater(6)       : "
+         << bt.count_xor_greater(mask, 6) << '\n';
+    cout << "count_xor_greater_equal(6) : "
+         << bt.count_xor_greater_equal(mask, 6) << '\n';
+
+    cout << "\n【Lazy XOR】\n";
+    cout << "xor_all(" << mask << ")\n";
+    bt.xor_all(mask);
+
+    cout << "全要素     : ";
+    for (ll x : bt.vec()) cout << x << ' ';
+    cout << '\n';
+
+    cout << "最小値     : " << bt.min() << '\n';
+    cout << "最大値     : " << bt.max() << '\n';
+
+    cout << "\n【削除】\n";
+    cout << "erase(5)          : "
+         << (bt.erase(5) ? "成功" : "失敗") << '\n';
+
+    cout << "erase_all(3)      : "
+         << bt.erase_all(3) << " 個削除\n";
+
+    cout << "全要素     : ";
+    for (ll x : bt.vec()) cout << x << ' ';
+    cout << '\n';
+
+    cout << "\n";
+    cout << "pop_min           : " << bt.pop_min() << '\n';
+    cout << "pop_max           : " << bt.pop_max() << '\n';
+
+    cout << "全要素     : ";
+    for (ll x : bt.vec()) cout << x << ' ';
+    cout << '\n';
+
+    cout << "\n【clear】\n";
+    bt.clear();
+
+    cout << "空         : " << (bt.empty() ? "はい" : "いいえ") << '\n';
+    cout << "要素数     : " << bt.size() << '\n';
+}
+
+void solv(){
+    random_test_BinaryTrie();
+    test_BinaryTrie();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

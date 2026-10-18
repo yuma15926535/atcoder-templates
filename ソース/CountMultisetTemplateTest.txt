@@ -1,0 +1,272 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+
+/*
+ * CountMultiset (long long 専用 / iterator 非対応)
+ *
+ * 【特徴】
+ *  - 値ごとに個数をまとめて管理（1値1ノード）
+ *  - iterator を完全に捨てて高速・簡潔に設計
+ *
+ * 【対応操作】
+ *  - insert(x, c)        : x を c 個追加
+ *  - erase(x, c)         : x を c 個削除（足りなければ全削除）
+ *  - count(x)            : x の個数
+ *  - order_of_key(x)     : x 未満の要素数
+ *  - kth(k)              : k 番目（0-indexed, 個数基準）
+ *  - min(), max()
+ *  - median()            : 下側中央値
+ *
+ * 【計算量】
+ *  - すべて O(log N)
+ *
+ * 【内部構造】
+ *  - Treap（BST + priority）
+ *  - 各ノードに cnt（個数）と sz（部分木の総個数）
+ */
+struct CountMultiset {
+    struct Node {
+        long long key;   // 値
+        long long cnt;   // この値の個数
+        long long sz;    // 部分木の総個数（cnt込み）
+        uint32_t pri;    // Treap 用 priority
+        Node *l, *r;
+
+        Node(long long k, long long c)
+            : key(k), cnt(c), sz(c), pri(rand()), l(nullptr), r(nullptr) {}
+    };
+
+    using NP = Node*;
+    NP root = nullptr;
+
+    /* ===== 内部ユーティリティ ===== */
+
+    long long size(NP t) const {
+        return t ? t->sz : 0;
+    }
+
+    void pull(NP t) {
+        if (!t) return;
+        t->sz = t->cnt + size(t->l) + size(t->r);
+    }
+
+    NP rotate_right(NP t) {
+        NP s = t->l;
+        t->l = s->r;
+        s->r = t;
+        pull(t);
+        pull(s);
+        return s;
+    }
+
+    NP rotate_left(NP t) {
+        NP s = t->r;
+        t->r = s->l;
+        s->l = t;
+        pull(t);
+        pull(s);
+        return s;
+    }
+
+    /* ===== 基本操作（再帰） ===== */
+
+    NP insert(NP t, long long x, long long c) {
+        if (!t) return new Node(x, c);
+
+        if (x == t->key) {
+            t->cnt += c;
+        } else if (x < t->key) {
+            t->l = insert(t->l, x, c);
+            if (t->l->pri > t->pri)
+                t = rotate_right(t);
+        } else {
+            t->r = insert(t->r, x, c);
+            if (t->r->pri > t->pri)
+                t = rotate_left(t);
+        }
+        pull(t);
+        return t;
+    }
+
+    NP erase(NP t, long long x, long long c) {
+        if (!t) return nullptr;
+
+        if (x == t->key) {
+            if (t->cnt > c) {
+                t->cnt -= c;
+            } else {
+                if (!t->l) return t->r;
+                if (!t->r) return t->l;
+                if (t->l->pri > t->r->pri) {
+                    t = rotate_right(t);
+                    t->r = erase(t->r, x, c);
+                } else {
+                    t = rotate_left(t);
+                    t->l = erase(t->l, x, c);
+                }
+            }
+        } else if (x < t->key) {
+            t->l = erase(t->l, x, c);
+        } else {
+            t->r = erase(t->r, x, c);
+        }
+        pull(t);
+        return t;
+    }
+
+    long long count(NP t, long long x) const {
+        if (!t) return 0;
+        if (x == t->key) return t->cnt;
+        if (x < t->key) return count(t->l, x);
+        return count(t->r, x);
+    }
+
+    long long order_of_key(NP t, long long x) const {
+        if (!t) return 0;
+        if (x <= t->key) {
+            return order_of_key(t->l, x);
+        } else {
+            return size(t->l) + t->cnt + order_of_key(t->r, x);
+        }
+    }
+
+    long long kth(NP t, long long k) const {
+        long long left = size(t->l);
+        if (k < left) return kth(t->l, k);
+        if (k < left + t->cnt) return t->key;
+        return kth(t->r, k - left - t->cnt);
+    }
+
+    /* ===== 外部 API（ここだけ見れば使える） ===== */
+
+    // 値 x を c 個追加する（c <= 0 のときは何もしない）
+    void insert(long long x, long long c = 1) {
+        if (c <= 0) return;
+        root = insert(root, x, c);
+    }
+
+    // 値 x を c 個削除する（足りなければ全削除）
+    void erase(long long x, long long c = 1) {
+        if (c <= 0) return;
+        root = erase(root, x, c);
+    }
+
+    // 値 x の現在の個数を返す（存在しなければ 0）
+    long long count(long long x) const {
+        return count(root, x);
+    }
+
+    // x 未満の要素数（個数ベース）を返す
+    long long order_of_key(long long x) const {
+        return order_of_key(root, x);
+    }
+
+    // 個数ベースで k 番目（0-indexed）の値を返す
+    // 0 <= k < size() を満たす必要あり
+    long long kth(long long k) const {
+        return kth(root, k);
+    }
+
+    // 全体の要素数（個数の合計）
+    long long size() const {
+        return size(root);
+    }
+
+    // 空かどうか
+    bool empty() const {
+        return size() == 0;
+    }
+
+    // 最小値（empty のときは未定義）
+    long long min() const {
+        NP t = root;
+        while (t->l) t = t->l;
+        return t->key;
+    }
+
+    // 最大値（empty のときは未定義）
+    long long max() const {
+        NP t = root;
+        while (t->r) t = t->r;
+        return t->key;
+    }
+
+    // 下側中央値（(size()-1)/2 番目）
+    long long median() const {
+        return kth((size() - 1) / 2);
+    }
+};
+
+void solv(){
+    CountMultiset ms;
+
+    cout << "=============================\n";
+    cout << " CountMultiset 動作確認\n";
+    cout << "=============================\n\n";
+
+    cout << "[insert]\n";
+    ms.insert(10, 3);
+    ms.insert(5, 2);
+    ms.insert(20, 1);
+    cout << "10 を 3 個, 5 を 2 個, 20 を 1 個追加\n";
+    cout << "size = " << ms.size() << "\n\n";
+
+    cout << "[count]\n";
+    cout << "count(10) = " << ms.count(10) << "\n";
+    cout << "count(5)  = " << ms.count(5) << "\n";
+    cout << "count(7)  = " << ms.count(7) << "\n\n";
+
+    cout << "[min / max / median]\n";
+    cout << "min = " << ms.min() << "\n";
+    cout << "max = " << ms.max() << "\n";
+    cout << "median = " << ms.median() << "\n\n";
+
+    cout << "[order_of_key]\n";
+    cout << "order_of_key(10) = " << ms.order_of_key(10) << "（10 未満の個数）\n";
+    cout << "order_of_key(15) = " << ms.order_of_key(15) << "\n\n";
+
+    cout << "[kth]\n";
+    for (ll i = 0; i < ms.size(); i++) {
+        cout << "kth(" << i << ") = " << ms.kth(i) << "\n";
+    }
+    cout << "\n";
+
+    cout << "[erase]\n";
+    ms.erase(10, 2);
+    cout << "10 を 2 個削除\n";
+    cout << "count(10) = " << ms.count(10) << "\n";
+    cout << "size = " << ms.size() << "\n";
+    cout << "median = " << ms.median() << "\n";
+
+    cout << "\n=== 動作確認 完了 ===\n";
+    return;
+}
+
+int main(){
+    //BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

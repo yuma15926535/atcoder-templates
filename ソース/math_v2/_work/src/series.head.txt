@@ -1,0 +1,50 @@
+// =============================================================================
+//  べき乗和・ラグランジュ補間・次数の小さい多項式（Σ i^k、f(0)〜f(d) から f(x)、多項式の割り算）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 06 和・数列
+//  依存       : 00_int_common, 00_math_base, 00_modint（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt107;
+//      cout << sum_powers<mint>(N + 1, K) << '\n';           // 1^K + 2^K + … + N^K（K ≥ 1）
+//      cout << lagrange_interpolate(ys, T) << '\n';           // ys = {f(0), …, f(d)} のとき f(T)
+//
+//  機能一覧                                                                    計算量
+//    sum_powers<mint>(n, k)           Σ_{i=0}^{n−1} i^k（0^0 = 1。n ≤ 10^18。mod は k + 1 より大きい素数）    O(k)
+//    sum_powers<mint>(l, r, k) / sum_powers_closed<mint>(L, R, k)    Σ_{i=l}^{r−1} / Σ_{i=L}^{R}
+//    arith_geom_sum(r, n)             Σ_{i=0}^{n−1} i·r^i（r は mint。mod は何でもよい）                     O(log n)
+//    lagrange_interpolate(ys, x)      f(0)〜f(d) が ys の d 次以下の多項式の f(x)（x は 10^18 でも負でも）     O(d)
+//    lagrange_interpolate_at(xs, ys, x)   点 (xs[i], ys[i]) を通る多項式の f(x)（xs はばらばらの値）         O(d^2)
+//    poly_from_points(xs, ys)         その多項式の係数（低い次数から）                                       O(d^2)
+//   次数の小さい多項式（係数は低い次数から。T は mint・long long・double など）
+//    poly_eval(c, x)                  c(x)                                                                   O(n)
+//    poly_mul_naive(a, b)             a × b                                                                  O(|a||b|)
+//    poly_divmod(a, b)                PolyDivMod{q, r}：a = q b + r（T が整数なら割り切れないと止める）         O(|a||b|)
+//  （等差・等比数列の和は 00_math_base、次数の大きい多項式（畳み込み・FPS）は 07_convolution・07_fps）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    ser_test::random_test()  … 1 つずつ足す愚直解・係数からの計算との突き合わせ
+//    ser_test::benchmark()    … 速度計測
+//    ser_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

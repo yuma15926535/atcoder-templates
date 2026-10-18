@@ -1,0 +1,58 @@
+// =============================================================================
+//  回文（Manacher・区間の回文判定 O(1)・最長の回文・回文の個数・回文にする・最長回文部分列・回文分割・回文部分列の数）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 04 回文
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  列は string でも vector<int>・vector<long long> でもよい。範囲は [l, r)。全体が回文かだけなら 00_str_base の is_palindrome(s)
+//  中心の番号 c（0 ≤ c < 2N - 1）：c = 2i は s[i] が中心（奇数長）、c = 2i - 1 は s[i-1] と s[i] の間（偶数長）
+//  「部分文字列」は連続する部分、「部分列」は飛び飛びに選んだもの
+//
+//  機能一覧                                                                       計算量
+//    center_palindrome_lengths(s)          中心 c ごとの最長の回文の長さ（Manacher の生の値）         O(N)
+//    Palindromes P(s)                      前処理 O(N)
+//      P.is_palindrome(l, r)               s[l, r) が回文か                                          O(1)
+//      P.radius_odd(i) / radius_even(i)    s[i] が中心（長さ 2r-1）/ s[i-1] と s[i] の間（長さ 2r）の半径   O(1)
+//      P.length_at_center(c) / span_at_center(c)   中心 c の最長の回文の長さ / 位置
+//      P.longest()                         最長の回文の部分文字列（StrSpan。同じ長さなら左）           O(N)
+//      P.count_all()                       回文である部分文字列の数（位置が違えば別）                   O(N)
+//      P.longest_prefix_palindrome() / longest_suffix_palindrome()   最長の回文の接頭辞 / 接尾辞の長さ  O(N)
+//      P.longest_starting_at() / longest_ending_at()   各位置から始まる / で終わる最長の回文の長さ      O(N)
+//    min_palindrome_with_prefix(s) / min_palindrome_with_suffix(s)   s で始まる / 終わる最短の回文     O(N)
+//    min_changes_to_palindrome(s)          書き換えて回文にする最小の回数                               O(N)
+//    can_rearrange_to_palindrome(s)        並べ替えて回文にできるか                                     O(N log N)
+//    longest_palindromic_subsequence(s)    最長回文部分列を 1 つ（N ≤ 10^4）                            O(N^2)
+//    longest_palindromic_subsequence_length(s)   その長さ（メモリ O(N)）                                O(N^2)
+//    palindrome_partition_min(s)           回文に分ける最小の個数の分け方（vector<StrSpan>）              O(N^2)
+//    count_palindromic_subsequences<T>(s)  回文である部分列の数（位置が違えば別。T は mint・long long）   O(N^2)
+//    （異なる回文の種類・回文分割を N log N で：04_palindromic_tree（☆）。書き換えがあるとき：09_mutable_string（☆））
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    pal_test::random_test()  … 全部の区間・全部の部分列を調べる愚直解と全機能を突き合わせるランダムテスト
+//    pal_test::benchmark()    … 速度計測
+//    pal_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

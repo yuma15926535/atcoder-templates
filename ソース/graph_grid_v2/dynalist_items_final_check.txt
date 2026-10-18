@@ -1,0 +1,76 @@
+02_dijkstra_time（時刻で重みが変わるダイクストラ：発車時刻・混雑・待ってよい最短路）
+	説明
+		auto r = dijkstra_time(G, s, cost)：cost(e, t) = 時刻 t に e の始点を出て辺 e を通り、e.to に着くまでの時間（待ち時間を含む。通れないなら DIST_INF）
+		dijkstra_time(G, {s1, ...}, cost) / dijkstra_time(G, {{s, 始まりの時刻}, ...}, cost)（多始点）
+		r.dist[v]（v に着くいちばん早い時刻）/ r.reached(v) / r.path(t) / r.par_edge[v] / r.path_edges(t)
+		dijkstra_time_core(n, s, adj)：adj(v, t, push) の t が今の時刻。push(u, かかる時間)（グリッド・状態グラフでも同じ）
+		next_time(t, k, r = 0)：時刻 t 以降で k で割って r 余る最初の時刻（k 分おきの発車）
+	メモ
+		グラフ基盤・ダイクストラを同梱済み。02_dijkstra の dijkstra_core では adj に今の時刻が渡らないので、こちらを使う
+		「早く着いても損をしない」（遅く出たほうが早く着く辺がない）ことが前提。待てる問題なら、待つ時間も返せば必ず成り立つ
+		類題：ABC192 E（next_time(t, K[e.id]) - t + T[e.id]）、ABC204 E（x ≥ t で x + C + D / (x + 1) を最小にする x。使い方デモにコードあり）
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\02_dijkstra_time.cpp
+03_persistent_union_find（部分永続 Union-Find：いつ初めてつながったか・過去の時点の状態）
+	説明
+		PersistentUnionFind uf(n) / uf.unite(x, y)（時刻が 1 進む。k 回目の unite の直後が時刻 k）/ uf.now()
+		uf.same(x, y, t) / uf.size(x, t) / uf.find(x, t) / uf.group_count(t)：時刻 t の状態（t を省くと今）
+		uf.when(x, y)：初めて同じ成分になった時刻（x == y なら 0、今もつながっていなければ -1）
+	メモ
+		単独で貼れる。経路圧縮なし（union by size）で find は O(log n)。今の状態だけなら 03_union_find のほうが速い
+		並列二分探索・クエリの先読みの代わりになる（辺を足す順に unite して、あとから when や size(x, t) で答える）
+		類題：ABC040 D（年が新しい道から unite、size(v, t)）、辺を重みの順に足して「u - v が初めてつながる重み」（最大値の最小化）
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\03_persistent_union_find.cpp
+05_rerooting_edges（全方位木DP：辺を切った両側の値つき）
+	説明
+		auto R = rerooting_edges(G, e, merge, put_edge, put_vertex)（書き方は 05_rerooting と同じ）
+		R.ans[v]：v を根にしたときの dp
+		R.from_side[i] / R.to_side[i]：辺 i（G.es[i] = {from, to}）を切ったときの from 側 / to 側の dp（切った辺の端が根）
+	メモ
+		グラフ基盤を同梱済み。O(N)・非再帰・森も可
+		値は put_edge をかける前（切った辺の向こうは無いもの）。持ち上げた値が要るなら put_edge(R.to_side[i], 辺) と自分でかける
+		使い方デモ：辺を切ったときの両側の頂点数・両側の木の直径
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\05_rerooting_edges.cpp
+05_virtual_tree（虚树・auxiliary tree：指定した頂点とその LCA だけの圧縮した木）
+	説明
+		LCA L(G, root) を作ってから VirtualTree T = virtual_tree(L, vs)（vs は重複してよい）
+		T.size() / T.vs[i]（元の頂点。行きがけ順）/ T.par[i]（親の添字。根は -1）/ T.roots
+		T.dist[i] / T.wdist[i]（親までの辺の本数 / 重み）/ T.given[i]（指定した頂点なら 1）/ T.index(v, L) / T.graph()
+	メモ
+		グラフ基盤・根付き木・LCA を同梱済み。O(K log N)（K = |vs|）。頂点数は 2K - 1 以下
+		i を大きい順に回すと子が親より先（木DP の順）。指定した頂点をすべて結ぶ最小の部分木の辺の本数 = Σ dist[i]
+		類題：ABC340 G、ABC359 G（クエリごとに頂点の集合が与えられ、K の合計が小さい）
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\05_virtual_tree.cpp
+05_tree_classic（木の上の有名な最適化：最大独立集合・最小点被覆・最小支配集合・最大マッチング・独立集合の数）
+	説明
+		tree_max_independent_set(G, w = {}) / tree_min_vertex_cover(G, w = {}) / tree_min_dominating_set(G, w = {})：結果 r.value / r.vs（選んだ頂点。昇順）
+		tree_max_matching(G) / tree_max_weight_matching(G)：結果 r.value / r.es（辺の番号）/ r.pairs（両端 (u, v)）
+		tree_count_independent_sets(G, mod)：独立集合（空も含む）の個数（EDPC P）
+		w を省くと頂点の重みはすべて 1（個数の最適化）。重みつきマッチングは辺の重み e.w
+	メモ
+		グラフ基盤・根付き木を同梱済み。O(N)・非再帰・森も可。G は木（閉路があると正しくない）
+		旧テンプレートの木DP「最大独立集合」「最大マッチング」の代わり。ほかの木DP は 05_rooted_tree の型で書く
+		重みなしなら 最小点被覆 = 最大マッチング = N - 最大独立集合
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\05_tree_classic.cpp
+06_doubling（ダブリング：K 回たどる・最小 / 最大 / 非可換の集約・初めて条件を満たす回数）
+	説明
+		Doubling D(nxt, val, op, e, max_k = 10^18)：nxt[v] = 次（-1 なら止まる）、val[v] = その 1 回の移動の値、op(先, 後) で集約
+		auto D = doubling(nxt, max_k)：値なし（行き先だけ）
+		D.kth(v, k)（進めなければ -1）/ D.fold(v, k) / D.walk(v, k)：{to, steps（進んだ回数）, value}
+		D.max_steps(v, limit, ok)：ok(頂点, 値) が true のまま進める最大の回数
+		D.first_true(v, limit, f)：f(頂点, 値) が初めて true になる回数（なければ steps = -1）
+	メモ
+		単独で貼れる。表は LOG × N（10^18 なら LOG = 60）。K の上限が小さいなら max_k を小さくすると速く省メモリ
+		K 回後の頂点・重みの和だけなら 06_functional_graph（表を作らないので速い）。木の祖先は 05_lca の kth_ancestor
+		旧 Doubling（first_true つき）の機能はすべて入っている（旧 Doubling と同時に貼らない。名前が同じ）
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\06_doubling.cpp
+09_grid_graph（グリッドをグラフにする：グラフの道具をグリッドで使う）
+	説明
+		Graph G = grid_graph(g, walls = '#', eight = false)：壁でないマスの 4 方向（8 方向）の無向グラフ（頂点 = g.id(i, j)、重み 1）
+		grid_graph_w(g, cost, walls, eight)：重みつきの無向グラフ（隣 u - v の重み cost(u, v)。高さの差など）
+		grid_graph_torus(g, walls, eight) / grid_graph_offsets(g, offs, walls, torus)（任意の移動の有向グラフ）
+		grid_graph_directed(g, cost, walls, eight)：u → v の重み cost(u, v)（入るマスのコストなど。DIST_INF なら張らない）
+	メモ
+		グラフ基盤・グリッド基盤を同梱済み。壁のマスも頂点として残る（辺がないだけ）。grid_graph(g, true) はコンパイルエラー
+		最短路の本数（02_shortest_path_dag）・関節点（07_lowlink）・閉路（01_cycle）・最小全域木（03_kruskal）・フローなどと組み合わせる
+		最短距離・連結成分だけなら 09_grid_bfs / 09_grid_components のほうが速い。2000 × 2000 で約 0.4 秒（この環境）
+	C:\Users\yuma\Desktop\claude\graph_grid_v2\09_grid_graph.cpp

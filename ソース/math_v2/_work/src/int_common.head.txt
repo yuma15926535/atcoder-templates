@@ -1,0 +1,44 @@
+// =============================================================================
+//  整数の共通部分（Int128 / UInt128 とその入出力、整数の平方根、小数の入力）   --- 数学・幾何 第二世代で共通
+// -----------------------------------------------------------------------------
+//  分類       : 00 基盤（数学の 00_math_base と幾何の 00_geo_base が、これを同梱している）
+//  依存       : なし
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）。__int128 を使う（GCC / Clang）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  数学と幾何の両方で使う関数を 1 か所にまとめたもの。数学と幾何のテンプレートを一緒に貼っても
+//  ガード GG_INT_COMMON で 1 回だけ定義される（どちらを先に貼ってもよい）。
+//  このファイルは math_v2 と geometry_v2 の両方に同じものを置く（update_bundles がそれぞれのフォルダで使う）。
+//
+//  機能一覧                                                                    計算量
+//    Int128 / UInt128                  128 ビット整数（= __int128 / unsigned __int128）
+//    cout << x / cin >> x              Int128・UInt128 をそのまま出す・読む（範囲外の入力は止める）
+//    int128_to_string(v) / uint128_to_string(u)   10 進の文字列に                          O(桁数)
+//    parse_int128(s) / parse_uint128(s)           10 進の文字列から（読めない・範囲外なら止める）
+//    isqrt(n) / isqrt_ceil(n)          ⌊√n⌋ / ⌈√n⌉（誤差なし。n ≤ 9.2×10^18。n ≤ 0 なら 0）     O(1)
+//    parse_fixed(s, k)                 小数の文字列を 10^k 倍した整数に（"1.25", 2 → 125。誤差なし）
+//    read_fixed(k)                     小数で与えられる値を 1 つ読んで 10^k 倍の整数に
+//      parse_fixed は小数点以下に k 桁を超える 0 でない桁・数として読めない文字・long long に収まらない値で止める
+//
+//  注意
+//    - Main_base の debug(x) は、Int128 をそのままでは表示できない（debug の中の << がこの << を見つけられない）。
+//      debug(int128_to_string(x)) と書く
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    intc_test::random_test()  … 128 ビットの愚直計算と突き合わせるランダムテスト
+//    intc_test::benchmark()    … 速度計測
+//    intc_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>

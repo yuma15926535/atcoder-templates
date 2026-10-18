@@ -1,0 +1,52 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+
+int main(){
+    int N,M;
+    cin>>N>>M;
+    vector<vector<int>>G(N);
+    rep(i,0,M){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    //BFSを使った最短経路の数え上げの典型
+    //最短経路を更新する場合と最短経路を追加する場合で分けて考える
+    ll m=1e9+7;
+    vector<ll>dist(N,1e15);
+    vector<ll>cnt(N,0);
+    dist[0]=0;
+    cnt[0]=1;
+    queue<int>q;
+    q.push(0);
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        for(int nxt:G[pos]){
+            if(dist[nxt]==1e15){
+                q.push(nxt);
+                dist[nxt]=dist[pos]+1;
+                cnt[nxt]=cnt[pos];
+            }else if(dist[nxt]==dist[pos]+1)cnt[nxt]+=cnt[pos],cnt[nxt]%=m;
+        }
+    }
+    cout<<cnt[N-1]<<'\n';
+    return 0;
+}

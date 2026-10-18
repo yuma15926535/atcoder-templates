@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template <typename T> constexpr auto ssize(const T& container) -> std::ptrdiff_t {return static_cast<std::ptrdiff_t>(container.size());}
+
+int main(){
+    int N,T,M;
+    cin>>N>>T>>M;
+    vector<set<int>>ng(N),team;
+    rep(i,0,M){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        ng[a].insert(b);
+        ng[b].insert(a);
+    }
+    auto check=[&](set<int>s,set<int>t)->bool{
+        bool ret=true;
+        for(int a:t)if(s.count(a))ret=false;
+        return ret;
+    };
+    ll ans=0;
+    auto f=[&](auto f,vector<set<int>>teams,int psn)->void{
+        if(psn==N){
+            if(teams.size()==T)ans++;
+            return;
+        }
+        for(auto &t:teams)if(check(ng[psn],t)){
+            t.insert(psn);
+            f(f,teams,psn+1);
+            t.erase(psn);
+        }
+        if(teams.size()<T){
+            set<int>s;
+            s.insert(psn);
+            teams.push_back(s);
+            f(f,teams,psn+1);
+        }
+    };
+    f(f,team,0);
+    cout<<ans<<"\n";
+    return 0;
+}

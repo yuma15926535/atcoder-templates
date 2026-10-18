@@ -1,0 +1,23 @@
+00_str_base（文字列基盤：文字の種類 Alphabet・区間の文字の数・次 / 前の出現・ランレングス・文字の置き換え・反転・比較・区切り）
+	説明
+		Alphabet::lower()（既定）／ upper() ／ digits() ／ letters()（A〜Z, a〜z の 52 種）／ alnum()（62 種）／ ascii() ／ bytes()（0〜255）／ of("()[]")（並べた順が辞書順）／ ints(K) ／ ints(lo, hi)：A.id(c) ／ A.contains(c) ／ A.ch(i) ／ A.value(i) ／ A.size()
+		to_ids(s, A) ／ from_ids(ids, A)（文字列 ↔ 番号の列）／ compress_values(a)（数の列を 0〜K-1 に。.ids ／ .values ／ .alphabet() が Alphabet::ints(K)）
+		count_chars(s, A)（番号ごとの個数）
+		CharPrefix cp(s, A)：cp.count(l, r, c) ／ has(l, r, c) ／ counts(l, r) ／ distinct(l, r) ／ next(i, c)（i 以上で最初の c）／ prev(i, c)（i より前で最後の c）／ kth(c, k) ／ total(c)：どれも O(1)（メモリ (N+1)σ 個の int）
+		CharPositions cps(s, A)：next ／ prev ／ count ／ has（O(log N)）／ kth ／ total ／ positions(c) ／ occurrence_index(i)（メモリ O(N + σ)。σ が大きいとき・メモリを抑えたいとき）
+		run_length(s)（RunBlock{value, len, start} の列。vector でも）／ run_length_decode(runs)
+		to_lower ／ to_upper ／ swap_case ／ caesar_shift(s, k, A)（A にない文字はそのまま）
+		CharMap cm(A)：cm.replace(c, d)（今 c になっている文字を全部 d に）／ cm.set(c, d) ／ cm(c) ／ cm.apply(s) ／ cm.compose(g)
+		reversed(s) ／ min_with_reverse(s)（向きを区別しない代表）／ sorted_chars(s) ／ repeat_string(s, k)
+		common_prefix_length(a, b) ／ common_suffix_length(a, b) ／ hamming_distance(a, b) ／ is_subsequence(t, s)（t が s の部分列か）／ is_palindrome(s)
+		split(s, sep, skip_empty) ／ join(vs, sep)（数の列も。cout << join(ans) << '\n';）
+		StrSpan{l, r}（len()）／ substr_of(s, sp)
+	メモ
+		文字列第二世代のほかのテンプレートはすべてこれを同梱している
+		列は string でも vector<int>・vector<long long> でもよい。文字列リテラル "abc" も渡せる
+		範囲は半開区間 [l, r)（0 始まり）。「L 文字目から R 文字目」は (L - 1, R)。位置がないときは -1
+		Alphabet にない文字・範囲外の位置はメッセージを出して止まる（黙って配列の外を読まない）。char は 0〜255 として扱う（日本語などは Alphabet::bytes()）
+		Alphabet の番号の順が辞書順として扱われる。独自の順は Alphabet::of(順番の文字列)（ABC219 C）
+		CharPrefix は旧 StringHelper の次 / 前の出現と同じ速さで、メモリは約半分・作るのは約 2 倍速い
+		類題：ABC259 C・ABC329 C・典型90 084（run_length）、ABC342 C（CharMap）、ABC310 C（min_with_reverse）、ABC232 B（caesar_shift）、ABC219 C（Alphabet::of と to_ids で比べる）、ABC380 D（巨大な文字列の k 文字目。使い方デモ）
+	C:\atcoder_template\典型90\ソース\string_v2\00_str_base.cpp

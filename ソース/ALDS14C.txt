@@ -1,0 +1,148 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=ALDS1_4_C&lang=ja
+// Trie (文字列のmultiset)
+//stringの追加削除、完全一致検索、prefix検索、辞書順k番目取得、辞書順取得を高速に
+// ★ 文字種を変える
+const int ALPHA = 26; // ★ 'a'～'z'
+
+struct Trie {
+    struct Node {
+        int nxt[ALPHA];
+        long long cnt;   // このノードを通る文字列数
+        long long end;   // このノードで終わる文字列数
+        Node(){
+            fill(nxt, nxt+ALPHA, -1);
+            cnt = end = 0;
+        }
+    };
+
+    vector<Node> t;
+
+    Trie(){
+        t.emplace_back(); // root
+    }
+
+    // ===== 挿入・削除 =====
+    // delta = +1 : 追加,  -1 : 削除
+    void insert(const string& s, int delta){
+        int v = 0;
+        for(char c : s){
+            int id = c - 'A'; // ★
+            if(t[v].nxt[id] == -1){
+                if(delta == -1) return; // 無いものは消さない
+                t[v].nxt[id] = t.size();
+                t.emplace_back();
+            }
+            v = t[v].nxt[id];
+            t[v].cnt += delta;
+        }
+        t[v].end += delta;
+    }
+
+    // ===== 完全一致 =====
+    bool find(const string& s){
+        int v = 0;
+        for(char c : s){
+            int id = c - 'A'; // ★
+            if(t[v].nxt[id] == -1) return false;
+            v = t[v].nxt[id];
+        }
+        return t[v].end > 0;
+    }
+
+    // ===== prefix存在 =====
+    bool starts_with(const string& s){
+        int v = 0;
+        for(char c : s){
+            int id = c - 'A'; // ★
+            if(t[v].nxt[id] == -1) return false;
+            v = t[v].nxt[id];
+        }
+        return true;
+    }
+
+    // ===== k番目に小さい文字列（辞書順）=====
+    // ★ 1-indexed
+    string kth(long long k){
+        string res;
+        int v = 0;
+        while(true){
+            // このノードで終わる文字列
+            if(t[v].end){
+                if(k <= t[v].end) return res;
+                k -= t[v].end;
+            }
+            // 子ノードを辞書順に
+            for(int c=0;c<ALPHA;c++){
+                int to = t[v].nxt[c];
+                if(to == -1) continue;
+                if(t[to].cnt >= k){
+                    res.push_back('A' + c); // ★
+                    v = to;
+                    break;
+                }else{
+                    k -= t[to].cnt;
+                }
+            }
+        }
+    }
+
+    void dfs(int v, string& cur, vector<string>& res){
+        // このノードで終わる文字列
+        for(int i=0;i<t[v].end;i++){
+            res.push_back(cur);
+        }
+        // 子ノード
+        for(int c=0;c<ALPHA;c++){
+            int to = t[v].nxt[c];
+            if(to == -1) continue;
+            cur.push_back('A' + c); // ★
+            dfs(to, cur, res);
+            cur.pop_back();
+        }
+    }
+
+    // ===== 辞書順で全て取得 =====
+    vector<string> get_all(){
+        vector<string> res;
+        string cur;
+        dfs(0, cur, res);
+        return res;
+    }
+
+};
+
+int main(){
+    BUFF;
+    int N;
+    cin>>N;
+    Trie t;
+    rep(_,0,N){
+        string q,s;
+        cin>>q>>s;
+        if(q=="insert")t.insert(s,1);
+        else cout<<(t.find(s)?"yes":"no")<<'\n';
+    }
+    return 0;
+}

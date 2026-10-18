@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+vector<vector<int>> G;
+vector<int> col;
+//DFSを用いて彩色を実装
+void dfs(int pos,int c){
+    col[pos]=c;
+    for(int a:G[pos]){
+        if(col[a]==0)dfs(a,c*(-1));
+    }
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    G=vector<vector<int>>(N);
+    col=vector<int>(N,0);
+    rep(i,0,N-1){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    dfs(0,1);
+    int c1=0;
+    for(int c:col)if(c==1)c1++;
+    if(c1>=N/2)c1=1;
+    else c1=-1;
+    int count=0;
+    rep(i,0,N)if(col[i]==c1){
+        count++;
+        cout<<i+1<<" ";
+        if(count==N/2)break;
+    }
+    cout<<"\n";
+    return 0;
+}

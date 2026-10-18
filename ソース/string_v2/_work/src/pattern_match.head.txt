@@ -1,0 +1,57 @@
+// =============================================================================
+//  パターン検索（Z・KMP・出現の列挙と数・置き換え・周期・境界・回転・重なり・KMP オートマトン）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 一致・出現
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  text・pat は string でも vector<int>・vector<long long> でもよい（混ぜてもよい。文字列リテラル "abc" も）
+//  位置は 0 始まり。「ない」ときは -1。ACL の z_algorithm（z[0] = |s|）と同じ約束で、名前は z_array
+//
+//  機能一覧                                                                       計算量
+//    z_array(s)                        z[i] = s と s[i..) の最長共通接頭辞の長さ（z[0] = |s|）       O(N)
+//    prefix_function(s)                π[i] = s[0, i] の最長の真の境界（接頭辞 = 接尾辞）の長さ       O(N)
+//    match_lengths(text, pat)          各 i で text[i..) と pat の最長共通接頭辞の長さ                O(N + M)
+//    find_all(text, pat)               pat が現れる開始位置（重なりも。昇順）                         O(N + M)
+//    count_occurrences(text, pat)      現れる回数（重なりも）                                         O(N + M)
+//    find_first(text, pat, from) / find_last(text, pat)   from 以上で最初 / 最後の位置（なければ -1）   O(N + M)
+//    count_non_overlapping(text, pat)  左から重ならないように取った数                                 O(N + M)
+//    replace_all(text, from, to)       from を左から重ならないように全部 to に                         O(N + M)
+//    all_borders(s)                    0 < k < |s| で接頭辞 = 接尾辞となる長さ k（大きい順）            O(N)
+//    min_period(s) / all_periods(s)    最小の周期 / すべての周期（|s| も含む。小さい順）                O(N)
+//    repetition_root(s)                s = t^k となる最短の t の長さ                                  O(N)
+//    prefix_min_periods(s)             各 i で s[0, i) の最小の周期（長さ |s| + 1）                     O(N)
+//    rotation_offsets(a, b) / is_rotation(a, b)   a を左に k 回まわすと b になる k の一覧 / なるか     O(N)
+//    find_all_cyclic(text, pat)        text を無限に繰り返した中で pat が始まる位置（0 ≤ i < |text|）   O(N + M)
+//    max_overlap(a, b)                 a の接尾辞 = b の接頭辞となる最大の長さ                        O(N + M)
+//    KmpAutomaton KA(pat, A)           状態 0〜|pat|（先頭何文字まで一致しているか）の遷移表          構築 O(Mσ)
+//      KA.next(state, c) / accepting(state) / size()   遷移 / pat が現れたところか / 状態の数       O(1)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    pm_test::random_test()  … 愚直な比較（全部の位置で比べる）と全機能を突き合わせるランダムテスト
+//    pm_test::benchmark()    … 速度計測
+//    pm_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

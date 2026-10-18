@@ -1,0 +1,897 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * Treap（乱択平衡二分探索木）による順序付き多重集合（multiset）
+ * 
+ * 【概要】
+ * - keyでBST順序、priorityでヒープ順序を維持することで平衡を保つ
+ * - 期待計算量：各操作 O(log N)
+ * 
+ * 【できること】
+ * - 挿入 / 削除（multiset）
+ * - k番目取得（1-index）
+ * - 未満個数（order_of_key）
+ * - lower_bound / upper_bound
+ * - 前後要素取得（prev / next）
+ * 
+ * 【内部仕様】
+ * - split：key未満 / key以上
+ * - 重複要素は複数ノードとして保持
+ * - priorityは乱数（mt19937）
+ * 
+ * 【注意】
+ * - merge(l, r)は「lの最大 <= rの最小」が前提
+ * - kthは1-index
+ * - 存在しない場合は -1 を返す
+ */
+struct Treap {
+    struct Node {
+        int key;
+        uint32_t pri;
+        int sz;
+        Node *l, *r;
+
+        Node(int key, uint32_t pri)
+            : key(key), pri(pri), sz(1), l(nullptr), r(nullptr) {}
+    };
+
+    using NP = Node*;
+
+    // RNG（高速・衝突少）
+    mt19937 rng;
+
+    Treap() : rng(chrono::steady_clock::now().time_since_epoch().count()) {}
+
+    // ノード生成（priorityは乱数）
+    NP new_node(int key) {
+        return new Node(key, rng());
+    }
+
+    // 部分木サイズ取得（nullは0）
+    int size(NP t) const {
+        return t ? t->sz : 0;
+    }
+
+    // 部分木サイズを更新（子から再計算）
+    void update(NP t) {
+        if (!t) return;
+        t->sz = 1 + size(t->l) + size(t->r);
+    }
+
+    // 2つのTreapをマージ（lの全要素 <= rの全要素が前提）
+    NP merge(NP l, NP r) {
+        if (!l || !r) return l ? l : r;
+
+        if (l->pri > r->pri) {
+            l->r = merge(l->r, r);
+            update(l);
+            return l;
+        } else {
+            r->l = merge(l, r->l);
+            update(r);
+            return r;
+        }
+    }
+
+    // key未満 / key以上 に分割
+    // 戻り値: {< key, >= key}
+    pair<NP, NP> split(NP t, int key) {
+        if (!t) return {nullptr, nullptr};
+
+        if (t->key < key) {
+            auto [l, r] = split(t->r, key);
+            t->r = l;
+            update(t);
+            return {t, r};
+        } else {
+            auto [l, r] = split(t->l, key);
+            t->l = r;
+            update(t);
+            return {l, t};
+        }
+    }
+
+    // 要素keyを1つ追加（multiset）
+    // split→mergeで安全に挿入
+    NP insert(NP root, int key) {
+        auto [l, r] = split(root, key);
+        return merge(merge(l, new_node(key)), r);
+    }
+
+    // 要素keyを1つ削除（multiset）
+    // 存在すれば1つだけ削除
+    NP erase(NP root, int key) {
+        auto [l, r] = split(root, key);       // < key | >= key
+        auto [m, r2] = split(r, key + 1);     // == key | > key
+
+        // mの中から1つだけ削除
+        if (m) {
+            m = merge(m->l, m->r);
+        }
+
+        return merge(l, merge(m, r2));
+    }
+
+    // k番目の値を取得（1-index）
+    // k=1が最小
+    int kth(NP t, int k) {
+        if (!t) return -1; // 異常（テストで弾く前提でもOK）
+
+        int left_size = size(t->l);
+
+        if (k <= left_size) {
+            return kth(t->l, k);
+        } else if (k == left_size + 1) {
+            return t->key;
+        } else {
+            return kth(t->r, k - left_size - 1);
+        }
+    }
+
+    // key未満の要素数
+    int order_of_key(NP t, int key) {
+        if (!t) return 0;
+
+        if (key <= t->key) {
+            // 全部左にある
+            return order_of_key(t->l, key);
+        } else {
+            // 左 + 自分 + 右の一部
+            return size(t->l) + 1 + order_of_key(t->r, key);
+        }
+    }
+
+    // keyの出現回数
+    int count(NP t, int key) {
+        return order_of_key(t, key + 1) - order_of_key(t, key);
+    }
+
+    // key以上で最小の値（lower_bound）
+    // 存在しなければ -1
+    int lower_bound(NP t, int key) {
+        int k = order_of_key(t, key) + 1;
+        if (k > size(t)) return -1;
+        return kth(t, k);
+    }
+
+    // keyより大きい最小の値（upper_bound）
+    // 存在しなければ -1
+    int upper_bound(NP t, int key) {
+        int k = order_of_key(t, key + 1) + 1;
+        if (k > size(t)) return -1;
+        return kth(t, k);
+    }
+
+    // key未満で最大の値（前駆）
+    // 存在しなければ -1
+    int prev(NP t, int key) {
+        int k = order_of_key(t, key);
+        if (k == 0) return -1;
+        return kth(t, k);
+    }
+
+    // keyより大きい最小の値（後継）
+    // 存在しなければ -1
+    int next(NP t, int key) {
+        int k = order_of_key(t, key + 1) + 1;
+        if (k > size(t)) return -1;
+        return kth(t, k);
+    }
+
+    // 中順走査（昇順配列に変換）
+    void inorder(NP t, vector<int>& v) const {
+        if (!t) return;
+        inorder(t->l, v);
+        v.push_back(t->key);
+        inorder(t->r, v);
+    }
+};
+
+void random_test() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0); // テストは固定seed推奨
+
+    for (int iter = 0; iter < 2000; iter++) {
+        vector<int> A;
+
+        int N = rng() % 20;
+        for (int i = 0; i < N; i++) {
+            A.push_back(rng() % 50);
+        }
+
+        vector<int> sorted = A;
+        sort(sorted.begin(), sorted.end());
+
+        NP root = nullptr;
+        for (int x : sorted) {
+            root = tr.merge(root, tr.new_node(x));
+        }
+
+        // inorderチェック
+        vector<int> res;
+        tr.inorder(root, res);
+        if (res != sorted) {
+            cout << "inorder NG\n";
+            exit(0);
+        }
+
+        // split & merge
+        for (int t = 0; t < 50; t++) {
+            int k = rng() % 50;
+
+            auto [l, r] = tr.split(root, k);
+            NP merged = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(merged, res2);
+
+            if (res2 != sorted) {
+                cout << "split-merge NG\n";
+                cout << "k=" << k << "\n";
+                exit(0);
+            }
+
+            root = merged;
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test2() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int x = rng() % 50;
+
+            // insert
+            root = tr.insert(root, x);
+            vec.push_back(x);
+
+            // 正解側ソート
+            vector<int> sorted = vec;
+            sort(sorted.begin(), sorted.end());
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != sorted) {
+                cout << "insert NG\n";
+                exit(0);
+            }
+
+            // 追加チェック：split→mergeでも壊れないか
+            int k = rng() % 50;
+            auto [l, r] = tr.split(root, k);
+            root = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(root, res2);
+
+            if (res2 != sorted) {
+                cout << "insert + split-merge NG\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "random_test2 OK\n";
+}
+
+void random_test3() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                root = tr.insert(root, x);
+                vec.push_back(x);
+            } else {
+                // erase
+                int idx = rng() % vec.size();
+                int x = vec[idx];
+
+                root = tr.erase(root, x);
+
+                // vecから1つ削除
+                auto it = find(vec.begin(), vec.end(), x);
+                vec.erase(it);
+            }
+
+            // 正解
+            vector<int> sorted = vec;
+            sort(sorted.begin(), sorted.end());
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != sorted) {
+                cout << "erase NG\n";
+                exit(0);
+            }
+
+            // split→mergeチェック
+            int k = rng() % 50;
+            auto [l, r] = tr.split(root, k);
+            root = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(root, res2);
+
+            if (res2 != sorted) {
+                cout << "erase + split-merge NG\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "random_test3 OK\n";
+}
+
+void random_test4() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                root = tr.insert(root, x);
+                vec.push_back(x);
+            } else {
+                // erase
+                int idx = rng() % vec.size();
+                int x = vec[idx];
+
+                root = tr.erase(root, x);
+
+                auto it = find(vec.begin(), vec.end(), x);
+                vec.erase(it);
+            }
+
+            // 正解
+            vector<int> sorted = vec;
+            sort(sorted.begin(), sorted.end());
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != sorted) {
+                cout << "kth: inorder NG\n";
+                exit(0);
+            }
+
+            // kthチェック（ここが本体）
+            for (int k = 1; k <= (int)sorted.size(); k++) {
+                int val = tr.kth(root, k);
+                if (val != sorted[k - 1]) {
+                    cout << "kth NG\n";
+                    cout << "k=" << k << "\n";
+                    exit(0);
+                }
+            }
+
+            // split→mergeチェック
+            int k = rng() % 50;
+            auto [l, r] = tr.split(root, k);
+            root = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(root, res2);
+
+            if (res2 != sorted) {
+                cout << "kth + split-merge NG\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "random_test4 OK\n";
+}
+
+void random_test5() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                root = tr.insert(root, x);
+                vec.push_back(x);
+            } else {
+                // erase
+                int idx = rng() % vec.size();
+                int x = vec[idx];
+
+                root = tr.erase(root, x);
+
+                auto it = find(vec.begin(), vec.end(), x);
+                vec.erase(it);
+            }
+
+            // 正解
+            vector<int> sorted = vec;
+            sort(sorted.begin(), sorted.end());
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+
+            if (res != sorted) {
+                cout << "order_of_key: inorder NG\n";
+                exit(0);
+            }
+
+            // kthチェック（ついで）
+            for (int k = 1; k <= (int)sorted.size(); k++) {
+                int val = tr.kth(root, k);
+                if (val != sorted[k - 1]) {
+                    cout << "order_of_key: kth NG\n";
+                    exit(0);
+                }
+            }
+
+            // order_of_keyチェック（本体）
+            for (int x = 0; x < 50; x++) {
+                int cnt = 0;
+                for (int v : sorted) {
+                    if (v < x) cnt++;
+                }
+
+                int got = tr.order_of_key(root, x);
+                if (cnt != got) {
+                    cout << "order_of_key NG\n";
+                    cout << "x=" << x << "\n";
+                    exit(0);
+                }
+            }
+
+            // split→mergeチェック
+            int k = rng() % 50;
+            auto [l, r] = tr.split(root, k);
+            root = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(root, res2);
+
+            if (res2 != sorted) {
+                cout << "order_of_key + split-merge NG\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "random_test5 OK\n";
+}
+
+void random_test6() {
+    using NP = Treap::Node*;
+    Treap tr;
+
+    mt19937 rng(0);
+
+    for (int iter = 0; iter < 2000; iter++) {
+        NP root = nullptr;
+        vector<int> vec;
+
+        int Q = 100;
+
+        for (int q = 0; q < Q; q++) {
+            int type = rng() % 2;
+
+            if (type == 0 || vec.empty()) {
+                // insert
+                int x = rng() % 50;
+                root = tr.insert(root, x);
+                vec.push_back(x);
+            } else {
+                // erase
+                int idx = rng() % vec.size();
+                int x = vec[idx];
+
+                root = tr.erase(root, x);
+
+                auto it = find(vec.begin(), vec.end(), x);
+                vec.erase(it);
+            }
+
+            // 正解
+            vector<int> sorted = vec;
+            sort(sorted.begin(), sorted.end());
+
+            // inorderチェック
+            vector<int> res;
+            tr.inorder(root, res);
+            if (res != sorted) {
+                cout << "random_test6: inorder NG\n";
+                exit(0);
+            }
+
+            int n = sorted.size();
+
+            // kthチェック
+            for (int k = 1; k <= n; k++) {
+                if (tr.kth(root, k) != sorted[k - 1]) {
+                    cout << "random_test6: kth NG\n";
+                    exit(0);
+                }
+            }
+
+            // order_of_key / count / lower_bound / upper_bound / prev / next
+            for (int x = 0; x < 50; x++) {
+                // order_of_key
+                int cnt_lt = 0;
+                for (int v : sorted) if (v < x) cnt_lt++;
+
+                if (tr.order_of_key(root, x) != cnt_lt) {
+                    cout << "random_test6: order_of_key NG\n";
+                    exit(0);
+                }
+
+                // count
+                int cnt_eq = 0;
+                for (int v : sorted) if (v == x) cnt_eq++;
+
+                if (tr.count(root, x) != cnt_eq) {
+                    cout << "random_test6: count NG\n";
+                    exit(0);
+                }
+
+                // lower_bound（>= x）
+                int lb = -1;
+                for (int v : sorted) {
+                    if (v >= x) {
+                        lb = v;
+                        break;
+                    }
+                }
+                if (tr.lower_bound(root, x) != lb) {
+                    cout << "random_test6: lower_bound NG\n";
+                    exit(0);
+                }
+
+                // upper_bound（> x）
+                int ub = -1;
+                for (int v : sorted) {
+                    if (v > x) {
+                        ub = v;
+                        break;
+                    }
+                }
+                if (tr.upper_bound(root, x) != ub) {
+                    cout << "random_test6: upper_bound NG\n";
+                    exit(0);
+                }
+
+                // prev（< x の最大）
+                int pv = -1;
+                for (int v : sorted) {
+                    if (v < x) pv = v;
+                }
+                if (tr.prev(root, x) != pv) {
+                    cout << "random_test6: prev NG\n";
+                    exit(0);
+                }
+
+                // next（> x の最小）
+                int nx = -1;
+                for (int v : sorted) {
+                    if (v > x) {
+                        nx = v;
+                        break;
+                    }
+                }
+                if (tr.next(root, x) != nx) {
+                    cout << "random_test6: next NG\n";
+                    exit(0);
+                }
+            }
+
+            // split→mergeチェック
+            int k = rng() % 50;
+            auto [l, r] = tr.split(root, k);
+            root = tr.merge(l, r);
+
+            vector<int> res2;
+            tr.inorder(root, res2);
+
+            if (res2 != sorted) {
+                cout << "random_test6: split-merge NG\n";
+                exit(0);
+            }
+        }
+    }
+
+    cout << "random_test6 OK\n";
+}
+
+void demo_treap() {
+    Treap tr;
+    Treap::NP root = nullptr;
+
+    cout << "==============================\n";
+    cout << "Treap 動作確認\n";
+    cout << "==============================\n";
+
+    vector<int> A = {5, 1, 3, 5, 7, 3};
+
+    cout << "挿入: ";
+    for (int x : A) {
+        cout << x << " ";
+        root = tr.insert(root, x);
+    }
+    cout << "\n";
+
+    vector<int> v;
+    tr.inorder(root, v);
+
+    cout << "ソート結果: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n--- 基本操作 ---\n";
+
+    cout << "size = " << tr.size(root) << "\n";
+    cout << "kth(1) = " << tr.kth(root, 1) << "（最小値）\n";
+    cout << "kth(3) = " << tr.kth(root, 3) << "\n";
+
+    cout << "\n--- 個数系 ---\n";
+    cout << "count(3) = " << tr.count(root, 3) << "\n";
+    cout << "order_of_key(5) = " << tr.order_of_key(root, 5) << "（5未満の個数）\n";
+
+    cout << "\n--- 二分探索系 ---\n";
+    cout << "lower_bound(4) = " << tr.lower_bound(root, 4) << "（>=4の最小）\n";
+    cout << "upper_bound(5) = " << tr.upper_bound(root, 5) << "（>5の最小）\n";
+
+    cout << "\n--- 前後要素 ---\n";
+    cout << "prev(5) = " << tr.prev(root, 5) << "（<5の最大）\n";
+    cout << "next(5) = " << tr.next(root, 5) << "（>5の最小）\n";
+
+    cout << "\n--- 削除 ---\n";
+    cout << "erase(5) を1回実行\n";
+    root = tr.erase(root, 5);
+
+    v.clear();
+    tr.inorder(root, v);
+
+    cout << "結果: ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n==============================\n";
+}
+
+void solv(){
+    random_test();
+    random_test2();
+    random_test3();
+    random_test4();
+    random_test5();
+    random_test6();
+    demo_treap();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

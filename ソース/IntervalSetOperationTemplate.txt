@@ -1,0 +1,828 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ===================== template begin (ここから下をコピー) =====================
+#ifndef ITV_STRUCT_DEFINED
+#define ITV_STRUCT_DEFINED
+// 半開区間 [l, r)。l < r が前提（assert なし）。l >= r の値は「空／該当なし」を表す（Itv{} = {0,0}）。
+struct Itv {
+    long long l, r;
+    constexpr long long len() const noexcept { return r - l; }                         // 長さ
+    constexpr long long mid2() const noexcept { return l + r; }                        // 中央値×2（整数のまま比較するため）
+    constexpr bool contains(long long x) const noexcept { return l <= x && x < r; }    // x ∈ [l, r)
+    constexpr bool empty() const noexcept { return l >= r; }                           // 空（該当なし）か
+    constexpr explicit operator bool() const noexcept { return l < r; }                // 空でなければ true
+    friend constexpr bool operator==(const Itv& a, const Itv& b) noexcept { return a.l == b.l && a.r == b.r; }
+    friend constexpr bool operator!=(const Itv& a, const Itv& b) noexcept { return !(a == b); }
+    friend constexpr bool operator<(const Itv& a, const Itv& b) noexcept { return a.l != b.l ? a.l < b.l : a.r < b.r; }  // (l, r) 辞書順
+    friend constexpr bool operator>(const Itv& a, const Itv& b) noexcept { return b < a; }
+    friend constexpr bool operator<=(const Itv& a, const Itv& b) noexcept { return !(b < a); }
+    friend constexpr bool operator>=(const Itv& a, const Itv& b) noexcept { return !(a < b); }
+    friend std::ostream& operator<<(std::ostream& os, const Itv& t) { return os << '[' << t.l << ", " << t.r << ')'; }
+};
+#endif
+
+// =============================================================================
+//  ① itv_op : 区間の基本操作（2区間の演算 / 区間の集まりに対する演算・典型アルゴリズム）
+// -----------------------------------------------------------------------------
+//  区間は半開区間 [l, r)（l < r が前提。高速化のため assert なし）。座標は |値| <= 4e18 程度まで。
+//  結果が空になり得る関数は空区間 Itv{}（= {0,0}）を返す。 if (auto t = itv_op::intersection(a, b)) { ... }
+//  「正規形」= l 昇順で、互いに重ならず隣接もしない区間列（normalize() の結果。② ④ の to_vector() も正規形）
+//
+//  ---- 2つの区間 ----                                                               計算量
+//  intersects(a, b)        共通部分があるか                                           O(1)
+//  mergeable(a, b)         重なる or 接する（和集合が1区間になる）か                    O(1)
+//  includes(a, b)          a が b を含むか（a ⊇ b）                                   O(1)
+//  intersection(a, b)      共通部分（無ければ空）                                     O(1)
+//  intersection_len(a, b)  共通部分の長さ                                             O(1)
+//  hull(a, b)              両方を含む最小の区間                                        O(1)
+//  unite(a, b)             和集合（1〜2個・昇順） → Itvs2                              O(1)
+//  difference(a, b)        差集合 a \ b（0〜2個・昇順） → Itvs2                         O(1)
+//  gap(a, b)               間の隙間の長さ（重なる／接するなら 0）                      O(1)
+//    ※ Itvs2 はヒープ確保しない最大2個の入れ物。 for (const Itv& t : res) / res.size() / res[i]
+//
+//  ---- 区間の集まり（std::vector<Itv>） ----
+//  normalize(v)                 ソートして重なり・隣接を結合し正規形にする（和集合）       O(n log n)
+//  union_length(v)              和集合の長さ                                            O(n log n)
+//  unite(A, B)                  和集合        ※A, B は l 昇順（正規形なら OK）→ 正規形    O(|A|+|B|)
+//  intersection(A, B)           共通部分      ※A, B は正規形 → 正規形                   O(|A|+|B|)
+//  difference(A, B)             差集合 A \ B  ※A, B は正規形 → 正規形                   O(|A|+|B|)
+//  complement(A, lo, hi)        補集合 [lo, hi) \ A  ※A は l 昇順 → 正規形              O(|A|)
+//  find(A, x)                   正規形 A で x を含む区間の添字（無ければ -1）             O(log n)
+//  common(v)                    全区間の共通部分（無ければ空）                           O(n)
+//  count_intersecting_pairs(v)  共通部分を持つペア (i < j) の個数                       O(n log n)
+//  max_overlap(v)               {最大の重なり数, それを達成する最小の点}                 O(n log n)
+//  coverage_length(v)           c[k] = ちょうど k 個に覆われる長さ（k=0 は hull 内の隙間）O(n log n)
+//  max_disjoint(v)              互いに共通部分を持たないように選べる最大個数（区間スケジューリング） O(n log n)
+//  stab_points(v)               全区間を「刺す」最小個数の点（個数 = max_disjoint(v)）  O(n log n)
+//  min_cover(v, target)         target を覆うのに必要な最小個数（不可能なら -1）         O(n log n)
+//
+//  【使い方】 "template begin" 〜 "template end" の間だけをコピーして使う（main・テスト・デモは貼らない）。
+//    4 つのテンプレートを同じファイルに貼っても struct Itv は 1 回だけ定義される（#ifndef ガード）。
+//    このファイル単体で実行すると demo()（全機能の使用例）→ random_test()（愚直解との照合）が走る。Release ビルド推奨。
+// =============================================================================
+namespace itv_op {
+
+// 最大2個の区間（昇順）。ヒープ確保なし
+struct Itvs2 {
+    Itv a[2];
+    int n;
+    const Itv* begin() const { return a; }
+    const Itv* end() const { return a + n; }
+    int size() const { return n; }
+    const Itv& operator[](int i) const { return a[i]; }
+};
+
+// ======================== 2つの区間 ========================
+inline bool intersects(const Itv& a, const Itv& b) { return a.l < b.r && b.l < a.r; }
+inline bool mergeable(const Itv& a, const Itv& b) { return a.l <= b.r && b.l <= a.r; }
+inline bool includes(const Itv& a, const Itv& b) { return a.l <= b.l && b.r <= a.r; }
+inline Itv intersection(const Itv& a, const Itv& b) {
+    const long long l = std::max(a.l, b.l), r = std::min(a.r, b.r);
+    return l < r ? Itv{l, r} : Itv{};
+}
+inline long long intersection_len(const Itv& a, const Itv& b) {
+    const long long d = std::min(a.r, b.r) - std::max(a.l, b.l);
+    return d > 0 ? d : 0;
+}
+inline Itv hull(const Itv& a, const Itv& b) { return Itv{std::min(a.l, b.l), std::max(a.r, b.r)}; }
+inline Itvs2 unite(const Itv& a, const Itv& b) {
+    if (mergeable(a, b)) return Itvs2{{hull(a, b), Itv{}}, 1};
+    return a.l < b.l ? Itvs2{{a, b}, 2} : Itvs2{{b, a}, 2};
+}
+inline Itvs2 difference(const Itv& a, const Itv& b) {
+    if (!intersects(a, b)) return Itvs2{{a, Itv{}}, 1};
+    Itvs2 res{{Itv{}, Itv{}}, 0};
+    if (a.l < b.l) res.a[res.n++] = Itv{a.l, b.l};
+    if (b.r < a.r) res.a[res.n++] = Itv{b.r, a.r};
+    return res;
+}
+inline long long gap(const Itv& a, const Itv& b) {
+    const long long d = std::max(a.l, b.l) - std::min(a.r, b.r);
+    return d > 0 ? d : 0;
+}
+
+// ======================== 区間の集まり ========================
+inline void normalize(std::vector<Itv>& v) {
+    if (v.empty()) return;
+    std::sort(v.begin(), v.end());
+    size_t k = 0;
+    for (size_t i = 1; i < v.size(); ++i) {
+        if (v[i].l <= v[k].r) {
+            if (v[i].r > v[k].r) v[k].r = v[i].r;
+        } else {
+            v[++k] = v[i];
+        }
+    }
+    v.resize(k + 1);
+}
+inline long long union_length(std::vector<Itv> v) {
+    normalize(v);
+    long long s = 0;
+    for (const Itv& t : v) s += t.r - t.l;
+    return s;
+}
+inline std::vector<Itv> unite(const std::vector<Itv>& A, const std::vector<Itv>& B) {
+    std::vector<Itv> res;
+    res.reserve(A.size() + B.size());
+    size_t i = 0, j = 0;
+    while (i < A.size() || j < B.size()) {
+        const Itv& t = (j == B.size() || (i < A.size() && A[i].l < B[j].l)) ? A[i++] : B[j++];
+        if (!res.empty() && t.l <= res.back().r) {
+            if (t.r > res.back().r) res.back().r = t.r;
+        } else {
+            res.push_back(t);
+        }
+    }
+    return res;
+}
+inline std::vector<Itv> intersection(const std::vector<Itv>& A, const std::vector<Itv>& B) {
+    std::vector<Itv> res;
+    size_t i = 0, j = 0;
+    while (i < A.size() && j < B.size()) {
+        const long long l = std::max(A[i].l, B[j].l), r = std::min(A[i].r, B[j].r);
+        if (l < r) res.push_back(Itv{l, r});
+        if (A[i].r < B[j].r) ++i; else ++j;
+    }
+    return res;
+}
+inline std::vector<Itv> difference(const std::vector<Itv>& A, const std::vector<Itv>& B) {
+    std::vector<Itv> res;
+    size_t j = 0;
+    for (const Itv& a : A) {
+        long long cur = a.l;
+        while (j < B.size() && B[j].r <= cur) ++j;
+        size_t k = j;
+        while (k < B.size() && B[k].l < a.r) {
+            if (cur < B[k].l) res.push_back(Itv{cur, B[k].l});
+            if (B[k].r > cur) cur = B[k].r;
+            if (B[k].r >= a.r) break;  // B[k] は次の a にかかるかもしれないので進めない
+            ++k;
+        }
+        if (cur < a.r) res.push_back(Itv{cur, a.r});
+        j = k;
+    }
+    return res;
+}
+inline std::vector<Itv> complement(const std::vector<Itv>& A, long long lo, long long hi) {
+    std::vector<Itv> res;
+    long long cur = lo;
+    for (const Itv& t : A) {
+        if (t.r <= cur) continue;
+        if (t.l >= hi) break;
+        if (cur < t.l) res.push_back(Itv{cur, t.l});
+        cur = t.r;
+        if (cur >= hi) break;
+    }
+    if (cur < hi) res.push_back(Itv{cur, hi});
+    return res;
+}
+inline int find(const std::vector<Itv>& A, long long x) {
+    const auto it = std::upper_bound(A.begin(), A.end(), x, [](long long y, const Itv& t) { return y < t.r; });
+    return (it != A.end() && it->l <= x) ? (int)(it - A.begin()) : -1;
+}
+inline Itv common(const std::vector<Itv>& v) {
+    if (v.empty()) return Itv{};
+    long long l = LLONG_MIN, r = LLONG_MAX;
+    for (const Itv& t : v) {
+        if (t.l > l) l = t.l;
+        if (t.r < r) r = t.r;
+    }
+    return l < r ? Itv{l, r} : Itv{};
+}
+inline long long count_intersecting_pairs(const std::vector<Itv>& v) {
+    const size_t n = v.size();
+    std::vector<long long> L(n), R(n);
+    for (size_t i = 0; i < n; ++i) { L[i] = v[i].l; R[i] = v[i].r; }
+    std::sort(L.begin(), L.end());
+    std::sort(R.begin(), R.end());
+    long long disjoint = 0;  // r_i <= l_j となる (i, j) の個数 = 共通部分を持たないペア数
+    size_t k = 0;
+    for (size_t i = 0; i < n; ++i) {
+        while (k < n && R[k] <= L[i]) ++k;
+        disjoint += (long long)k;
+    }
+    return (long long)n * ((long long)n - 1) / 2 - disjoint;
+}
+inline std::pair<int, long long> max_overlap(const std::vector<Itv>& v) {  // 空なら {0, 0}
+    const size_t n = v.size();
+    std::vector<long long> L(n), R(n);
+    for (size_t i = 0; i < n; ++i) { L[i] = v[i].l; R[i] = v[i].r; }
+    std::sort(L.begin(), L.end());
+    std::sort(R.begin(), R.end());
+    int best = 0;
+    long long point = 0;
+    size_t k = 0;
+    for (size_t i = 0; i < n; ++i) {
+        while (k < n && R[k] <= L[i]) ++k;
+        const int cur = (int)(i + 1 - k);
+        if (cur > best) { best = cur; point = L[i]; }
+    }
+    return {best, point};
+}
+inline std::vector<long long> coverage_length(const std::vector<Itv>& v) {  // サイズ n+1
+    const size_t n = v.size();
+    std::vector<long long> c(n + 1, 0);
+    if (n == 0) return c;
+    std::vector<long long> L(n), R(n);
+    for (size_t i = 0; i < n; ++i) { L[i] = v[i].l; R[i] = v[i].r; }
+    std::sort(L.begin(), L.end());
+    std::sort(R.begin(), R.end());
+    size_t i = 0, j = 0;
+    size_t cur = 0;
+    long long prev = L[0];
+    while (j < n) {
+        const long long x = (i < n && L[i] <= R[j]) ? L[i] : R[j];
+        c[cur] += x - prev;
+        prev = x;
+        if (i < n && L[i] == x) { ++cur; ++i; } else { --cur; ++j; }
+    }
+    return c;
+}
+inline int max_disjoint(std::vector<Itv> v) {
+    std::sort(v.begin(), v.end(), [](const Itv& a, const Itv& b) { return a.r < b.r; });
+    int cnt = 0;
+    long long end = LLONG_MIN;
+    for (const Itv& t : v) {
+        if (t.l >= end) { ++cnt; end = t.r; }
+    }
+    return cnt;
+}
+inline std::vector<long long> stab_points(std::vector<Itv> v) {
+    std::sort(v.begin(), v.end(), [](const Itv& a, const Itv& b) { return a.r < b.r; });
+    std::vector<long long> pts;
+    for (const Itv& t : v) {
+        if (pts.empty() || pts.back() < t.l) pts.push_back(t.r - 1);
+    }
+    return pts;
+}
+inline int min_cover(std::vector<Itv> v, const Itv& target) {
+    std::sort(v.begin(), v.end());
+    long long cur = target.l;
+    int cnt = 0;
+    size_t i = 0;
+    while (cur < target.r) {
+        long long best = cur;
+        while (i < v.size() && v[i].l <= cur) {
+            if (v[i].r > best) best = v[i].r;
+            ++i;
+        }
+        if (best == cur) return -1;
+        cur = best;
+        ++cnt;
+    }
+    return cnt;
+}
+
+}
+
+// =============================================================================
+//  ランダムテスト（小さい座標で「点の集合」として愚直に計算した結果と比較。
+//  さらに x -> base + x*scale で座標を巨大化した版でも同じ関係が成り立つかを確認）
+// =============================================================================
+namespace itv1_test {
+
+using Set = std::vector<char>;  // 座標 [LO, HI) の各点が含まれるか
+static const long long LO = -12, HI = 24;
+
+[[noreturn]] static void fail(const std::string& what, long long seed, const std::string& detail) {
+    std::cout << "\n*** MISMATCH *** " << what << " seed=" << seed << " " << detail << std::endl;
+    std::exit(1);
+}
+static std::string str(const Itv& t) { return "[" + std::to_string(t.l) + "," + std::to_string(t.r) + ")"; }
+static std::string str(const std::vector<Itv>& v) {
+    std::string s = "{";
+    for (const Itv& t : v) s += str(t);
+    return s + "}";
+}
+static Set to_set(const Itv& t) {
+    Set s((size_t)(HI - LO), 0);
+    for (long long x = t.l; x < t.r; ++x) s[(size_t)(x - LO)] = 1;
+    return s;
+}
+static Set to_set(const std::vector<Itv>& v) {
+    Set s((size_t)(HI - LO), 0);
+    for (const Itv& t : v) for (long long x = t.l; x < t.r; ++x) s[(size_t)(x - LO)] = 1;
+    return s;
+}
+static std::vector<Itv> runs(const Set& s) {  // 点集合 → 正規形
+    std::vector<Itv> v;
+    for (long long x = LO; x < HI; ++x) {
+        if (!s[(size_t)(x - LO)]) continue;
+        long long y = x;
+        while (y < HI && s[(size_t)(y - LO)]) ++y;
+        v.push_back(Itv{x, y});
+        x = y;
+    }
+    return v;
+}
+static long long popcount(const Set& s) {
+    long long c = 0;
+    for (char b : s) c += b;
+    return c;
+}
+static std::vector<Itv> to_vec(const itv_op::Itvs2& p) {
+    std::vector<Itv> v;
+    for (const Itv& t : p) v.push_back(t);
+    if ((int)v.size() != p.size()) v.push_back(Itv{-999, -998});
+    for (int i = 0; i < p.size(); ++i) if (!(p[i] == v[(size_t)i])) v.push_back(Itv{-999, -997});
+    return v;
+}
+
+static void run(long long seed, int iters) {
+    std::mt19937_64 rng((unsigned long long)seed * 0x9E3779B97F4A7C15ULL + 99);
+    auto rnd = [&](long long a, long long b) { return a + (long long)(rng() % (unsigned long long)(b - a + 1)); };
+    auto gen = [&]() {
+        const long long l = rnd(-8, 12);
+        const long long len = rng() % 4 == 0 ? rnd(1, 10) : rnd(1, 3);
+        return Itv{l, std::min(l + len, HI - 1)};
+    };
+    auto gen_vec = [&](int maxn) {
+        std::vector<Itv> v((size_t)rnd(0, maxn));
+        for (Itv& t : v) t = gen();
+        return v;
+    };
+    // 巨大座標への変換（順序と包含関係を保つ）
+    const long long base = (seed % 2 == 0) ? -1000000000000000000LL : 900000000000000000LL;
+    const long long scale = 10000000000000000LL;  // 1e16
+    auto big = [&](const Itv& t) { return Itv{base + t.l * scale, base + t.r * scale}; };
+    auto bigv = [&](const std::vector<Itv>& v) {
+        std::vector<Itv> w;
+        for (const Itv& t : v) w.push_back(big(t));
+        return w;
+    };
+
+    for (int it = 0; it < iters; ++it) {
+        // ---------------- 2つの区間 ----------------
+        {
+            const Itv a = gen(), b = gen();
+            const Set A = to_set(a), B = to_set(b);
+            Set I(A.size()), U(A.size()), D(A.size());
+            for (size_t k = 0; k < A.size(); ++k) { I[k] = A[k] & B[k]; U[k] = A[k] | B[k]; D[k] = A[k] & !B[k]; }
+            const std::string ab = "a=" + str(a) + " b=" + str(b);
+            const bool e_inter = popcount(I) > 0;
+            if (itv_op::intersects(a, b) != e_inter || itv_op::intersects(big(a), big(b)) != e_inter) fail("intersects", seed, ab);
+            const bool e_merge = runs(U).size() == 1;
+            if (itv_op::mergeable(a, b) != e_merge || itv_op::mergeable(big(a), big(b)) != e_merge) fail("mergeable", seed, ab);
+            bool e_inc = true;
+            for (size_t k = 0; k < A.size(); ++k) if (B[k] && !A[k]) e_inc = false;
+            if (itv_op::includes(a, b) != e_inc || itv_op::includes(big(a), big(b)) != e_inc) fail("includes", seed, ab);
+            const std::vector<Itv> ri = runs(I);
+            const Itv e_i = ri.empty() ? Itv{} : ri[0];
+            if (!(itv_op::intersection(a, b) == e_i)) fail("intersection", seed, ab + " got=" + str(itv_op::intersection(a, b)));
+            if (!(itv_op::intersection(big(a), big(b)) == (e_i ? big(e_i) : Itv{}))) fail("intersection(big)", seed, ab);
+            if (itv_op::intersection_len(a, b) != popcount(I) || itv_op::intersection_len(big(a), big(b)) != popcount(I) * scale) fail("intersection_len", seed, ab);
+            const Itv e_h{std::min(a.l, b.l), std::max(a.r, b.r)};
+            if (!(itv_op::hull(a, b) == e_h) || !(itv_op::hull(big(a), big(b)) == big(e_h))) fail("hull", seed, ab);
+            if (to_vec(itv_op::unite(a, b)) != runs(U)) fail("unite(a,b)", seed, ab + " got=" + str(to_vec(itv_op::unite(a, b))));
+            if (to_vec(itv_op::unite(big(a), big(b))) != bigv(runs(U))) fail("unite(a,b) big", seed, ab);
+            if (to_vec(itv_op::difference(a, b)) != runs(D)) fail("difference(a,b)", seed, ab + " got=" + str(to_vec(itv_op::difference(a, b))));
+            if (to_vec(itv_op::difference(big(a), big(b))) != bigv(runs(D))) fail("difference(a,b) big", seed, ab);
+            long long e_gap = 0;
+            if (!e_merge) {  // 2つの点集合の間にある点の数
+                const Itv& lo = a.l < b.l ? a : b;
+                const Itv& hi = a.l < b.l ? b : a;
+                e_gap = (hi.l) - (lo.r - 1) - 1;
+            }
+            if (itv_op::gap(a, b) != e_gap || itv_op::gap(big(a), big(b)) != e_gap * scale) fail("gap", seed, ab);
+        }
+        // ---------------- 区間の集まり ----------------
+        {
+            const std::vector<Itv> v = gen_vec(10);
+            const Set S = to_set(v);
+            const std::vector<Itv> e_norm = runs(S);
+            std::vector<Itv> w = v;
+            itv_op::normalize(w);
+            if (w != e_norm) fail("normalize", seed, "v=" + str(v) + " got=" + str(w));
+            std::vector<Itv> wb = bigv(v);
+            itv_op::normalize(wb);
+            if (wb != bigv(e_norm)) fail("normalize(big)", seed, "v=" + str(v));
+            if (itv_op::union_length(v) != popcount(S) || itv_op::union_length(bigv(v)) != popcount(S) * scale) fail("union_length", seed, "v=" + str(v));
+
+            // 正規形どうしの集合演算
+            std::vector<Itv> A = gen_vec(6), B = gen_vec(6);
+            itv_op::normalize(A);
+            itv_op::normalize(B);
+            const Set SA = to_set(A), SB = to_set(B);
+            Set I(SA.size()), U(SA.size()), D(SA.size());
+            for (size_t k = 0; k < SA.size(); ++k) { I[k] = SA[k] & SB[k]; U[k] = SA[k] | SB[k]; D[k] = SA[k] & !SB[k]; }
+            const std::string AB = "A=" + str(A) + " B=" + str(B);
+            if (itv_op::unite(A, B) != runs(U)) fail("unite(A,B)", seed, AB + " got=" + str(itv_op::unite(A, B)));
+            if (itv_op::intersection(A, B) != runs(I)) fail("intersection(A,B)", seed, AB + " got=" + str(itv_op::intersection(A, B)));
+            if (itv_op::difference(A, B) != runs(D)) fail("difference(A,B)", seed, AB + " got=" + str(itv_op::difference(A, B)));
+            if (itv_op::unite(bigv(A), bigv(B)) != bigv(runs(U))) fail("unite(A,B) big", seed, AB);
+            if (itv_op::intersection(bigv(A), bigv(B)) != bigv(runs(I))) fail("intersection(A,B) big", seed, AB);
+            if (itv_op::difference(bigv(A), bigv(B)) != bigv(runs(D))) fail("difference(A,B) big", seed, AB);
+            {  // unite は「l 昇順」なら正規形でなくてもよい
+                std::vector<Itv> A2 = gen_vec(6), B2 = gen_vec(6);
+                std::sort(A2.begin(), A2.end());
+                std::sort(B2.begin(), B2.end());
+                const Set S2 = to_set(A2), T2 = to_set(B2);
+                Set U2(S2.size());
+                for (size_t k = 0; k < S2.size(); ++k) U2[k] = S2[k] | T2[k];
+                if (itv_op::unite(A2, B2) != runs(U2)) fail("unite(sorted A,B)", seed, "A=" + str(A2) + " B=" + str(B2));
+            }
+            // 補集合（A は l 昇順なら重なっていてもよい）
+            {
+                std::vector<Itv> C = gen_vec(6);
+                if (rng() % 2) itv_op::normalize(C); else std::sort(C.begin(), C.end());
+                long long lo = rnd(-10, 14), hi = rnd(-10, 22);
+                if (lo > hi) std::swap(lo, hi);
+                if (lo == hi) ++hi;
+                Set SC = to_set(C), E((size_t)(HI - LO), 0);
+                for (long long x = lo; x < hi; ++x) E[(size_t)(x - LO)] = !SC[(size_t)(x - LO)];
+                if (itv_op::complement(C, lo, hi) != runs(E)) fail("complement", seed, "C=" + str(C) + " lo=" + std::to_string(lo) + " hi=" + std::to_string(hi) + " got=" + str(itv_op::complement(C, lo, hi)));
+                if (itv_op::complement(bigv(C), base + lo * scale, base + hi * scale) != bigv(runs(E))) fail("complement(big)", seed, "C=" + str(C));
+            }
+            // find
+            for (long long x = LO; x < HI; ++x) {
+                int e = -1;
+                for (size_t k = 0; k < A.size(); ++k) if (A[k].contains(x)) e = (int)k;
+                if (itv_op::find(A, x) != e) fail("find", seed, "A=" + str(A) + " x=" + std::to_string(x));
+                if (itv_op::find(bigv(A), base + x * scale) != e) fail("find(big)", seed, "A=" + str(A) + " x=" + std::to_string(x));
+            }
+            // common
+            {
+                Set C((size_t)(HI - LO), v.empty() ? 0 : 1);
+                for (const Itv& t : v) {
+                    const Set T = to_set(t);
+                    for (size_t k = 0; k < C.size(); ++k) C[k] &= T[k];
+                }
+                const std::vector<Itv> rc = runs(C);
+                const Itv e = rc.empty() ? Itv{} : rc[0];
+                if (!(itv_op::common(v) == e)) fail("common", seed, "v=" + str(v) + " got=" + str(itv_op::common(v)));
+                if (!(itv_op::common(bigv(v)) == (e ? big(e) : Itv{}))) fail("common(big)", seed, "v=" + str(v));
+            }
+            // count_intersecting_pairs
+            {
+                long long e = 0;
+                for (size_t i = 0; i < v.size(); ++i)
+                    for (size_t j = i + 1; j < v.size(); ++j) e += (v[i].l < v[j].r && v[j].l < v[i].r);
+                if (itv_op::count_intersecting_pairs(v) != e || itv_op::count_intersecting_pairs(bigv(v)) != e) fail("count_intersecting_pairs", seed, "v=" + str(v));
+            }
+            // max_overlap / coverage_length
+            {
+                int e_best = 0;
+                long long e_pt = 0;
+                std::vector<long long> e_cov(v.size() + 1, 0);
+                long long hl = LLONG_MAX, hr = LLONG_MIN;
+                for (const Itv& t : v) { hl = std::min(hl, t.l); hr = std::max(hr, t.r); }
+                for (long long x = LO; x < HI; ++x) {
+                    int c = 0;
+                    for (const Itv& t : v) c += t.contains(x);
+                    if (c > e_best) { e_best = c; e_pt = x; }
+                    if (!v.empty() && hl <= x && x < hr) e_cov[(size_t)c]++;
+                }
+                const auto mo = itv_op::max_overlap(v);
+                if (mo.first != e_best || mo.second != e_pt) fail("max_overlap", seed, "v=" + str(v) + " got=" + std::to_string(mo.first) + "@" + std::to_string(mo.second));
+                const auto mob = itv_op::max_overlap(bigv(v));
+                if (mob.first != e_best || (e_best > 0 && mob.second != base + e_pt * scale)) fail("max_overlap(big)", seed, "v=" + str(v));
+                if (itv_op::coverage_length(v) != e_cov) fail("coverage_length", seed, "v=" + str(v));
+                std::vector<long long> e_covb = e_cov;
+                for (long long& c : e_covb) c *= scale;
+                if (itv_op::coverage_length(bigv(v)) != e_covb) fail("coverage_length(big)", seed, "v=" + str(v));
+            }
+            // max_disjoint / stab_points / min_cover（部分集合の全探索と比較）
+            {
+                const int n = (int)v.size();
+                int e_disj = 0;
+                for (int mask = 0; mask < (1 << n); ++mask) {
+                    int cnt = 0;
+                    bool ok = true;
+                    for (int i = 0; i < n && ok; ++i) {
+                        if (!(mask >> i & 1)) continue;
+                        ++cnt;
+                        for (int j = i + 1; j < n; ++j)
+                            if ((mask >> j & 1) && v[(size_t)i].l < v[(size_t)j].r && v[(size_t)j].l < v[(size_t)i].r) { ok = false; break; }
+                    }
+                    if (ok) e_disj = std::max(e_disj, cnt);
+                }
+                if (itv_op::max_disjoint(v) != e_disj || itv_op::max_disjoint(bigv(v)) != e_disj) fail("max_disjoint", seed, "v=" + str(v));
+                for (int pass = 0; pass < 2; ++pass) {
+                    const std::vector<Itv> vv = pass ? bigv(v) : v;
+                    const std::vector<long long> pts = itv_op::stab_points(vv);
+                    if ((int)pts.size() != e_disj) fail("stab_points(size)", seed, "v=" + str(v));  // 最小個数 = 最大の互いに素な個数
+                    for (const Itv& t : vv) {
+                        bool hit = false;
+                        for (long long p : pts) hit |= t.contains(p);
+                        if (!hit) fail("stab_points(not hit)", seed, "v=" + str(v));
+                    }
+                }
+                long long tl = rnd(-8, 14), tr = rnd(-8, 22);
+                if (tl > tr) std::swap(tl, tr);
+                if (tl == tr) ++tr;
+                const Itv target{tl, tr};
+                const Set ST = to_set(target);
+                int e_cover = -1;
+                for (int mask = 0; mask < (1 << n); ++mask) {
+                    int cnt = 0;
+                    std::vector<Itv> sub;
+                    for (int i = 0; i < n; ++i) if (mask >> i & 1) { ++cnt; sub.push_back(v[(size_t)i]); }
+                    if (e_cover != -1 && cnt >= e_cover) continue;
+                    const Set SS = to_set(sub);
+                    bool ok = true;
+                    for (size_t k = 0; k < ST.size(); ++k) if (ST[k] && !SS[k]) { ok = false; break; }
+                    if (ok) e_cover = cnt;
+                }
+                if (itv_op::min_cover(v, target) != e_cover) fail("min_cover", seed, "v=" + str(v) + " target=" + str(target) + " got=" + std::to_string(itv_op::min_cover(v, target)));
+                if (itv_op::min_cover(bigv(v), big(target)) != e_cover) fail("min_cover(big)", seed, "v=" + str(v));
+            }
+        }
+    }
+}
+
+inline void random_test() {
+    const auto t0 = std::chrono::steady_clock::now();
+    const int seeds = 6, iters = 2000;
+    for (long long seed = 1; seed <= seeds; ++seed) run(seed, iters);
+    std::cout << "  [OK] two-interval ops / set ops / algorithms  " << seeds << " seeds x " << iters << " cases\n";
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    std::cout << "random_test: ALL PASSED (" << (long long)ms << " ms)\n";
+}
+
+}  // namespace itv1_test
+// ===================== template end (ここまでをコピー) =====================
+
+// =============================================================================
+//  使い方（全機能）。右のコメントが出力される値
+// =============================================================================
+namespace itv1_test {
+
+inline void demo() {
+    using std::cout;
+    auto S = [](const Itv& t) { return t ? "[" + std::to_string(t.l) + ", " + std::to_string(t.r) + ")" : std::string("none"); };
+    auto SV = [&](const std::vector<Itv>& v) { std::string s; for (const Itv& t : v) s += " " + S(t); return v.empty() ? std::string(" (empty)") : s; };
+    auto S2 = [&](const itv_op::Itvs2& p) { std::string s; for (const Itv& t : p) s += " " + S(t); return p.size() == 0 ? std::string(" (empty)") : s; };
+    auto B01 = [](bool v) { return std::string(v ? "1" : "0"); };
+    // 1 行 =「呼び出し = 結果」＋「何を返す／何をするか」
+    auto line = [](std::string left, const std::string& what) {
+        if (left.size() < 36) left.resize(36, ' ');
+        cout << left << " : " << what << "\n";
+    };
+    cout << "===== (1) itv_op demo =====\n";
+    cout << "区間 [l, r) どうしの演算と、区間の集まり（vector<Itv>）の演算。空の結果は none（空区間 Itv{}）\n";
+
+    // ---- Itv 自体の機能 ----
+    const Itv a{1, 5}, b{3, 8}, c{5, 9}, d{10, 12};
+    cout << "\n[Itv 自体の機能]  a = " << a << " を例に（cout << で表示できる）\n";               // a = [1, 5)
+    line("len = " + std::to_string(a.len()), "長さ r - l");                                          // 4
+    line("mid2 = " + std::to_string(a.mid2()), "l + r（中央値×2。整数のまま比較するため）");        // 6
+    line("contains(5) = " + B01(a.contains(5)), "5 が [1, 5) に含まれるか（右端は含まない）");      // 0
+    line("empty = " + B01(a.empty()), "空区間（l >= r）かどうか");                                  // 0
+    line(std::string("Itv{} is ") + (Itv{} ? "not empty" : "empty"), "Itv{} は空区間（= 該当なし）。if (t) で空でないかを判定できる");  // Itv{} is empty
+    line("a < b = " + B01(a < b), "(l, r) の辞書順で比較（sort にそのまま使える）");                // 1
+    line("a == Itv{1,5} = " + B01(a == Itv{1, 5}), "l と r が両方等しいか");                        // 1
+
+    // ---- 2つの区間 ----
+    cout << "\n[2つの区間]  a = [1, 5), b = [3, 8), c = [5, 9), d = [10, 12)\n";
+    line("intersects(a,b) = " + B01(itv_op::intersects(a, b)), "共通部分があるか（1: ある / 0: ない）");  // 1
+    line("intersects(a,c) = " + B01(itv_op::intersects(a, c)), "[1, 5) と [5, 9) は接するだけで共通部分なし");  // 0
+    line("mergeable(a,c) = " + B01(itv_op::mergeable(a, c)), "重なる or 接するか（和集合が1つの区間になるか）");  // 1
+    line("mergeable(a,d) = " + B01(itv_op::mergeable(a, d)), "離れているので1つにならない");                       // 0
+    line("includes([0,10), b) = " + B01(itv_op::includes(Itv{0, 10}, b)), "[0, 10) が b を丸ごと含むか");         // 1
+    line("includes(a, b) = " + B01(itv_op::includes(a, b)), "a が b を丸ごと含むか");                              // 0
+    line("intersection(a,b) = " + S(itv_op::intersection(a, b)), "共通部分の区間");                                // [3, 5)
+    line("intersection(a,d) = " + S(itv_op::intersection(a, d)), "共通部分が無いので none");                       // none
+    if (auto t = itv_op::intersection(b, c))
+        line("intersection(b,c): l = " + std::to_string(t.l) + ", r = " + std::to_string(t.r),
+             "if (auto t = ...) で共通部分があるときだけ受け取れる");                                              // intersection(b,c): l = 5, r = 8
+    line("intersection_len(a,b) = " + std::to_string(itv_op::intersection_len(a, b)), "共通部分の長さ（無ければ 0）");  // 2
+    line("hull(a,d) = " + S(itv_op::hull(a, d)), "両方を含む最小の区間");                                          // [1, 12)
+    line("unite(a,b) =" + S2(itv_op::unite(a, b)), "和集合。重なる／接するなら1個にまとめて返す（Itvs2）");       // [1, 8)
+    line("unite(d,a) =" + S2(itv_op::unite(d, a)), "離れていれば2個を昇順で返す");                                 // [1, 5) [10, 12)
+    const itv_op::Itvs2 df = itv_op::difference(Itv{0, 10}, b);
+    line("difference([0,10), b) =" + S2(df), "差集合（[0, 10) から b を除いた部分。最大2個）");                    // [0, 3) [8, 10)
+    line("(size " + std::to_string(df.size()) + ", df[1] = " + S(df[1]) + ")", "Itvs2 は size() と [i] で個々の区間を取り出せる");  // (size 2, df[1] = [8, 10))
+    line("difference(a, [0,10)) =" + S2(itv_op::difference(a, Itv{0, 10})), "全部除かれると空（size 0）");         // (empty)
+    line("gap(a,d) = " + std::to_string(itv_op::gap(a, d)), "a と d の間の隙間 [5, 10) の長さ");                    // 5
+    line("gap(a,c) = " + std::to_string(itv_op::gap(a, c)), "接している（または重なる）なら 0");                    // 0
+
+    // ---- 区間の集まり ----
+    cout << "\n[区間の集まり]  正規形 = l 昇順で、互いに重ならず隣接もしない区間の並び\n";
+    std::vector<Itv> v{{5, 7}, {1, 3}, {2, 4}, {4, 5}, {10, 11}};
+    line("union_length(v) = " + std::to_string(itv_op::union_length(v)), "v = [5,7) [1,3) [2,4) [4,5) [10,11) の和集合の長さ");  // 7
+    itv_op::normalize(v);
+    line("normalize(v) =" + SV(v), "v をソートして重なり・隣接を結合し、正規形に書き換える");                      // [1, 7) [10, 11)
+
+    const std::vector<Itv> A{{1, 4}, {6, 9}}, B{{3, 7}, {8, 10}};                       // どちらも正規形
+    cout << "  A = [1, 4) [6, 9),  B = [3, 7) [8, 10)（どちらも正規形）\n";
+    line("unite(A,B) =" + SV(itv_op::unite(A, B)), "和集合（正規形で返る）");                                      // [1, 10)
+    line("intersection(A,B) =" + SV(itv_op::intersection(A, B)), "共通部分（正規形で返る）");                     // [3, 4) [6, 7) [8, 9)
+    line("difference(A,B) =" + SV(itv_op::difference(A, B)), "差集合（A から B を除いた部分）");                   // [1, 3) [7, 8)
+    line("complement(A, 0, 10) =" + SV(itv_op::complement(A, 0, 10)), "補集合（[0, 10) のうち A に含まれない部分）");  // [0, 1) [4, 6) [9, 10)
+    line("find(A, 7) = " + std::to_string(itv_op::find(A, 7)), "7 を含む区間の添字（A[1] = [6, 9)）");            // 1
+    line("find(A, 5) = " + std::to_string(itv_op::find(A, 5)), "5 を含む区間は無いので -1");                      // -1
+
+    const std::vector<Itv> w{{1, 5}, {3, 8}, {4, 6}, {7, 9}};
+    cout << "  w = [1, 5) [3, 8) [4, 6) [7, 9)\n";
+    line("common({[1,5),[3,8),[4,6)}) = " + S(itv_op::common({{1, 5}, {3, 8}, {4, 6}})), "すべての区間の共通部分（無ければ none）");  // [4, 5)
+    line("count_intersecting_pairs(w) = " + std::to_string(itv_op::count_intersecting_pairs(w)), "共通部分を持つペアの個数");  // 4  ([1,5)-[3,8), [1,5)-[4,6), [3,8)-[4,6), [3,8)-[7,9))
+    const auto mo = itv_op::max_overlap(w);
+    line("max_overlap(w) = " + std::to_string(mo.first) + " at " + std::to_string(mo.second), "{最大の重なり数, それを達成する最小の点} の pair");  // 3 at 4
+    {
+        std::string cl;
+        for (long long x : itv_op::coverage_length(w)) cl += " " + std::to_string(x);
+        line("coverage_length(w) =" + cl, "c[k] = ちょうど k 個に覆われる長さ（k = 0..4。c[0] は隙間）");          // 0 4 3 1 0
+    }
+    line("max_disjoint(w) = " + std::to_string(itv_op::max_disjoint(w)), "互いに重ならないように選べる最大個数（区間スケジューリング）");  // 2
+    {
+        std::string sp;
+        for (long long p : itv_op::stab_points(w)) sp += " " + std::to_string(p);
+        line("stab_points(w) =" + sp, "全区間を刺す最小個数の点の列（どの区間もどれかの点を含む）");              // 4 8
+    }
+    line("min_cover(w, [1,9)) = " + std::to_string(itv_op::min_cover(w, Itv{1, 9})), "[1, 9) を覆うのに必要な最小個数");  // 3
+    line("min_cover(w, [0,9)) = " + std::to_string(itv_op::min_cover(w, Itv{0, 9})), "0 を覆える区間が無いので -1");      // -1
+}
+
+}
+
+void solv(){
+    itv1_test::demo();
+    std::cout << "\n===== (1) itv_op random test =====\n";
+    itv1_test::random_test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

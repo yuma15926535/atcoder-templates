@@ -1,0 +1,464 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ------------------------------------------------------------
+// 安全版 拡張ユークリッド互除法
+// ax + by = gcd(a,b) を満たす (x,y) を求める
+// 戻り値: gcd(a,b)（常に非負）
+// 計算量: O(log min(|a|,|b|))
+// ------------------------------------------------------------
+long long safe_extgcd(long long a, long long b,
+                      long long &x, long long &y) {
+    if (b == 0) {
+        x = (a >= 0 ? 1 : -1);
+        y = 0;
+        return llabs(a);
+    }
+    long long x1, y1;
+    long long g = safe_extgcd(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - (long long)((__int128)(a / b) * y1);
+    return g;
+}
+
+// ------------------------------------------------------------
+// mod逆元（合成数mod対応）
+// gcd(a,m)=1 のときのみ存在
+// 存在しない場合は -1
+// 計算量: O(log m)
+// ------------------------------------------------------------
+long long safe_modinv(long long a, long long m) {
+    a %= m;
+    if (a < 0) a += m;
+    long long x, y;
+    long long g = safe_extgcd(a, m, x, y);
+    if (g != 1) return -1;
+    x %= m;
+    if (x < 0) x += m;
+    return x;
+}
+
+// ------------------------------------------------------------
+// 一次不定方程式 ax + by = c を解く（1解）
+// 解が存在すれば true
+// 解の1つを (x,y) に格納
+// 計算量: O(log min(|a|,|b|))
+// ------------------------------------------------------------
+bool solve_linear(long long a, long long b, long long c,
+                  long long &x, long long &y) {
+    long long x0, y0;
+    long long g = safe_extgcd(a, b, x0, y0);
+    if (c % g != 0) return false;
+    long long mul = c / g;
+    x = (long long)((__int128)x0 * mul);
+    y = (long long)((__int128)y0 * mul);
+    return true;
+}
+
+// ------------------------------------------------------------
+// ★ ax ≡ b (mod m) の最小非負解を求める
+// 戻り値: {解 r, 法 m'}  (解は 0 ≤ r < m')
+// 解なしなら {0, -1}
+// 計算量: O(log m)
+// ------------------------------------------------------------
+pair<long long,long long>
+solve_ax_eq_b_mod_m(long long a, long long b, long long m) {
+
+    long long x, y;
+    long long g = safe_extgcd(a, m, x, y);
+
+    if (b % g != 0) return {0, -1};
+
+    long long a2 = a / g;
+    long long b2 = b / g;
+    long long m2 = m / g;
+
+    long long inv = safe_modinv(a2 % m2 + m2, m2);
+    long long r = (long long)((__int128)(b2 % m2 + m2) * inv % m2);
+
+    if (r < 0) r += m2;
+    return {r, m2};   // 最小非負解
+}
+
+// ------------------------------------------------------------
+// 安全版 CRT（2式）
+// x ≡ r1 (mod m1)
+// x ≡ r2 (mod m2)
+// 戻り値: {解 r, lcm}
+// 解なしなら {0, -1}
+// 計算量: O(log max(m1,m2))
+// ------------------------------------------------------------
+pair<long long,long long>
+safe_crt2(long long r1,long long m1,
+          long long r2,long long m2) {
+
+    r1 = (r1 % m1 + m1) % m1;
+    r2 = (r2 % m2 + m2) % m2;
+
+    long long x, y;
+    long long g = safe_extgcd(m1, m2, x, y);
+
+    if ((r2 - r1) % g != 0) return {0, -1};
+
+    long long lcm =
+        (long long)((__int128)m1 / g * m2);
+
+    long long m2g = m2 / g;
+    long long tmp = (r2 - r1) / g;
+    tmp = (tmp % m2g + m2g) % m2g;
+
+    x = (x % m2g + m2g) % m2g;
+
+    long long k =
+        (long long)((__int128)tmp * x % m2g);
+
+    long long r =
+        (long long)((__int128)m1 * k + r1);
+
+    r = (r % lcm + lcm) % lcm;
+
+    return {r, lcm};
+}
+
+// ------------------------------------------------------------
+// 安全版 複数CRT
+// r[i], m[i]
+// 戻り値: {解 r, lcm}
+// 解なしなら {0, -1}
+// 計算量: O(N log M)
+// ------------------------------------------------------------
+pair<long long,long long>
+safe_crt(const vector<long long>& r,
+         const vector<long long>& m) {
+
+    long long r0 = 0;
+    long long m0 = 1;
+
+    for (int i = 0; i < (int)r.size(); i++) {
+        auto res = safe_crt2(r0, m0, r[i], m[i]);
+        if (res.second == -1) return {0, -1};
+        r0 = res.first;
+        m0 = res.second;
+    }
+    return {r0, m0};
+}
+
+// =====================================================
+// オイラーのφ関数（単発）
+// φ(n) を O(√n) で求める
+// n <= 1e12 くらいまでOK
+// =====================================================
+long long euler_phi(long long n) {
+    long long result = n;
+
+    for (long long p = 2; p * p <= n; p++) {
+        if (n % p == 0) {
+            // p は素因数
+            while (n % p == 0) {
+                n /= p;
+            }
+            result -= result / p;  // φ公式
+        }
+    }
+
+    // 最後に素因数が残っている場合
+    if (n > 1) {
+        result -= result / n;
+    }
+
+    return result;
+}
+
+// =====================================================
+// トーシェント篩
+// 1〜N の φ を全て求める
+// 計算量: O(N log log N)
+// =====================================================
+vector<long long> phi_sieve(int N) {
+    vector<long long> phi(N + 1);
+
+    // 初期化
+    for (int i = 0; i <= N; i++) {
+        phi[i] = i;
+    }
+
+    for (int i = 2; i <= N; i++) {
+        if (phi[i] == i) {  // iは素数
+            for (int j = i; j <= N; j += i) {
+                phi[j] -= phi[j] / i;
+            }
+        }
+    }
+
+    return phi;
+}
+
+void solv(){
+    cout << "=============================\n";
+    cout << " 拡張ユークリッド互除法 動作確認\n";
+    cout << "=============================\n";
+
+    long long x, y;
+    long long g = safe_extgcd(30, 18, x, y);
+    cout << "gcd(30,18) = " << g << "\n";
+    cout << "30*" << x << " + 18*" << y << " = "
+         << 30*x + 18*y << "\n\n";
+
+    cout << "=============================\n";
+    cout << " mod逆元 動作確認\n";
+    cout << "=============================\n";
+
+    long long inv = safe_modinv(3, 11);
+    cout << "3 の mod11 における逆元 = " << inv << "\n";
+    cout << "確認: 3*" << inv << " mod11 = "
+         << (3*inv)%11 << "\n\n";
+
+    cout << "=============================\n";
+    cout << " 一次不定方程式 ax+by=c 動作確認\n";
+    cout << "=============================\n";
+
+    if (solve_linear(15, 25, 5, x, y)) {
+        cout << "15x + 25y = 5 の解の一つ\n";
+        cout << "x = " << x << ", y = " << y << "\n";
+        cout << "確認: " << 15*x + 25*y << "\n\n";
+    } else {
+        cout << "解なし\n\n";
+    }
+
+    cout << "=============================\n";
+    cout << " ax ≡ b (mod m) 動作確認\n";
+    cout << "=============================\n";
+
+    auto res1 = solve_ax_eq_b_mod_m(6, 9, 15);
+    if (res1.second == -1) {
+        cout << "解なし\n\n";
+    } else {
+        cout << "6x ≡ 9 (mod 15) の最小非負解 = "
+             << res1.first << "\n";
+        cout << "法 = " << res1.second << "\n\n";
+    }
+
+    cout << "=============================\n";
+    cout << " CRT 2式 動作確認\n";
+    cout << "=============================\n";
+
+    auto res2 = safe_crt2(2, 3, 3, 5);
+    if (res2.second == -1) {
+        cout << "解なし\n\n";
+    } else {
+        cout << "x ≡ 2(mod3), x ≡ 3(mod5)\n";
+        cout << "解 = " << res2.first
+             << ", lcm = " << res2.second << "\n\n";
+    }
+
+    cout << "=============================\n";
+    cout << " CRT 複数式 動作確認\n";
+    cout << "=============================\n";
+
+    vector<long long> r = {1, 2, 3};
+    vector<long long> m = {2, 3, 5};
+
+    auto res3 = safe_crt(r, m);
+    if (res3.second == -1) {
+        cout << "解なし\n";
+    } else {
+        cout << "x ≡ 1(mod2), 2(mod3), 3(mod5)\n";
+        cout << "解 = " << res3.first
+             << ", lcm = " << res3.second << "\n\n";
+    }
+
+    cout << "===== 単発 φ(n) のテスト =====" << endl;
+
+    ll n1 = 36;
+    cout << "n = " << n1 << " のとき φ(n) = "
+         << euler_phi(n1) << " です。" << endl;
+
+    ll n2 = 100;
+    cout << "n = " << n2 << " のとき φ(n) = "
+         << euler_phi(n2) << " です。" << endl;
+
+
+    cout << endl;
+    cout << "===== 1〜N の φ を前計算 =====" << endl;
+
+    int N = 20;
+    auto phi = phi_sieve(N);
+
+    for (int i = 1; i <= N; i++) {
+        cout << "φ(" << i << ") = "
+             << phi[i] << endl;
+    }
+
+    cout << "\n=============================\n";
+    cout << " すべてのテスト終了\n";
+    cout << "=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

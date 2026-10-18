@@ -1,0 +1,363 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================
+// 数列・連結系テンプレ（非素数 mod 対応）
+// ============================================================
+//
+// 含まれる関数
+//
+// sum_arithmetic  : 等差数列の和
+// geom_sum_core   : r^n と (1+r+...+r^(n-1))
+// sum_geometric   : 等比数列の和
+// concat          : 2つの数の連結
+// repeat_concat   : 同じ数をk回連結
+//
+// すべて非素数 mod でも使用可能
+// ============================================================
+
+// ============================================================
+// 等差数列の和
+// a + (a+d) + ... + (a+(n-1)d)
+// 計算量: O(1)
+// ============================================================
+ll sum_arithmetic(ll a, ll d, ll n, ll mod){
+    if(n == 0) return 0;
+    __int128 term = (__int128)n * (2*a + (n-1)*d);
+    term /= 2; // 必ず割り切れる
+    return (ll)(term % mod);
+}
+
+// ============================================================
+// 等比数列コア
+// r^n と (1 + r + r^2 + ... + r^(n-1)) を同時計算
+//
+// 戻り値
+// first  = r^n
+// second = 1 + r + ... + r^(n-1)
+//
+// 計算量: O(log n)
+// ============================================================
+pair<ll,ll> geom_sum_core(ll r, ll n, ll mod){
+    if(n == 0) return {1,0};
+    auto [p, s] = geom_sum_core(r, n/2, mod);
+    ll p2 = (__int128)p * p % mod;
+    ll s2 = (__int128)s * (1 + p) % mod;
+    if(n % 2 == 0){
+        return {p2, s2};
+    }else{
+        ll p3 = (__int128)p2 * r % mod;
+        ll s3 = (s2 + p2) % mod;
+        return {p3, s3};
+    }
+}
+
+// ============================================================
+// 等比数列の和
+// a + ar + ar^2 + ... + ar^(n-1)
+// 計算量: O(log n)
+// ============================================================
+ll sum_geometric(ll a, ll r, ll n, ll mod){
+    auto [p, s] = geom_sum_core(r % mod, n, mod);
+    return (__int128)(a % mod) * s % mod;
+}
+
+// ============================================================
+// 同じ数字 digit を n 回並べた数 mod
+//
+// 例
+// digit=3 n=5 → 33333
+// digit=7 n=4 → 7777
+//
+// 計算量: O(log n)
+// 非素数 mod OK
+// ============================================================
+long long repunit_mod(long long digit, long long n, long long mod){
+    digit %= mod;
+    return digit * sum_geometric(1, 10, n, mod) % mod;
+}
+
+// ============================================================
+// b の桁数を取得
+// ============================================================
+ll digit_count(ll x){
+    if(x == 0) return 1;
+    ll d = 0;
+    while(x){
+        d++;
+        x/=10;
+    }
+    return d;
+}
+
+// ============================================================
+// 10^d mod
+// ============================================================
+ll pow10_mod(ll d, ll mod){
+    ll r = 1;
+    while(d--) r = r * 10 % mod;
+    return r;
+}
+
+// ============================================================
+// 数の連結
+// concat(a,b)
+//
+// 例
+// a=123 b=45
+// → 12345
+//
+// 計算量: O(digit(b))
+// ============================================================
+ll concat(ll a, ll b, ll mod){
+    ll d = digit_count(b);
+    ll p = pow10_mod(d, mod);
+    return ((__int128)a * p + b) % mod;
+}
+
+// ============================================================
+// 同じ数を k 回連結
+//
+// x=123 k=3
+// → 123123123
+//
+// 計算量: O(log k)
+// ============================================================
+ll repeat_concat(ll x, ll k, ll mod){
+    if(k == 0) return 0;
+    ll d = digit_count(x);
+    ll r = pow10_mod(d, mod);
+    return sum_geometric(x, r, k, mod);
+}
+
+ll brute_mod(string s,ll mod){
+    ll r=0;
+    for(char c:s){
+        r=(r*10+(c-'0'))%mod;
+    }
+    return r;
+}
+
+void solv(){
+    cout<<"===== 数列・連結テンプレ動作確認 =====\n\n";
+
+    ll mod=107; // 非素数mod
+
+    // 等差
+    cout<<"[等差数列テスト]\n";
+    cout<<"3 + 5 + 7 + 9 + 11\n";
+    cout<<"計算結果: "<<sum_arithmetic(3,2,5,mod)<<"\n";
+    cout<<"期待値: 35\n\n";
+
+    // 等比
+    cout<<"[等比数列テスト]\n";
+    cout<<"3 + 6 + 12 + 24 + 48\n";
+    cout<<"計算結果: "<<sum_geometric(3,2,5,mod)<<"\n";
+    cout<<"期待値: 93\n\n";
+
+    // concat
+    cout<<"[concatテスト]\n";
+    ll c=concat(123,45,mod);
+    cout<<"123 と 45 を連結\n";
+    cout<<"計算結果: "<<c<<"\n";
+    cout<<"期待値: "<<12345%mod<<"\n\n";
+
+    // repeat concat
+    cout<<"[repeat concatテスト]\n";
+    ll rc=repeat_concat(123,3,mod);
+    cout<<"123 を3回連結\n";
+    cout<<"計算結果: "<<rc<<"\n";
+    cout<<"期待値: "<<brute_mod("123123123",mod)<<"\n\n";
+
+    // repeated digit
+    cout<<"[repeated digitテスト]\n";
+    ll rd=repunit_mod(3,5,mod);
+    cout<<"3 を5回並べる\n";
+    cout<<"計算結果: "<<rd<<"\n";
+    cout<<"期待値: "<<brute_mod("33333",mod)<<"\n\n";
+
+    // repunit
+    cout<<"[repunitテスト]\n";
+    ll ru=repunit_mod(1,6,mod);
+    cout<<"111111\n";
+    cout<<"計算結果: "<<ru<<"\n";
+    cout<<"期待値: "<<brute_mod("111111",mod)<<"\n\n";
+
+    cout<<"===== テスト終了 =====\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

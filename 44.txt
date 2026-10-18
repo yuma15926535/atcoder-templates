@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N,shift;
+vector<int> A;
+int get(int index){
+    int r=(index-shift)%N;
+    while(r<0)r+=N;
+    return r;
+}
+
+int main()
+{
+    int Q;
+    cin>>N>>Q;
+    A=vector<int>(N);
+    rep(i,0,N)cin>>A[i];
+    queue<int> ans;
+    //シフト、反転などの見掛け上の変化は実際に行うより早い
+    shift=0;
+    rep(i,0,Q){
+        int T,x,y;
+        cin>>T>>x>>y;
+        x--,y--;
+        if(T==1)swap(A[get(x)],A[get(y)]);
+        else if(T==2)shift++;
+        else ans.push(A[get(x)]);
+    }
+    while(!ans.empty()){
+        cout<<ans.front()<<"\n";
+        ans.pop();
+    }
+    return 0;
+}

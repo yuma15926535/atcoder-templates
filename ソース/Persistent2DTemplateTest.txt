@@ -1,0 +1,592 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+struct PersistentKth {
+    struct Node {
+        int val;
+        Node *l, *r;
+        Node(int v=0, Node* l=nullptr, Node* r=nullptr)
+            : val(v), l(l), r(r) {}
+    };
+
+    int n;                  // 座圧後サイズ
+    vector<int> xs;         // index → 元の値
+    vector<Node*> roots;    // roots[i] = prefix [0, i)
+
+    // --- セグ木の初期構築（全て0） ---
+    Node* build(int l, int r) {
+        if (l + 1 == r) return new Node(0);
+        int mid = (l + r) >> 1;
+        Node* left = build(l, mid);
+        Node* right = build(mid, r);
+        return new Node(0, left, right);
+    }
+
+    // --- posにdelta加算（非破壊） ---
+    Node* add(Node* node, int l, int r, int pos, int delta) {
+        if (l + 1 == r) {
+            return new Node(node->val + delta);
+        }
+        int mid = (l + r) >> 1;
+        if (pos < mid) {
+            Node* nl = add(node->l, l, mid, pos, delta);
+            return new Node(nl->val + node->r->val, nl, node->r);
+        } else {
+            Node* nr = add(node->r, mid, r, pos, delta);
+            return new Node(node->l->val + nr->val, node->l, nr);
+        }
+    }
+
+    // --- kth（差分）---
+    // a=roots[l], b=roots[r]
+    // 区間[l, r)のk番目（indexを返す）
+    int kth(Node* a, Node* b, int l, int r, int k) {
+        if (l + 1 == r) return l;
+        int mid = (l + r) >> 1;
+        int cnt = b->l->val - a->l->val;
+        if (k <= cnt) return kth(a->l, b->l, l, mid, k);
+        else return kth(a->r, b->r, mid, r, k - cnt);
+    }
+
+    int count_leq(Node* node, int l, int r, int qr) {
+        // [l, r) のうち [0, qr) の個数
+        if (qr <= l) return 0;
+        if (r <= qr) return node->val;
+        int mid = (l + r) >> 1;
+        return count_leq(node->l, l, mid, qr)
+             + count_leq(node->r, mid, r, qr);
+    }
+
+    // --- x以下の個数（差分） ---
+    int count_leq(Node* a, Node* b, int l, int r, int qr) {
+        if (qr <= l) return 0;
+        if (r <= qr) return b->val - a->val;
+        int mid = (l + r) >> 1;
+        return count_leq(a->l, b->l, l, mid, qr)
+             + count_leq(a->r, b->r, mid, r, qr);
+    }
+
+    int kth_by_bs(int l, int r, int k) {
+        int low = 0, high = n - 1;
+        int ans = n - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >> 1;
+
+            int cnt = count_leq(roots[l], roots[r], 0, n, mid + 1);
+
+            if (cnt >= k) {
+                ans = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        return xs[ans];
+    }
+
+    // --- 配列から構築 ---
+    // 座圧 + prefix構築
+    void build_from_array(const vector<int>& a) {
+        // 座圧
+        xs = a;
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+        n = xs.size();
+
+        auto get_id = [&](int x) {
+            return lower_bound(xs.begin(), xs.end(), x) - xs.begin();
+        };
+
+        // roots構築
+        roots.clear();
+        roots.push_back(build(0, n));
+
+        for (int i = 0; i < (int)a.size(); i++) {
+            int id = get_id(a[i]);
+            roots.push_back(add(roots.back(), 0, n, id, 1));
+        }
+    }
+
+    // --- クエリ：k番目 ---
+    // 区間 [l, r) の k番目（1-index）
+    int query_kth(int l, int r, int k) {
+        int idx = kth(roots[l], roots[r], 0, n, k);
+        return xs[idx];
+    }
+
+    // --- クエリ：x以下の個数 ---
+    int query_leq(int l, int r, int x) {
+        int id = upper_bound(xs.begin(), xs.end(), x) - xs.begin();
+        return count_leq(roots[l], roots[r], 0, n, id);
+    }
+
+    // --- クエリ：二分探索kth ---
+    // count_leqを使ってkthを再現（理解用）
+    int query_kth_bs(int l, int r, int k) {
+        int low = 0, high = n - 1;
+        int ans = n - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >> 1;
+            int cnt = count_leq(roots[l], roots[r], 0, n, mid + 1);
+
+            if (cnt >= k) {
+                ans = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        return xs[ans];
+    }
+};
+
+/*
+==================================================
+ 永続セグメント木による2次元クエリ
+==================================================
+
+【概要】
+点 (x, y) の集合に対して、矩形クエリを高速に処理する。
+
+【できること】
+・矩形 [xl, xr) × [yl, yr) 内の点数
+・矩形内の y の k番目（順序統計）
+
+【仕組み】
+・xでソートして「時間軸」として扱う
+・yを永続セグ木（頻度）で管理
+・prefix差分で区間を表現
+
+roots[i] = xが小さい順に i個追加した状態
+
+→ 矩形 [xl, xr) は
+   roots[r] - roots[l]
+
+【計算量】
+構築：O(N log N)
+クエリ：O(log N)
+
+【注意】
+・区間はすべて半開区間 [l, r)
+・xはlower_boundでindex化
+・yは内部で座圧される
+
+==================================================
+*/
+struct Persistent2D {
+    PersistentKth pst;
+
+    vector<int> xs;
+    vector<int> ys;
+
+    // --- 初期構築 ---
+    // 点集合 pts = {(x, y)} を渡す
+    void build(vector<pair<int,int>> pts) {
+        sort(pts.begin(), pts.end());
+
+        xs.clear();
+        vector<int> yseq;
+
+        for (auto [x, y] : pts) {
+            xs.push_back(x);
+            yseq.push_back(y);
+        }
+
+        pst.build_from_array(yseq);
+    }
+
+    // --- 矩形内の点数 ---
+    // [xl, xr) × [yl, yr)
+    int query_count(int xl, int xr, int yl, int yr) {
+        int l = lower_bound(xs.begin(), xs.end(), xl) - xs.begin();
+        int r = lower_bound(xs.begin(), xs.end(), xr) - xs.begin();
+
+        return pst.query_leq(l, r, yr - 1)
+             - pst.query_leq(l, r, yl - 1);
+    }
+
+    // --- 矩形内のk番目（y） ---
+    // 矩形 [xl, xr) × [yl, yr) に含まれる点の中で
+    // 「yの小さい順でk番目」を返す（1-index）
+    //
+    // 【方法】
+    // count（x以下の個数）を使って値で二分探索する
+    //
+    // 【計算量】
+    // O(log N × log V)
+    //
+    // 【注意】
+    // ・kは1-index
+    // ・kは矩形内の点数以下である必要がある
+    // ・戻り値はyの値（座圧後ではなく元の値）
+    int kth_in_rect(int xl, int xr, int yl, int yr, int k) {
+        int low = yl, high = yr-1, ans = yr-1;
+
+        while (low <= high) {
+            int mid = (low + high) >> 1;
+
+            int cnt = query_count(xl, xr, yl, mid+1);
+
+            if (cnt >= k) {
+                ans = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        return ans;
+    }
+};
+
+void random_test_2d() {
+    const int N = 50;
+    const int Q = 500;
+
+    mt19937 rng(0);
+
+    vector<pair<int,int>> pts(N);
+    for (int i = 0; i < N; i++) {
+        pts[i] = {rng()%50, rng()%50};
+    }
+
+    Persistent2D ps;
+    ps.build(pts);
+
+    for (int q = 0; q < Q; q++) {
+        int xl = rng()%50;
+        int xr = rng()%50;
+        if (xl > xr) swap(xl, xr);
+        xr++;
+
+        int yl = rng()%50;
+        int yr = rng()%50;
+        if (yl > yr) swap(yl, yr);
+        yr++;
+
+        int res = ps.query_count(xl, xr, yl, yr);
+
+        int naive = 0;
+        for (auto [x,y] : pts) {
+            if (xl <= x && x < xr && yl <= y && y < yr) {
+                naive++;
+            }
+        }
+
+        if (res != naive) {
+            cout << "Mismatch!\n";
+            cout << "x:["<<xl<<","<<xr<<") y:["<<yl<<","<<yr<<")\n";
+            cout << "seg="<<res<<" naive="<<naive<<"\n";
+            exit(0);
+        }
+    }
+
+    cout << "2D OK\n";
+}
+
+mt19937 rng(0);
+
+void random_test_2d_kth() {
+    const int N = 50;
+    const int Q = 500;
+    const int MAXC = 50;
+
+    // ランダム点生成
+    vector<pair<int,int>> pts(N);
+    for (int i = 0; i < N; i++) {
+        pts[i] = {rng()%MAXC, rng()%MAXC};
+    }
+
+    Persistent2D ps;
+    ps.build(pts);
+
+    for (int q = 0; q < Q; q++) {
+        int xl = rng()%MAXC;
+        int xr = rng()%MAXC;
+        if (xl > xr) swap(xl, xr);
+        xr++;
+
+        int yl = rng()%MAXC;
+        int yr = rng()%MAXC;
+        if (yl > yr) swap(yl, yr);
+        yr++;
+
+        // 矩形内の点を集める（naive）
+        vector<int> ys;
+        for (auto [x,y] : pts) {
+            if (xl <= x && x < xr && yl <= y && y < yr) {
+                ys.push_back(y);
+            }
+        }
+
+        if (ys.empty()) continue;
+
+        sort(ys.begin(), ys.end());
+
+        int k = rng() % ys.size() + 1;
+
+        int res = ps.kth_in_rect(xl, xr, yl, yr, k);
+        int naive = ys[k-1];
+
+        if (res != naive) {
+            cout << "Mismatch!\n";
+            cout << "矩形 x:["<<xl<<","<<xr<<") y:["<<yl<<","<<yr<<")\n";
+            cout << "k = " << k << "\n";
+
+            cout << "対象点: ";
+            for (auto [x,y] : pts) {
+                if (xl <= x && x < xr && yl <= y && y < yr) {
+                    cout << "(" << x << "," << y << ") ";
+                }
+            }
+            cout << "\n";
+
+            cout << "seg = " << res << " naive = " << naive << "\n";
+            exit(0);
+        }
+    }
+
+    cout << "2D kth OK\n";
+}
+
+void demo_2d_kth_rect() {
+    cout << "==== 矩形内k番目（y）の動作確認 ====\n";
+
+    vector<pair<int,int>> pts = {
+        {1, 5}, {2, 1}, {3, 4}, {4, 2}, {5, 3}
+    };
+
+    cout << "点集合:\n";
+    for (auto [x,y] : pts) {
+        cout << "(" << x << ", " << y << ") ";
+    }
+    cout << "\n";
+
+    Persistent2D ps;
+    ps.build(pts);
+
+    int xl = 2, xr = 5;
+    int yl = 2, yr = 5;
+
+    cout << "\n矩形 [" << xl << "," << xr << ") × ["
+         << yl << "," << yr << ") を考える\n";
+
+    // 該当点表示
+    vector<int> ys;
+    cout << "含まれる点: ";
+    for (auto [x,y] : pts) {
+        if (xl <= x && x < xr && yl <= y && y < yr) {
+            cout << "(" << x << "," << y << ") ";
+            ys.push_back(y);
+        }
+    }
+    cout << "\n";
+
+    if (ys.empty()) {
+        cout << "この矩形には点が存在しない\n";
+        cout << "==== 確認終了 ====\n";
+        return;
+    }
+
+    sort(ys.begin(), ys.end());
+
+    cout << "\n--- 正解（ナイーブ） ---\n";
+    for (int i = 0; i < (int)ys.size(); i++) {
+        cout << i+1 << "番目のy: " << ys[i] << "\n";
+    }
+
+    cout << "\n--- セグ木の結果 ---\n";
+    for (int k = 1; k <= (int)ys.size(); k++) {
+        int val = ps.kth_in_rect(xl, xr, yl, yr, k);
+        cout << k << "番目のy: " << val << "\n";
+    }
+
+    cout << "==== 確認終了 ====\n";
+}
+
+void solv(){
+    random_test_2d();
+    random_test_2d_kth();
+    demo_2d_kth_rect();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

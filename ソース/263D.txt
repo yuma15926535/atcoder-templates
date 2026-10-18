@@ -1,0 +1,202 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ PrefixMinMax（pair版・完成形）
+ - 前計算 O(N)
+ - クエリ O(1)
+ - min / max 両対応
+ - 値 + 位置(index) を保持
+ - 空区間も安全に扱える
+==================================================
+
+【想定用途】
+- Left Right Operation
+- 1点除外の最適値
+- 貪欲法の復元
+- 区間最適化テンプレ
+
+【仕様】
+- 0-index
+- 空区間：
+    min -> {INF, -1}
+    max -> {-INF, -1}
+*/
+struct PrefixMinMax {
+    using pli = pair<long long,int>;
+    const long long INF = (1LL<<60);
+
+    int N;
+    vector<pli> minL, minR;
+    vector<pli> maxL, maxR;
+
+    PrefixMinMax(const vector<long long>& a) {
+        N = a.size();
+        minL.resize(N);
+        minR.resize(N);
+        maxL.resize(N);
+        maxR.resize(N);
+
+        // ===== 左から =====
+        minL[0] = {a[0], 0};
+        maxL[0] = {a[0], 0};
+
+        for(int i = 1; i < N; i++){
+            // min
+            if(a[i] < minL[i-1].first){
+                minL[i] = {a[i], i};
+            }else{
+                minL[i] = minL[i-1];
+            }
+            // max
+            if(a[i] > maxL[i-1].first){
+                maxL[i] = {a[i], i};
+            }else{
+                maxL[i] = maxL[i-1];
+            }
+        }
+
+        // ===== 右から =====
+        minR[N-1] = {a[N-1], N-1};
+        maxR[N-1] = {a[N-1], N-1};
+
+        for(int i = N-2; i >= 0; i--){
+            // min
+            if(a[i] < minR[i+1].first){
+                minR[i] = {a[i], i};
+            }else{
+                minR[i] = minR[i+1];
+            }
+            // max
+            if(a[i] > maxR[i+1].first){
+                maxR[i] = {a[i], i};
+            }else{
+                maxR[i] = maxR[i+1];
+            }
+        }
+    }
+
+    // ------------------------------
+    // 左側 [0, idx]
+    // ------------------------------
+    pli left_min(int idx) const {
+        if(idx < 0) return {INF, -1};   // 空区間
+        return minL[idx];
+    }
+
+    pli left_max(int idx) const {
+        if(idx < 0) return {-INF, -1};  // 空区間
+        return maxL[idx];
+    }
+
+    // ------------------------------
+    // 右側 [idx, N-1]
+    // ------------------------------
+    pli right_min(int idx) const {
+        if(idx >= N) return {INF, -1};  // 空区間
+        return minR[idx];
+    }
+
+    pli right_max(int idx) const {
+        if(idx >= N) return {-INF, -1}; // 空区間
+        return maxR[idx];
+    }
+
+    // ------------------------------
+    // 左右を合わせた取得
+    //   i を除外したときの最適値
+    // ------------------------------
+    pli except_min(int i) const {
+        return min(left_min(i-1), right_min(i+1));
+    }
+
+    pli except_max(int i) const {
+        return max(left_max(i-1), right_max(i+1));
+    }
+};
+
+void solv(){
+    int N;
+    ll L, R;
+    cin >> N >> L >> R;
+
+    vector<ll> A(N);
+    for(int i = 0; i < N; i++) cin >> A[i];
+
+    // 元の総和
+    ll base_sum = accumulate(A.begin(), A.end(), 0LL);
+
+    // 左側を L にしたときの「差分累積」
+    vector<ll> left_diff(N);
+    {
+        ll cur = 0;
+        for(int i = 0; i < N; i++){
+            cur += L - A[i];
+            left_diff[i] = cur;
+        }
+    }
+
+    // 右側を R にしたときの「差分累積」
+    vector<ll> right_diff(N);
+    {
+        ll cur = 0;
+        for(int i = N-1; i >= 0; i--){
+            cur += R - A[i];
+            right_diff[i] = cur;
+        }
+    }
+
+    // PrefixMinMax を構築
+    PrefixMinMax PL(left_diff);
+    PrefixMinMax PR(right_diff);
+
+    // right_diff の suffix min
+    vector<ll> suf_min(N+1, 0);
+    suf_min[N] = 0;  // 右を選ばない
+    for(int i = N-1; i >= 0; i--){
+        suf_min[i] = min(suf_min[i+1], right_diff[i]);
+    }
+
+    ll ans = base_sum;
+
+    // i は「境界」
+    //範囲外ではINFを返却するので明示的な回避が必要
+    for(int i = -1; i < N; i++){
+        ll addL = (i >= 0 ? PL.left_min(i).first : 0);
+        ll addR = (i+1 < N ? PR.right_min(i+1).first : 0);
+        ans = min(ans, base_sum + addL + addR);
+    }
+
+    cout << ans << "\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

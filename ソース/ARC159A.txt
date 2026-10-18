@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+
+int main(){
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N,K;
+    cin>>N>>K;
+    vector<vector<ll>>dist(N,vector<ll>(N,1e15));
+    rep(i,0,N)rep(j,0,N){
+        int a;
+        cin>>a;
+        if(a)dist[i][j]=1;
+    }
+    //ワーシャル・フロイド法
+    //dist[ i ][ j ] := 頂点 i から j への最短経路
+    //動的計画法を用いて全点対最短経路を求める
+    //負の辺が含まれていても動作する
+    //負の閉路がある場合は検出できる
+    //O(N^3)
+    rep(k,0,N)rep(i,0,N)rep(j,0,N)chmin(dist[i][j],dist[i][k]+dist[k][j]);
+    int Q;
+    cin>>Q;
+    rep(i,0,Q){
+        ll s,t;
+        cin>>s>>t;
+        s--;t--;
+        s%=N;t%=N;
+        if(dist[s][t]!=1e15)cout<<dist[s][t]<<'\n';
+        else cout<<-1<<'\n';
+    }
+    return 0;
+}

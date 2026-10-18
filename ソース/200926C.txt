@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//UnionFindの実装
+//findは代表元を返すためfindの戻り値が等しいかを確かめれば同集合に属するかを判定できる
+struct UnionFind
+{
+    //各頂点の親を表す配列
+    //-1の場合は自身が親
+    vector<int> P;
+    UnionFind(int n){
+        P.resize(n,-1);
+    }
+
+    int find(int x){
+        if(P[x]==-1)return x;
+        else return P[x]=find(P[x]);
+    }
+
+    void unite(int x,int y){
+        x=find(x);
+        y=find(y);
+        if(x!=y)P[x]=y;
+    }
+};
+
+
+int main()
+{
+    int N,M;
+    cin>>N>>M;
+    UnionFind uf(N);
+    rep(i,0,M){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        uf.unite(a,b);
+    }
+    int ans=-1;
+    //親の数-1が連結成分の個数
+    rep(i,0,N)if(uf.P[i]==-1)ans++;
+    cout<<ans<<"\n";
+    return 0;
+}

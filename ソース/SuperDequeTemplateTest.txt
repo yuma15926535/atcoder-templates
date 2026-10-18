@@ -1,0 +1,378 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+========================================================
+ ExtendedDeque（dequeのmax/min/count方向への拡張）
+========================================================
+【機能】
+- push_front / push_back
+- pop_front / pop_back
+- front / back 取得
+- get_min / get_max
+- pop_min / pop_max
+- count(x) : 値 x の個数
+========================================================
+*/
+template<class T>
+struct ExtendedDeque {
+
+    // --- deque本体 ---
+    list<T> dq;
+
+    // multiset用ノード
+    struct Node {
+        T val;
+        typename list<T>::iterator it;
+
+        bool operator<(const Node& other) const {
+            if (val != other.val) return val < other.val;
+            return &(*it) < &(*other.it);
+        }
+    };
+
+    multiset<Node> ms;
+
+    // 値の個数管理
+    map<T, int> freq;
+
+    //============================
+    // 基本操作
+    //============================
+
+    void push_front(const T& x) {
+        dq.push_front(x);
+        ms.insert({x, dq.begin()});
+        freq[x]++;
+    }
+
+    void push_back(const T& x) {
+        dq.push_back(x);
+        auto it = prev(dq.end());
+        ms.insert({x, it});
+        freq[x]++;
+    }
+
+    void pop_front() {
+        if (dq.empty()) return;
+        auto it = dq.begin();
+
+        ms.erase(ms.find({*it, it}));
+        if (--freq[*it] == 0) freq.erase(*it);
+
+        dq.pop_front();
+    }
+
+    void pop_back() {
+        if (dq.empty()) return;
+        auto it = prev(dq.end());
+
+        ms.erase(ms.find({*it, it}));
+        if (--freq[*it] == 0) freq.erase(*it);
+
+        dq.pop_back();
+    }
+
+    //============================
+    // front / back
+    //============================
+
+    T& front() { return dq.front(); }
+    T& back()  { return dq.back(); }
+
+    //============================
+    // min / max
+    //============================
+
+    const T& get_min() const {
+        return ms.begin()->val;
+    }
+
+    const T& get_max() const {
+        return ms.rbegin()->val;
+    }
+
+    T pop_min() {
+        auto it = ms.begin();
+        T val = it->val;
+
+        dq.erase(it->it);
+        ms.erase(it);
+
+        if (--freq[val] == 0) freq.erase(val);
+        return val;
+    }
+
+    T pop_max() {
+        auto it = prev(ms.end());
+        T val = it->val;
+
+        dq.erase(it->it);
+        ms.erase(it);
+
+        if (--freq[val] == 0) freq.erase(val);
+        return val;
+    }
+
+    //============================
+
+    int count(const T& x) const {
+        auto it = freq.find(x);
+        return (it == freq.end() ? 0 : it->second);
+    }
+
+    int size() const { return dq.size(); }
+    bool empty() const { return dq.empty(); }
+};
+
+template<class T>
+struct OrderStatisticDeque {
+
+    struct Node {
+        T val, sum, mn, mx;
+        int prio, sz;
+        Node *l, *r;
+
+        Node(T v)
+            : val(v), sum(v), mn(v), mx(v),
+              prio(rand()), sz(1), l(nullptr), r(nullptr) {}
+    };
+
+    using np = Node*;
+    np root = nullptr;
+
+    //============================
+    // 補助関数
+    //============================
+
+    int sz(np t){ return t ? t->sz : 0; }
+    T sum(np t){ return t ? t->sum : 0; }
+    T mn(np t){ return t ? t->mn : numeric_limits<T>::max(); }
+    T mx(np t){ return t ? t->mx : numeric_limits<T>::lowest(); }
+
+    void upd(np t){
+        if(!t) return;
+        t->sz = 1 + sz(t->l) + sz(t->r);
+        t->sum = t->val + sum(t->l) + sum(t->r);
+        t->mn = min({t->val, mn(t->l), mn(t->r)});
+        t->mx = max({t->val, mx(t->l), mx(t->r)});
+    }
+
+    // split [0,k) | [k,n)
+    void split(np t, np &a, np &b, int k){
+        if(!t){ a=b=nullptr; return; }
+
+        if(sz(t->l) >= k){
+            split(t->l, a, t->l, k);
+            b = t;
+        }else{
+            split(t->r, t->r, b, k - sz(t->l) - 1);
+            a = t;
+        }
+        upd(t);
+    }
+
+    np merge(np a, np b){
+        if(!a||!b) return a?a:b;
+        if(a->prio > b->prio){
+            a->r = merge(a->r, b);
+            upd(a);
+            return a;
+        }else{
+            b->l = merge(a, b->l);
+            upd(b);
+            return b;
+        }
+    }
+
+    //============================
+    // 基本deque操作
+    //============================
+
+    void push_front(T x){
+        root = merge(new Node(x), root);
+    }
+
+    void push_back(T x){
+        root = merge(root, new Node(x));
+    }
+
+    void pop_front(){
+        np a,b;
+        split(root,a,b,1);
+        root=b;
+    }
+
+    void pop_back(){
+        np a,b;
+        split(root,a,b,sz(root)-1);
+        root=a;
+    }
+
+    //============================
+    // insert / erase
+    //============================
+
+    void insert(int k, T x){
+        np a,b;
+        split(root,a,b,k);
+        root = merge(merge(a,new Node(x)),b);
+    }
+
+    void erase(int k){
+        np a,b,c;
+        split(root,a,b,k);
+        split(b,b,c,1);
+        root = merge(a,c);
+    }
+
+    //============================
+    // k番目アクセス
+    //============================
+
+    T& kth(np t,int k){
+        int left=sz(t->l);
+        if(k<left) return kth(t->l,k);
+        if(k==left) return t->val;
+        return kth(t->r,k-left-1);
+    }
+
+    T& operator[](int k){
+        return kth(root,k);
+    }
+
+    //============================
+    // range query
+    //============================
+
+    tuple<T,T,T> range_query(int l,int r){
+        np a,b,c;
+        split(root,a,b,l);
+        split(b,b,c,r-l+1);
+
+        T S=sum(b);
+        T MN=mn(b);
+        T MX=mx(b);
+
+        root=merge(a,merge(b,c));
+        return {S,MN,MX};
+    }
+
+    //============================
+
+    int size(){ return sz(root); }
+};
+
+void solv(){
+
+    //乱数をランダムに設定
+    //srand(0);などで固定できる
+    srand(time(NULL));
+
+    cout<<"==============================\n";
+    cout<<"ExtendedDeque 動作確認\n";
+    cout<<"==============================\n";
+
+    ExtendedDeque<int> ed;
+
+    auto show_ed = [&](){
+        cout<<"現在の状態: [ ";
+        for(auto &x:ed.dq) cout<<x<<" ";
+        cout<<"]\n";
+    };
+
+    cout<<"\n--- push テスト ---\n";
+    ed.push_back(5);
+    ed.push_front(3);
+    ed.push_back(7);
+    ed.push_back(3);
+    show_ed();
+
+    cout<<"front = "<<ed.front()<<"\n";
+    cout<<"back = "<<ed.back()<<"\n";
+    cout<<"min = "<<ed.get_min()<<"\n";
+    cout<<"max = "<<ed.get_max()<<"\n";
+    cout<<"count(3) = "<<ed.count(3)<<"\n";
+
+    cout<<"\n--- pop_min ---\n";
+    cout<<"削除値 = "<<ed.pop_min()<<"\n";
+    show_ed();
+
+    cout<<"\n--- pop_max ---\n";
+    cout<<"削除値 = "<<ed.pop_max()<<"\n";
+    show_ed();
+
+    cout<<"\n--- pop_front/back ---\n";
+    ed.pop_front();
+    ed.pop_back();
+    show_ed();
+
+    cout<<"\n==============================\n";
+    cout<<"OrderStatisticDeque 動作確認\n";
+    cout<<"==============================\n";
+
+    OrderStatisticDeque<long long> osd;
+
+    auto show_osd = [&](){
+        cout<<"現在の状態: [ ";
+        for(int i=0;i<osd.size();i++) cout<<osd[i]<<" ";
+        cout<<"]\n";
+    };
+
+    cout<<"\n--- push ---\n";
+    for(int x:{10,20,30,40,50}) osd.push_back(x);
+    show_osd();
+
+    cout<<"\n--- insert ---\n";
+    osd.insert(2,99);
+    show_osd();
+
+    cout<<"\n--- erase ---\n";
+    osd.erase(3);
+    show_osd();
+
+    cout<<"\n--- kth アクセス確認 ---\n";
+    for(int i=0;i<osd.size();i++)
+        cout<<"index "<<i<<" = "<<osd[i]<<"\n";
+
+    cout<<"\n--- range query [1,3] ---\n";
+    auto [s,mn,mx]=osd.range_query(1,3);
+    cout<<"sum="<<s<<" min="<<mn<<" max="<<mx<<"\n";
+
+    cout<<"\n--- pop_front/back ---\n";
+    osd.pop_front();
+    osd.pop_back();
+    show_osd();
+
+    cout<<"\nテスト完了\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

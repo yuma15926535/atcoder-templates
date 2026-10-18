@@ -1,0 +1,42 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<int> v(200001,0);
+    //いもす法で区間の和を計算
+    rep(i,0,N){
+        int L,R;
+        cin>>L>>R;
+        v[L]++;
+        v[R]--;
+    }
+    bool b=false;
+    vector<pair<int,int>> ans;
+    int l;
+    rep(i,0,200001){
+        v[i]+=v[i-1];
+        if(v[i]>=1){
+            if(!b)l=i;
+            b=true;
+        }else{
+            if(b)ans.push_back({l,i});
+            b=false;
+        }
+    }
+    for(auto p:ans)cout<<p.first<<" "<<p.second<<"\n";
+    return 0;
+}

@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int N,X,Y;
+vector<vector<int>> G;
+vector<int> d;
+//BFSで距離を記録
+void bfs(int s){
+    d=vector<int>(N,N);
+    d[s]=0;
+    queue<int> q;
+    q.push(s);
+    while(!q.empty()){
+        int x=q.front();q.pop();
+        for(int y:G[x])if(d[y]==N){
+            d[y]=d[x]+1;
+            q.push(y);
+        }
+    }
+}
+
+int main()
+{
+    //木の単純パス(経路)の構成
+    cin>>N>>X>>Y;
+    X--;Y--;
+    G.resize(N);
+    rep(i,1,N){
+        int u,v;
+        cin>>u>>v;
+        u--;v--;
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+    bfs(X);
+    stack<int> s;
+    s.push(Y);
+    bool b=true;
+    //距離が1ずつ減るような経路を選択
+    while(b){
+        int x=s.top(),k=d[x];
+        if(k==1)b=false;
+        for(int y:G[x])if(d[y]==k-1)s.push(y);
+    }
+    while(!s.empty()){
+        cout<<s.top()+1<<" ";
+        s.pop();
+    }
+    cout<<"\n";
+    return 0;
+}

@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+set<int> use,nuse;
+bool check(set<int> &s){
+    if(use.size()>4)return false;
+    if(s.size()<use.size())return false;
+    for(int a:use)if(!s.count(a))return false;
+    return true;
+}
+int solv(){
+    int ans=0;
+    rep(i,0,10000){
+        vector<int> v(4);
+        v[0]=i%10;
+        v[1]=(i/10)%10;
+        v[2]=(i/100)%10;
+        v[3]=(i/1000)%10;
+        set<int> s;
+        bool b=false;
+        for(int a:v)if(nuse.count(a))b=true;
+        if(b)continue;
+        s={v[0],v[1],v[2],v[3]};
+        if(check(s))ans++;
+    }
+    return ans;
+}
+
+int main()
+{
+    string S;
+    cin>>S;
+    rep(i,0,10){
+        if(S[i]=='o')use.insert(i);
+        else if(S[i]=='x')nuse.insert(i);
+    }
+    cout<<solv()<<"\n";
+    return 0;
+}

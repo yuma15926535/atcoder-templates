@@ -1,0 +1,244 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ マンハッタン距離 座標変換テンプレ（復元付き）
+==================================================
+45度回転して座標を内部で持つことにより
+・点集合の最大マンハッタン距離
+・ある点からの最遠距離
+・ひし形範囲判定
+をO(1)で処理できる。
+==================================================
+*/
+struct Manhattan {
+    // 元の点を保存（復元用）
+    vector<pair<ll,ll>> pts;
+
+    // 変換後座標
+    vector<ll> u, v;
+
+    // 極値
+    ll umin, umax;
+    ll vmin, vmax;
+
+    // 極値のインデックス
+    int idx_umin, idx_umax;
+    int idx_vmin, idx_vmax;
+
+    //------------------------------------------------
+    // コンストラクタ（空）
+    //------------------------------------------------
+    Manhattan() {
+        umin = vmin = LLONG_MAX;
+        umax = vmax = LLONG_MIN;
+    }
+
+    //------------------------------------------------
+    // コンストラクタ（初期点集合）
+    //------------------------------------------------
+    Manhattan(const vector<pair<ll,ll>>& init) : Manhattan() {
+        for(auto [x,y] : init) add_point(x,y);
+    }
+
+    //------------------------------------------------
+    // 点追加
+    //------------------------------------------------
+    void add_point(ll x, ll y) {
+        int id = pts.size();
+
+        pts.push_back({x,y});
+
+        ll uu = x + y;
+        ll vv = x - y;
+
+        u.push_back(uu);
+        v.push_back(vv);
+
+        if(uu < umin){ umin = uu; idx_umin = id; }
+        if(uu > umax){ umax = uu; idx_umax = id; }
+
+        if(vv < vmin){ vmin = vv; idx_vmin = id; }
+        if(vv > vmax){ vmax = vv; idx_vmax = id; }
+    }
+
+    //------------------------------------------------
+    // 最大マンハッタン距離
+    //------------------------------------------------
+    ll max_dist() const {
+        if(pts.empty()) return 0;
+        return max(umax - umin, vmax - vmin);
+    }
+
+    //------------------------------------------------
+    // 最大距離ペアを復元
+    //------------------------------------------------
+    pair<pair<ll,ll>,pair<ll,ll>> max_pair() const {
+        if(umax-umin >= vmax-vmin)
+            return {pts[idx_umin], pts[idx_umax]};
+        else
+            return {pts[idx_vmin], pts[idx_vmax]};
+    }
+
+    //------------------------------------------------
+    // 任意点からの最遠距離
+    //------------------------------------------------
+    ll farthest_dist(ll x, ll y) const {
+        if(pts.empty()) return 0;
+
+        ll uu = x+y;
+        ll vv = x-y;
+
+        return max({
+            llabs(uu-umin),
+            llabs(uu-umax),
+            llabs(vv-vmin),
+            llabs(vv-vmax)
+        });
+    }
+
+    //------------------------------------------------
+    // 任意点からの最遠点を復元
+    //------------------------------------------------
+    pair<ll,ll> farthest_point(ll x, ll y) const {
+        ll uu = x+y;
+        ll vv = x-y;
+
+        vector<pair<ll,int>> cand = {
+            {llabs(uu-umin), idx_umin},
+            {llabs(uu-umax), idx_umax},
+            {llabs(vv-vmin), idx_vmin},
+            {llabs(vv-vmax), idx_vmax}
+        };
+
+        auto best = max_element(cand.begin(), cand.end());
+        return pts[best->second];
+    }
+
+    //------------------------------------------------
+    // ひし形範囲判定
+    //------------------------------------------------
+    static bool in_diamond(
+        ll cx, ll cy, // 中心
+        ll D,         // マンハッタン距離上限
+        ll x, ll y    // 判定点
+    ){
+        ll u = x+y;
+        ll v = x-y;
+        ll u0 = cx+cy;
+        ll v0 = cx-cy;
+
+        return max(llabs(u-u0), llabs(v-v0)) <= D;
+    }
+};
+
+void solv(){
+
+    cout << "=============================\n";
+    cout << " マンハッタン距離テンプレ動作確認\n";
+    cout << "=============================\n\n";
+
+    vector<pair<long long,long long>> points = {
+        {1,5},
+        {4,2},
+        {3,7},
+        {0,0},
+        {6,1}
+    };
+
+    Manhattan man(points);
+
+    cout << "【登録された点】\n";
+    for(int i=0;i<points.size();i++){
+        cout << "点" << i << " : ("
+             << points[i].first << ", "
+             << points[i].second << ")\n";
+    }
+
+    cout << "\n-----------------------------\n";
+
+    cout << "■ 点集合の最大マンハッタン距離\n";
+    cout << "最大距離 = "
+         << man.max_dist() << "\n";
+
+    auto p = man.max_pair();
+    cout << "そのペア = ("
+         << p.first.first << "," << p.first.second
+         << ") と ("
+         << p.second.first << "," << p.second.second
+         << ")\n";
+
+    cout << "\n-----------------------------\n";
+
+    long long qx = 2, qy = 3;
+
+    cout << "■ 任意点 ("<<qx<<","<<qy<<") からの最遠距離\n";
+
+    cout << "最遠距離 = "
+         << man.farthest_dist(qx,qy) << "\n";
+
+    auto fp = man.farthest_point(qx,qy);
+
+    cout << "最遠点 = ("
+         << fp.first << ","
+         << fp.second << ")\n";
+
+    cout << "\n-----------------------------\n";
+
+    cout << "■ ひし形範囲判定\n";
+
+    long long cx=3, cy=3, D=3;
+
+    cout << "中心 = ("<<cx<<","<<cy<<")\n";
+    cout << "距離制限 = "<<D<<"\n\n";
+
+    vector<pair<ll,ll>> test = {
+        {3,6},
+        {5,5},
+        {0,0}
+    };
+
+    for(auto [x,y] : test){
+        bool ok = Manhattan::in_diamond(cx,cy,D,x,y);
+
+        cout << "("<<x<<","<<y<<") → ";
+
+        if(ok) cout << "範囲内\n";
+        else cout << "範囲外\n";
+    }
+
+    cout << "\n=============================\n";
+    cout << " 動作確認終了\n";
+    cout << "=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

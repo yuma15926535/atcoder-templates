@@ -1,0 +1,254 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+========================================================
+ OrderStatisticDeque (Implicit Treap + Range Aggregate)（dequeのk番目アクセス、range sum / min / max方向への拡張）
+========================================================
+【機能】
+- push_front / push_back
+- pop_front / pop_back
+- insert(k, x)
+- erase(k)
+- k番目アクセス
+- range sum / min / max
+========================================================
+*/
+template<class T>
+struct OrderStatisticDeque {
+
+    struct Node {
+        T val, sum, mn, mx;
+        int prio, sz;
+        Node *l, *r;
+
+        Node(T v)
+            : val(v), sum(v), mn(v), mx(v),
+              prio(rand()), sz(1), l(nullptr), r(nullptr) {}
+    };
+
+    using np = Node*;
+    np root = nullptr;
+
+    //============================
+    // 補助関数
+    //============================
+
+    int sz(np t){ return t ? t->sz : 0; }
+    T sum(np t){ return t ? t->sum : 0; }
+    T mn(np t){ return t ? t->mn : numeric_limits<T>::max(); }
+    T mx(np t){ return t ? t->mx : numeric_limits<T>::lowest(); }
+
+    void upd(np t){
+        if(!t) return;
+        t->sz = 1 + sz(t->l) + sz(t->r);
+        t->sum = t->val + sum(t->l) + sum(t->r);
+        t->mn = min({t->val, mn(t->l), mn(t->r)});
+        t->mx = max({t->val, mx(t->l), mx(t->r)});
+    }
+
+    // split [0,k) | [k,n)
+    void split(np t, np &a, np &b, int k){
+        if(!t){ a=b=nullptr; return; }
+
+        if(sz(t->l) >= k){
+            split(t->l, a, t->l, k);
+            b = t;
+        }else{
+            split(t->r, t->r, b, k - sz(t->l) - 1);
+            a = t;
+        }
+        upd(t);
+    }
+
+    np merge(np a, np b){
+        if(!a||!b) return a?a:b;
+        if(a->prio > b->prio){
+            a->r = merge(a->r, b);
+            upd(a);
+            return a;
+        }else{
+            b->l = merge(a, b->l);
+            upd(b);
+            return b;
+        }
+    }
+
+    //============================
+    // 基本deque操作
+    //============================
+
+    void push_front(T x){
+        root = merge(new Node(x), root);
+    }
+
+    void push_back(T x){
+        root = merge(root, new Node(x));
+    }
+
+    void pop_front(){
+        np a,b;
+        split(root,a,b,1);
+        root=b;
+    }
+
+    void pop_back(){
+        np a,b;
+        split(root,a,b,sz(root)-1);
+        root=a;
+    }
+
+    //============================
+    // insert / erase
+    //============================
+
+    void insert(int k, T x){
+        np a,b;
+        split(root,a,b,k);
+        root = merge(merge(a,new Node(x)),b);
+    }
+
+    void erase(int k){
+        np a,b,c;
+        split(root,a,b,k);
+        split(b,b,c,1);
+        root = merge(a,c);
+    }
+
+    //============================
+    // k番目アクセス
+    //============================
+
+    T& kth(np t,int k){
+        int left=sz(t->l);
+        if(k<left) return kth(t->l,k);
+        if(k==left) return t->val;
+        return kth(t->r,k-left-1);
+    }
+
+    T& kth(int k){ return kth(root,k); }
+
+    T& operator[](int k){
+        return kth(root,k);
+    }
+
+    //============================
+    // range query
+    //============================
+
+    tuple<T,T,T> range_query(int l,int r){
+        np a,b,c;
+        split(root,a,b,l);
+        split(b,b,c,r-l+1);
+
+        T S=sum(b);
+        T MN=mn(b);
+        T MX=mx(b);
+
+        root=merge(a,merge(b,c));
+        return {S,MN,MX};
+    }
+
+    T range_sum(int l,int r){
+        auto [s,mn,mx]=range_query(l,r);
+        return s;
+    }
+    T range_min(int l,int r){
+        auto [s,mn,mx]=range_query(l,r);
+        return mn;
+    }
+    T range_max(int l,int r){
+        auto [s,mn,mx]=range_query(l,r);
+        return mx;
+    }
+
+    //============================
+
+    int size(){ return sz(root); }
+};
+
+void solv(){
+    //乱数をランダムに設定
+    //srand(0);などで固定できる
+    srand(time(NULL));
+
+    OrderStatisticDeque<long long> dq;
+
+    cout<<"=== push_back ===\n";
+    dq.push_back(10);
+    dq.push_back(20);
+    dq.push_back(30);
+
+    for(int i=0;i<dq.size();i++)
+        cout<<dq.kth(i)<<" ";
+    cout<<"\n\n";
+
+    cout<<"=== push_front ===\n";
+    dq.push_front(5);
+
+    for(int i=0;i<dq.size();i++)
+        cout<<dq[i]<<" ";
+    cout<<"\n\n";
+
+    cout<<"=== insert ===\n";
+    dq.insert(2, 99);
+
+    for(int i=0;i<dq.size();i++)
+        cout<<dq[i]<<" ";
+    cout<<"\n\n";
+
+    cout<<"=== erase ===\n";
+    dq.erase(1);
+
+    for(int i=0;i<dq.size();i++)
+        cout<<dq[i]<<" ";
+    cout<<"\n\n";
+
+    cout<<"=== kth access ===\n";
+    cout<<"index 2 = "<<dq.kth(2)<<"\n\n";
+
+    cout<<"=== range query [1,3] ===\n";
+    cout<<"sum = "<<dq.range_sum(1,3)<<"\n";
+    cout<<"min = "<<dq.range_min(1,3)<<"\n";
+    cout<<"max = "<<dq.range_max(1,3)<<"\n\n";
+
+    cout<<"=== pop_front/back ===\n";
+    dq.pop_front();
+    dq.pop_back();
+
+    for(int i=0;i<dq.size();i++)
+        cout<<dq[i]<<" ";
+    cout<<"\n";
+
+    cout<<"\n✅ 動作確認終了\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

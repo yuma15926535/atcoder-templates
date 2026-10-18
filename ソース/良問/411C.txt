@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+template <typename T> constexpr auto ssize(const T& container) -> std::ptrdiff_t {return static_cast<std::ptrdiff_t>(container.size());}
+
+struct Interval{
+    vector<bool>rec;
+    int ret;
+    Interval(int n){
+        //rec[i]:0,N+1に白を追加し、iとi+1が異なる場合にのみtrue
+        rec.resize(n+1,false);
+        ret=0;
+    }
+    int upd(int pos){
+        //pos-1とpos+1の色が同じ場合にのみretが変化する
+        bool b=rec[pos-1]==rec[pos];
+        rec[pos-1]=rec[pos-1]^true;
+        rec[pos]=rec[pos]^true;
+        if(b){
+            if(rec[pos])ret+=2;
+            else ret-=2;
+        }
+        return ret/2;
+    }
+};
+
+int main(){
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N,Q;
+    cin>>N>>Q;
+    vector<int>A(Q);
+    rep(i,0,Q)cin>>A[i];
+    Interval intv=Interval(N);
+    rep(i,0,Q)cout<<intv.upd(A[i])<<"\n";
+    return 0;
+}

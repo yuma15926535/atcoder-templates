@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int get(int a,int b){
+    int c=(46-a-b)%46;
+    if(c<0)c+=46;
+    return c;
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    map<int,ll> A,B,C;
+    rep(i,0,N){
+        int x;
+        cin>>x;
+        if(!A.count(x%46))A[x%46]=1;
+        else A[x%46]++;
+    }
+    rep(i,0,N){
+        int x;
+        cin>>x;
+        if(!B.count(x%46))B[x%46]=1;
+        else B[x%46]++;
+    }
+    rep(i,0,N){
+        int x;
+        cin>>x;
+        if(!C.count(x%46))C[x%46]=1;
+        else C[x%46]++;
+    }
+    long long ans=0;
+    //map、setのcountは偉大
+    //mod 46の負、オーバーフローに注意
+    //46^3程度ならませして解答も可能?
+    for(auto a:A)for(auto b:B)if(C.count(get(a.first,b.first)))ans+=a.second*b.second*C[get(a.first,b.first)];
+    cout<<ans<<"\n";
+    return 0;
+}}

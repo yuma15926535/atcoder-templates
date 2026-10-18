@@ -1,0 +1,43 @@
+// =============================================================================
+//  位数・原始根・離散対数・mod の平方根・累乗の塔（a^k ≡ 1 の最小の k、a^x ≡ b の x、x^2 ≡ a、a^(b^(c…)) mod m）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 03 合同式・mod の数論
+//  依存       : 00_int_common, 00_math_base, 02_factorize（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  m・p は 10^18 程度まで（掛け算は 128 ビット）。「ないことがある」答えは Maybe{ok, value}
+//
+//  機能一覧                                                                    計算量
+//    carmichael_lambda(n)             λ(n)：gcd(a, n) = 1 のすべての a で a^λ ≡ 1 となる最小の数          n の素因数分解
+//    mult_order(a, m)                 a^k ≡ 1 (mod m) となる最小の k ≥ 1（gcd(a, m) ≠ 1 なら ok = false）
+//    MultOrder ord(m); ord(a)         同じ m で何度も聞くとき（λ(m) の素因数分解を 1 回だけ）              O(log^2)
+//    primitive_root(p)                素数 p の原始根（いちばん小さいもの）
+//    mod_sqrt(a, p)                   x^2 ≡ a (mod p) の x（p は素数。小さい方。もう 1 つは p − x）        O(log^2 p)
+//    discrete_log(a, b, m)            a^x ≡ b (mod m) となる最小の x ≥ 0（m は合成数でもよい。m ≤ 10^13 程度） O(√m)
+//    pow_tower_mod(as, m)             a_0^(a_1^(a_2^(…))) mod m（指数が巨大でも）
+//  （1 つの a^e mod m・逆元は 00_math_base の mod_pow / mod_inv。このファイルに入っている）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    dlog_test::random_test()  … 1 つずつ掛けて調べる愚直解との突き合わせ
+//    dlog_test::benchmark()    … 速度計測
+//    dlog_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>

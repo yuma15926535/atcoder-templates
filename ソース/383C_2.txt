@@ -1,0 +1,49 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main(){
+    int H,W,D;
+    cin>>H>>W>>D;
+    vector<string>S(H);
+    rep(i,0,H)cin>>S[i];
+    //多始点BFS
+    //初期化に始点をすべて入れる
+    vector<vector<int>>dist(H,vector<int>(W,1e9));
+    vector<vector<bool>>visited(H,vector<bool>(W,true));
+    queue<pair<int,int>>q;
+    int ans=0;
+    rep(i,0,H)rep(j,0,W)if(S[i][j]=='H'){
+        dist[i][j]=0;
+        visited[i][j]=false;
+        q.emplace(i,j);
+        ans++;
+    }
+    vector<int>dx={-1,1,0,0},dy={0,0,-1,1};
+    auto range=[&](int h,int w)->bool{return 0<=h&&h<H&&0<=w&&w<W;};
+    while(!q.empty()){
+        auto [i,j]=q.front();
+        q.pop();
+        rep(k,0,4){
+            int ni=i+dx[k],nj=j+dy[k];
+            if(range(ni,nj)&&visited[ni][nj]&&S[ni][nj]=='.'){
+                visited[ni][nj]=false;
+                dist[ni][nj]=dist[i][j]+1;
+                q.emplace(ni,nj);
+                if(dist[ni][nj]<=D)ans++;
+            }
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

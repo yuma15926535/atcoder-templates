@@ -1,0 +1,43 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N;
+    cin>>N;
+    vector<vector<string>> v(N,vector<string>(N));
+    v[N/2][N/2]="T";
+    vector<int> dx={0,1,0,-1},dy={1,0,-1,0};
+    int l=N-1;
+    int x=0,y=0,num=1,count=1;
+    while(l!=0){
+        rep(i,0,4){
+            rep(j,0,l){
+                v[x][y]=to_string(num);
+                x+=dx[i];
+                y+=dy[i];
+                num++;
+            }
+        }
+        x=count;
+        y=count;
+        count++;
+        l-=2;
+    }
+    rep(i,0,N){
+        rep(j,0,N)cout<<v[i][j]<<" ";
+        cout<<"\n";
+    }
+	return 0;
+}

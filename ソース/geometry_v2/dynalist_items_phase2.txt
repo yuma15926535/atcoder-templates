@@ -1,0 +1,21 @@
+00_geo_base（幾何基盤：点 Point / PointD、直線・線分・円の型、向き ccw、回転、角度、小数の入力）
+	説明
+		Point p(x, y)（整数 long long）/ PointD q(x, y)（実数 long double）/ + - *k /k == <（x → y の辞書順）/ to_d(p)（実数に）
+		dot(a, b) / cross(a, b) / cross(o, a, b) / norm2(a) / dist2(a, b)（整数のまま）/ len(a) / dist(a, b)（Real）/ dot128 / cross128（Int128）
+		ccw(a, b, c)（+1 左 / -1 右 / 0 一直線。整数は厳密）/ ccw_detail(a, b, c)（COUNTER_CLOCKWISE / CLOCKWISE / ONLINE_BACK / ONLINE_FRONT / ON_SEGMENT）/ collinear
+		rot90(p) / rot90_cw(p) / rot180(p) / rot90(p, 中心, k)（整数のまま）/ rotated(p, θ[, 中心]) / rotated_deg(p, 度[, 中心])（PointD。90 度の倍数は厳密。中心は PointD でもよい）
+		Affine f / AffineD：アフィン変換 (a x + b y + c, d x + e y + f)。f(p) で適用、f.then(g) で「f のあと g」。Affine::rot90(o) / rot90_cw(o) / rot180(o) / reflect_x(p)（直線 x = p で折り返し）/ reflect_y(p) / translate(v) / scale(k, o)、AffineD::rotate(θ, o)
+		angle_of(v) / angle_of_deg（偏角 [0, 2π)）/ angle_between(a, b) / _deg（なす角 [0, π]）/ deg_to_rad / rad_to_deg / from_polar(r, θ) / unit(v) / midpoint(a, b)
+		direction_key(v)（gcd で割った向き）/ line_direction_key(v)（向きを区別しない傾きのキー）/ complex_mul(a, b) / conjugate(a)
+		isqrt(n) / isqrt_ceil(n)（整数の平方根。誤差なし）
+		read_point() / read_points(N) / read_point_d() / read_points_d(N) / read_segment() / read_line() / read_circle()
+		parse_fixed(s, k) / read_fixed(k) / read_point_fixed(k) / read_points_fixed(N, k)（小数を 10^k 倍の整数に。誤差なし）
+		Line l(a, b)（直線 a→b。向きあり）/ Segment s(a, b) / Circle c(中心, r) / LineD / SegmentD / CircleD / Where（OUTSIDE / ON_BORDER / INSIDE）
+		real_sign(x, scale) / real_cmp(a, b) / real_eq(a, b)（相対誤差 GEO_EPS = 1e-9）/ int128_to_string(v) / PointHash（unordered_set 用）
+	メモ
+		幾何第二世代のほかのテンプレートはすべてこれを同梱している（このファイルを単独で貼るのは、基本の計算だけのとき）
+		整数の座標は |x|, |y| ≤ 10^9 まで正しい。判定・面積の 2 倍・距離の 2 乗は整数で厳密。交点・回転などだけ実数
+		整数の点に実数を掛けるとコンパイルエラー（to_d(p) で実数にしてから）。cout << p は (x, y) の形（デバッグ用）
+		グリッドの (i, j) を幾何で扱うときは Point{j, -i} にすると見た目の左回り = 反時計回り
+		類題：ABC259 B（rotated_deg）、ABC197 D（rotated(p0, 2π / N, 中点)）、ABC189 E（Affine の累積 pre[i + 1] = pre[i].then(操作)）、ABC168 C（from_polar・dist）、ABC226 D（direction_key）、ABC198 C（isqrt_ceil）、ABC191 D（read_fixed）、ABC266 C・ABC181 C（ccw）、ABC144 D（angle_of_deg(Point(w, h))）
+	C:\atcoder_template\典型90\ソース\geometry_v2\00_geo_base.cpp

@@ -1,0 +1,375 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+ Block-Cut Tree / Bridge / Articulation / BCC 総合テンプレート
+ ===============================================================
+
+ 無向グラフに対して以下を O(N+M) で構築する：
+  - 橋
+  - 関節点
+  - 二重連結成分（BCC, 辺集合）
+  - Block-Cut Tree（BCT）
+
+ さらに：
+  - 頂点削除後の連結成分数
+  - 頂点削除後の各連結成分サイズ
+  - 最大連結成分サイズ
+
+ 【ノード番号規約】
+  - 0 .. N-1        : 元グラフの頂点
+  - N .. N+B-1      : BCC ノード
+*/
+struct BlockCutTree {
+    int N;
+    vector<vector<int>> G;
+
+    // lowlink 用
+    vector<int> ord, low;
+    int timer = 0;
+
+    // 結果
+    vector<pair<int,int>> bridges;     // 橋
+    vector<int> articulation;           // 関節点
+    vector<vector<pair<int,int>>> bcc;  // 二重連結成分（辺集合）
+
+    // 辺スタック（BCC 構築用）
+    vector<pair<int,int>> stk;
+
+    // Block-Cut Tree
+    vector<vector<int>> tree;
+
+    // BCT 用サイズ管理
+    vector<int> parent; // BCT 上の親
+    vector<int> sub;    // BCT 上の部分木サイズ
+    vector<int> bcc_size; // 各 BCC に含まれる非関節点数
+
+    // 追加：頂点削除用
+    vector<int> sz;          // DFS 木での部分木サイズ
+    vector<int> comp_size;   // 各頂点が属する連結成分サイズ
+    vector<int> root;        // DFS 木の根
+
+    BlockCutTree(int n)
+        : N(n), G(n), ord(n, -1), low(n, -1),
+          sz(n, 0), comp_size(n, 0), root(n, -1) {}
+
+    // 無向辺を追加する
+    void add_edge(int u, int v) {
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+
+    // DFS による lowlink 計算と BCC 構築
+    void dfs(int v, int p) {
+        ord[v] = low[v] = timer++;
+        sz[v] = 1;
+        int child = 0;
+        bool is_art = false;
+
+        for (int to : G[v]) {
+            if (ord[to] == -1) {
+                stk.emplace_back(v, to);
+                child++;
+                root[to] = root[v];
+                dfs(to, v);
+                sz[v] += sz[to];
+                low[v] = min(low[v], low[to]);
+
+                // 橋判定
+                if (ord[v] < low[to]) {
+                    bridges.emplace_back(v, to);
+                }
+
+                // BCC の切り出し条件
+                if (ord[v] <= low[to]) {
+                    if (p != -1 || child > 1) is_art = true;
+
+                    vector<pair<int,int>> comp;
+                    while (true) {
+                        auto e = stk.back(); stk.pop_back();
+                        comp.push_back(e);
+                        if (e.first == v && e.second == to) break;
+                    }
+                    bcc.push_back(comp);
+                }
+            }
+            else if (to != p && ord[to] < ord[v]) {
+                stk.emplace_back(v, to);
+                low[v] = min(low[v], ord[to]);
+            }
+        }
+
+        if (is_art) articulation.push_back(v);
+    }
+
+    // 全体を構築する（必ず最初に呼ぶ）
+    void build() {
+        for (int i = 0; i < N; i++) {
+            if (ord[i] == -1) {
+                root[i] = i;
+                dfs(i, -1);
+                int total = sz[i];
+                dfs_comp_size(i, -1, total);
+            }
+        }
+        build_block_cut_tree();
+        prepare_bct_size();
+    }
+
+    // 連結成分サイズを埋める
+    void dfs_comp_size(int v, int p, int total) {
+        comp_size[v] = total;
+        for (int to : G[v]) {
+            if (to == p) continue;
+            if (root[to] == root[v] && ord[to] > ord[v]) {
+                dfs_comp_size(to, v, total);
+            }
+        }
+    }
+
+    // Block-Cut Tree を構築する
+    void build_block_cut_tree() {
+        int B = bcc.size();
+        tree.assign(N + B, {});
+        bcc_size.assign(B, 0);
+
+        for (int i = 0; i < B; i++) {
+            int id = N + i;
+            set<int> vs;
+            for (auto [u, v] : bcc[i]) {
+                vs.insert(u);
+                vs.insert(v);
+            }
+            for (int v : vs) {
+                tree[v].push_back(id);
+                tree[id].push_back(v);
+            }
+            // 非関節点の数を BCC サイズとして持つ
+            for (int v : vs) {
+                if ((int)tree[v].size() == 1) bcc_size[i]++;
+            }
+        }
+    }
+
+    // BCT を root 付き木として DFS し、部分木サイズを計算する
+    void dfs_bct(int v, int p) {
+        parent[v] = p;
+        sub[v] = (v < N ? 1 : bcc_size[v - N]);
+
+        for (int to : tree[v]) {
+            if (to == p) continue;
+            dfs_bct(to, v);
+            sub[v] += sub[to];
+        }
+    }
+
+    // BCT 上のサイズ計算の前処理
+    void prepare_bct_size() {
+        int SZ = tree.size();
+        parent.assign(SZ, -1);
+        sub.assign(SZ, 0);
+        for (int i = 0; i < SZ; i++) {
+            if (parent[i] == -1) {
+                dfs_bct(i, -1);
+            }
+        }
+    }
+
+    // 頂点 v を削除したあとにできる各連結成分サイズを返す
+    vector<int> components_after_removal(int v) {
+        vector<int> res;
+        int total = comp_size[v];
+
+        int sum = 0;
+        for (int to : G[v]) {
+            if (ord[to] > ord[v] && low[to] >= ord[v]) {
+                res.push_back(sz[to]);
+                sum += sz[to];
+            }
+        }
+
+        int rest = total - sum - 1;
+        if (rest > 0) res.push_back(rest);
+        if (res.empty() && total > 1) res.push_back(total - 1);
+
+        return res;
+    }
+
+    // 頂点 v を削除したあとの最大連結成分サイズ
+    int max_component_after_removal(int v) {
+        int mx = 0;
+        for (int sz : components_after_removal(v)) {
+            mx = max(mx, sz);
+        }
+        return mx;
+    }
+
+    // 全頂点について「削除後の連結成分数」を返す
+    vector<int> component_count_after_vertex_removal() {
+        vector<int> res(N, 1);
+        for (int v : articulation) {
+            res[v] = components_after_removal(v).size();
+        }
+        return res;
+    }
+};
+
+void solv(){
+    // =====================================================
+    // ケース1：木グラフ
+    // =====================================================
+    {
+        cout << "===== ケース1：木グラフ =====\n";
+        int N = 6;
+        BlockCutTree bc(N);
+
+        bc.add_edge(0, 1);
+        bc.add_edge(1, 2);
+        bc.add_edge(2, 3);
+        bc.add_edge(1, 4);
+        bc.add_edge(4, 5);
+
+        bc.build();
+
+        cout << "[橋]\n";
+        for (auto [u, v] : bc.bridges)
+            cout << u << "-" << v << " ";
+        cout << "\n";
+
+        cout << "[関節点]\n";
+        for (int v : bc.articulation)
+            cout << v << " ";
+        cout << "\n";
+
+        cout << "[頂点削除後の連結成分数]\n";
+        auto cnt = bc.component_count_after_vertex_removal();
+        for (int i = 0; i < N; i++)
+            cout << "頂点 " << i << " を削除 -> " << cnt[i] << "\n";
+
+        cout << "[頂点削除後の最大連結成分サイズ]\n";
+        for (int i = 0; i < N; i++)
+            cout << "頂点 " << i << " を削除 -> "
+                 << bc.max_component_after_removal(i) << "\n";
+        cout << "\n";
+    }
+
+    // =====================================================
+    // ケース2：サイクルを含む連結グラフ
+    // =====================================================
+    {
+        cout << "===== ケース2：サイクルを含む連結グラフ =====\n";
+        int N = 6;
+        BlockCutTree bc(N);
+
+        bc.add_edge(0, 1);
+        bc.add_edge(1, 2);
+        bc.add_edge(2, 3);
+        bc.add_edge(3, 4);
+        bc.add_edge(4, 5);
+        bc.add_edge(5, 0);
+        bc.add_edge(1, 4);
+
+        bc.build();
+
+        cout << "[橋]\n";
+        for (auto [u, v] : bc.bridges)
+            cout << u << "-" << v << " ";
+        cout << "（空になるはず）\n";
+
+        cout << "[関節点]\n";
+        for (int v : bc.articulation)
+            cout << v << " ";
+        cout << "（空になるはず）\n";
+
+        cout << "[二重連結成分数]\n";
+        cout << bc.bcc.size() << " （1 のはず）\n";
+
+        cout << "[頂点削除後の連結成分数]\n";
+        auto cnt = bc.component_count_after_vertex_removal();
+        for (int i = 0; i < N; i++)
+            cout << "頂点 " << i << " を削除 -> " << cnt[i] << "\n";
+
+        cout << "[頂点削除後の最大連結成分サイズ]\n";
+        for (int i = 0; i < N; i++)
+            cout << "頂点 " << i << " を削除 -> "
+                 << bc.max_component_after_removal(i) << "\n";
+        cout << "\n";
+    }
+
+    // =====================================================
+    // ケース3：非連結グラフ（＋サイクル）
+    // =====================================================
+    {
+        cout << "===== ケース3：非連結グラフ =====\n";
+        int N = 5;
+        BlockCutTree bc(N);
+
+        // component A (cycle)
+        bc.add_edge(0, 1);
+        bc.add_edge(1, 2);
+        bc.add_edge(2, 0);
+
+        // component B (line)
+        bc.add_edge(3, 4);
+
+        bc.build();
+
+        cout << "[橋]\n";
+        for (auto [u, v] : bc.bridges)
+            cout << u << "-" << v << " ";
+        cout << "\n";
+
+        cout << "[関節点]\n";
+        for (int v : bc.articulation)
+            cout << v << " ";
+        cout << "\n";
+
+        cout << "[頂点削除後の連結成分数]\n";
+        auto cnt = bc.component_count_after_vertex_removal();
+        for (int i = 0; i < N; i++)
+            cout << "頂点 " << i << " を削除 -> " << cnt[i] << "\n";
+
+        cout << "[頂点削除後の各連結成分サイズ]\n";
+        for (int i = 0; i < N; i++) {
+            auto comps = bc.components_after_removal(i);
+            cout << "頂点 " << i << " を削除: ";
+            for (int sz : comps) cout << sz << " ";
+            cout << "\n";
+        }
+
+        cout << "[頂点削除後の最大連結成分サイズ]\n";
+        for (int i = 0; i < N; i++)
+            cout << "頂点 " << i << " を削除 -> "
+                 << bc.max_component_after_removal(i) << "\n";
+        cout << "\n";
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

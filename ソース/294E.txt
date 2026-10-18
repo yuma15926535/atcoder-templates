@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct nse{
+    int num;
+    ll si;
+    ll ei;
+};
+
+int main()
+{
+    ll L;
+    int N1,N2;
+    cin>>L>>N1>>N2;
+    vector<nse> line1(N1),line2(N2);
+    //座標圧縮を閉区間に直す
+    ll index=0;
+    rep(i,0,N1){
+        int v;
+        ll l;
+        cin>>v>>l;
+        line1[i]={v,index+1,index+l};
+        index+=l;
+    }
+    index=0;
+    rep(i,0,N2){
+        int v;
+        ll l;
+        cin>>v>>l;
+        line2[i]={v,index+1,index+l};
+        index+=l;
+    }
+    //尺取り法
+    ll ans=0,l1i=0,l2i=0;
+    //同時にN1,N2に到達するので判定は1つで十分
+    while(l1i<N1){
+        nse l1=line1[l1i],l2=line2[l2i];
+        if(l1.num==l2.num)ans+=min(l1.ei,l2.ei)-max(l1.si,l2.si)+1;
+        //常に一部が重なるように更新
+        if(l1.ei==l2.ei){
+            l1i++;
+            l2i++;
+        }else if(l1.ei<l2.ei)l1i++;
+        else if(l1.ei>l2.ei)l2i++;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

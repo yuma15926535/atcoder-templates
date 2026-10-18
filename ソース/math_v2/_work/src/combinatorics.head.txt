@@ -1,0 +1,69 @@
+// =============================================================================
+//  数え上げ（スターリング数・ベル数・分割数・完全順列・全射・写像 12 相・包除原理・二項変換・組分けの列挙・q 二項係数・ヤング盤）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 04 組合せ
+//  依存       : 00_int_common, 00_math_base, 00_modint, 04_binomial, 07_convolution（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  使い方
+//      using mint = ModInt998;                               // mod は素数（10^9+7 でもよい）
+//      mint s = stirling2<mint>(10, 3);                      // S(10, 3)
+//      mint w = balls_into_boxes<mint>(5, 3, true, false, 2); // 区別する玉 5 個を区別しない箱 3 個へ、どの箱も 1 個以上
+//
+//  機能一覧（T は mint でも long long でもよい表（long long は溢れたら止める）。mint だけのものは <mint>）   計算量
+//    stirling2<mint>(n, k)            第 2 種スターリング数 S(n, k)：n 個を k 個の空でない組に分ける数（n ≤ 10^18）  O(k log n)
+//    stirling2_row<mint>(n)           S(n, 0), …, S(n, n)                                                 O(n log n)
+//    stirling2_table<T>(N)            t[n][k]（0 ≤ k ≤ n ≤ N）                                            O(N^2)
+//    stirling1_row<mint>(n)           第 1 種（符号なし）c(n, k)：サイクルが k 個の順列の数。k = 0〜n         O(n log^2 n)
+//    stirling1_table<T>(N)            t[n][k]（符号つきは (−1)^{n−k} 倍）                                 O(N^2)
+//    bell<mint>(n) / bell_table<T>(N) ベル数 B_n（n 個を空でない組にいくつかに分ける数）                     O(n log n) / O(N^2)
+//    partition_row<mint>(N)           分割数 p(0), …, p(N)（n を正の整数の和に。順番は区別しない）            O(N log N)
+//    partition_table<T>(N)            同じく五角数定理で（long long でも使える）                             O(N √N)
+//    partition_count_table<T>(N, K)   t[k][n]：n を k 個以下に分ける数（k ≤ K, n ≤ N）                     O(N K)
+//    derangement_table<T>(N)          完全順列（どの i も i 番目に来ない順列）の数 D_0, …, D_N               O(N)
+//    surjections<mint>(n, k)          n 個から k 個への全射の数 k! S(n, k)                                  O(k log n)
+//    balls_into_boxes<mint>(n, k, 玉を区別, 箱を区別, rule)                                                写像 12 相を全部
+//                                     rule：0 = 何個でもよい、1 = 各箱 1 個以下、2 = 各箱 1 個以上
+//                                     （玉も箱も区別しないときは分割数：k ≥ n なら n ≤ 10^7、k < n なら n·k ≤ 3×10^8）
+//    inclusion_exclusion<T>(n, f)     Σ_{S ⊆ {0..n−1}} (−1)^{|S|} f(S)（n ≤ 30。S はビット）                       O(2^n)
+//                                     f(S) =「条件 S を全部満たすものの数」を渡すと「どの条件も満たさないものの数」になる
+//                                     （「少なくとも 1 つ満たす」数は 全体 − これ）
+//    inclusion_exclusion_count<mint>(n, g)  Σ_i (−1)^i C(n, i) g(n − i)（g(m)：m 個だけ使ってよいときの数 → n 個全部使う数）  O(n)
+//    count_divisible_by_any(l, r, ds) [l, r) で ds のどれかで割り切れる数の個数（閉区間は _closed）        O(2^|ds|) 以下
+//    binomial_transform<mint>(g) / binomial_inverse<mint>(f)    f(n) = Σ_k C(n, k) g(k) / その逆（(−1)^{n−k} を付ける）  O(n log n)
+//    at_least_from_exactly<mint>(E) / exactly_from_at_least<mint>(A)
+//                                     A[k] = Σ_{j≥k} C(j, k) E[j]（k 個を選んで満たす、の和）/ その逆（ちょうど k 個 E を A から）
+//    for_each_set_partition(n, f)     {0..n−1} の組分けを全部 f(g, k)（g[i] = 組の番号、k = 組の数。n ≤ 12 程度）  O(B_n · n)
+//    for_each_integer_partition(n, f, max_part)   n の分割を全部 f(parts)（大きい順。各部分 ≤ max_part）     O(p(n) · n)
+//    q_binomial<mint>(n, k, q)        q 二項係数（F_q^n の k 次元部分空間の数。q の位数が小さくても q-Lucas で。n ≤ 10^7）  O(n)
+//    young_tableaux_count<mint>(shape)  形 shape（行の長さ。大きい順）の標準ヤング盤の数（フック長公式）       O(マスの数)
+//  （nCr・カタラン数・格子路は 04_binomial、順列の番号・転倒数は 04_permutation）
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    comb_test::random_test()  … 全部並べて数える愚直解・漸化式との突き合わせ
+//    comb_test::benchmark()    … 速度計測
+//    comb_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>

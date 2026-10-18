@@ -1,0 +1,691 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * @brief ハッシュマップ（unordered_map ラッパー）
+ *
+ * ll をキーとする競技プログラミング向け HashMap。
+ * custom_hash を使用してハッシュ衝突への耐性を向上させている。
+ *
+ * 特徴
+ * - 平均 O(1) の検索・追加・削除
+ * - イテレータを隠蔽したシンプルな API
+ * - contains・get・try_get・keys・values・vec など便利関数を提供
+ * - random() は内部の先頭要素を返却（ランダムではない）
+ *
+ * @tparam T 値の型
+ */
+template<class T>
+class HashMap {
+private:
+    struct custom_hash {
+        static uint64_t splitmix64(uint64_t x) {
+            x += 0x9e3779b97f4a7c15;
+            x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+            x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+            return x ^ (x >> 31);
+        }
+
+        size_t operator()(uint64_t x) const {
+            static const uint64_t FIXED_RANDOM =
+                chrono::steady_clock::now().time_since_epoch().count();
+            return splitmix64(x + FIXED_RANDOM);
+        }
+
+        size_t operator()(ll x) const {
+            return (*this)(static_cast<uint64_t>(x));
+        }
+    };
+
+    unordered_map<ll, T, custom_hash> mp;
+
+public:
+
+    /**
+     * @brief 空の HashMap を構築する
+     *
+     * reserve と max_load_factor を設定し、
+     * リハッシュ回数を抑える。
+     */
+    HashMap() {
+        mp.reserve(1 << 16);
+        mp.max_load_factor(0.7f);
+    }
+
+    /**
+     * @brief 初期予約サイズを指定して構築する
+     *
+     * @param reserve_size 予約する要素数
+     */
+    explicit HashMap(size_t reserve_size) {
+        mp.reserve(reserve_size);
+        mp.max_load_factor(0.7f);
+    }
+
+    //==================================================
+    // 基本
+    //==================================================
+
+    /**
+     * @brief 要素数を返す
+     *
+     * @return 要素数
+     */
+    ll size() const {
+        return (ll)mp.size();
+    }
+
+    /**
+     * @brief 空か判定する
+     *
+     * @return 空なら true
+     */
+    bool empty() const {
+        return mp.empty();
+    }
+
+    /**
+     * @brief 全要素を削除する
+     */
+    void clear() {
+        mp.clear();
+    }
+
+    //==================================================
+    // 更新
+    //==================================================
+
+    /**
+     * @brief 要素を追加する
+     *
+     * 既にキーが存在する場合は何もしない。
+     *
+     * @param key キー
+     * @param value 値
+     * @return 追加に成功した場合 true
+     */
+    bool insert(ll key, const T& value) {
+        return mp.emplace(key, value).second;
+    }
+
+    /**
+     * @brief 要素を追加または更新する
+     *
+     * キーが存在しない場合は追加し、
+     * 存在する場合は値を更新する。
+     *
+     * @param key キー
+     * @param value 値
+     */
+    void set(ll key, const T& value) {
+        mp[key] = value;
+    }
+
+    /**
+     * @brief 指定キーを削除する
+     *
+     * @param key キー
+     * @return 削除した場合 true
+     */
+    bool erase(ll key) {
+        return mp.erase(key);
+    }
+
+    //==================================================
+    // 検索
+    //==================================================
+
+    /**
+     * @brief キーが存在するか判定する
+     *
+     * @param key キー
+     * @return 存在する場合 true
+     */
+    bool contains(ll key) const {
+        return mp.find(key) != mp.end();
+    }
+
+    /**
+     * @brief 値を取得する
+     *
+     * キーが存在しない場合はデフォルト値で追加する。
+     *
+     * @param key キー
+     * @return 値への参照
+     */
+    T& get(ll key) {
+        return mp[key];
+    }
+
+    /**
+     * @brief 値を取得する
+     *
+     * キーが存在しない場合は例外を送出する。
+     *
+     * @param key キー
+     * @return 値への参照
+     */
+    const T& at(ll key) const {
+        return mp.at(key);
+    }
+
+    /**
+     * @brief 値を取得する
+     *
+     * キーが存在しない場合はデフォルト値で追加する。
+     *
+     * @param key キー
+     * @return 値への参照
+     */
+    T& operator[](ll key) {
+        return mp[key];
+    }
+
+    /**
+     * @brief 全キーを取得する
+     *
+     * @return 全キーの配列（順序は保証しない）
+     */
+    const T& operator[](ll key) const {
+        return mp.at(key);
+    }
+
+    //==================================================
+    // 一覧取得
+    //==================================================
+
+    /**
+     * @brief 全キーを取得する
+     *
+     * @return 全キーの配列（順序は保証しない）
+     */
+    vector<ll> keys() const {
+        vector<ll> res;
+        res.reserve(mp.size());
+        for (const auto& [key, value] : mp) {
+            res.push_back(key);
+        }
+        return res;
+    }
+
+    /**
+     * @brief 全値を取得する
+     *
+     * @return 全値の配列（順序は保証しない）
+     */
+    vector<T> values() const {
+        vector<T> res;
+        res.reserve(mp.size());
+        for (const auto& [key, value] : mp) {
+            res.push_back(value);
+        }
+        return res;
+    }
+
+    /**
+     * @brief 全要素を取得する
+     *
+     * @return (キー, 値) の配列（順序は保証しない）
+     */
+    vector<pair<ll, T>> vec() const {
+        vector<pair<ll, T>> res;
+        res.reserve(mp.size());
+        for (const auto& [key, value] : mp) {
+            res.emplace_back(key, value);
+        }
+        return res;
+    }
+
+    //==================================================
+    // 便利関数
+    //==================================================
+
+    /**
+     * @brief 値を加算する
+     *
+     * キーが存在しない場合はデフォルト値で追加してから加算する。
+     *
+     * @param key キー
+     * @param delta 加算値
+     */
+    void add(ll key, const T& delta) {
+        mp[key] += delta;
+    }
+
+    /**
+     * @brief 値を取得する
+     *
+     * キーが存在しない場合は {false, T{}} を返す。
+     *
+     * @param key キー
+     * @return {存在したか, 値}
+     */
+    pair<bool, T> try_get(ll key) const {
+        auto it = mp.find(key);
+        if (it == mp.end()) {
+            return {false, T{}};
+        }
+        return {true, it->second};
+    }
+
+    /**
+     * @brief いずれかの要素を取得する
+     *
+     * 内部の begin() が指す (キー, 値) を返す。
+     * 要素が存在することのみ保証し、返却順は保証しない。
+     *
+     * @return (キー, 値)
+     */
+    pair<ll, T> random() const {
+        assert(!mp.empty());
+        return *mp.begin();
+    }
+};
+
+void random_test_HashMap() {
+    cout << "===== HashMap Random Test =====" << endl;
+
+    mt19937 rng((uint32_t)chrono::steady_clock::now().time_since_epoch().count());
+
+    rep(_, 500) {
+        HashMap<ll> hm;
+        unordered_map<ll, ll> mp;
+
+        rep(__, 5000) {
+            int op = rng() % 12;
+            ll key = rng() % 30;
+            ll val = rng() % 1000;
+
+            if (op == 0) {
+                // insert
+                bool a = hm.insert(key, val);
+                bool b = mp.emplace(key, val).second;
+                assert(a == b);
+            }
+
+            if (op == 1) {
+                // set
+                hm.set(key, val);
+                mp[key] = val;
+            }
+
+            if (op == 2) {
+                // erase
+                bool a = hm.erase(key);
+                bool b = (bool)mp.erase(key);
+                assert(a == b);
+            }
+
+            if (op == 3) {
+                // contains
+                assert(hm.contains(key) == (mp.find(key) != mp.end()));
+            }
+
+            if (op == 4) {
+                // get
+                assert(hm.get(key) == mp[key]);
+            }
+
+            if (op == 5) {
+                // operator[]
+                hm[key] += val;
+                mp[key] += val;
+            }
+
+            if (op == 6) {
+                // add
+                hm.add(key, val);
+                mp[key] += val;
+            }
+
+            if (op == 7) {
+                // try_get
+                auto a = hm.try_get(key);
+
+                auto it = mp.find(key);
+                if (it == mp.end()) {
+                    assert(!a.first);
+                } else {
+                    assert(a.first);
+                    assert(a.second == it->second);
+                }
+            }
+
+            if (op == 8) {
+                // clear
+                hm.clear();
+                mp.clear();
+            }
+
+            if (op == 9) {
+                // size / empty
+                assert(hm.size() == (ll)mp.size());
+                assert(hm.empty() == mp.empty());
+            }
+
+            if (op == 10) {
+                // keys
+                auto a = hm.keys();
+                vector<ll> b;
+                for (auto [k, v] : mp) b.push_back(k);
+                sort(a.begin(), a.end());
+                sort(b.begin(), b.end());
+                assert(a == b);
+            }
+
+            if (op == 11) {
+                // vec, values, random
+                auto va = hm.vec();
+                vector<pair<ll, ll>> vb(mp.begin(), mp.end());
+                sort(va.begin(), va.end());
+                sort(vb.begin(), vb.end());
+                assert(va == vb);
+
+                auto vals = hm.values();
+                vector<ll> vals2;
+                for (auto [k, v] : mp) vals2.push_back(v);
+                sort(vals.begin(), vals.end());
+                sort(vals2.begin(), vals2.end());
+                assert(vals == vals2);
+
+                if (!mp.empty()) {
+                    auto p = hm.random();
+                    auto it = mp.find(p.first);
+                    assert(it != mp.end());
+                    assert(it->second == p.second);
+                }
+            }
+
+            // 常に状態一致確認
+            assert(hm.size() == (ll)mp.size());
+
+            auto va = hm.vec();
+            vector<pair<ll, ll>> vb(mp.begin(), mp.end());
+            sort(va.begin(), va.end());
+            sort(vb.begin(), vb.end());
+            assert(va == vb);
+        }
+    }
+
+    cout << "ALL TEST PASSED!" << endl;
+}
+
+void test_HashMap() {
+    cout << "===== HashMap 動作確認 =====" << endl;
+
+    HashMap<string> mp;
+
+    cout << "\n【初期状態】" << endl;
+    cout << "要素数 : " << mp.size() << endl;
+    cout << "空か   : " << (mp.empty() ? "はい" : "いいえ") << endl;
+
+    cout << "\n【insert】" << endl;
+    cout << "insert(1, \"one\")   : " << (mp.insert(1, "one") ? "成功" : "失敗") << endl;
+    cout << "insert(2, \"two\")   : " << (mp.insert(2, "two") ? "成功" : "失敗") << endl;
+    cout << "insert(1, \"ONE\")   : " << (mp.insert(1, "ONE") ? "成功" : "失敗（既に存在）") << endl;
+
+    cout << "\n【set】" << endl;
+    mp.set(2, "TWO");
+    mp.set(3, "three");
+    cout << "set(2, \"TWO\")" << endl;
+    cout << "set(3, \"three\")" << endl;
+
+    cout << "\n【contains】" << endl;
+    cout << "contains(1) : " << (mp.contains(1) ? "true" : "false") << endl;
+    cout << "contains(4) : " << (mp.contains(4) ? "true" : "false") << endl;
+
+    cout << "\n【get】" << endl;
+    cout << "get(1) : " << mp.get(1) << endl;
+    cout << "get(4) : \"" << mp.get(4) << "\"（存在しないので追加）" << endl;
+
+    cout << "\n【operator[]】" << endl;
+    mp[4] = "four";
+    cout << "mp[4] = \"four\"" << endl;
+    cout << "mp[4] : " << mp[4] << endl;
+
+    cout << "\n【add】" << endl;
+    HashMap<ll> cnt;
+    cnt.add(10, 5);
+    cnt.add(10, 3);
+    cnt.add(20, 7);
+    cout << "10 -> " << cnt.get(10) << endl;
+    cout << "20 -> " << cnt.get(20) << endl;
+
+    cout << "\n【try_get】" << endl;
+    {
+        auto [ok, value] = mp.try_get(2);
+        cout << "try_get(2) : ";
+        if (ok) cout << value << endl;
+        else cout << "存在しない" << endl;
+    }
+    {
+        auto [ok, value] = mp.try_get(100);
+        cout << "try_get(100) : ";
+        if (ok) cout << value << endl;
+        else cout << "存在しない" << endl;
+    }
+
+    cout << "\n【keys】" << endl;
+    auto ks = mp.keys();
+    sort(ks.begin(), ks.end());
+    for (ll x : ks) cout << x << " ";
+    cout << endl;
+
+    cout << "\n【values】" << endl;
+    auto vs = mp.values();
+    sort(vs.begin(), vs.end());
+    for (auto& s : vs) cout << s << " ";
+    cout << endl;
+
+    cout << "\n【vec】" << endl;
+    auto vec = mp.vec();
+    sort(vec.begin(), vec.end());
+    for (auto [k, v] : vec) {
+        cout << k << " -> " << v << endl;
+    }
+
+    cout << "\n【random】" << endl;
+    {
+        auto [k, v] = mp.random();
+        cout << "取得 : " << k << " -> " << v << endl;
+    }
+
+    cout << "\n【erase】" << endl;
+    cout << "erase(2) : " << (mp.erase(2) ? "成功" : "失敗") << endl;
+    cout << "contains(2) : " << (mp.contains(2) ? "true" : "false") << endl;
+
+    cout << "\n【clear】" << endl;
+    mp.clear();
+    cout << "要素数 : " << mp.size() << endl;
+    cout << "空か   : " << (mp.empty() ? "はい" : "いいえ") << endl;
+}
+
+void solv(){
+    random_test_HashMap();
+    test_HashMap();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

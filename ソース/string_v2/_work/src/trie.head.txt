@@ -1,0 +1,54 @@
+// =============================================================================
+//  Trie（文字列の多重集合：追加・削除・接頭辞の数・辞書順 k 番目・順位・LCP の最大と和・ノードをたどる）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 08 文字列の集合（接頭辞）
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  Trie TR(A)：A は文字の種類（Alphabet。既定は英小文字。辞書順は A の番号の順）。範囲外の文字はメッセージを出して止める
+//  子は 1 次元の配列（ノード数 × σ 個の int。全部の文字列の長さの合計 10^6・σ = 26 で約 100MB）。ノード 0 が根（空文字列）
+//  同じ文字列を何個でも入れられる（数を持つ）。消してもノードは残る（数が 0 になるだけ）
+//
+//  機能一覧                                                                       計算量
+//    TR.insert(s, cnt) / erase(s, cnt)     cnt 個入れる（ノードを返す）/ 消す（足りなければ何もせず false）   O(|s|)
+//    TR.erase_prefix(p)                    p で始まる文字列を全部消す（消した数）                          O(|p| + 消えたノード数 × σ)
+//    TR.count(s) / contains(s)             s の数 / 入っているか                                         O(|s|)
+//    TR.count_prefix(p)                    p で始まる文字列の数                                          O(|p|)
+//    TR.count_prefixes_of(s)               s の接頭辞である文字列の数（s 自身も）                          O(|s|)
+//    TR.size() / empty()                   入っている数（同じものも数える）
+//    TR.kth(k) / kth_ids(k)                辞書順 k 番目（0 から）                                       O(|答え| σ)
+//    TR.rank(s)                            s より小さい文字列の数                                         O(|s| σ)
+//    TR.words() / words_ids()              全部を辞書順に                                                O(ノード数 × σ + 出力)
+//    TR.max_lcp(s, exclude_self)           入っている文字列との LCP の最大（s を 1 つ除いても）             O(|s|)
+//    TR.sum_lcp_with(s) / sum_lcp_pairs()  全部との LCP の和 / 全部の組の LCP の和                        O(|s|) / O(ノード数)
+//    ノード: find(s) / path(s) / child(v, c) / child_by_id(v, id) / parent(v) / depth(v) / label(v)
+//            pass_count(v) / end_count(v) / string_of(v) / preorder() / node_count() / root()
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    trie_test::random_test()  … map で持った多重集合と全機能を突き合わせるランダムテスト
+//    trie_test::benchmark()    … 速度計測
+//    trie_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

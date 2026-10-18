@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W;
+vector<vector<char>> A,B;
+int h,w;
+vector<int> hindex,windex;
+int geth(int i){
+    return (i+h)%H;
+}
+int getw(int i){
+    return (i+w)%W;
+}
+
+int main()
+{
+    cin>>H>>W;
+    A=vector<vector<char>>(H,vector<char>(W));
+    B=A;
+    rep(i,0,H)rep(j,0,W)cin>>A[i][j];
+    rep(i,0,H)rep(j,0,W)cin>>B[i][j];
+    hindex.resize(H);
+    windex.resize(W);
+    rep(i,0,H)hindex[i]=i;
+    rep(i,0,W)windex[i]=i;
+    //gotowp用いたデバッグ
+    // goto debug;
+    for(h=0;h<H;h++)for(w=0;w<W;w++){
+        bool b=true;
+        rep(i,0,H)rep(j,0,W)if(B[i][j]!=A[hindex[geth((int)i)]][windex[getw((int)j)]]){
+            b=false;
+            i=H;
+            j=W;
+        }
+        if(b){
+            YES;
+            return 0;
+        }
+    }
+    NO;
+    // debug:
+    // h=2;w=1;
+    // rep(i,0,H){
+    //     rep(j,0,W){
+    //         cout<<hindex[geth((int)i)]<<" "<<windex[getw((int)j)]<<"\n";
+    //     }
+    // }
+    // rep(i,0,H){
+    //     rep(j,0,W){
+    //         cout<<A[hindex[geth((int)i)]][windex[getw((int)j)]];
+    //     }
+    //     cout<<"\n";
+    // }
+    return 0;
+}

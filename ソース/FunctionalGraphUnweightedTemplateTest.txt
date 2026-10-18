@@ -1,0 +1,581 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+/*
+==================================================
+        Doubling (FINAL COMPLETE VERSION)
+--------------------------------------------------
+・f(v) を k 回適用
+・functional graph
+・permutation
+・teleport
+・親をk個上
+全部対応
+
+★ first_true（状態二分探索）
+★ step制限版（安全修正版）
+
+計算量:
+ build       : O(N logK)
+ jump        : O(logK)
+ first_true  : O(logK)
+
+IMPORTANT:
+ check(v) は O(1) 必須
+==================================================
+*/
+struct Doubling {
+
+    using ll = long long;
+
+    int n;
+    int LOG;
+    vector<vector<int>> nxt;
+
+    // --------------------------------------------
+    // コンストラクタ
+    // --------------------------------------------
+    Doubling(int n, ll max_k=(1LL<<60)) : n(n){
+        LOG=0;
+        while((1LL<<LOG)<=max_k) LOG++;
+        nxt.assign(LOG, vector<int>(n,-1));
+    }
+
+    // --------------------------------------------
+    // f(v)
+    // --------------------------------------------
+    void set_next(int v,int to){
+        nxt[0][v]=to;
+    }
+
+    // --------------------------------------------
+    // build
+    // --------------------------------------------
+    void build(){
+        for(int k=1;k<LOG;k++){
+            for(int v=0;v<n;v++){
+                int mid=nxt[k-1][v];
+                if(mid==-1) continue;
+                nxt[k][v]=nxt[k-1][mid];
+            }
+        }
+    }
+
+    // --------------------------------------------
+    // k 回遷移
+    // --------------------------------------------
+    int jump(int v,ll k) const{
+        for(int i=0;i<LOG;i++){
+            if(k&(1LL<<i)){
+                if(v==-1) return -1;
+                v=nxt[i][v];
+            }
+        }
+        return v;
+    }
+
+    // ==================================================
+    // first_true (UNLIMITED SAFE)
+    // --------------------------------------------------
+    // check(f^k(v)) が単調であること必須
+    //
+    // true が続く最大地点を返す
+    // ==================================================
+    template<class F>
+    int first_true_unlimited(int start, F ok) {
+
+        if(start == -1) return -1;
+
+        // すでに true
+        if(ok(start)) return start;
+
+        int v = start;
+
+        // 「まだ false の最大地点」へ進む
+        for(int k = LOG-1; k >= 0; k--) {
+
+            int nv = nxt[k][v];
+            if(nv == -1) continue;
+
+            if(!ok(nv)) {
+                v = nv;
+            }
+        }
+
+        // 次が答え候補
+        int ans = nxt[0][v];
+
+        if(ans == -1) return -1;
+        if(ok(ans)) return ans;
+
+        return -1;
+    }
+
+    // ==================================================
+    // first_true (STEP LIMITED SAFE)
+    // --------------------------------------------------
+    // 最大 step 回以内で
+    // check を満たす最大地点
+    //
+    // ★ binary lifting 正式版
+    // ==================================================
+    template<class F>
+    int first_true_limited(int start, long long K, F ok) {
+
+        if(start == -1) return -1;
+
+        if(ok(start)) return start;
+
+        int v = start;
+
+        for(int k = LOG-1; k >= 0; k--) {
+
+            if(!(K & (1LL<<k))) continue;
+
+            int nv = nxt[k][v];
+            if(nv == -1) continue;
+
+            if(!ok(nv)) {
+                v = nv;
+            } else {
+                // true側に入ったので細かく降りる
+                for(int j = k-1; j >= 0; j--) {
+                    int tv = nxt[j][v];
+                    if(tv != -1 && !ok(tv))
+                        v = tv;
+                }
+                return nxt[0][v];
+            }
+        }
+
+        return -1;
+    }
+};
+
+/*
+==================================================
+ Functional Graph COMPLETE (Unweighted)
+==================================================
+
+必要条件:
+  outdegree = 1
+
+取得可能:
+ ★ cycle判定
+ ★ cycle entry
+ ★ cycle size
+ ★ cycle index
+ ★ depth (cycleまで距離)
+ ★ k回遷移
+ ★ 無限操作後
+
+build : O(N)
+query : O(1) / O(logK)
+
+==================================================
+*/
+struct FunctionalGraph {
+
+    int N;
+    vector<int> to;
+
+    vector<int> indeg;
+    vector<int> depth;   // cycleまで距離
+    vector<int> comp;    // cycle id
+    vector<int> pos;     // cycle内index
+
+    vector<vector<int>> cycles;
+    vector<int> cycle_sz;
+
+    // ★ cycleに最初に入る頂点
+    vector<int> entry;
+
+    FunctionalGraph(int n)
+        : N(n),
+          to(n),
+          indeg(n,0),
+          depth(n,-1),
+          comp(n,-1),
+          pos(n,-1),
+          entry(n,-1){}
+
+    //------------------------------------------------
+    void set_edge(int u,int v){
+        to[u]=v;
+        indeg[v]++;
+    }
+
+    //------------------------------------------------
+    void build(){
+
+        queue<int> q;
+
+        // ========= 木削除 =========
+        for(int i=0;i<N;i++)
+            if(indeg[i]==0)
+                q.push(i);
+
+        while(!q.empty()){
+            int v=q.front(); q.pop();
+            int u=to[v];
+            if(--indeg[u]==0)
+                q.push(u);
+        }
+
+        // ========= cycle抽出 =========
+        vector<int> used(N);
+
+        for(int i=0;i<N;i++){
+            if(indeg[i]>0 && !used[i]){
+
+                vector<int> cyc;
+                int v=i;
+
+                while(!used[v]){
+                    used[v]=1;
+                    cyc.push_back(v);
+                    v=to[v];
+                }
+
+                int id=cycles.size();
+
+                for(int j=0;j<(int)cyc.size();j++){
+                    int x=cyc[j];
+                    comp[x]=id;
+                    pos[x]=j;
+                    depth[x]=0;
+                    entry[x]=x;
+                }
+
+                cycles.push_back(cyc);
+                cycle_sz.push_back(cyc.size());
+            }
+        }
+
+        // ========= reverse =========
+        vector<vector<int>> rev(N);
+        for(int i=0;i<N;i++)
+            rev[to[i]].push_back(i);
+
+        queue<int> qq;
+        for(int i=0;i<N;i++)
+            if(depth[i]==0)
+                qq.push(i);
+
+        // ========= depth & entry =========
+        while(!qq.empty()){
+            int v=qq.front(); qq.pop();
+
+            for(int u:rev[v]){
+                if(depth[u]!=-1) continue;
+
+                depth[u]=depth[v]+1;
+                comp[u]=comp[v];
+                entry[u]=entry[v];
+                qq.push(u);
+            }
+        }
+    }
+
+    //------------------------------------------------
+    bool in_cycle(int v) const{
+        return depth[v]==0;
+    }
+
+    //------------------------------------------------
+    int cycle_size(int v) const{
+        return cycle_sz[comp[v]];
+    }
+
+    //------------------------------------------------
+    int cycle_index(int v) const{
+        return pos[v];
+    }
+
+    //------------------------------------------------
+    int cycle_entry(int v) const{
+        return entry[v];
+    }
+
+    //------------------------------------------------
+    // Doubling連携
+    //------------------------------------------------
+    template<class DB>
+    void build_doubling(DB& db) const{
+        for(int i=0;i<N;i++)
+            db.set_next(i,to[i]);
+        db.build();
+    }
+
+    //------------------------------------------------
+    // 無限操作後の位置
+    //------------------------------------------------
+    template<class DB>
+    int after_infinite(int v,const DB& db) const{
+
+        // cycleまで進む
+        v=db.jump(v,depth[v]);
+
+        // cycle上ならOK
+        return v;
+    }
+
+    //------------------------------------------------
+    // k回後（cycle最適化版）
+    //------------------------------------------------
+    template<class DB>
+    int move(int v,long long k,const DB& db) const{
+
+        if(k<=depth[v])
+            return db.jump(v,k);
+
+        // cycle突入
+        k-=depth[v];
+        v=db.jump(v,depth[v]);
+
+        int cid=comp[v];
+        int sz=cycle_sz[cid];
+
+        k%=sz;
+
+        return db.jump(v,k);
+    }
+};
+
+void solv(){
+    cout<<"=============================\n";
+    cout<<" Functional Graph 動作確認\n";
+    cout<<"=============================\n";
+
+    /*
+        構造:
+
+        0 → 1 → 2 → 3 → 4
+                  ↑     ↓
+                  ← ← ←
+
+        cycle = {2,3,4}
+    */
+
+    int N=5;
+
+    FunctionalGraph fg(N);
+
+    fg.set_edge(0,1);
+    fg.set_edge(1,2);
+    fg.set_edge(2,3);
+    fg.set_edge(3,4);
+    fg.set_edge(4,2);
+
+    fg.build();
+
+    Doubling db(N,100);
+    fg.build_doubling(db);
+
+    cout<<"\n▼ 各頂点情報\n";
+
+    for(int v=0;v<N;v++){
+
+        cout<<"頂点 "<<v<<"\n";
+
+        cout<<"  次頂点: "<<fg.to[v]<<"\n";
+        cout<<"  cycleまでの距離: "<<fg.depth[v]<<"\n";
+        cout<<"  cycle入口: "<<fg.cycle_entry(v)<<"\n";
+        cout<<"  cycleサイズ: "<<fg.cycle_size(v)<<"\n";
+
+        cout<<"  cycle上か: ";
+        cout<<(fg.in_cycle(v)?"はい":"いいえ")<<"\n";
+
+        cout<<"\n";
+    }
+
+    cout<<"-----------------------------\n";
+    cout<<"▼ k回遷移テスト (start = 0)\n";
+
+    for(int k=0;k<=10;k++){
+        cout<<k<<" 回後 → "
+            <<fg.move(0,k,db)<<"\n";
+    }
+
+    cout<<"-----------------------------\n";
+    cout<<"▼ 無限操作後\n";
+
+    for(int v=0;v<N;v++){
+        cout<<"頂点 "<<v<<" → "
+            <<fg.after_infinite(v,db)
+            <<"\n";
+    }
+
+    cout<<"=============================\n\n";
+    return;
+}
+
+int main(){
+    //BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

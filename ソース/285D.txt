@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//ループが存在しないことと同値
+//変更後の名前が変更前の名前に存在するか+存在する場合にindexを返却
+map<string,int> m;
+//boolだと途中から始まった経路と被ったときにループと判定される
+vector<int> rec;
+vector<pair<string,string>> v;
+bool b;
+void dfs(int i,int c){
+    rec[i]=c;
+    if(m.count(v[i].second)){
+        if(rec[m[v[i].second]]==c)b=false;
+        else if(rec[m[v[i].second]]!=-1)return;
+        else dfs(m[v[i].second],c);
+    }
+}
+
+int main()
+{
+    int N;
+    cin>>N;
+    rec.resize(N,-1);
+    v.resize(N);
+    b=true;
+    rep(i,0,N){
+        string s1,s2;
+        cin>>s1>>s2;
+        v[i]={s1,s2};
+        m[s1]=i;
+    }
+    int c=0;
+    rep(i,0,N)if(rec[i]==-1){
+        c++;
+        dfs(i,c);
+    }
+    if(b)YN;
+    return 0;
+}

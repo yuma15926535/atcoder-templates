@@ -1,0 +1,56 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int H,W;
+vector<vector<char>> C;
+vector<vector<bool>> visited;
+vector<int> dx={-1,1,0,0},dy={0,0,-1,1};
+//複雑なグラフの探索や動的計画法は再帰関数で実装
+//sx,syはスタートなので変化しない
+//再起をどこから始めるかのためにtx,tyを持たせる
+int dfs(int sx,int sy,int tx,int ty){
+    //閉路を見つけた場合にreturn 0から始まる
+    if(sx==tx&&sy==ty&&visited[tx][ty])return 0;
+    //再帰呼び出し中はtrueに
+    visited[tx][ty]=true;
+    int r=-10000;
+    //4方向
+    rep(i,0,4){
+        int nx=tx+dx[i],ny=ty+dy[i];
+        //行き止まり、範囲外の場合とばす
+        if(nx<0||nx>=H||ny<0||ny>=W||C[nx][ny]=='#')continue;
+        //スタートと異なる位置の閉路は行き止まりと同じ
+        //全探索するため行き止まりと同じ扱いができる
+        if((sx!=nx||sy!=ny)&&visited[nx][ny])continue;
+        r=max(r,dfs(sx,sy,nx,ny)+1);
+    }
+    //再帰終了時にはすべてfalseに
+    //初期化の必要がなくなる
+    visited[tx][ty]=false;
+    return r;
+}
+
+int main()
+{
+    cin>>H>>W;
+    C=vector<vector<char>>(H,vector<char>(W));
+    rep(i,0,H)rep(j,0,W)cin>>C[i][j];
+    visited=vector<vector<bool>>(H,vector<bool>(W,false));
+    int ans=0;
+    //マス目が十分に小さいので全探索可能
+    rep(i,0,H)rep(j,0,W)ans=max(ans,dfs(i,j,i,j));
+    if(ans<=2)cout<<-1<<"\n";
+    else cout<<ans<<"\n";
+    return 0;
+}

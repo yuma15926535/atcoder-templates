@@ -1,0 +1,1040 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+struct Treap {
+    struct Node {
+        int key;
+        uint32_t pri;
+        int sz;
+        Node *l, *r;
+
+        Node(int key, uint32_t pri)
+            : key(key), pri(pri), sz(1), l(nullptr), r(nullptr) {}
+    };
+
+    using NP = Node*;
+
+    // RNG（高速・衝突少）
+    mt19937 rng;
+
+    Treap() : rng(chrono::steady_clock::now().time_since_epoch().count()) {}
+
+    // ノード生成（priorityは乱数）
+    NP new_node(int key) {
+        return new Node(key, rng());
+    }
+
+    // 部分木サイズ取得（nullは0）
+    int size(NP t) const {
+        return t ? t->sz : 0;
+    }
+
+    // 部分木サイズを更新（子から再計算）
+    void update(NP t) {
+        if (!t) return;
+        t->sz = 1 + size(t->l) + size(t->r);
+    }
+
+    // 2つのTreapをマージ（lの全要素 <= rの全要素が前提）
+    NP merge(NP l, NP r) {
+        if (!l || !r) return l ? l : r;
+
+        if (l->pri > r->pri) {
+            l->r = merge(l->r, r);
+            update(l);
+            return l;
+        } else {
+            r->l = merge(l, r->l);
+            update(r);
+            return r;
+        }
+    }
+
+    // key未満 / key以上 に分割
+    // 戻り値: {< key, >= key}
+    pair<NP, NP> split(NP t, int key) {
+        if (!t) return {nullptr, nullptr};
+
+        if (t->key < key) {
+            auto [l, r] = split(t->r, key);
+            t->r = l;
+            update(t);
+            return {t, r};
+        } else {
+            auto [l, r] = split(t->l, key);
+            t->l = r;
+            update(t);
+            return {l, t};
+        }
+    }
+
+    // 要素keyを1つ追加（multiset）
+    // split→mergeで安全に挿入
+    NP insert(NP root, int key) {
+        auto [l, r] = split(root, key);
+        return merge(merge(l, new_node(key)), r);
+    }
+
+    // 要素keyを1つ削除（multiset）
+    // 存在すれば1つだけ削除
+    NP erase(NP root, int key) {
+        auto [l, r] = split(root, key);       // < key | >= key
+        auto [m, r2] = split(r, key + 1);     // == key | > key
+
+        // mの中から1つだけ削除
+        if (m) {
+            m = merge(m->l, m->r);
+        }
+
+        return merge(l, merge(m, r2));
+    }
+
+    // k番目の値を取得（1-index）
+    // k=1が最小
+    int kth(NP t, int k) {
+        if (!t) return -1; // 異常（テストで弾く前提でもOK）
+
+        int left_size = size(t->l);
+
+        if (k <= left_size) {
+            return kth(t->l, k);
+        } else if (k == left_size + 1) {
+            return t->key;
+        } else {
+            return kth(t->r, k - left_size - 1);
+        }
+    }
+
+    // key未満の要素数
+    int order_of_key(NP t, int key) {
+        if (!t) return 0;
+
+        if (key <= t->key) {
+            // 全部左にある
+            return order_of_key(t->l, key);
+        } else {
+            // 左 + 自分 + 右の一部
+            return size(t->l) + 1 + order_of_key(t->r, key);
+        }
+    }
+
+    // keyの出現回数
+    int count(NP t, int key) {
+        return order_of_key(t, key + 1) - order_of_key(t, key);
+    }
+
+    // key以上で最小の値（lower_bound）
+    // 存在しなければ -1
+    int lower_bound(NP t, int key) {
+        int k = order_of_key(t, key) + 1;
+        if (k > size(t)) return -1;
+        return kth(t, k);
+    }
+
+    // keyより大きい最小の値（upper_bound）
+    // 存在しなければ -1
+    int upper_bound(NP t, int key) {
+        int k = order_of_key(t, key + 1) + 1;
+        if (k > size(t)) return -1;
+        return kth(t, k);
+    }
+
+    // key未満で最大の値（前駆）
+    // 存在しなければ -1
+    int prev(NP t, int key) {
+        int k = order_of_key(t, key);
+        if (k == 0) return -1;
+        return kth(t, k);
+    }
+
+    // keyより大きい最小の値（後継）
+    // 存在しなければ -1
+    int next(NP t, int key) {
+        int k = order_of_key(t, key + 1) + 1;
+        if (k > size(t)) return -1;
+        return kth(t, k);
+    }
+
+    // 中順走査（昇順配列に変換）
+    void inorder(NP t, vector<int>& v) const {
+        if (!t) return;
+        inorder(t->l, v);
+        v.push_back(t->key);
+        inorder(t->r, v);
+    }
+};
+
+/*
+=====================================================
+★ CountSet（順序付きmultiset）
+=====================================================
+
+【できること】
+・insert(x)        : xを追加
+・erase(x)         : xを1個削除（存在しなければfalse）
+・count_lt(x)      : x未満の個数
+・count_le(x)      : x以下の個数
+・count_gt(x)      : xより大きい個数
+・count_ge(x)      : x以上の個数
+・count_eq(x)      : xの個数
+・contains(x)      : xが存在するか
+・kth(k)           : k番目の値を取得（0-indexed）
+・lower_bound(x)   : x以上の最小値
+・upper_bound(x)   : xより大きい最小値
+・prev(x)          : x未満で最大の値
+・next(x)          : xより大きい最小値
+・min()            : 最小値
+・max()            : 最大値
+・size()           : 要素数
+・empty()          : 空かどうか
+・to_vector()      : 昇順配列化
+
+【計算量】
+・insert / erase / count / kth
+    -> 平均 O(log N)
+
+【内部実装】
+・Treap
+・multiset対応（重複可）
+
+【注意】
+・lower_bound / upper_bound / prev / next
+    は存在しない場合 -1 を返す
+・kth(k) は 0-indexed
+・空で min/max/kth は呼ばない
+
+=====================================================
+*/
+struct CountSet {
+private:
+    struct Treap {
+        struct Node {
+            int key;
+            uint32_t pri;
+            int sz;
+            Node *l, *r;
+
+            Node(int key, uint32_t pri)
+                : key(key), pri(pri), sz(1), l(nullptr), r(nullptr) {}
+        };
+
+        using NP = Node*;
+
+        mt19937 rng;
+
+        Treap() : rng(chrono::steady_clock::now().time_since_epoch().count()) {}
+
+        NP root = nullptr;
+
+        NP new_node(int key) {
+            return new Node(key, rng());
+        }
+
+        int size(NP t) const {
+            return t ? t->sz : 0;
+        }
+
+        void update(NP t) {
+            if (!t) return;
+            t->sz = 1 + size(t->l) + size(t->r);
+        }
+
+        NP merge(NP l, NP r) {
+            if (!l || !r) return l ? l : r;
+
+            if (l->pri > r->pri) {
+                l->r = merge(l->r, r);
+                update(l);
+                return l;
+            } else {
+                r->l = merge(l, r->l);
+                update(r);
+                return r;
+            }
+        }
+
+        pair<NP, NP> split(NP t, int key) {
+            if (!t) return {nullptr, nullptr};
+
+            if (t->key < key) {
+                auto [l, r] = split(t->r, key);
+                t->r = l;
+                update(t);
+                return {t, r};
+            } else {
+                auto [l, r] = split(t->l, key);
+                t->l = r;
+                update(t);
+                return {l, t};
+            }
+        }
+
+        NP insert(NP root, int key) {
+            auto [l, r] = split(root, key);
+            return merge(merge(l, new_node(key)), r);
+        }
+
+        NP erase(NP root, int key) {
+            auto [l, r] = split(root, key);
+            auto [m, r2] = split(r, key + 1);
+
+            if (m) {
+                m = merge(m->l, m->r);
+            }
+
+            return merge(l, merge(m, r2));
+        }
+
+        int kth(NP t, int k) const {
+            int left_size = size(t->l);
+
+            if (k <= left_size) {
+                return kth(t->l, k);
+            } else if (k == left_size + 1) {
+                return t->key;
+            } else {
+                return kth(t->r, k - left_size - 1);
+            }
+        }
+
+        int order_of_key(NP t, int key) const {
+            if (!t) return 0;
+
+            if (key <= t->key) {
+                return order_of_key(t->l, key);
+            } else {
+                return size(t->l) + 1 + order_of_key(t->r, key);
+            }
+        }
+
+        int count(NP t, int key) const {
+            return order_of_key(t, key + 1)
+                 - order_of_key(t, key);
+        }
+    };
+
+    Treap tr;
+
+public:
+    CountSet() {}
+
+    // 要素数
+    int size() const {
+        return tr.size(tr.root);
+    }
+
+    bool empty() const {
+        return size() == 0;
+    }
+
+    // 挿入
+    void insert(int x) {
+        tr.root = tr.insert(tr.root, x);
+    }
+
+    // 1個削除
+    bool erase(int x) {
+        if (!count_eq(x)) return false;
+        tr.root = tr.erase(tr.root, x);
+        return true;
+    }
+
+    // x未満
+    int count_lt(int x) const {
+        return tr.order_of_key(tr.root, x);
+    }
+
+    // x以下
+    int count_le(int x) const {
+        return tr.order_of_key(tr.root, x + 1);
+    }
+
+    // xより大
+    int count_gt(int x) const {
+        return size() - count_le(x);
+    }
+
+    // x以上
+    int count_ge(int x) const {
+        return size() - count_lt(x);
+    }
+
+    // xの個数
+    int count_eq(int x) const {
+        return tr.count(tr.root, x);
+    }
+
+    // 存在判定
+    bool contains(int x) const {
+        return count_eq(x);
+    }
+
+    // k番目 (0-indexed)
+    int kth(int k) const {
+        return tr.kth(tr.root, k + 1);
+    }
+
+    // x以上の最初のindex
+    int lower_bound_idx(int x) const {
+        return count_lt(x);
+    }
+
+    // xより大きい最初のindex
+    int upper_bound_idx(int x) const {
+        return count_le(x);
+    }
+
+    // 最小値
+    int min() const {
+        return kth(0);
+    }
+
+    // 最大値
+    int max() const {
+        return kth(size() - 1);
+    }
+
+    // x以上の最小値
+    int lower_bound(int x) const {
+        int k = count_lt(x);
+
+        if (k == size()) return -1;
+
+        return kth(k);
+    }
+
+    // xより大きい最小値
+    int upper_bound(int x) const {
+        int k = count_le(x);
+
+        if (k == size()) return -1;
+
+        return kth(k);
+    }
+
+    // x未満で最大
+    int prev(int x) const {
+        int k = count_lt(x);
+
+        if (k == 0) return -1;
+
+        return kth(k - 1);
+    }
+
+    // xより大きい最小
+    int next(int x) const {
+        int k = count_le(x);
+
+        if (k == size()) return -1;
+
+        return kth(k);
+    }
+
+    // 昇順配列化
+    vector<int> to_vector() const {
+        vector<int> v;
+
+        auto dfs = [&](auto&& self, Treap::NP t) -> void {
+            if (!t) return;
+            self(self, t->l);
+            v.push_back(t->key);
+            self(self, t->r);
+        };
+
+        dfs(dfs, tr.root);
+
+        return v;
+    }
+};
+
+void random_test() {
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+    CountSet st;
+    multiset<int> ms;
+
+    for (int t = 1; t <= 100000; t++) {
+
+        int op = rng() % 8;
+        int x = rng() % 20;
+
+        // insert
+        if (op == 0) {
+            st.insert(x);
+            ms.insert(x);
+        }
+
+        // erase
+        else if (op == 1) {
+            bool a = st.erase(x);
+
+            bool b = false;
+            auto it = ms.find(x);
+
+            if (it != ms.end()) {
+                ms.erase(it);
+                b = true;
+            }
+
+            assert(a == b);
+        }
+
+        // count_lt
+        else if (op == 2) {
+            int a = st.count_lt(x);
+
+            int b = 0;
+            for (int v : ms) {
+                if (v < x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_le
+        else if (op == 3) {
+            int a = st.count_le(x);
+
+            int b = 0;
+            for (int v : ms) {
+                if (v <= x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_gt
+        else if (op == 4) {
+            int a = st.count_gt(x);
+
+            int b = 0;
+            for (int v : ms) {
+                if (v > x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_ge
+        else if (op == 5) {
+            int a = st.count_ge(x);
+
+            int b = 0;
+            for (int v : ms) {
+                if (v >= x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_eq
+        else if (op == 6) {
+            int a = st.count_eq(x);
+            int b = ms.count(x);
+
+            assert(a == b);
+        }
+
+        // kth
+        else {
+            if (ms.empty()) continue;
+
+            int k = rng() % ms.size();
+
+            int a = st.kth(k);
+
+            auto it = ms.begin();
+            advance(it, k);
+
+            int b = *it;
+
+            assert(a == b);
+        }
+
+        // size
+        assert(st.size() == (int)ms.size());
+
+        // to_vector
+        vector<int> a = st.to_vector();
+        vector<int> b(ms.begin(), ms.end());
+
+        assert(a == b);
+    }
+
+    cout << "Random Test OK" << endl;
+}
+
+void random_test2() {
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+    CountSet st;
+    multiset<int> ms;
+
+    for (int t = 1; t <= 100000; t++) {
+
+        int op = rng() % 12;
+        int x = rng() % 20;
+
+        // insert
+        if (op == 0) {
+            st.insert(x);
+            ms.insert(x);
+        }
+
+        // erase
+        else if (op == 1) {
+            bool a = st.erase(x);
+
+            bool b = false;
+
+            auto it = ms.find(x);
+
+            if (it != ms.end()) {
+                ms.erase(it);
+                b = true;
+            }
+
+            assert(a == b);
+        }
+
+        // count_lt
+        else if (op == 2) {
+            int a = st.count_lt(x);
+
+            int b = 0;
+
+            for (int v : ms) {
+                if (v < x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_le
+        else if (op == 3) {
+            int a = st.count_le(x);
+
+            int b = 0;
+
+            for (int v : ms) {
+                if (v <= x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_gt
+        else if (op == 4) {
+            int a = st.count_gt(x);
+
+            int b = 0;
+
+            for (int v : ms) {
+                if (v > x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_ge
+        else if (op == 5) {
+            int a = st.count_ge(x);
+
+            int b = 0;
+
+            for (int v : ms) {
+                if (v >= x) b++;
+            }
+
+            assert(a == b);
+        }
+
+        // count_eq
+        else if (op == 6) {
+            int a = st.count_eq(x);
+            int b = ms.count(x);
+
+            assert(a == b);
+        }
+
+        // kth
+        else if (op == 7) {
+            if (ms.empty()) continue;
+
+            int k = rng() % ms.size();
+
+            int a = st.kth(k);
+
+            auto it = ms.begin();
+            advance(it, k);
+
+            int b = *it;
+
+            assert(a == b);
+        }
+
+        // lower_bound
+        else if (op == 8) {
+            int a = st.lower_bound(x);
+
+            auto it = ms.lower_bound(x);
+
+            int b = (it == ms.end() ? -1 : *it);
+
+            assert(a == b);
+        }
+
+        // upper_bound
+        else if (op == 9) {
+            int a = st.upper_bound(x);
+
+            auto it = ms.upper_bound(x);
+
+            int b = (it == ms.end() ? -1 : *it);
+
+            assert(a == b);
+        }
+
+        // prev
+        else if (op == 10) {
+            int a = st.prev(x);
+
+            auto it = ms.lower_bound(x);
+
+            int b;
+
+            if (it == ms.begin()) {
+                b = -1;
+            } else {
+                --it;
+                b = *it;
+            }
+
+            assert(a == b);
+        }
+
+        // next
+        else {
+            int a = st.next(x);
+
+            auto it = ms.upper_bound(x);
+
+            int b = (it == ms.end() ? -1 : *it);
+
+            assert(a == b);
+        }
+
+        // size
+        assert(st.size() == (int)ms.size());
+
+        // empty
+        assert(st.empty() == ms.empty());
+
+        // to_vector
+        vector<int> a = st.to_vector();
+        vector<int> b(ms.begin(), ms.end());
+
+        assert(a == b);
+
+        // min
+        if (!ms.empty()) {
+            assert(st.min() == *ms.begin());
+        }
+
+        // max
+        if (!ms.empty()) {
+            assert(st.max() == *prev(ms.end()));
+        }
+    }
+
+    cout << "Random Test2 OK" << endl;
+}
+
+void test() {
+    CountSet st;
+
+    cout << "===== CountSet 動作確認 =====\n\n";
+
+    // insert
+    cout << "【insert】\n";
+
+    st.insert(5);
+    st.insert(1);
+    st.insert(5);
+    st.insert(3);
+    st.insert(7);
+
+    vector<int> v = st.to_vector();
+
+    cout << "insert: 5 1 5 3 7\n";
+    cout << "現在の集合: ";
+
+    for (int x : v) {
+        cout << x << " ";
+    }
+
+    cout << "\n\n";
+
+    // size
+    cout << "【size / empty】\n";
+
+    cout << "size(): " << st.size() << "\n";
+    cout << "empty(): " << (st.empty() ? "true" : "false") << "\n\n";
+
+    // count系
+    cout << "【count系】\n";
+
+    cout << "count_lt(5) : " << st.count_lt(5) << "\n";
+    cout << "count_le(5) : " << st.count_le(5) << "\n";
+    cout << "count_gt(5) : " << st.count_gt(5) << "\n";
+    cout << "count_ge(5) : " << st.count_ge(5) << "\n";
+    cout << "count_eq(5) : " << st.count_eq(5) << "\n\n";
+
+    // contains
+    cout << "【contains】\n";
+
+    cout << "contains(3): "
+         << (st.contains(3) ? "true" : "false") << "\n";
+
+    cout << "contains(10): "
+         << (st.contains(10) ? "true" : "false") << "\n\n";
+
+    // kth
+    cout << "【kth】\n";
+
+    for (int i = 0; i < st.size(); i++) {
+        cout << "kth(" << i << ") : "
+             << st.kth(i) << "\n";
+    }
+
+    cout << "\n";
+
+    // lower_bound / upper_bound
+    cout << "【lower_bound / upper_bound】\n";
+
+    cout << "lower_bound(4): "
+         << st.lower_bound(4) << "\n";
+
+    cout << "upper_bound(5): "
+         << st.upper_bound(5) << "\n\n";
+
+    // prev / next
+    cout << "【prev / next】\n";
+
+    cout << "prev(5): "
+         << st.prev(5) << "\n";
+
+    cout << "next(5): "
+         << st.next(5) << "\n\n";
+
+    // min / max
+    cout << "【min / max】\n";
+
+    cout << "min(): " << st.min() << "\n";
+    cout << "max(): " << st.max() << "\n\n";
+
+    // erase
+    cout << "【erase】\n";
+
+    st.erase(5);
+
+    v = st.to_vector();
+
+    cout << "erase(5)\n";
+    cout << "現在の集合: ";
+
+    for (int x : v) {
+        cout << x << " ";
+    }
+
+    cout << "\n";
+
+    cout << "count_eq(5): "
+         << st.count_eq(5) << "\n\n";
+
+    cout << "===== 動作確認終了 =====\n";
+}
+
+void solv(){
+    random_test();
+    random_test2();
+    test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

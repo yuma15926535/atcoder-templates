@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll> A(N);
+    rep(i,0,N)cin>>A[i];
+    vector<tuple<ll,ll,ll>> q(Q);
+    rep(i,0,Q){
+        int l,r,v;
+        cin>>l>>r>>v;
+        l--;r--;
+        q[i]=make_tuple(l,r,v);
+    }
+    vector<ll> sub(N-1);
+    ll ans=0;
+    rep(i,0,N-1){
+        sub[i]=A[i+1]-A[i];
+        ans+=abs(sub[i]);
+    }
+    //変わる場所のみ記録
+    rep(i,0,Q){
+        int l,r,v;
+        l=get<0>(q[i]),r=get<1>(q[i]),v=get<2>(q[i]);
+        if(l!=0){
+            ans-=abs(sub[l-1]);
+            sub[l-1]+=v;
+            ans+=abs(sub[l-1]);
+        }
+        if(r!=N-1){
+            ans-=abs(sub[r]);
+            sub[r]-=v;
+            ans+=abs(sub[r]);
+        }
+        cout<<ans<<"\n";
+    }
+    return 0;
+}

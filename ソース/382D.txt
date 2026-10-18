@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int change;
+int N,M,c;
+vector<int> rec;
+vector<vector<int>> v;
+//N重ループなので再帰関数
+//cs:元の最小の値からの変化の総和
+//各変化はrecで管理
+void dfs(int cs,int pos){
+    if(pos==N){
+        v.push_back(rec);
+        rep(i,0,N){
+            //値が変わったときに+10の条件を満たすように注意
+            if(i==0)v[(int)v.size()-1][i]+=v[0][i];
+            else v[(int)v.size()-1][i]+=v[(int)v.size()-1][i-1]+10;
+        }
+        return;
+    }
+    erep(i,0,change-cs){
+        rec[pos]=i;
+        dfs(cs+i,pos+1);
+    }
+}
+
+int main()
+{
+    cin>>N>>M;
+    //サイズ0で初期化も可能
+    v=vector<vector<int>>(1,vector<int>(N));
+    if(1+(N-1)*10>M){cout<<0<<"\n";return 0;}
+    change=M-(1+(N-1)*10);
+    rep(i,0,N)v[0][i]=1+(i)*10;
+    //Nもrecもグローバルで初期化もグローバルでできそうに思えるが、読み込まれるときにはNの入力を受け取れていないので注意
+    rec.resize(N);
+    dfs(0,0);
+    //入力が十分に小さいので差分0が重複することも、ソートが入ることも気にしなくてよい
+    sort(nall(v));
+    v.erase(unique(nall(v)),v.end());
+    cout<<v.size()<<"\n";
+    rep(i,0,v.size()){
+        rep(j,0,N){
+            cout<<v[i][j]<<" ";
+        }
+        cout<<"\n";
+    }
+    return 0;
+}

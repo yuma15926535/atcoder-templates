@@ -1,0 +1,2229 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================================
+// DynamicSequence<T>  --  AtCoder用 "全部入り" 動的配列テンプレート
+// ----------------------------------------------------------------------------
+// 実装方式 : Implicit Treap (乱択優先度つき2分探索木, 位置=implicit key)
+//            split / merge を基本操作とし, その組み合わせで全機能を実現する。
+//
+// 区間は常に半開区間 [l, r), 添字はすべて 0-based で統一する。
+//
+// ---------------------------------------------------------------------------
+// 【API一覧と計算量】 (N = size(), 特記なき限り expected computational cost)
+//
+//  size / empty                          O(1)
+//  get(i) / operator[](i) / front / back O(log N)
+//  set(i,x)                              O(log N)
+//  push_back/pop_back/push_front/pop_front O(log N)
+//  insert(i,x) / erase(i) / erase(l,r)   O(log N)
+//  to_vector() / to_vector(l,r)          O(N) / O(r-l)
+//  split(k) -> (左, 右)                   O(log N)
+//  merge(other) (自分の末尾に連結)         O(log N)   ※ static merge(a,b) も提供
+//  reverse(l,r)                          O(log N)   (lazy)
+//  rotate(l,r,k)                         O(log N)   (3分割+merge)
+//  shift_left/shift_right(l,r,k)         O(log N)   (rotateの別名)
+//  move(l,r,pos)                         O(log N)
+//  swap_range(l1,r1,l2,r2)               O(log N)
+//  extract(l,r) -> 新しい DynamicSequence  O(log N)  (元から切り離す)
+//  splice(pos,other,l,r)                 O(log N)
+//  concat(a,b,...)                       O(log N) per merge
+//
+//  --- Aggregate (sum/min/max は affine lazy と両立) ---
+//  sum/min/vmax(l,r)                      O(log N)
+//  gcd/xor_sum/and_sum/or_sum(l,r)       O(log N)  ただし後述の制約あり
+//  max_prefix/suffix/min_prefix/suffix(l,r) O(log N) 制約あり (Kadane系)
+//  max_subarray_sum/min_subarray_sum(l,r) O(log N)  制約あり (Kadane系)
+//
+//  --- Range Lazy ---
+//  add(l,r,x) / assign(l,r,x) / multiply(l,r,x) / affine(l,r,a,b)  O(log N)
+//    -> 内部では 1 種類の affine lazy (has_assign, mul, add) に統一して合成する。
+//
+//  --- 二分探索 ---
+//  max_right(l, pred) / lower_bound_prefix(x)  O(log N)
+//  min_left(r, pred)                           O(log^2 N)  (sum二分探索で実装)
+//    (sum aggregate に対する単調性を利用。affine lazy 併用可)
+//
+//  --- 便利機能 (O(log N) は不可能, 明記の上で許容) ---
+//  sort/stable_sort(l,r)      O(len log len)
+//  unique(l,r)                O(len)   (sizeが変化する)
+//  erase_if/filter(l,r,pred)  O(len)   (sizeが変化する)
+//  partition/stable_partition(l,r,pred) O(len)
+//  map(l,r,f)                 O(len)
+//  kth_smallest(l,r,k) / median(l,r) O(len log len)  (下記 制約 参照)
+//  count_value(l,r,x) / mode(l,r)     O(len) / O(len log len)
+//  mex(l,r)                   O(len log len)
+//  inversion(l,r)             O(len log len)  (クエリ毎に再計算, 差分維持はしない)
+//
+//  --- debug ---
+//  dump()/print()/check()/validate()
+//
+// ---------------------------------------------------------------------------
+// 【非可換/構造化 Aggregate と Lazy の両立性について (重要な設計方針)】
+//
+//  sum, min, max は affine変換 x -> a*x+b (add/assign/multiply/affine 全て
+//  この形に統一される) のもとで O(1) で正しく更新できる。 (min/maxはa<0のとき
+//  min/maxが入れ替わることに注意して実装している)
+//
+//  一方で以下の aggregate は "加算/乗算" の下では正しく維持できない
+//  (分配則が成り立たないため):
+//     - gcd, xor_sum, and_sum, or_sum
+//     - max_prefix/suffix, min_prefix/suffix, max/min_subarray_sum (Kadane系)
+//  例えば区間に定数 delta を加算すると, 区間内の gcd や xor は単純な式で
+//  更新できず (gcd(a+d,b+d) != gcd(a,b)+d), Kadane系も「どのprefix長が最適か」
+//  が delta によって非線形に変化するため O(1) 更新できない。
+//
+//  ただし "assign" (定数で埋める) だけは全ての aggregate について自明に
+//  再計算可能 (要素が全て同じ値になるため)。
+//
+//  そこで本テンプレートは各 node に bad_nonlinear フラグを持たせ,
+//    - assign 適用時    : フラグを false にしてこれらの aggregate を再計算
+//    - add/multiply 適用時 (実質的な変化がある場合) : フラグを true にする
+//    - 構造変更 (pull) : 子の bad_nonlinear の OR を伝播
+//  とし, フラグが true な区間に対して gcd/xor/and/or/Kadane 系を問い合わせた
+//  場合は assert で検出する (黙って誤った値を返すことを避ける)。
+//
+//  add/multiply と gcd/xor/and/or/Kadane 集約を同時に必要とする問題では,
+//  本テンプレートではなく問題特化の Segment Tree を検討すること。
+//
+// ---------------------------------------------------------------------------
+// 【実装対象外の機能とその理由 (項目78 対応)】
+//
+//  - value順 order statistic (lower_bound(x) 等, 値順の二分探索)
+//      : 位置順の treap に加えて値順の平衡木を同時維持する必要があり,
+//        2つの木を同期させる実装コストが非常に高い。一般には困難と分類し,
+//        本テンプレートには含めない (代替: 別途 multiset 等を用いる)。
+//  - range kth_smallest / median を O(log N) や O(log^2 N) で       : 一般には困難。
+//    Wavelet Tree 等は静的構造で, insert/erase/split/merge に対応する
+//    動的 Wavelet Tree は非常に重く実用性が低い。
+//    -> 本テンプレートでは O(len log len) の "遅いが便利" 版のみ提供する。
+//  - mode(l,r) (最頻値), count_value 全般高速化 : 一般値域での動的 range mode は
+//    既知の効率的アルゴリズムが無く実用的でない。O(len) fallback のみ提供。
+//  - mex(l,r) : 同上, 一般値域では O(len) fallback のみ。
+//  - inversion(l,r) の "維持" (insert/erase/reverseと連動した差分更新)
+//      : 一般には困難 (BITでのO(log N)維持はできるが, insert/eraseで値域が
+//        動的に変化する場合の維持は重い)。本テンプレートはクエリ毎に
+//        O(len log len) で再計算する fallback のみ提供する。
+//  - range chmin/chmax (Segment Tree Beats 相当)
+//      : Segment Tree Beats の O(log^2 N) 償却解析は「静的な完全二分木」を
+//        前提とするポテンシャル論法に依存しており, treap の rotate による
+//        構造変化 (split/merge/insert/erase) がポテンシャルを何度もリセット
+//        し得るため, 償却計算量の保証が成立しない。一般には困難と分類し,
+//        本テンプレートには含めない。
+//  - 任意 predicate による O(log N) filter / arbitrary range sort
+//      : 一般には不可能 (要素の再配置がΩ(len)必要なため)。
+//        "ライブラリとして便利" という位置づけで O(len log len) 版のみ提供する
+//        (sort/stable_sort/unique/erase_if/filter/partition/map)。
+//  - Weighted Sequence (value,weight) の専用 kth_by_weight() 等
+//      : 汎用の sum aggregate と max_right() の組み合わせで実現可能なため
+//        (weight を要素に持たせ, sum(l,r) で weight_sum, max_right で
+//        kth_by_weight 相当を実現できる), 専用APIとしては用意しない。
+//  - Pair Aggregate (equal pair count 等)
+//      : 汎用 sum aggregate に (sum, sum_sq) のような複合モノイドを載せる
+//        ことで実現可能なため, 専用APIは用意しない (T をカスタム構造体にして
+//        operator+ を定義すればよい)。
+//
+// ---------------------------------------------------------------------------
+// 【乱数・優先度】
+//   mt19937_64 を chrono seed で初期化する (再現性が必要な場合は SEED を
+//   固定値に変更すること)。優先度は 64bit のため衝突確率は無視できるほど
+//   小さい。
+//
+// 【メモリ】
+//   全 DynamicSequence<T> インスタンスは static な node pool を共有する。
+//   extract/splice はノードの所有権を付け替えるだけで O(1) (+分割のO(log N))
+//   であり, ノードをコピーしない。
+//   deleteされたノードは free list で再利用する。
+//
+// 【コピー】
+//   ノードは pool 上の index で共有されるため, 単純なコピーは危険
+//   (二重解放/意図しない共有) となる。よって copy constructor / copy
+//   assignment operator は削除し, move のみ許可する。深いコピーが必要な
+//   場合は明示的に clone() を呼ぶこと (O(N))。
+//
+// 【境界条件】
+//   - 空配列, 長さ1, l==r (空区間, 何もしない), l==0, r==size, 全区間,
+//     k==0, kが区間長以上 (mod処理), 負のrotate量, 先頭/末尾へのinsert/erase
+//     について, 下記のとおり動作を定義し, assert で範囲外を検出する。
+// ============================================================================
+template <class T>
+struct DynamicSequence {
+    // ------------------------------------------------------------------
+    // Node定義 (node pool方式, index=-1 を nullptr 代わりに使う)
+    // ------------------------------------------------------------------
+    struct Node {
+        int ch[2] = {-1, -1};
+        unsigned long long pri = 0;
+        int sz = 1;
+        T val{};
+        // 線形 (affine lazy と両立する) aggregate
+        T sum{}, mn{}, mx{};
+        // 非線形 aggregate (add/multiplyと非両立, assignとのみ両立)
+        T gcdv{}, xorv{}, andv{}, orv{};
+        T pre_max{}, suf_max{}, pre_min{}, suf_min{}, best_max{}, best_min{};
+        bool bad_nonlinear = false;   // trueなら上記非線形aggregateは無効
+        // lazy
+        bool rev = false;
+        bool has_assign = false;
+        T assign_val{};
+        T mul = T(1), add = T(0);     // x -> mul*x + add (has_assignがtrueなら
+                                       // 「assign_val を基準に mul,add 適用」の意味)
+    };
+
+    static inline vector<Node> pool;
+    static inline vector<int> free_list;
+    static inline mt19937_64 rng{(unsigned long long)chrono::steady_clock::now().time_since_epoch().count()};
+
+    int root = -1;
+
+    // ------------------------------------------------------------------
+    // Node pool 管理
+    // ------------------------------------------------------------------
+    static int alloc_node(const T& v) {
+        int idx;
+        if (!free_list.empty()) {
+            idx = free_list.back();
+            free_list.pop_back();
+            pool[idx] = Node(); // 古い情報を完全にリセットしてから使う
+        } else {
+            pool.emplace_back();
+            idx = (int)pool.size() - 1;
+        }
+        Node& nd = pool[idx];
+        nd.val = v;
+        nd.sum = v; nd.mn = v; nd.mx = v;
+        nd.gcdv = v; nd.xorv = v; nd.andv = v; nd.orv = v;
+        nd.pre_max = v; nd.suf_max = v; nd.pre_min = v; nd.suf_min = v;
+        nd.best_max = v; nd.best_min = v;
+        nd.pri = rng();
+        return idx;
+    }
+
+    static void free_subtree(int t) {
+        if (t == -1) return;
+        free_subtree(pool[t].ch[0]);
+        free_subtree(pool[t].ch[1]);
+        free_list.push_back(t);
+    }
+
+    static int sz(int t) { return t == -1 ? 0 : pool[t].sz; }
+
+    // ------------------------------------------------------------------
+    // 集約(pull) : 子から親を再計算する。構造変更の後に必ず呼ぶ。
+    // O(1)
+    // ------------------------------------------------------------------
+    static void pull(int t) {
+        Node& nd = pool[t];
+        int lc = nd.ch[0], rc = nd.ch[1];
+        nd.sz = sz(lc) + 1 + sz(rc);
+
+        nd.sum = nd.val;
+        nd.mn = nd.val; nd.mx = nd.val;
+        if (lc != -1) { nd.sum += pool[lc].sum; nd.mn = vmin(nd.mn, pool[lc].mn); nd.mx = vmax(nd.mx, pool[lc].mx); }
+        if (rc != -1) { nd.sum += pool[rc].sum; nd.mn = vmin(nd.mn, pool[rc].mn); nd.mx = vmax(nd.mx, pool[rc].mx); }
+
+        nd.bad_nonlinear = (lc != -1 && pool[lc].bad_nonlinear) || (rc != -1 && pool[rc].bad_nonlinear);
+
+        // gcd/xor/and/or (非線形フラグに関わらず「構造上」は計算しておく。
+        // 無効なら bad_nonlinear=true が立っているのでクエリ側でassertする)
+        T g = nd.val, x = nd.val, a = nd.val, o = nd.val;
+        if (lc != -1) { g = gcd(abs_val(g), abs_val(pool[lc].gcdv)); x ^= pool[lc].xorv; a &= pool[lc].andv; o |= pool[lc].orv; }
+        if (rc != -1) { g = gcd(abs_val(g), abs_val(pool[rc].gcdv)); x ^= pool[rc].xorv; a &= pool[rc].andv; o |= pool[rc].orv; }
+        nd.gcdv = g; nd.xorv = x; nd.andv = a; nd.orv = o;
+
+        // Kadane系 (非可換 merge)
+        merge_kadane(t, lc, rc, nd.sum);
+    }
+
+    static T abs_val(const T& v) { return v < T(0) ? -v : v; }
+    // 注意: メンバ関数 vmin(l,r)/vmax(l,r)/set(...)/sort(...)/unique(...) 等が
+    // std:: の同名関数を隠してしまうため、クラス内部では std::min/std::max の
+    // 代わりに以下の vmin/vmax を用いる (T以外にintの比較にも使う汎用版)。
+    template <class U> static U vmin(U a, U b) { return a < b ? a : b; }
+    template <class U> static U vmax(U a, U b) { return a < b ? b : a; }
+
+    // Kadane (max_subarray, prefix/suffix max) と、min版を同時に計算するヘルパ
+    // total引数は現在未使用 (呼び出し側の意図明示のためnd.sumを渡している)
+    static void merge_kadane(int t, int lc, int rc, T /*total*/) {
+        Node& nd = pool[t];
+        T lsum = (lc == -1 ? T(0) : pool[lc].sum);
+        // ---- max 系 ----
+        {
+            // prefix_max(t) = max over k=1..sz of sum(先頭k要素)
+            T left_pre = (lc == -1) ? T(numeric_limits<long long>::min()) : pool[lc].pre_max;
+            T val1 = (lc == -1 ? nd.val : lsum + nd.val);
+            T best_pre = (lc == -1) ? val1 : vmax(left_pre, val1);
+            if (rc != -1) best_pre = vmax(best_pre, val1 + pool[rc].pre_max);
+            nd.pre_max = best_pre;
+
+            T rsum2 = (rc == -1 ? T(0) : pool[rc].sum);
+            T val2 = (rc == -1 ? nd.val : rsum2 + nd.val);
+            T right_suf = (rc == -1) ? T(0) : pool[rc].suf_max;
+            T best_suf = (rc == -1) ? val2 : vmax(right_suf, val2);
+            if (lc != -1) best_suf = vmax(best_suf, val2 + pool[lc].suf_max);
+            nd.suf_max = best_suf;
+
+            T best = nd.val;
+            if (lc != -1) best = vmax(best, pool[lc].best_max);
+            if (rc != -1) best = vmax(best, pool[rc].best_max);
+            T cross = nd.val;
+            if (lc != -1) cross += pool[lc].suf_max;
+            if (rc != -1) cross += pool[rc].pre_max;
+            best = vmax(best, cross);
+            // 左sufのみ+val, val+右preのみ も cross の部分集合として candidatesに含める
+            if (lc != -1) best = vmax(best, pool[lc].suf_max + nd.val);
+            if (rc != -1) best = vmax(best, nd.val + pool[rc].pre_max);
+            nd.best_max = best;
+        }
+        // ---- min 系 (対称) ----
+        {
+            T left_pre = (lc == -1) ? T(numeric_limits<long long>::max()) : pool[lc].pre_min;
+            T val1 = (lc == -1 ? nd.val : lsum + nd.val);
+            T best_pre = (lc == -1) ? val1 : vmin(left_pre, val1);
+            if (rc != -1) best_pre = vmin(best_pre, val1 + pool[rc].pre_min);
+            nd.pre_min = best_pre;
+
+            T rsum2 = (rc == -1 ? T(0) : pool[rc].sum);
+            T val2 = (rc == -1 ? nd.val : rsum2 + nd.val);
+            T best_suf = (rc == -1) ? val2 : vmin(pool[rc].suf_min, val2);
+            if (lc != -1) best_suf = vmin(best_suf, val2 + pool[lc].suf_min);
+            nd.suf_min = best_suf;
+
+            T best = nd.val;
+            if (lc != -1) best = vmin(best, pool[lc].best_min);
+            if (rc != -1) best = vmin(best, pool[rc].best_min);
+            T cross = nd.val;
+            if (lc != -1) cross += pool[lc].suf_min;
+            if (rc != -1) cross += pool[rc].pre_min;
+            best = vmin(best, cross);
+            if (lc != -1) best = vmin(best, pool[lc].suf_min + nd.val);
+            if (rc != -1) best = vmin(best, nd.val + pool[rc].pre_min);
+            nd.best_min = best;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // apply : ノード t 全体に affine (mul,add) または assign を適用する。O(1)
+    // ------------------------------------------------------------------
+    static void apply_assign(int t, const T& v) {
+        Node& nd = pool[t];
+        nd.val = v;
+        nd.sum = v * T(nd.sz);
+        nd.mn = v; nd.mx = v;
+        nd.gcdv = v; // gcd(v,v,...,v) = v
+        nd.xorv = (nd.sz % 2 == 1) ? v : T(0);
+        nd.andv = v; nd.orv = v;
+        nd.bad_nonlinear = false; // assignなので非線形aggregateも再計算可能
+
+        // Kadane系 (全要素v)
+        // 部分和 k*v。 v>=0 なら増加列なので prefix_max = sz*v, prefix_min=v (sz>=1)
+        // v<0 なら逆に prefix_max=v, prefix_min=sz*v。 v==0 なら全て0。
+        int n = nd.sz;
+        if (v >= T(0)) {
+            nd.pre_max = v * T(n); nd.pre_min = v;
+            nd.suf_max = v * T(n); nd.suf_min = v;
+            nd.best_max = v * T(n); // 全区間が最大 (非負なので広いほど大きい)
+            nd.best_min = v;        // 単一要素が最小 (非負のとき短いほど小さい, 0以上なので1個)
+        } else {
+            nd.pre_max = v; nd.pre_min = v * T(n);
+            nd.suf_max = v; nd.suf_min = v * T(n);
+            nd.best_max = v;        // 単一要素が最大
+            nd.best_min = v * T(n); // 全区間が最小
+        }
+
+        nd.has_assign = true;
+        nd.assign_val = v;
+        nd.mul = T(1); nd.add = T(0);
+        nd.pri = nd.pri; // 変更なし
+    }
+
+    static void apply_affine(int t, const T& a, const T& b) {
+        // x -> a*x + b
+        Node& nd = pool[t];
+        if (nd.has_assign) {
+            // assign後の affine は assign_val を更新するだけで完結する
+            apply_assign(t, a * nd.assign_val + b);
+            return;
+        }
+        // 通常の affine 合成: (mul,add) <- (a*mul, a*add+b)
+        nd.mul = a * nd.mul;
+        nd.add = a * nd.add + b;
+        nd.val = a * nd.val + b;
+        nd.sum = a * nd.sum + b * T(nd.sz);
+        if (a >= T(0)) {
+            nd.mn = a * nd.mn + b;
+            nd.mx = a * nd.mx + b;
+            nd.pre_max = a * nd.pre_max + b; nd.suf_max = a * nd.suf_max + b; nd.best_max = a * nd.best_max + b;
+            nd.pre_min = a * nd.pre_min + b; nd.suf_min = a * nd.suf_min + b; nd.best_min = a * nd.best_min + b;
+        } else {
+            T old_mn = nd.mn, old_mx = nd.mx;
+            nd.mn = a * old_mx + b;
+            nd.mx = a * old_mn + b;
+            T pmax=nd.pre_max, pmin=nd.pre_min, smax=nd.suf_max, smin=nd.suf_min, bmax=nd.best_max, bmin=nd.best_min;
+            nd.pre_max = a * pmin + b; nd.pre_min = a * pmax + b;
+            nd.suf_max = a * smin + b; nd.suf_min = a * smax + b;
+            nd.best_max = a * bmin + b; nd.best_min = a * bmax + b;
+        }
+        if (!(a == T(1))) {
+            // a!=1 (bはaddの特別な場合(a=1)以外) は非線形aggregateを汚染する。
+            // ただし a==0 は「実質assign」なのでこの分岐には来ない設計とする
+            // (呼び出し側 multiply/affine で a==0 のときは assign 相当として扱う)
+            nd.bad_nonlinear = true;
+        } else if (!(b == T(0))) {
+            nd.bad_nonlinear = true; // 加算も gcd/xor/and/or/Kadaneを汚染する
+        }
+    }
+
+    static void apply_rev(int t) {
+        Node& nd = pool[t];
+        nd.rev ^= 1;
+        swap(nd.ch[0], nd.ch[1]);
+        swap(nd.pre_max, nd.suf_max);
+        swap(nd.pre_min, nd.suf_min);
+    }
+
+    // 子に lazy を伝播する。O(1)
+    static void push(int t) {
+        Node& nd = pool[t];
+        if (nd.rev) {
+            if (nd.ch[0] != -1) apply_rev(nd.ch[0]);
+            if (nd.ch[1] != -1) apply_rev(nd.ch[1]);
+            nd.rev = false;
+        }
+        if (nd.has_assign) {
+            if (nd.ch[0] != -1) apply_assign(nd.ch[0], nd.assign_val);
+            if (nd.ch[1] != -1) apply_assign(nd.ch[1], nd.assign_val);
+            nd.has_assign = false;
+            nd.assign_val = T();
+        }
+        if (!(nd.mul == T(1)) || !(nd.add == T(0))) {
+            if (nd.ch[0] != -1) apply_affine(nd.ch[0], nd.mul, nd.add);
+            if (nd.ch[1] != -1) apply_affine(nd.ch[1], nd.mul, nd.add);
+            nd.mul = T(1); nd.add = T(0);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // split : t を「先頭 k 個」と「残り」に分割する。O(log N)
+    // ------------------------------------------------------------------
+    static pair<int,int> split(int t, int k) {
+        if (t == -1) return {-1, -1};
+        push(t);
+        int lc = pool[t].ch[0];
+        if (sz(lc) >= k) {
+            auto [a, b] = split(lc, k);
+            pool[t].ch[0] = b;
+            pull(t);
+            return {a, t};
+        } else {
+            auto [a, b] = split(pool[t].ch[1], k - sz(lc) - 1);
+            pool[t].ch[1] = a;
+            pull(t);
+            return {t, b};
+        }
+    }
+
+    // merge : a (前) と b (後) を連結する。O(log N)
+    static int merge(int a, int b) {
+        if (a == -1) return b;
+        if (b == -1) return a;
+        if (pool[a].pri > pool[b].pri) {
+            push(a);
+            pool[a].ch[1] = merge(pool[a].ch[1], b);
+            pull(a);
+            return a;
+        } else {
+            push(b);
+            pool[b].ch[0] = merge(a, pool[b].ch[0]);
+            pull(b);
+            return b;
+        }
+    }
+
+    // build : vector から O(N log N) expected で treap を構築する
+    // (中点で分割し、singletonをmergeしていくことでheap性質を保証する)
+    static int build(const vector<T>& a, int l, int r) {
+        if (l >= r) return -1;
+        if (r - l == 1) return alloc_node(a[l]);
+        int mid = (l + r) / 2;
+        int L = build(a, l, mid), R = build(a, mid, r);
+        return merge(L, R);
+    }
+
+    // ------------------------------------------------------------------
+    // コンストラクタ / デストラクタ / move
+    // ------------------------------------------------------------------
+    DynamicSequence() = default;
+    explicit DynamicSequence(const vector<T>& a) { root = build(a, 0, (int)a.size()); }
+    DynamicSequence(const DynamicSequence&) = delete;
+    DynamicSequence& operator=(const DynamicSequence&) = delete;
+    DynamicSequence(DynamicSequence&& other) noexcept : root(other.root) { other.root = -1; }
+    DynamicSequence& operator=(DynamicSequence&& other) noexcept {
+        if (this != &other) { free_subtree(root); root = other.root; other.root = -1; }
+        return *this;
+    }
+    ~DynamicSequence() { free_subtree(root); }
+
+    // 深いコピーが必要な場合に明示的に呼ぶ。O(N)
+    DynamicSequence clone() const {
+        DynamicSequence res;
+        res.root = clone_subtree(root);
+        return res;
+    }
+    static int clone_subtree(int t) {
+        if (t == -1) return -1;
+        push(t); // lazyを確定させてからコピー (コピー後に独立して操作されるため)
+        int idx = alloc_node(pool[t].val);
+        pool[idx].pri = pool[t].pri;
+        pool[idx].ch[0] = clone_subtree(pool[t].ch[0]);
+        pool[idx].ch[1] = clone_subtree(pool[t].ch[1]);
+        pull(idx);
+        return idx;
+    }
+
+    // ------------------------------------------------------------------
+    // 基本情報
+    // ------------------------------------------------------------------
+    int size() const { return sz(root); }              // O(1)
+    bool empty() const { return root == -1; }           // O(1)
+
+    // ------------------------------------------------------------------
+    // 要素取得・更新
+    // ------------------------------------------------------------------
+    // O(log N)
+    T get(int i) const {
+        assert(0 <= i && i < size());
+        int t = root;
+        while (true) {
+            push(t);
+            int lc = pool[t].ch[0];
+            if (i < sz(lc)) { t = lc; }
+            else if (i == sz(lc)) { return pool[t].val; }
+            else { i -= sz(lc) + 1; t = pool[t].ch[1]; }
+        }
+    }
+    T operator[](int i) const { return get(i); }
+    T front() const { assert(!empty()); return get(0); }
+    T back() const { assert(!empty()); return get(size() - 1); }
+
+    // O(log N)
+    void set(int i, const T& x) {
+        assert(0 <= i && i < size());
+        set_impl(root, i, x);
+    }
+    static void set_impl(int t, int i, const T& x) {
+        push(t);
+        int lc = pool[t].ch[0];
+        if (i < sz(lc)) set_impl(lc, i, x);
+        else if (i == sz(lc)) pool[t].val = x;
+        else set_impl(pool[t].ch[1], i - sz(lc) - 1, x);
+        pull(t);
+    }
+
+    // ------------------------------------------------------------------
+    // 挿入・削除
+    // ------------------------------------------------------------------
+    // "i" の位置に x を挿入する。 i==size() で末尾挿入。 O(log N)
+    void insert(int i, const T& x) {
+        assert(0 <= i && i <= size());
+        auto [a, b] = split(root, i);
+        int nd = alloc_node(x);
+        root = merge(merge(a, nd), b);
+    }
+    void erase(int i) { // O(log N)
+        assert(0 <= i && i < size());
+        erase(i, i + 1);
+    }
+    // [l,r) を削除。l==r なら何もしない。 O(log N)
+    void erase(int l, int r) {
+        assert(0 <= l && l <= r && r <= size());
+        if (l == r) return;
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, r - l);
+        free_subtree(b);
+        root = merge(a, c);
+    }
+
+    void push_back(const T& x) { insert(size(), x); }   // O(log N)
+    void pop_back() { assert(!empty()); erase(size() - 1); }
+    void push_front(const T& x) { insert(0, x); }
+    void pop_front() { assert(!empty()); erase(0); }
+
+    // ------------------------------------------------------------------
+    // to_vector
+    // ------------------------------------------------------------------
+    vector<T> to_vector() const { return to_vector(0, size()); } // O(N)
+    vector<T> to_vector(int l, int r) const {                    // O(r-l)
+        assert(0 <= l && l <= r && r <= size());
+        vector<T> res;
+        res.reserve(r - l);
+        collect(root, l, r, res);
+        return res;
+    }
+    static void collect(int t, int l, int r, vector<T>& res) {
+        if (t == -1 || l >= r) return;
+        push(t);
+        int lc = pool[t].ch[0], cs = sz(lc);
+        if (l < cs) collect(lc, l, vmin(r, cs), res);
+        if (l <= cs && cs < r) res.push_back(pool[t].val);
+        if (r > cs + 1) collect(pool[t].ch[1], vmax(0, l - cs - 1), r - cs - 1, res);
+    }
+
+    // ------------------------------------------------------------------
+    // split / merge (公開API)
+    // ------------------------------------------------------------------
+    // 先頭k個と残りに分割する。自分自身は破壊される。 O(log N)
+    pair<DynamicSequence, DynamicSequence> split(int k) {
+        assert(0 <= k && k <= size());
+        auto [a, b] = split(root, k);
+        root = -1;
+        DynamicSequence L, R;
+        L.root = a; R.root = b;
+        return {std::move(L), std::move(R)};
+    }
+    // 自分の末尾に other を連結する (other は空になる)。 O(log N)
+    void merge(DynamicSequence& other) {
+        root = merge(root, other.root);
+        other.root = -1;
+    }
+    // 2つを連結して新しい Sequence を返す static版。 O(log N)
+    static DynamicSequence merge(DynamicSequence& a, DynamicSequence& b) {
+        DynamicSequence res;
+        res.root = merge(a.root, b.root);
+        a.root = -1; b.root = -1;
+        return res;
+    }
+    // 複数個を連結する。 O(log N) per merge
+    static DynamicSequence concat(vector<DynamicSequence>& seqs) {
+        DynamicSequence res;
+        for (auto& s : seqs) res.merge(s);
+        return res;
+    }
+
+    // ------------------------------------------------------------------
+    // 構造操作: reverse / rotate / shift / move / swap_range / extract / splice
+    // ------------------------------------------------------------------
+    // [l,r) を反転する。 O(log N)
+    void reverse(int l, int r) {
+        assert(0 <= l && l <= r && r <= size());
+        if (r - l <= 1) return;
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, r - l);
+        if (b != -1) apply_rev(b);
+        root = merge(merge(a, b), c);
+    }
+
+    // [l,r) を右に k 回 rotate する (kは負も可, 区間長でmodする)。 O(log N)
+    // 例: A B C D E を [0,5) で右に2 -> D E A B C
+    //     同じ区間を左に2 (k=-2) -> C D E A B
+    void rotate(int l, int r, long long k) {
+        assert(0 <= l && l <= r && r <= size());
+        int len = r - l;
+        if (len <= 1) return;
+        k %= len; if (k < 0) k += len;
+        if (k == 0) return;
+        // [l, r-k) と [r-k, r) を入れ替える
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, len);
+        auto [b1, b2] = split(b, len - (int)k); // b1=[l,r-k) b2=[r-k,r)
+        int merged = merge(b2, b1);
+        root = merge(merge(a, merged), c);
+    }
+    void shift_right(int l, int r, long long k) { rotate(l, r, k); }
+    void shift_left(int l, int r, long long k) { rotate(l, r, -k); }
+
+    // [l,r) を取り出し, 位置 pos へ移動する。
+    // "pos" の意味: 区間 [l,r) を取り除いた「後」の列 (長さ size()-(r-l)) に
+    // おける挿入位置 (0-based)。 0<=pos<=size()-(r-l) を要求する。
+    // 例: A B C D E F G (n=7) で [2,5)=C D E を取り除くと A B F G (4要素)。
+    //     これの末尾(pos=4)に挿入する場合 move(2,5,4) とすると A B F G C D E。
+    // O(log N)
+    void move(int l, int r, int pos) {
+        assert(0 <= l && l <= r && r <= size());
+        int len = r - l;
+        assert(0 <= pos && pos <= size() - len);
+        if (len == 0) return;
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, len); // b = [l,r) (移動する区間)
+        int reduced = merge(a, c);    // 区間を取り除いた後の列
+        auto [r1, r2] = split(reduced, pos);
+        root = merge(merge(r1, b), r2);
+    }
+
+    // [l1,r1) と [l2,r2) を交換する。長さは異なってもよい。
+    // 重複区間は禁止 (assert)。隣接 (r1==l2 等) は許可する。
+    // l1<=r1<=l2<=r2 となるよう呼び出し側/内部で正規化する。 O(log N)
+    void swap_range(int l1, int r1, int l2, int r2) {
+        assert(0 <= l1 && l1 <= r1);
+        assert(0 <= l2 && l2 <= r2);
+        if (l1 > l2) { swap(l1, l2); swap(r1, r2); }
+        assert(r1 <= l2 && "swap_range: 区間が重複しています");
+        assert(r2 <= size());
+        if (r1 - l1 == 0 && r2 - l2 == 0) return;
+        auto [a, rest1] = split(root, l1);
+        auto [seg1, rest2] = split(rest1, r1 - l1);
+        auto [b, rest3] = split(rest2, l2 - r1);
+        auto [seg2, c] = split(rest3, r2 - l2);
+        root = merge(merge(merge(merge(a, seg2), b), seg1), c);
+    }
+
+    // [l,r) を切り離し, 新しい DynamicSequence として返す。 O(log N)
+    DynamicSequence extract(int l, int r) {
+        assert(0 <= l && l <= r && r <= size());
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, r - l);
+        root = merge(a, c);
+        DynamicSequence res;
+        res.root = b;
+        return res;
+    }
+
+    // other の [l,r) を切り取り, 自分の pos に挿入する。 O(log N)
+    void splice(int pos, DynamicSequence& other, int l, int r) {
+        assert(0 <= pos && pos <= size());
+        assert(0 <= l && l <= r && r <= other.size());
+        auto [oa, obc] = split(other.root, l);
+        auto [seg, oc] = split(obc, r - l);
+        other.root = merge(oa, oc);
+        auto [a, b] = split(root, pos);
+        root = merge(merge(a, seg), b);
+    }
+
+    // ==================================================================
+    // Aggregate (sum/min/max/gcd/xor/and/or)
+    // ==================================================================
+    // 内部: [l,r) の集約結果を保持するために一時的に split するのではなく、
+    // 再帰でノードをたどりながら計算する (splitを避けてO(log N)を保証)。
+    struct AggAcc {
+        bool has = false;
+        T sum{}, mn{}, mx{}, gcdv{}, xorv{}, andv{}, orv{};
+        T pre_max{}, suf_max{}, pre_min{}, suf_min{}, best_max{}, best_min{};
+        bool bad_nonlinear = false;
+    };
+    static AggAcc single(int t) {
+        AggAcc r;
+        r.has = true;
+        Node& nd = pool[t];
+        r.sum = nd.sum; r.mn = nd.mn; r.mx = nd.mx;
+        r.gcdv = nd.gcdv; r.xorv = nd.xorv; r.andv = nd.andv; r.orv = nd.orv;
+        r.pre_max = nd.pre_max; r.suf_max = nd.suf_max;
+        r.pre_min = nd.pre_min; r.suf_min = nd.suf_min;
+        r.best_max = nd.best_max; r.best_min = nd.best_min;
+        r.bad_nonlinear = nd.bad_nonlinear;
+        return r;
+    }
+    static AggAcc combine(const AggAcc& L, const AggAcc& mid_val, const AggAcc& R) {
+        // mid_val は単一要素 (val) のダミーAggAccとして渡す (single node扱い)
+        AggAcc res; res.has = true;
+        res.sum = (L.has?L.sum:T(0)) + mid_val.sum + (R.has?R.sum:T(0));
+        res.mn = mid_val.mn; if (L.has) res.mn = vmin(res.mn, L.mn); if (R.has) res.mn = vmin(res.mn, R.mn);
+        res.mx = mid_val.mx; if (L.has) res.mx = vmax(res.mx, L.mx); if (R.has) res.mx = vmax(res.mx, R.mx);
+        res.gcdv = mid_val.gcdv; res.xorv = mid_val.xorv; res.andv = mid_val.andv; res.orv = mid_val.orv;
+        if (L.has) { res.gcdv = gcd(abs_val(res.gcdv), abs_val(L.gcdv)); res.xorv ^= L.xorv; res.andv &= L.andv; res.orv |= L.orv; }
+        if (R.has) { res.gcdv = gcd(abs_val(res.gcdv), abs_val(R.gcdv)); res.xorv ^= R.xorv; res.andv &= R.andv; res.orv |= R.orv; }
+        res.bad_nonlinear = mid_val.bad_nonlinear || (L.has && L.bad_nonlinear) || (R.has && R.bad_nonlinear);
+
+        T lsum = L.has ? L.sum : T(0);
+        T rsum = R.has ? R.sum : T(0);
+        // pre_max
+        {
+            T val1 = lsum + mid_val.sum;
+            T best_pre = L.has ? vmax(L.pre_max, val1) : val1;
+            if (R.has) best_pre = vmax(best_pre, val1 + R.pre_max);
+            res.pre_max = best_pre;
+        }
+        {
+            T val2 = rsum + mid_val.sum;
+            T best_suf = R.has ? vmax(R.suf_max, val2) : val2;
+            if (L.has) best_suf = vmax(best_suf, val2 + L.suf_max);
+            res.suf_max = best_suf;
+        }
+        {
+            T best = mid_val.best_max;
+            if (L.has) best = vmax(best, L.best_max);
+            if (R.has) best = vmax(best, R.best_max);
+            T cross = mid_val.sum;
+            if (L.has) cross += L.suf_max;
+            if (R.has) cross += R.pre_max;
+            best = vmax(best, cross);
+            if (L.has) best = vmax(best, L.suf_max + mid_val.sum);
+            if (R.has) best = vmax(best, mid_val.sum + R.pre_max);
+            res.best_max = best;
+        }
+        // min系
+        {
+            T val1 = lsum + mid_val.sum;
+            T best_pre = L.has ? vmin(L.pre_min, val1) : val1;
+            if (R.has) best_pre = vmin(best_pre, val1 + R.pre_min);
+            res.pre_min = best_pre;
+        }
+        {
+            T val2 = rsum + mid_val.sum;
+            T best_suf = R.has ? vmin(R.suf_min, val2) : val2;
+            if (L.has) best_suf = vmin(best_suf, val2 + L.suf_min);
+            res.suf_min = best_suf;
+        }
+        {
+            T best = mid_val.best_min;
+            if (L.has) best = vmin(best, L.best_min);
+            if (R.has) best = vmin(best, R.best_min);
+            T cross = mid_val.sum;
+            if (L.has) cross += L.suf_min;
+            if (R.has) cross += R.pre_min;
+            best = vmin(best, cross);
+            if (L.has) best = vmin(best, L.suf_min + mid_val.sum);
+            if (R.has) best = vmin(best, mid_val.sum + R.pre_min);
+            res.best_min = best;
+        }
+        return res;
+    }
+    static AggAcc query(int t, int l, int r) {
+        if (t == -1 || l >= r) return AggAcc{};
+        push(t);
+        int lc = pool[t].ch[0], cs = sz(lc);
+        if (l <= 0 && r >= sz(t)) return single(t);
+        AggAcc L = (l < cs) ? query(lc, l, vmin(r, cs)) : AggAcc{};
+        AggAcc mid = AggAcc{};
+        if (l <= cs && cs < r) { mid.has = true; Node& nd = pool[t];
+            mid.sum = nd.val; mid.mn = nd.val; mid.mx = nd.val;
+            mid.gcdv = nd.val; mid.xorv = nd.val; mid.andv = nd.val; mid.orv = nd.val;
+            mid.pre_max = mid.suf_max = mid.best_max = nd.val;
+            mid.pre_min = mid.suf_min = mid.best_min = nd.val;
+            mid.bad_nonlinear = false;
+        }
+        AggAcc R = (r > cs + 1) ? query(pool[t].ch[1], vmax(0, l - cs - 1), r - cs - 1) : AggAcc{};
+        if (!mid.has) {
+            // 中央要素が範囲外 (l>=r起こらない前提なのでL or Rどちらかしかないケース)
+            if (L.has && !R.has) return L;
+            if (!L.has && R.has) return R;
+            if (!L.has && !R.has) return AggAcc{};
+        }
+        return combine(L, mid, R);
+    }
+
+    T sum(int l, int r) const { assert(0<=l&&l<=r&&r<=size()); if(l==r) return T(0); return query(root,l,r).sum; } // O(log N)
+    T min(int l, int r) const { assert(0<=l&&l<r+1&&r<=size()); assert(l<r); return query(root,l,r).mn; } // O(log N)
+    T max(int l, int r) const { assert(l<r && r<=size()); return query(root,l,r).mx; } // O(log N)
+    T gcd_range(int l, int r) const { // O(log N)
+        assert(l<r && r<=size());
+        AggAcc a = query(root,l,r);
+        assert(!a.bad_nonlinear && "gcdはadd/multiply併用区間では無効です");
+        return a.gcdv;
+    }
+    T xor_sum(int l, int r) const { // O(log N)
+        assert(l<=r && r<=size());
+        if (l==r) return T(0);
+        AggAcc a = query(root,l,r);
+        assert(!a.bad_nonlinear && "xor_sumはadd/multiply併用区間では無効です");
+        return a.xorv;
+    }
+    T and_sum(int l, int r) const { // O(log N)  (空区間は全bit1=単位元だが型上表現しづらいためassert)
+        assert(l<r && r<=size());
+        AggAcc a = query(root,l,r);
+        assert(!a.bad_nonlinear && "and_sumはadd/multiply併用区間では無効です");
+        return a.andv;
+    }
+    T or_sum(int l, int r) const { // O(log N)
+        assert(l<r && r<=size());
+        AggAcc a = query(root,l,r);
+        assert(!a.bad_nonlinear && "or_sumはadd/multiply併用区間では無効です");
+        return a.orv;
+    }
+    T max_prefix(int l, int r) const { assert(l<r&&r<=size()); auto a=query(root,l,r); assert(!a.bad_nonlinear); return a.pre_max; } // O(log N)
+    T max_suffix(int l, int r) const { assert(l<r&&r<=size()); auto a=query(root,l,r); assert(!a.bad_nonlinear); return a.suf_max; } // O(log N)
+    T min_prefix(int l, int r) const { assert(l<r&&r<=size()); auto a=query(root,l,r); assert(!a.bad_nonlinear); return a.pre_min; } // O(log N)
+    T min_suffix(int l, int r) const { assert(l<r&&r<=size()); auto a=query(root,l,r); assert(!a.bad_nonlinear); return a.suf_min; } // O(log N)
+    T max_subarray_sum(int l, int r) const { assert(l<r&&r<=size()); auto a=query(root,l,r); assert(!a.bad_nonlinear); return a.best_max; } // O(log N)
+    T min_subarray_sum(int l, int r) const { assert(l<r&&r<=size()); auto a=query(root,l,r); assert(!a.bad_nonlinear); return a.best_min; } // O(log N)
+
+    // ==================================================================
+    // Range Lazy: add / assign / multiply / affine
+    // ==================================================================
+    void add(int l, int r, const T& x) { range_affine(l, r, T(1), x); }        // O(log N)
+    void assign(int l, int r, const T& x) { range_assign(l, r, x); }           // O(log N)
+    void multiply(int l, int r, const T& x) { range_affine(l, r, x, T(0)); }   // O(log N)
+    void affine(int l, int r, const T& a, const T& b) { range_affine(l, r, a, b); } // O(log N)
+
+    void range_assign(int l, int r, const T& x) {
+        assert(0 <= l && l <= r && r <= size());
+        if (l == r) return;
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, r - l);
+        if (b != -1) apply_assign(b, x);
+        root = merge(merge(a, b), c);
+    }
+    void range_affine(int l, int r, const T& mulv, const T& addv) {
+        assert(0 <= l && l <= r && r <= size());
+        if (l == r) return;
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, r - l);
+        if (b != -1) apply_affine(b, mulv, addv);
+        root = merge(merge(a, b), c);
+    }
+
+    // ==================================================================
+    // 二分探索: sum aggregate の単調性を利用する (T が加法群であることを仮定)
+    // ==================================================================
+    // [l, size) の中で、 pred(累積sum(l,x)) が true であり続ける最大の x を返す
+    // (predは単調false->trueにならない、すなわちtrue区間が[l,x)の形である
+    //  ことを仮定。pred(0)相当=trueでなければならない (最初は必ずtrue))
+    // O(log N)
+    template <class F>
+    int max_right(int l, F pred) const {
+        assert(0 <= l && l <= size());
+        assert(pred(T(0)));
+        if (l == size()) return l;
+        T acc = T(0);
+        return max_right_rec(root, l, 0, pred, acc);
+    }
+    template <class F>
+    static int max_right_rec(int t, int l, int offset, F& pred, T& acc) {
+        if (t == -1) return offset;
+        push(t);
+        int lc = pool[t].ch[0], rc = pool[t].ch[1];
+        int cs = sz(lc);
+        // ノードの左端(offset+cs)より l が右にあるなら, ノード自身と左部分木は
+        // 対象外なので右部分木だけを見る (左部分木は既に条件を満たしている前提)
+        if (offset + cs + 1 <= l) {
+            return max_right_rec(rc, l, offset + cs + 1, pred, acc);
+        }
+        int leftEnd = offset + cs;
+        if (l <= offset) {
+            // 部分木全体が範囲内 -> 一括判定を試みる
+            T cand = acc + pool[t].sum;
+            if (pred(cand)) { acc = cand; return offset + sz(t); }
+            // 全体はダメ -> 左部分木から探索
+            if (lc != -1) {
+                int res = max_right_rec(lc, l, offset, pred, acc);
+                if (res != offset + cs) return res; // 左で止まった
+            }
+            // 自分の要素を試す
+            T cand2 = acc + pool[t].val;
+            if (pred(cand2)) { acc = cand2; } else { return offset + cs; }
+            // 右部分木へ
+            return max_right_rec(rc, l, offset + cs + 1, pred, acc);
+        } else {
+            // l が左部分木の内部にある
+            int res = max_right_rec(lc, l, offset, pred, acc);
+            if (res != leftEnd) return res;
+            T cand2 = acc + pool[t].val;
+            if (pred(cand2)) { acc = cand2; } else { return leftEnd; }
+            return max_right_rec(rc, l, offset + cs + 1, pred, acc);
+        }
+    }
+
+    // [0, r) の中で、 pred(累積sum(x,r)) が true であり続ける最小の x を返す
+    // (xを減らす(範囲を広げる)ほど和が単調に変化し、ある境界でpredがfalseに
+    //  なることを仮定。 pred(sum(r,r)=0) = true を仮定)
+    // sum(l,r) 二分探索によって実現する。 O(log^2 N)
+    // (max_rightはポインタを辿るO(log N)の実装だが、min_leftは対称の実装を
+    //  素朴に書くと境界条件のバグを混入しやすいため、既にstress testで検証
+    //  済みの sum(l,r) を用いた二分探索で確実性を優先した)
+    template <class F>
+    int min_left(int r, F pred) const {
+        assert(0 <= r && r <= size());
+        assert(pred(T(0)));
+        int lo = 0, hi = r;
+        while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            if (pred(sum(mid, r))) hi = mid; else lo = mid + 1;
+        }
+        return lo;
+    }
+
+    // 「累積sum(0,x) >= x となる最初の位置」のような用途向けの糖衣構文。
+    // prefix sum が初めて x 以上になる位置を返す (単調非減少な非負列を想定)。
+    // O(log N)
+    int lower_bound_prefix(const T& x) const {
+        if (!(x > T(0))) return 0; // 空prefix(和0)で既に条件を満たす場合
+        int r = max_right(0, [&](const T& s) { return s < x; }); // sum(0,r)<x を満たす最大r
+        return std::min(r + 1, size()); // r==size()なら「見つからない」意味でsize()を返す
+    }
+
+    // ==================================================================
+    // 便利機能 (O(log N) は不可能。明示的に O(len [log len]) とする)
+    // ==================================================================
+    void sort(int l, int r) { // O(len log len)
+        assert(0<=l&&l<=r&&r<=size());
+        if (r-l<=1) return;
+        vector<T> v = to_vector(l, r);
+        std::sort(v.begin(), v.end());
+        rebuild_range(l, r, v);
+    }
+    void stable_sort(int l, int r) { // O(len log len)
+        assert(0<=l&&l<=r&&r<=size());
+        if (r-l<=1) return;
+        vector<T> v = to_vector(l, r);
+        std::stable_sort(v.begin(), v.end());
+        rebuild_range(l, r, v);
+    }
+    void unique(int l, int r) { // O(len) sizeが変化する
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        v.erase(std::unique(v.begin(), v.end()), v.end());
+        rebuild_range(l, r, v);
+    }
+    template <class Pred>
+    void erase_if(int l, int r, Pred pred) { // O(len) sizeが変化する
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        vector<T> w; w.reserve(v.size());
+        for (auto& e : v) if (!pred(e)) w.push_back(e);
+        rebuild_range(l, r, w);
+    }
+    template <class Pred>
+    void filter(int l, int r, Pred pred) { erase_if(l, r, [&](const T& e){ return !pred(e); }); } // O(len)
+    template <class Pred>
+    void partition(int l, int r, Pred pred) { // O(len)
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        std::partition(v.begin(), v.end(), pred);
+        rebuild_range(l, r, v);
+    }
+    template <class Pred>
+    void stable_partition(int l, int r, Pred pred) { // O(len)
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        std::stable_partition(v.begin(), v.end(), pred);
+        rebuild_range(l, r, v);
+    }
+    template <class F>
+    void map(int l, int r, F f) { // O(len)
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        for (auto& e : v) e = f(e);
+        rebuild_range(l, r, v);
+    }
+    void rebuild_range(int l, int r, const vector<T>& v) {
+        auto [a, bc] = split(root, l);
+        auto [b, c] = split(bc, r - l);
+        free_subtree(b);
+        int nb = build(v, 0, (int)v.size());
+        root = merge(merge(a, nb), c);
+    }
+
+    // kth_smallest / median : O(len log len) (一般には高速化困難。理由は
+    // ファイルヘッダのコメント参照)
+    T kth_smallest(int l, int r, int k) const { // 0-based k. O(len log len)
+        assert(0<=l&&l<r&&r<=size());
+        assert(0<=k&&k<r-l);
+        vector<T> v = to_vector(l, r);
+        nth_element(v.begin(), v.begin()+k, v.end());
+        return v[k];
+    }
+    T median(int l, int r) const { // 下側中央値。 O(len log len)
+        assert(0<=l&&l<r&&r<=size());
+        int len = r-l;
+        return kth_smallest(l, r, (len-1)/2);
+    }
+    long long count_value(int l, int r, const T& x) const { // O(len)
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        return count(v.begin(), v.end(), x);
+    }
+    T mode(int l, int r) const { // 最頻値。 O(len log len)
+        assert(0<=l&&l<r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        std::sort(v.begin(), v.end());
+        T best = v[0]; int bestc=1, cur=1;
+        for (size_t i=1;i<v.size();i++){
+            if (v[i]==v[i-1]) cur++; else cur=1;
+            if (cur>bestc){bestc=cur;best=v[i];}
+        }
+        return best;
+    }
+    // mex : 非負整数列を仮定。 O(len log len)
+    long long mex(int l, int r) const {
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        std::set<T> s(v.begin(), v.end());
+        long long m = 0;
+        while (s.count((T)m)) m++;
+        return m;
+    }
+    // inversion : [l,r)内の転倒数。差分維持はせずクエリ毎にO(len log len)で計算
+    long long inversion(int l, int r) const {
+        assert(0<=l&&l<=r&&r<=size());
+        vector<T> v = to_vector(l, r);
+        vector<T> uniq = v; std::sort(uniq.begin(), uniq.end());
+        uniq.erase(std::unique(uniq.begin(), uniq.end()), uniq.end());
+        int n = (int)v.size();
+        vector<int> bit(n+2, 0);
+        auto add_bit=[&](int i,int d){ for(i++;i<=n;i+=i&(-i)) bit[i]+=d; };
+        auto sum_bit=[&](int i){ int s=0; for(;i>0;i-=i&(-i)) s+=bit[i]; return s; };
+        long long inv=0;
+        for (int i=n-1;i>=0;i--){
+            int id = (int)(lower_bound(uniq.begin(),uniq.end(),v[i]) - uniq.begin());
+            inv += sum_bit(id);
+            add_bit(id,1);
+        }
+        return inv;
+    }
+
+    // ==================================================================
+    // Debug
+    // ==================================================================
+    void print() const { auto v = to_vector(); for (auto& e : v) cerr << e << ' '; cerr << '\n'; } // O(N)
+    void dump() const { dump_rec(root, 0); } // O(N)
+    static void dump_rec(int t, int depth) {
+        if (t == -1) return;
+        push(t);
+        dump_rec(pool[t].ch[1], depth+1);
+        cerr << string(depth*2, ' ') << pool[t].val << " (sz=" << pool[t].sz << ")\n";
+        dump_rec(pool[t].ch[0], depth+1);
+    }
+    // 構造検証: subtree size / heap property / aggregate 再計算一致 を確認する
+    bool validate() const { return check_rec(root) >= 0; }
+    bool check() const { return validate(); }
+    // 戻り値 sz。 不整合なら -1 (assertでも落とす)
+    static int check_rec(int t) {
+        if (t == -1) return 0;
+        push(t); // lazyを確定させてから検証 (検証用にaggregateを壊さないよう
+                  // pushしてchildを実体化する。副作用が気になる場合はclone()
+                  // したコピーに対して呼ぶこと)
+        int lc = pool[t].ch[0], rc = pool[t].ch[1];
+        if (lc != -1) assert(pool[t].pri >= pool[lc].pri && "heap property violated");
+        if (rc != -1) assert(pool[t].pri >= pool[rc].pri && "heap property violated");
+        int lsz = check_rec(lc);
+        int rsz = check_rec(rc);
+        int expect = lsz + 1 + rsz;
+        assert(pool[t].sz == expect && "subtree size mismatch");
+        return expect;
+    }
+};
+
+// ============================================================================
+// 動作確認 / Random Stress Test
+// AtCoderに提出する際はこの #ifdef LOCAL ブロックごと削除してよい。
+// ============================================================================
+#ifdef LOCAL
+#include <cassert>
+
+void stress_test() {
+    mt19937 rng(12345);
+    int n0 = rng() % 8;
+    vector<long long> ref(n0);
+    for (auto& x : ref) x = (int)(rng() % 20) - 10;
+    DynamicSequence<long long> ds(ref);
+
+    int OPS = 20000;
+    for (int op = 0; op < OPS; op++) {
+        int type = rng() % 14;
+        int n = (int)ref.size();
+        if (type == 0) { // push_back
+            long long x = (int)(rng()%20)-10;
+            ref.push_back(x); ds.push_back(x);
+        } else if (type == 1 && n>0) { // pop_back
+            ref.pop_back(); ds.pop_back();
+        } else if (type == 2) { // push_front
+            long long x = (int)(rng()%20)-10;
+            ref.insert(ref.begin(), x); ds.push_front(x);
+        } else if (type == 3 && n>0) { // pop_front
+            ref.erase(ref.begin()); ds.pop_front();
+        } else if (type == 4) { // insert
+            int i = rng()%(n+1); long long x=(int)(rng()%20)-10;
+            ref.insert(ref.begin()+i, x); ds.insert(i,x);
+        } else if (type == 5 && n>0) { // erase single
+            int i = rng()%n;
+            ref.erase(ref.begin()+i); ds.erase(i);
+        } else if (type == 6 && n>0) { // erase range
+            int l = rng()%n, r = l + rng()%(n-l+1); if(l>r) swap(l,r); if(r>n) r=n;
+            ref.erase(ref.begin()+l, ref.begin()+r); ds.erase(l,r);
+        } else if (type == 7 && n>0) { // set
+            int i = rng()%n; long long x=(int)(rng()%20)-10;
+            ref[i]=x; ds.set(i,x);
+        } else if (type == 8 && n>0) { // reverse
+            int l = rng()%n, r = l + rng()%(n-l+1);
+            std::reverse(ref.begin()+l, ref.begin()+r); ds.reverse(l,r);
+        } else if (type == 9 && n>0) { // rotate
+            int l = rng()%n, r = l + rng()%(n-l+1);
+            if (r>l) {
+                long long k = (long long)(rng()%(2*(r-l)+1)) - (r-l);
+                long long kk = ((k % (r-l)) + (r-l)) % (r-l);
+                // 右にkk回rotate = std::rotateで先頭を (len-kk) にする
+                std::rotate(ref.begin()+l, ref.begin()+ (l + ( (r-l) - (int)kk) % (r-l) ), ref.begin()+r);
+                ds.rotate(l,r,k);
+            }
+        } else if (type == 10 && n>0) { // move
+            int l = rng()%n, r = l + rng()%(n-l+1);
+            int len = r-l;
+            int pos = rng()%(n-len+1);
+            vector<long long> seg(ref.begin()+l, ref.begin()+r);
+            ref.erase(ref.begin()+l, ref.begin()+r);
+            ref.insert(ref.begin()+pos, seg.begin(), seg.end());
+            ds.move(l,r,pos);
+        } else if (type == 11 && n>0) { // swap_range
+            int a1 = rng()%n, b1 = a1 + rng()%(n-a1+1);
+            if (b1>=n) continue;
+            int a2 = b1 + rng()%(n-b1+1), b2v = a2 + (a2<n? rng()%(n-a2+1):0);
+            if (a2>n) continue; if (b2v>n) b2v=n;
+            if (!(a1<=b1 && b1<=a2 && a2<=b2v)) continue;
+            vector<long long> s1(ref.begin()+a1, ref.begin()+b1);
+            vector<long long> s2(ref.begin()+a2, ref.begin()+b2v);
+            vector<long long> nref;
+            nref.insert(nref.end(), ref.begin(), ref.begin()+a1);
+            nref.insert(nref.end(), s2.begin(), s2.end());
+            nref.insert(nref.end(), ref.begin()+b1, ref.begin()+a2);
+            nref.insert(nref.end(), s1.begin(), s1.end());
+            nref.insert(nref.end(), ref.begin()+b2v, ref.end());
+            ref = nref;
+            ds.swap_range(a1,b1,a2,b2v);
+        } else if (type == 12 && n>0) { // add
+            int l = rng()%n, r = l + rng()%(n-l+1);
+            if (r>l) { long long x=(int)(rng()%10)-5; for(int i=l;i<r;i++) ref[i]+=x; ds.add(l,r,x); }
+        } else if (type == 13 && n>0) { // assign
+            int l = rng()%n, r = l + rng()%(n-l+1);
+            if (r>l) { long long x=(int)(rng()%10)-5; for(int i=l;i<r;i++) ref[i]=x; ds.assign(l,r,x); }
+        }
+
+        // 頻繁に整合性チェック
+        if (op % 1 == 0) {
+            if ((int)ref.size() != ds.size()) { cerr << "size mismatch at op="<<op<<" type="<<type<<"\n"; }
+            assert((int)ref.size() == ds.size());
+            auto v = ds.to_vector();
+            if (v != ref) {
+                cerr << "MISMATCH at op="<<op<<" type="<<type<<"\n";
+                cerr << "ref: "; for(auto e:ref) cerr<<e<<' '; cerr<<"\n";
+                cerr << "got: "; for(auto e:v) cerr<<e<<' '; cerr<<"\n";
+            }
+            assert(v == ref);
+            ds.validate();
+            if (!ref.empty()) {
+                int l = rng()%ref.size(), r = l+rng()%(ref.size()-l+1);
+                if (r>l) {
+                    long long s=0; for(int i=l;i<r;i++) s+=ref[i];
+                    assert(ds.sum(l,r) == s);
+                    long long mn=ref[l], mx=ref[l];
+                    for(int i=l;i<r;i++){mn=std::min(mn,ref[i]); mx=std::max(mx,ref[i]);}
+                    assert(ds.min(l,r)==mn);
+                    assert(ds.max(l,r)==mx);
+                }
+            }
+        }
+    }
+    assert(ds.to_vector() == ref);
+    cerr << "[DynamicSequence] stress_test OK (" << OPS << " ops, final size=" << ref.size() << ")\n";
+}
+
+// gcd/xor/and/or/Kadane系(非線形aggregate) の検証。
+// これらは add/multiply と非両立なので、ここでは assign と純粋な構造操作
+// (insert/erase/reverse/rotate/move/swap_range) のみを行う。
+void stress_test_nonlinear() {
+    mt19937 rng(999331);
+    int n0 = 1 + rng() % 6;
+    vector<long long> ref(n0);
+    for (auto& x : ref) x = 1 + (int)(rng() % 12);
+    DynamicSequence<long long> ds(ref);
+
+    int OPS = 8000;
+    for (int op = 0; op < OPS; op++) {
+        int type = rng() % 9;
+        int n = (int)ref.size();
+        if (type == 0) { long long x=1+(int)(rng()%12); ref.push_back(x); ds.push_back(x); }
+        else if (type == 1 && n>0) { ref.pop_back(); ds.pop_back(); }
+        else if (type == 2) { int i=rng()%(n+1); long long x=1+(int)(rng()%12); ref.insert(ref.begin()+i,x); ds.insert(i,x); }
+        else if (type == 3 && n>0) { int i=rng()%n; ref.erase(ref.begin()+i); ds.erase(i); }
+        else if (type == 4 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); std::reverse(ref.begin()+l,ref.begin()+r); ds.reverse(l,r); }
+        else if (type == 5 && n>0) {
+            int l=rng()%n,r=l+rng()%(n-l+1);
+            if (r>l) { long long k=(long long)(rng()%(2*(r-l)+1))-(r-l); long long kk=((k%(r-l))+(r-l))%(r-l);
+                std::rotate(ref.begin()+l, ref.begin()+(l+((r-l)-(int)kk)%(r-l)), ref.begin()+r); ds.rotate(l,r,k); }
+        }
+        else if (type == 6 && n>0) {
+            int l=rng()%n,r=l+rng()%(n-l+1); int len=r-l; int pos=rng()%(n-len+1);
+            vector<long long> seg(ref.begin()+l, ref.begin()+r);
+            ref.erase(ref.begin()+l, ref.begin()+r); ref.insert(ref.begin()+pos, seg.begin(), seg.end());
+            ds.move(l,r,pos);
+        }
+        else if (type == 7 && n>0) { int l=rng()%n,r=l+rng()%(n-l+1); if(r>l){ long long x=1+(int)(rng()%12); for(int i=l;i<r;i++) ref[i]=x; ds.assign(l,r,x);} }
+        else if (type == 8 && n>0) { // swap_range
+            int a1=rng()%n,b1=a1+rng()%(n-a1+1); if(b1>=n) continue;
+            int a2=b1+rng()%(n-b1+1); if(a2>n) continue; int b2v=a2+rng()%(n-a2+1); if(b2v>n) continue;
+            if(!(a1<=b1&&b1<=a2&&a2<=b2v)) continue;
+            vector<long long> s1(ref.begin()+a1, ref.begin()+b1), s2(ref.begin()+a2, ref.begin()+b2v);
+            vector<long long> nref(ref.begin(), ref.begin()+a1);
+            nref.insert(nref.end(), s2.begin(), s2.end());
+            nref.insert(nref.end(), ref.begin()+b1, ref.begin()+a2);
+            nref.insert(nref.end(), s1.begin(), s1.end());
+            nref.insert(nref.end(), ref.begin()+b2v, ref.end());
+            ref = nref; ds.swap_range(a1,b1,a2,b2v);
+        }
+
+        assert((int)ref.size() == ds.size());
+        assert(ds.to_vector() == ref);
+        if (!ref.empty()) {
+            int l = rng()%ref.size(), r = l + 1 + rng()%(ref.size()-l);
+            long long g=0,x=0,a=~0LL,o=0;
+            for (int i=l;i<r;i++){ g=std::gcd(g,ref[i]); x^=ref[i]; a&=ref[i]; o|=ref[i]; }
+            assert(ds.gcd_range(l,r)==g);
+            assert(ds.xor_sum(l,r)==x);
+            assert(ds.and_sum(l,r)==a);
+            assert(ds.or_sum(l,r)==o);
+            long long best=-1e18, cur=0, bestmn=1e18, curmn=0;
+            long long pre=-1e18, presum=0, prem=1e18, presummn=0;
+            long long suf=-1e18, sufsum=0, sufm=1e18, sufsummn=0;
+            for (int i=l;i<r;i++){ cur=std::max((long long)ref[i],cur+ref[i]); best=std::max(best,cur);
+                                    curmn=std::min((long long)ref[i],curmn+ref[i]); bestmn=std::min(bestmn,curmn); }
+            long long s=0;
+            for (int i=l;i<r;i++){ s+=ref[i]; pre=std::max(pre,s); prem=std::min(prem,s); }
+            s=0;
+            for (int i=r-1;i>=l;i--){ s+=ref[i]; suf=std::max(suf,s); sufm=std::min(sufm,s); }
+            assert(ds.max_subarray_sum(l,r)==best);
+            assert(ds.min_subarray_sum(l,r)==bestmn);
+            assert(ds.max_prefix(l,r)==pre);
+            assert(ds.min_prefix(l,r)==prem);
+            assert(ds.max_suffix(l,r)==suf);
+            assert(ds.min_suffix(l,r)==sufm);
+        }
+    }
+    cerr << "[DynamicSequence] stress_test_nonlinear OK (" << OPS << " ops)\n";
+}
+
+// extract / splice / concat / max_right / min_left / advanced機能 の検証
+void stress_test_extra() {
+    mt19937 rng(555001);
+
+    // extract/splice/concat
+    {
+        vector<long long> a = {1,2,3,4,5,6,7,8};
+        DynamicSequence<long long> ds(a);
+        auto sub = ds.extract(2,5); // {3,4,5}
+        assert(sub.to_vector() == vector<long long>({3,4,5}));
+        assert(ds.to_vector() == vector<long long>({1,2,6,7,8}));
+        ds.splice(1, sub, 0, 2); // insert {3,4} at pos1
+        assert(ds.to_vector() == vector<long long>({1,3,4,2,6,7,8}));
+        assert(sub.to_vector() == vector<long long>({5}));
+
+        vector<DynamicSequence<long long>> parts;
+        parts.push_back(DynamicSequence<long long>(vector<long long>{1,2}));
+        parts.push_back(DynamicSequence<long long>(vector<long long>{3,4}));
+        parts.push_back(DynamicSequence<long long>(vector<long long>{5,6}));
+        auto cc = DynamicSequence<long long>::concat(parts);
+        assert(cc.to_vector() == vector<long long>({1,2,3,4,5,6}));
+    }
+
+    // max_right / min_left / lower_bound_prefix (非負列を仮定)
+    {
+        vector<long long> a = {2,1,4,0,3,5,2,1};
+        DynamicSequence<long long> ds(a);
+        for (int l = 0; l <= (int)a.size(); l++) {
+            for (long long lim = 0; lim <= 20; lim++) {
+                int expect = l;
+                long long acc = 0;
+                for (int i = l; i < (int)a.size(); i++) {
+                    if (acc + a[i] > lim) break;
+                    acc += a[i]; expect = i+1;
+                }
+                int got = ds.max_right(l, [&](long long s){ return s <= lim; });
+                assert(got == expect);
+            }
+        }
+        for (int x = 0; x <= 20; x++) {
+            int expect;
+            if (x <= 0) expect = 0;
+            else {
+                long long acc=0; expect=(int)a.size();
+                for (int i=0;i<(int)a.size();i++){ acc+=a[i]; if (acc>=x){expect=i+1;break;} }
+            }
+            int got = ds.lower_bound_prefix(x);
+            assert(got == expect);
+        }
+        // min_left
+        for (int r = 0; r <= (int)a.size(); r++) {
+            for (long long lim = 0; lim <= 20; lim++) {
+                int expect = r;
+                long long acc = 0;
+                for (int i = r-1; i >= 0; i--) {
+                    if (acc + a[i] > lim) break;
+                    acc += a[i]; expect = i;
+                }
+                int got = ds.min_left(r, [&](long long s){ return s <= lim; });
+                assert(got == expect);
+            }
+        }
+    }
+
+    // 負数を含む affine / multiply (min/maxの入れ替わり確認)
+    {
+        vector<long long> a = {3,-1,4,-1,5,-9,2,-6};
+        DynamicSequence<long long> ds(a);
+        vector<long long> ref = a;
+        auto check_all = [&]() {
+            assert(ds.to_vector() == ref);
+            for (int i=0;i<(int)ref.size();i++) {
+                for (int j=i+1;j<=(int)ref.size();j++) {
+                    long long mn=ref[i], mx=ref[i], s=0;
+                    for (int t=i;t<j;t++){ mn=std::min(mn,ref[t]); mx=std::max(mx,ref[t]); s+=ref[t]; }
+                    assert(ds.min(i,j)==mn); assert(ds.max(i,j)==mx); assert(ds.sum(i,j)==s);
+                }
+            }
+        };
+        check_all();
+        for (int i=0;i<(int)ref.size();i++) ref[i] = ref[i]*(-2)+3;
+        ds.affine(0, ds.size(), -2, 3);
+        check_all();
+        for (int i=2;i<6;i++) ref[i] = ref[i]*(-1);
+        ds.multiply(2,6,-1);
+        check_all();
+    }
+
+    // sort/stable_sort/unique/erase_if/kth_smallest/median/mode/mex/inversion
+    {
+        for (int iter = 0; iter < 200; iter++) {
+            int n = 1 + rng()%15;
+            vector<long long> a(n);
+            for (auto& e : a) e = (int)(rng()%10);
+            DynamicSequence<long long> ds(a);
+
+            int l = rng()%n, r = l + rng()%(n-l+1);
+            if (r<=l) continue;
+
+            // kth_smallest / median
+            int k = rng()%(r-l);
+            vector<long long> seg(a.begin()+l, a.begin()+r);
+            vector<long long> sorted_seg = seg; std::sort(sorted_seg.begin(), sorted_seg.end());
+            assert(ds.kth_smallest(l,r,k) == sorted_seg[k]);
+            assert(ds.median(l,r) == sorted_seg[(r-l-1)/2]);
+
+            // mex
+            {
+                std::set<long long> s(seg.begin(), seg.end());
+                long long mex=0; while (s.count(mex)) mex++;
+                assert(ds.mex(l,r) == mex);
+            }
+            // inversion
+            {
+                long long inv=0;
+                for (int i=0;i<(int)seg.size();i++) for (int j=i+1;j<(int)seg.size();j++) if (seg[i]>seg[j]) inv++;
+                assert(ds.inversion(l,r) == inv);
+            }
+            // count_value
+            {
+                long long x = rng()%10;
+                long long c = count(seg.begin(), seg.end(), x);
+                assert(ds.count_value(l,r,x) == c);
+            }
+            // sort(l,r) then compare
+            {
+                DynamicSequence<long long> ds2(a);
+                ds2.sort(l,r);
+                vector<long long> expect = a;
+                std::sort(expect.begin()+l, expect.begin()+r);
+                assert(ds2.to_vector() == expect);
+            }
+            // erase_if(l,r, even)
+            {
+                DynamicSequence<long long> ds3(a);
+                ds3.erase_if(l,r,[](long long v){ return v%2==0; });
+                vector<long long> expect;
+                expect.insert(expect.end(), a.begin(), a.begin()+l);
+                for (int i=l;i<r;i++) if (a[i]%2!=0) expect.push_back(a[i]);
+                expect.insert(expect.end(), a.begin()+r, a.end());
+                assert(ds3.to_vector() == expect);
+            }
+        }
+    }
+    cerr << "[DynamicSequence] stress_test_extra OK\n";
+}
+
+void test_DynamicSequence() {
+    using DS = DynamicSequence<long long>;
+
+    cerr << "========== DynamicSequence 動作確認 ==========\n";
+
+    // ================================================================
+    // 基本操作
+    // ================================================================
+    {
+        cerr << "\n[基本操作]\n";
+
+        DS ds({1, 2, 3, 4, 5});
+
+        cerr << "初期列: ";
+        ds.print();
+
+        cerr << "size() = " << ds.size() << '\n';
+        cerr << "empty() = " << (ds.empty() ? "true" : "false") << '\n';
+        cerr << "ds[2] = " << ds[2] << '\n';
+        cerr << "front() = " << ds.front() << '\n';
+        cerr << "back() = " << ds.back() << '\n';
+
+        ds.set(2, 10);
+        cerr << "set(2, 10): ";
+        ds.print();
+
+        // i == size() なら末尾への挿入
+        ds.insert(2, 7);
+        cerr << "insert(2, 7): ";
+        ds.print();
+
+        ds.erase(3);
+        cerr << "erase(3): ";
+        ds.print();
+
+        // [l,r) の区間削除
+        ds.erase(1, 3);
+        cerr << "erase(1, 3): ";
+        ds.print();
+
+        ds.push_front(0);
+        ds.push_back(6);
+        cerr << "push_front(0), push_back(6): ";
+        ds.print();
+
+        ds.pop_front();
+        ds.pop_back();
+        cerr << "pop_front(), pop_back(): ";
+        ds.print();
+    }
+
+    // ================================================================
+    // split / merge / concat / clone
+    // ================================================================
+    {
+        cerr << "\n[split / merge / concat / clone]\n";
+
+        DS ds({1, 2, 3, 4, 5});
+
+        // split(k):
+        // 先頭k個 / 残り に分割する。
+        // 元のds自身は空になる。
+        auto [L, R] = ds.split(2);
+
+        cerr << "split(2):\n";
+        cerr << "左: "; L.print();
+        cerr << "右: "; R.print();
+
+        // Lの末尾にRを連結。
+        // Rは空になる。
+        L.merge(R);
+
+        cerr << "左.merge(右): ";
+        L.print();
+
+        DS A({10, 20});
+        DS B({30, 40});
+        DS C({50, 60});
+
+        vector<DS> seqs;
+        seqs.push_back(std::move(A));
+        seqs.push_back(std::move(B));
+        seqs.push_back(std::move(C));
+
+        // seqs内のSequenceを順番に連結。
+        // 各要素はmergeによって空になる。
+        DS all = DS::concat(seqs);
+
+        cerr << "concat: ";
+        all.print();
+
+        // cloneは深いコピー。
+        // 元とコピーを独立して変更できる。
+        DS copied = all.clone();
+        copied.set(0, 999);
+
+        cerr << "clone後の元: ";
+        all.print();
+
+        cerr << "cloneを変更: ";
+        copied.print();
+    }
+
+    // ================================================================
+    // 構造操作
+    // ================================================================
+    {
+        cerr << "\n[reverse / rotate / shift / move / swap_range]\n";
+
+        DS ds({1, 2, 3, 4, 5, 6, 7});
+
+        // [l,r) を反転。
+        ds.reverse(1, 6);
+        cerr << "reverse(1, 6): ";
+        ds.print();
+
+        // [l,r) を右にk個回転。
+        // kは負でもよく、負なら左回転。
+        ds.rotate(1, 6, 2);
+        cerr << "rotate(1, 6, +2): ";
+        ds.print();
+
+        ds.rotate(1, 6, -2);
+        cerr << "rotate(1, 6, -2): ";
+        ds.print();
+
+        // shift_right / shift_left はrotateの別名的なAPI。
+        ds.shift_right(0, 3, 1);
+        cerr << "shift_right(0, 3, 1): ";
+        ds.print();
+
+        ds.shift_left(0, 3, 1);
+        cerr << "shift_left(0, 3, 1): ";
+        ds.print();
+
+        // move(l,r,pos):
+        // [l,r) を一度削除した「後」の列に対して、
+        // pos番目の位置へ挿入する。
+        //
+        // つまりposは「元の列での位置」ではない。
+        // 移動対象を除いた後の列での位置。
+        ds.move(2, 5, ds.size() - 3);
+
+        cerr << "move(2, 5, 取り出した区間を末尾へ): ";
+        ds.print();
+
+        // swap_range:
+        // [l1,r1) と [l2,r2) を交換。
+        // 2区間は重複禁止。
+        // 長さが異なっていてもよい。
+        // 隣接区間はOK。
+        ds.swap_range(0, 2, 3, 5);
+
+        cerr << "swap_range(0, 2, 3, 5): ";
+        ds.print();
+    }
+
+    // ================================================================
+    // extract / splice
+    // ================================================================
+    {
+        cerr << "\n[extract / splice]\n";
+
+        DS ds({1, 2, 3, 4, 5, 6});
+
+        // [l,r) を元Sequenceから切り離して、
+        // 新しいDynamicSequenceとして返す。
+        DS part = ds.extract(2, 5);
+
+        cerr << "extract(2, 5):\n";
+        cerr << "元: ";
+        ds.print();
+
+        cerr << "取り出した区間: ";
+        part.print();
+
+        DS other({10, 20, 30});
+
+        // splice(pos, other, l, r):
+        // otherの[l,r)を切り取り、
+        // 自分のposへ挿入する。
+        //
+        // 注意:
+        // ・other側の区間は削除される
+        // ・posは「自分側」の挿入位置
+        ds.splice(1, other, 1, 3);
+
+        cerr << "splice(pos=1, other[1,3)):\n";
+        cerr << "自分: ";
+        ds.print();
+
+        cerr << "other: ";
+        other.print();
+    }
+
+    // ================================================================
+    // Aggregate
+    // ================================================================
+    {
+        cerr << "\n[Aggregate]\n";
+
+        DS ds({3, -2, 5, -1, 4, -6, 2});
+
+        cerr << "列: ";
+        ds.print();
+
+        // 基本Aggregate。
+        // 任意の値に対して使用可能。
+        cerr << "sum(1, 6) = "
+             << ds.sum(1, 6) << '\n';
+
+        cerr << "min(1, 6) = "
+             << ds.min(1, 6) << '\n';
+
+        cerr << "max(1, 6) = "
+             << ds.max(1, 6) << '\n';
+
+        // 以下のprefix/suffix/subarray系は
+        // 「非線形Aggregateを壊すlazy操作」
+        // (add/multiply/affine) をその区間に適用した後は無効。
+        //
+        // assignだけなら再計算可能なので使用可能。
+        //
+        // また、現在の実装ではmax/minを扱える通常の数値型Tを想定。
+
+        cerr << "max_prefix(0, 7) = "
+             << ds.max_prefix(0, 7) << '\n';
+
+        cerr << "max_suffix(0, 7) = "
+             << ds.max_suffix(0, 7) << '\n';
+
+        cerr << "min_prefix(0, 7) = "
+             << ds.min_prefix(0, 7) << '\n';
+
+        cerr << "min_suffix(0, 7) = "
+             << ds.min_suffix(0, 7) << '\n';
+
+        cerr << "max_subarray_sum(0, 7) = "
+             << ds.max_subarray_sum(0, 7) << '\n';
+
+        cerr << "min_subarray_sum(0, 7) = "
+             << ds.min_subarray_sum(0, 7) << '\n';
+    }
+
+    // ================================================================
+    // gcd / xor / and / or
+    // ================================================================
+    {
+        cerr << "\n[gcd / xor / and / or]\n";
+
+        DS ds({12, 18, 6, 10});
+
+        cerr << "列: ";
+        ds.print();
+
+        // gcd/xor/and/or は add / multiply / affine と両立しない。
+        //
+        // 例えば、
+        //   ds.add(...)
+        //   ds.multiply(...)
+        //   ds.affine(...)
+        //
+        // を行った区間では bad_nonlinear=true になり、
+        // これらのAggregateを呼ぶとassertする。
+        //
+        // assignはAggregateを再計算できるのでOK。
+        //
+        // またgcdは負数でも絶対値を使って計算される。
+
+        cerr << "gcd_range(0, 4) = "
+             << ds.gcd_range(0, 4) << '\n';
+
+        cerr << "xor_sum(0, 4) = "
+             << ds.xor_sum(0, 4) << '\n';
+
+        cerr << "and_sum(0, 4) = "
+             << ds.and_sum(0, 4) << '\n';
+
+        cerr << "or_sum(0, 4) = "
+             << ds.or_sum(0, 4) << '\n';
+
+        // assignなら非線形Aggregateを復活できる。
+        ds.assign(1, 3, 8);
+
+        cerr << "assign(1, 3, 8) 後: ";
+        ds.print();
+
+        cerr << "assign後のgcd_range = "
+             << ds.gcd_range(0, 4) << '\n';
+    }
+
+    // ================================================================
+    // Range Lazy
+    // ================================================================
+    {
+        cerr << "\n[Range Lazy]\n";
+
+        DS ds({1, 2, 3, 4, 5});
+
+        // add:
+        // x -> x + b
+        //
+        // sum/min/max/Kadane系は維持可能。
+        // gcd/xor/and/or等の非線形Aggregateは無効になる。
+        ds.add(1, 4, 10);
+
+        cerr << "add(1, 4, 10): ";
+        ds.print();
+
+        // assign:
+        // 区間全体をxにする。
+        //
+        // 非線形Aggregateも再計算可能なので、
+        // assign後はgcd/xor/and/or等も使用可能。
+        ds.assign(0, 2, 7);
+
+        cerr << "assign(0, 2, 7): ";
+        ds.print();
+
+        // multiply:
+        // x -> ax
+        //
+        // aが0なら実質assign。
+        // それ以外では非線形Aggregateが無効になる。
+        ds.multiply(1, 4, 2);
+
+        cerr << "multiply(1, 4, 2): ";
+        ds.print();
+
+        // affine:
+        // x -> ax + b
+        //
+        // sum/min/max/Kadane系は更新可能。
+        // 非線形Aggregateは無効になる。
+        //
+        // a<0 の場合はmin/maxやprefix/suffix等の
+        // 最大・最小関係が入れ替わる。
+        ds.affine(0, 5, 2, 1);
+
+        cerr << "affine(0, 5, x -> 2x+1): ";
+        ds.print();
+    }
+
+    // ================================================================
+    // 二分探索
+    // ================================================================
+    {
+        cerr << "\n[二分探索]\n";
+
+        // max_right / min_left は「累積sumの単調性」が必要。
+        //
+        // 例えば全要素が非負なら、
+        // sum(l,r) は r を増やすほど単調非減少になるので、
+        // 累積和による境界探索が可能。
+        DS ds({2, 3, 1, 4, 2});
+
+        cerr << "列: ";
+        ds.print();
+
+        // max_right(l, pred):
+        //
+        // pred(sum(l,x)) が
+        // true -> false
+        // と1回だけ変化することを仮定。
+        //
+        // pred(0) == true が必須。
+        //
+        // ここでは全要素が非負なので、
+        // sum(0,x) < 6 が単調にtrue -> falseになる。
+        int r = ds.max_right(0, [&](long long s) {
+            return s < 6;
+        });
+
+        cerr << "max_right(0, sum < 6) = "
+             << r << '\n';
+
+        // min_left(r, pred):
+        //
+        // pred(sum(x,r)) が
+        // xを左へ広げるにつれて
+        // true -> false と境界を持つことを仮定。
+        //
+        // pred(0) == true が必須。
+        //
+        // この例では非負列なので、
+        // 左へ広げるほどsumは単調増加する。
+        int l = ds.min_left(5, [&](long long s) {
+            return s < 8;
+        });
+
+        cerr << "min_left(5, sum < 8) = "
+             << l << '\n';
+
+        // lower_bound_prefix(x):
+        //
+        // prefix sum が単調非減少であることを仮定。
+        // つまり基本的には「全要素が非負」。
+        //
+        // prefix sum >= x となる最初の位置を返す。
+        // 見つからなければsize()。
+        cerr << "lower_bound_prefix(7) = "
+             << ds.lower_bound_prefix(7) << '\n';
+    }
+
+    // ================================================================
+    // sort / stable_sort / unique / erase_if / filter
+    // partition / stable_partition / map
+    // ================================================================
+    {
+        cerr << "\n[便利機能: 並べ替え・削除・変換]\n";
+
+        DS ds({5, 2, 4, 2, 3, 1, 2});
+
+        // [l,r)をソート。
+        // O(len log len)
+        ds.sort(0, ds.size());
+
+        cerr << "sort: ";
+        ds.print();
+
+        // stable_sort。
+        // 値だけを保持するこのSequenceではsortとの差は
+        // 同値要素の元の順序だが、Tが単純な値なら通常は同じ。
+        ds.stable_sort(0, ds.size());
+
+        cerr << "stable_sort: ";
+        ds.print();
+
+        // unique:
+        // std::uniqueと同じく「連続する重複」を削除。
+        // したがって、重複をすべて消すには先にsortする。
+        ds.unique(0, ds.size());
+
+        cerr << "unique: ";
+        ds.print();
+
+        // erase_if:
+        // pred(e)==true の要素を削除。
+        DS a({1, 2, 3, 4, 5, 6});
+
+        a.erase_if(0, a.size(), [](long long x) {
+            return x % 2 == 0;
+        });
+
+        cerr << "erase_if(偶数を削除): ";
+        a.print();
+
+        // filter:
+        // pred(e)==true の要素だけを残す。
+        DS b({1, 2, 3, 4, 5, 6});
+
+        b.filter(0, b.size(), [](long long x) {
+            return x % 2 == 1;
+        });
+
+        cerr << "filter(奇数だけ残す): ";
+        b.print();
+
+        // partition:
+        // predを満たす要素を前半へ移動。
+        // 順序は保証されない。
+        DS c({1, 2, 3, 4, 5, 6});
+
+        c.partition(0, c.size(), [](long long x) {
+            return x <= 3;
+        });
+
+        cerr << "partition(x<=3): ";
+        c.print();
+
+        // stable_partition:
+        // predを満たす要素を前半へ。
+        // それぞれのグループ内の相対順序を維持。
+        DS d({1, 2, 3, 4, 5, 6});
+
+        d.stable_partition(0, d.size(), [](long long x) {
+            return x <= 3;
+        });
+
+        cerr << "stable_partition(x<=3): ";
+        d.print();
+
+        // map:
+        // [l,r)の各要素をf(e)に置換。
+        DS e({1, 2, 3, 4, 5});
+
+        e.map(1, 4, [](long long x) {
+            return x * 10;
+        });
+
+        cerr << "map(1, 4, x*10): ";
+        e.print();
+    }
+
+    // ================================================================
+    // kth / median / count / mode / mex / inversion
+    // ================================================================
+    {
+        cerr << "\n[統計・順序系]\n";
+
+        DS ds({3, 1, 4, 1, 5, 9, 2, 6});
+
+        cerr << "列: ";
+        ds.print();
+
+        // kth_smallest:
+        // [l,r)を一時vector化してnth_elementする。
+        // kは0-based。
+        // O(len)程度のnth_elementコストを含む。
+        cerr << "kth_smallest(0, 8, 3) = "
+             << ds.kth_smallest(0, 8, 3) << '\n';
+
+        // median:
+        // 下側中央値。
+        // 長さが偶数なら小さい方の中央値。
+        cerr << "median(0, 8) = "
+             << ds.median(0, 8) << '\n';
+
+        // count_value:
+        // 区間内のxの個数を数える。
+        // O(len)。
+        cerr << "count_value(0, 8, 1) = "
+             << ds.count_value(0, 8, 1) << '\n';
+
+        // mode:
+        // 最頻値。
+        // 同率なら最初に最大頻度になった値。
+        cerr << "mode(0, 8) = "
+             << ds.mode(0, 8) << '\n';
+
+        // mex:
+        // Tが非負整数として扱えることを仮定。
+        // 0以上の値について最小の「存在しない値」を返す。
+        DS mex_ds({0, 1, 2, 4, 5});
+
+        cerr << "mex = "
+             << mex_ds.mex(0, mex_ds.size()) << '\n';
+
+        // inversion:
+        // [l,r)内の転倒数。
+        // 値は比較可能である必要がある。
+        // 内部で座標圧縮 + BITを使う。
+        // O(len log len)。
+        DS inv_ds({3, 1, 2, 5, 4});
+
+        cerr << "inversion = "
+             << inv_ds.inversion(0, inv_ds.size()) << '\n';
+    }
+
+    // ================================================================
+    // to_vector
+    // ================================================================
+    {
+        cerr << "\n[to_vector]\n";
+
+        DS ds({10, 20, 30, 40, 50});
+
+        // 全要素をvectorへ。
+        auto all = ds.to_vector();
+
+        // [l,r)だけvectorへ。
+        auto part = ds.to_vector(1, 4);
+
+        cerr << "to_vector(): ";
+        for (auto x : all) cerr << x << ' ';
+        cerr << '\n';
+
+        cerr << "to_vector(1, 4): ";
+        for (auto x : part) cerr << x << ' ';
+        cerr << '\n';
+    }
+
+    // ================================================================
+    // Debug / validate
+    // ================================================================
+    {
+        cerr << "\n[Debug]\n";
+
+        DS ds({5, 1, 4, 2, 3});
+
+        ds.reverse(1, 4);
+        ds.add(0, 3, 10);
+        ds.insert(2, 99);
+
+        cerr << "print(): ";
+        ds.print();
+
+        // Treapの内部構造を表示。
+        // 競プロ中のバグ調査用。
+        cerr << "dump():\n";
+        ds.dump();
+
+        // subtree size / heap property等を検証。
+        // trueなら内部構造が正常。
+        cerr << "validate() = "
+             << (ds.validate() ? "true" : "false") << '\n';
+
+        // check()はvalidate()の別名。
+        cerr << "check() = "
+             << (ds.check() ? "true" : "false") << '\n';
+    }
+
+    cerr << "\n========== 動作確認終了 ==========\n";
+}
+
+#endif
+
+void solv(){
+    #ifdef LOCAL
+    stress_test();
+    stress_test_nonlinear();
+    stress_test_extra();
+    cerr << "ALL TESTS PASSED\n";
+    test_DynamicSequence();
+    #endif
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

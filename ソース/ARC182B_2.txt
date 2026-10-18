@@ -1,0 +1,394 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// 区間集合を管理する構造体
+// T: 区間の型 (int, long long など), VAL: 各区間に持たせるデータの型
+template<class T, class VAL = long long> struct IntervalSet {
+    // 区間を表す内部構造体 [l, r)
+    struct Node {
+        T l, r;
+        VAL val;
+        Node(const T &l, const T &r, const VAL &val) : l(l), r(r), val(val) {}
+        // setでの管理用比較演算子
+        constexpr bool operator < (const Node &rhs) const {
+            if (l != rhs.l) return l < rhs.l;
+            return r < rhs.r;
+        }
+        constexpr bool operator == (const Node &rhs) const {
+            return l == rhs.l && r == rhs.r && val == rhs.val;
+        }
+        // デバッグ出力用
+        friend ostream& operator << (ostream &s, const Node &e) {
+            return s << "([" << e.l << ", " << e.r << "): " << e.val << ")";
+        }
+    };
+
+    const VAL identity; // デフォルト値（単位元）
+    set<Node> S;        // 区間を格納するset
+    multiset<pair<T, Node>> len_set; // 区間の長さを管理するset (最大区間取得用)
+
+    // 内部管理用: ノードを削除する
+    typename set<Node>::iterator erase_node(typename set<Node>::iterator it) {
+        if (it == S.end()) return S.end();
+        auto l_it = len_set.find({it->r - it->l, *it});
+        if (l_it != len_set.end()) len_set.erase(l_it);
+        return S.erase(it);
+    }
+    // 内部管理用: ノードを挿入する
+    typename set<Node>::iterator emplace_node(T l, T r, const VAL &val) {
+        if (l >= r) return S.end();
+        auto it = S.emplace(l, r, val).first;
+        len_set.insert({it->r - it->l, *it});
+        return it;
+    }
+
+    // コンストラクタ: O(1)
+    IntervalSet(const VAL &identity = VAL()) : identity(identity) {}
+    
+    // 初期配列から構築: O(V log V)
+    IntervalSet(const vector<VAL> &v, const VAL &identity = VAL()) : identity(identity) {
+        for (int l = 0; l < (int)v.size();) {
+            int r = l;
+            while (r < (int)v.size() && v[r] == v[l]) r++;
+            emplace_node(l, r, v[l]);
+            l = r;
+        }
+    }
+
+    constexpr typename set<Node>::iterator begin() { return S.begin(); }
+    constexpr typename set<Node>::iterator end() { return S.end(); }
+
+    // 点 p を含む区間のイテレータを取得: O(log N)
+    constexpr typename set<Node>::iterator get(const T &p) {
+        auto it = S.upper_bound(Node(p, numeric_limits<T>::max(), identity));
+        if (it == S.begin()) return S.end();
+        it = prev(it);
+        if (it->l <= p && p < it->r) return it;
+        return S.end();
+    }
+
+    // 点 p 以降で最初に現れる区間のイテレータを取得: O(log N)
+    constexpr typename set<Node>::iterator lower_bound(const T &p) {
+        auto it = get(p);
+        if (it != S.end()) return it;
+        return S.upper_bound(Node(p, numeric_limits<T>::max(), identity));
+    }
+    
+    constexpr bool covered(const T &p) { return get(p) != S.end(); }
+    constexpr bool covered(const T &l, const T &r) {
+        if (l >= r) return true;
+        auto it = get(l);
+        return (it != S.end() && r <= it->r);
+    }
+
+    constexpr bool same(const T &p, const T &q) {
+        auto it1 = get(p);
+        auto it2 = get(q);
+        if (it1 == S.end() || it2 == S.end()) return false;
+        return it1 == it2;
+    }
+
+    constexpr VAL get_val(const T &p) {
+        auto it = get(p);
+        return (it != S.end() ? it->val : identity);
+    }
+    VAL operator [] (const T &p) const { return get_val(p); }
+
+    // 点 p 以上の値で、どの区間にも含まれない最小の値を返す (mex): O(log N + m)
+    constexpr T get_mex(const T &p = 0) {
+        T res = p;
+        while (true) {
+            auto it = get(res);
+            if (it == S.end()) break;
+            res = it->r;
+        }
+        return res;
+    }
+
+    // 現在管理されている中で最も長い区間を返す: O(1)
+    Node get_max_interval() const {
+        if (len_set.empty()) return Node(0, 0, identity);
+        return len_set.rbegin()->second;
+    }
+
+    // 内部用: 範囲 [l, r) と重なる全区間を削除・分割する
+    template<class ADDFUNC, class DELFUNC>
+    void remove_range(T l, T r, const ADDFUNC &add, const DELFUNC &del) {
+        auto it = S.lower_bound(Node(l, numeric_limits<T>::min(), identity));
+        while (it != S.end() && it->l < r) {
+            if (it->r <= r) {
+                del(it->l, it->r, it->val);
+                it = erase_node(it);
+            } else {
+                Node node = *it;
+                del(node.l, node.r, node.val);
+                erase_node(it);
+                emplace_node(r, node.r, node.val);
+                add(r, node.r, node.val);
+                break;
+            }
+        }
+        it = S.lower_bound(Node(l, numeric_limits<T>::min(), identity));
+        if (it != S.begin()) {
+            it = prev(it);
+            if (l < it->r) {
+                Node node = *it;
+                del(node.l, node.r, node.val);
+                erase_node(it);
+                if (r < node.r) {
+                    emplace_node(r, node.r, node.val);
+                    add(r, node.r, node.val);
+                }
+                emplace_node(node.l, l, node.val);
+                add(node.l, l, node.val);
+            }
+        }
+    }
+
+    // 区間 [l, r) を値 val で更新: O(log N + k)
+    template<class ADDFUNC, class DELFUNC>
+    void update(T l, T r, const VAL &val, const ADDFUNC &add, const DELFUNC &del) {
+        if (l >= r) return;
+        // 隣接する同じ値の区間があればマージ
+        auto it_l = get(l);
+        if (it_l != S.end() && it_l->val == val) l = it_l->l;
+        else {
+            auto it = S.lower_bound(Node(l, numeric_limits<T>::min(), identity));
+            if (it != S.begin() && prev(it)->r == l && prev(it)->val == val) l = prev(it)->l;
+        }
+        auto it_r = get(r);
+        if (it_r != S.end() && it_r->val == val) r = it_r->r;
+        else {
+            auto it = S.lower_bound(Node(r, numeric_limits<T>::min(), identity));
+            if (it != S.end() && it->l == r && it->val == val) r = it->r;
+        }
+        remove_range(l, r, add, del);
+        emplace_node(l, r, val);
+        add(l, r, val);
+    }
+    
+    void update(const T &l, const T &r, const VAL &val) {
+        update(l, r, val, [](T, T, VAL){}, [](T, T, VAL){});
+    }
+    void insert(const T &l, const T &r) {
+        update(l, r, identity, [](T, T, VAL){}, [](T, T, VAL){});
+    }
+    void erase(const T &l, const T &r) {
+        if (l >= r) return;
+        erase(l, r, [](T, T, VAL){}, [](T, T, VAL){});
+    }
+    template<class ADDFUNC, class DELFUNC>
+    void erase(T l, T r, const ADDFUNC &add, const DELFUNC &del) {
+        if (l >= r) return;
+        remove_range(l, r, add, del);
+    }
+
+    friend ostream& operator << (ostream &s, const IntervalSet &ins) {
+        for (auto e : ins.S) s << "([" << e.l << ", " << e.r << "): " << e.val << ") ";
+        return s;
+    }
+
+    void print() const {
+        if (S.empty()) { cout << "(空)" << endl; return; }
+        for (auto it = S.begin(); it != S.end(); ++it) {
+            cout << *it << (next(it) == S.end() ? "" : ", ");
+        }
+        cout << endl;
+    }
+};
+
+void solv(){
+    int N,K;
+    cin>>N>>K;
+    if(N<=2){
+        if(N==1)cout<<(1LL<<(K-1))<<'\n';
+        else cout<<(1LL<<(K-1))<<' '<<(1LL<<K)-1<<'\n';
+        return;
+    }
+    cout<<(1LL<<(K-1))<<' '<<(1LL<<K)-1<<' ';
+    IntervalSet<ll,ll> it;
+    it.insert(1LL<<(K-1),(1LL<<K)-1);
+    //区間を点で分割
+    rep(i,0,N-2){
+        auto seg=it.get_max_interval();
+        ll mid=(seg.l+seg.r)/2;
+        it.erase(mid,mid+1);
+        if(mid==0)mid=(1LL<<K)-1;
+        cout<<mid<<' ';
+    }
+    cout<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    cin>>T;
+    while(T--)solv();
+    return 0;
+}

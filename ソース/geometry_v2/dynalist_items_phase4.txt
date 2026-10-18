@@ -1,0 +1,97 @@
+04_convex_polygon（凸多角形への操作：ある向きに最も遠い頂点・接線・直線で切る・共通部分・ミンコフスキー和・幅）
+	説明
+		h は convex_hull(ps) の結果（反時計回り。頂点 0〜2 個・一直線の退化した形も可）。探索は整数で厳密、切った形・共通部分の頂点は PointD
+		extreme_point(h, dir)：dot(dir, h[i]) が最大の頂点の番号（a x + b y の最大は dir = (a, b)、最小は -dir）O(log N)
+		tangents(h, p)：外の点 p からの接線の頂点 ConvexTangents{right, left}（p から見て右・左。内側・周の上なら -1）O(log N)
+		convex_intersects_line(h, l)：直線が凸多角形と共有点を持つか（接するのも含む）O(log N)
+		convex_cut(poly, l)：直線 l の左側（l の上を含む）の部分（vector<PointD>。右側は Line(l.b, l.a)）O(N)
+		convex_intersection(P, Q)：2 つの凸多角形の共通部分（空なら空、線分なら 2 点、1 点なら 1 点）/ convex_intersects(P, Q)：共有点を持つか（厳密）
+		minkowski_sum(P, Q)：{p + q} の凸多角形（vector<Point>。convex_hull と同じ形）O(N + M) / convex_width(h)：幅 O(N)
+	メモ
+		幾何基盤・02_line・03_polygon・04_convex_hull・09_halfplane を同梱済み
+		2 つの凸多角形がぶつかるか → P と -Q（全部の頂点の符号を変えて凸包）のミンコフスキー和が原点を含むか（convex_contains）
+		類題：ABC250 F（凸多角形を対角線で分ける尺取り。03_polygon の PolygonPrefix でも。デモに型）
+	C:\atcoder_template\典型90\ソース\geometry_v2\04_convex_polygon.cpp
+05_circle_cover（点を円で囲む：最小包含円・半径 r の円で囲める最大の点の数）
+	説明
+		min_enclosing_circle(ps)：全部の点を囲む最小の円（CircleD。点がなければ r = -1）期待 O(N)
+		max_points_in_circle(ps, r)：半径 r の円で囲める最大の点の数とその中心 CircleCover{count, center}（円周の上も数える）O(N^2 log N)
+	メモ
+		幾何基盤・02_line・05_circle を同梱済み。点は Point でも PointD でもよい。円周の上かどうかは相対誤差 GEO_EPS
+		類題：ABC151 F（min_enclosing_circle(ps).r を出力）
+	C:\atcoder_template\典型90\ソース\geometry_v2\05_circle_cover.cpp
+05_circle_area（円の共通部分の面積：2 円・円と多角形・円と直線の左側・弓形。円と多角形の位置関係）
+	説明
+		intersection_area(c1, c2)：2 円の共通部分の面積（和集合の面積 = π r1² + π r2² - これ）
+		intersection_area(c, poly)：円と多角形（凸でなくてよい・向きは自由）の共通部分の面積 O(N)
+		circle_cut_area(c, l)：円の、直線 l の左側の部分の面積
+		circular_segment_area(r, θ)：中心角 θ の弓形（弦と弧で囲まれた部分）の面積
+		contains(poly, c)：円が多角形に入るか（bool）/ disk_contains(c, poly)：多角形が円板に入るか / disk_intersects(c, poly) / disk_dist(c, poly)（整数なら判定は厳密）
+	メモ
+		幾何基盤・02_line・03_polygon・05_circle を同梱済み。整数の円なら場合分けは厳密。接する直前の細い部分でも精度が落ちない
+		類題：ARC051 A（円と長方形：!contains(rect, c) / !disk_contains(c, rect)。長方形は 08_rect の to_polygon でも作れる）
+	C:\atcoder_template\典型90\ソース\geometry_v2\05_circle_area.cpp
+06_congruence（合同：回転・平行移動（・裏返し）で重なるか。点の集合・多角形）
+	説明
+		congruent(A, B, allow_flip = false)：点の集合 A を回転・平行移動で B に重ねられるか（回転は 90 度の倍数でなくてよい）O(N log N)
+		congruence(A, B, allow_flip)：重ね方も返す Congruence{ok, flipped, to, angle, shift}（B[to[i]] = R(angle)·F(A[i]) + shift。F は x 軸での折り返し）
+		polygon_congruent(P, Q, allow_flip) / polygon_congruence：多角形として（頂点の順番を保つ。始点・回り方は自由）O(N)
+	メモ
+		幾何基盤を同梱済み。判定は整数で厳密（128 ビット）。同じ点を含んでもよい
+		類題：ABC207 D（congruent(S, T)）
+	C:\atcoder_template\典型90\ソース\geometry_v2\06_congruence.cpp
+07_manhattan_mst（マンハッタン距離の最小全域木：候補の辺 4N 本・最小全域木・チェビシェフ距離版・各点の最近点）
+	説明
+		manhattan_mst(ps)：ManhattanMST{cost, edges}（edges は ManhattanEdges{us, vs, ws}。重みの小さい順に N - 1 本）O(N log N)
+		manhattan_mst_candidates(ps)：最小全域木に使われうる辺（4N 本以下。ManhattanEdges）
+		chebyshev_mst(ps)：チェビシェフ距離 max(|dx|, |dy|) の最小全域木
+		manhattan_nearest_each(ps)：各点から最も近いほかの点 ManhattanNear{j, d}（番号・距離。8 方向を見る）O(N log N)
+	メモ
+		幾何基盤を同梱済み
+		graph_grid_v2 と：Graph G = graph_from_edges(N, e.us, e.vs, e.ws, UNDIRECTED, 0); kruskal(G)（はじめからつながっている点があれば kruskal(G, uf)）
+		候補の辺は右半分の 4 方向だけなので、各点の最近点には manhattan_nearest_each を使う。類題：ABC283 F（点 (i, P_i) の最近点の d）
+	C:\atcoder_template\典型90\ソース\geometry_v2\07_manhattan_mst.cpp
+08_rect（軸に平行な長方形・直方体：共通部分・位置関係・和集合の面積・k 次元の箱・象限などへの分割・傾き ±1 の直線の上の格子点）
+	説明
+		Rect r(x1, y1, x2, y2)：半開 [x1, x2) × [y1, y2)。r.area()（格子点の数でもある）/ r.empty() / r.contains(p or r2) / r.width() / r.height()
+		rect_from_points(a, b) / rect_from_closed(L, D, R, U)（L ≤ x ≤ R, D ≤ y ≤ U の格子点 → 半開。連続な長方形には使わない）/ rect_from_ranges(x1, x2, y1, y2) / lattice_points_closed(r)（閉じた長方形の格子点）
+		intersect(a, b) / overlaps(a, b) / bounding(a, b) / union_area(rects)（和集合の面積。O(N log N)）
+		BoxK<K>（Box3 = BoxK<3>）：b.volume()（Int128）/ b.empty() / b.contains(p)、intersect(b1, b2) / box_intersection_volume(b1, b2)
+		quadrant_split(r, c) / sign_grid_split(r, c) / split_by_x_axis(r, cy) / split_by_y_axis(r, cx)：象限・9 つ・軸の上下に分ける（格子点は area()）
+		diagonal_lattice(r, c, ±1)：直線 y = ±x + c の上の r の中の格子点 DiagonalLattice{exist, first, last, count} O(1)
+		閉じた長方形として：where_closed(r, p)（Where）/ intersection_dim(a, b)（-1 なし / 0 角 / 1 辺を共有 / 2 面積。BoxK も）/ boundary_position(r, p)（周に沿った位置。周の上でなければ -1）
+		to_polygon(r)（4 頂点）/ rect_fits(p, q, a, b)：p × q を回して a × b に入れられるか（斜めも。厳密）
+	メモ
+		幾何基盤を同梱済み
+		類題：ABC318 B（rect_from_ranges と union_area）、ABC343 E（Box3 の位置を全探索して包除原理）、ARC029 B（rect_fits）、ARC076 E（boundary_position と 05_circle の count_crossing_chords）、ABC312 E（intersection_dim == 2）
+	C:\atcoder_template\典型90\ソース\geometry_v2\08_rect.cpp
+09_halfplane（半平面交差：a x + b y ≤ c をすべて満たす領域・有界か）
+	説明
+		HalfPlane h(a, b, c)：a x + b y ≤ c（境界を含む）/ HalfPlane(l)：直線 l の左側 / HalfPlaneD（実数）
+		contains(h, p)：OUTSIDE / ON_BORDER / INSIDE
+		halfplane_intersection(hs or lines, box = 2×10^18)：共通部分の凸多角形（vector<PointD>。反時計回り。空なら空、線分なら 2 点、1 点なら 1 点。有界でなければ |x|, |y| ≤ box で切る）O(N log N)
+		halfplane_unbounded(hs or lines)：（空でないとき）有界でないか
+	メモ
+		幾何基盤・02_line・03_polygon を同梱済み（結果に area などがそのまま使える）。整数の半平面なら判定は 128 ビットで誤差なし、頂点だけ実数（交点を丸めない）
+		x ≥ 0 は HalfPlane(-1, 0, 0) のように ≤ にそろえる。多角形の核 = 反時計回りの多角形の各辺の左側の共通部分
+		凸多角形に入る最大の円：辺を r だけ内側へずらして二分探索（デモに型）
+		ある点がすべての不等式を満たすか（クエリごと。ABC251 G）：全部の h で contains(h, p) != OUTSIDE
+	C:\atcoder_template\典型90\ソース\geometry_v2\09_halfplane.cpp
+10_geo3d（3 次元：点・体積・角度・回転・直線・線分・平面・球と、それらの位置関係）
+	説明
+		Point3 p(x, y, z)（整数）/ Point3D（実数）：dot / cross（ベクトル）/ norm2 / dist2 / len / dist / dot128 / norm2_128 / dist2_128 / to_d / midpoint / unit
+		volume6(a, b, c, d)（符号付きの体積の 6 倍。Int128 で厳密）/ tetra_volume / orient3d（表 +1・裏 -1・同じ平面 0）/ coplanar / collinear / triangle_area / in_tetrahedron
+		angle_between(u, v)（_deg）/ elevation_angle(v)（仰角。下向きは負。_deg）
+		rot90_x / rot90_y / rot90_z（整数のまま）/ rotation24(p, k)（立方体の 24 通りの向き）/ rotated(p, θ, 軸 [, 中心]) / rotated_deg（座標軸の 90 度の倍数は誤差なし）
+		Line3 / Segment3：on_line / on_segment / is_parallel / is_orthogonal / intersects / projection / reflection / dist（点・直線・線分のどの組でも）
+		Plane3 pl(a, b, c, d)（a x + b y + c z = d）/ plane_from_points(p, q, r)：side / on_plane / dist / projection / reflection / cross_point(l or s, pl) / cross_line(pl1, pl2) / angle_between
+		Sphere s(c, r)：contains / sphere_relation（SPHERE_*。値は CIRCLE_* と同じ）/ cross_points(s, l) / intersection_volume(s1, s2) / sphere_cap_volume(r, h)
+		read_point3() / read_points3(N) / read_point3_d() / read_points3_d(N) / Point3Hash
+		直線どうし：line_relation(l, m)（LINE3_CROSS / PARALLEL / SAME / SKEW）/ cross_point(l, m) / cross_points(s, t) / cross_point_frac（FracPoint3）/ line_key(p, q)（LineKey3）/ direction_key
+		直線と平面・平面どうし：line_plane_relation（LINE_PLANE_CROSS / PARALLEL / ON）/ intersects(l or s, pl) / dist(l or s, pl) / plane_relation（PLANE_CROSS / PARALLEL / SAME）/ plane_key / dist(pl1, pl2)
+		球：sphere_plane_relation（0 / 1 接する / 2）/ cross_circle(球, 平面 or 球)（Circle3D{c, n, r}）/ ball_intersects / ball_contains / ball_dist（球体として）
+	メモ
+		幾何基盤を同梱済み。判定は整数なら厳密（座標 10^9 まで）。dot / norm2 / dist2 は座標の差が 1.7×10^9 を超えると long long をはみ出す → _128 の版
+		回転はすべて右ねじの向き（軸の先から見て反時計回り）
+		類題：典型90 018（elevation_angle_deg(P - S)）、立体を回して重ねる問題（rotation24）、ABC301 G（line_key と cross_point_frac）
+	C:\atcoder_template\典型90\ソース\geometry_v2\10_geo3d.cpp

@@ -1,0 +1,38 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    //REになる(10^10程のvectorを持つため)
+    //レーベンシュタイン距離(編集距離)の計算
+    //https://kiironomidori.hatenablog.com/entry/cpp-levenshtein-distance
+    int K;
+    string S,T;
+    cin>>K>>S>>T;
+    int h=(int)S.size()+1,w=(int)T.size()+1;
+    vector<vector<int>> dp(h,vector<int>(w,0));
+    rep(i,0,h)dp[i][0]=i;
+    rep(i,0,w)dp[0][i]=i;
+    rep(i,1,h)rep(j,1,w){
+        int dp1=dp[i][j-1]+1;
+        int dp2=dp[i-1][j]+1;
+        int c;
+        if(S[i-1]==T[j-1])c=0;
+        else c=1;
+        int dp3=dp[i-1][j-1]+c;
+        dp[i][j]=min(min(dp1,dp2),dp3);
+    }
+    if(dp[h-1][w-1]<=K)YN;
+    return 0;
+}

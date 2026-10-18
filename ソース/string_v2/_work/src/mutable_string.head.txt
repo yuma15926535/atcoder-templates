@@ -1,0 +1,51 @@
+// =============================================================================
+//  1 文字の書き換えがある文字列（区間のハッシュ・比較・LCP・回文判定・文字の数・並んでいるか・k 番目の文字）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 09 操作・更新のある文字列
+//  依存       : 00_str_base、01_rolling_hash（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  ハッシュは 01_rolling_hash と同じ基数・同じ値（RollingHash・hash_of で作ったほかの文字列とも比べられる）。中はフェニック木
+//  文字の数・並び（count・counts・is_sorted・kth_char）の表は初めて使うときに作る（メモリ (N+1)σ 個の int。そのときに A の範囲を確かめる）
+//  列は string でも vector<int>・vector<long long> でもよい。範囲は [l, r)。「L 文字目から R 文字目」は (L - 1, R)
+//
+//  機能一覧                                                                       計算量
+//    MutableString ms(s, A)                作る（A は文字の種類。既定は英小文字）                          O(N)
+//      ms.set(i, c) / get(i)               i 文字目を c に / i 文字目の値（char は 0〜255）                 O(log N) / O(1)
+//      ms.hash(l, r) / reversed_hash(l, r) s[l, r) / 反転した s[l, r) のハッシュ（StrHash）                  O(log N)
+//      ms.same(l1, r1, l2, r2)             s[l1, r1) == s[l2, r2) か                                    O(log N)
+//      ms.is_palindrome(l, r)              s[l, r) が回文か（ABC331 F）                                   O(log N)
+//      ms.lcp(i, j) / compare(l1, r1, l2, r2)   最長共通接頭辞 / 辞書順（-1 / 0 / 1）                      O(log^2 N)
+//      ms.count(l, r, c) / counts(l, r)    s[l, r) にある c の数 / 番号ごとの数                            O(log N) / O(σ log N)
+//      ms.is_sorted(l, r)                  s[l, r) が広義単調増加（A の番号の順）か（ABC285 F）              O(log N)
+//      ms.kth_char(l, r, k)                s[l, r) を並べ替えた k 番目の値                                 O(σ log N)
+//      ms.size() / values() / to_string()
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    ms_test::random_test()  … 書き換えのたびに作り直した文字列と全機能を突き合わせるランダムテスト
+//    ms_test::benchmark()    … 速度計測
+//    ms_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

@@ -1,0 +1,163 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+  SCC (有向グラフの互いに行き来できる頂点の最大の集合)
+  SCCの集合をまとめて一つの頂点として扱うと全体のグラフはDAGになる
+  - SCC分解
+  - 縮約DAG構築
+  - 各SCCサイズ
+  - DAG入次数
+  - DAGトポロジカル順
+*/
+struct SCC {
+    int n;
+    vector<vector<int>> g;     // 元グラフ
+    vector<int> comp;          // comp[v]: 頂点vのSCC番号
+    vector<vector<int>> dag;   // 縮約後DAG
+    vector<int> sz;            // 各SCCのサイズ
+    vector<int> indeg;         // 縮約DAGの入次数
+    vector<int> topo;          // 縮約DAGのトポロジカル順
+
+    SCC(int n): n(n), g(n) {}
+
+    void add_edge(int u, int v){
+        g[u].push_back(v);
+    }
+
+    void build(){
+        // --- SCC分解 ---
+        atcoder::scc_graph sg(n);
+        for(int u = 0; u < n; u++){
+            for(int v : g[u]) sg.add_edge(u, v);
+        }
+
+        // SCCの頂点の集合のvectorをトポロジカル巡に取得
+        auto sccs = sg.scc();          // トポロジカル順
+        int C = sccs.size();           // SCC数
+
+        comp.assign(n, -1);
+        sz.assign(C, 0);
+
+        for(int i = 0; i < C; i++){
+            for(int v : sccs[i]){
+                comp[v] = i;
+                sz[i]++;
+            }
+        }
+
+        // --- 縮約DAG構築 ---
+        dag.assign(C, {});
+        indeg.assign(C, 0);
+
+        for(int u = 0; u < n; u++){
+            for(int v : g[u]){
+                if(comp[u] != comp[v]){
+                    dag[comp[u]].push_back(comp[v]);
+                }
+            }
+        }
+
+        // ★ 必要なら重複辺を消す
+        for(int i = 0; i < C; i++){
+            sort(dag[i].begin(), dag[i].end());
+            dag[i].erase(unique(dag[i].begin(), dag[i].end()), dag[i].end());
+            for(int v : dag[i]) indeg[v]++;
+        }
+
+        // --- DAGのトポロジカル順 ---
+        queue<int> q;
+        for(int i = 0; i < C; i++){
+            if(indeg[i] == 0) q.push(i);
+        }
+
+        topo.clear();
+        while(!q.empty()){
+            int u = q.front(); q.pop();
+            topo.push_back(u);
+            for(int v : dag[u]){
+                if(--indeg[v] == 0) q.push(v);
+            }
+        }
+    }
+};
+
+void solv(){
+    // -------- グラフ構築 --------
+    SCC scc(5);
+    scc.add_edge(0, 1);
+    scc.add_edge(1, 2);
+    scc.add_edge(2, 0);
+    scc.add_edge(2, 3);
+    scc.add_edge(3, 4);
+    scc.add_edge(4, 3);
+
+    // -------- SCC構築 --------
+    scc.build();
+
+    // -------- SCC確認 --------
+    cout << "=== comp ===\n";
+    for(int i = 0; i < 5; i++){
+        cout << "vertex " << i << " -> SCC " << scc.comp[i] << "\n";
+    }
+
+    cout << "\n=== SCC size ===\n";
+    for(int i = 0; i < (int)scc.sz.size(); i++){
+        cout << "SCC " << i << " size = " << scc.sz[i] << "\n";
+    }
+
+    cout << "\n=== DAG ===\n";
+    for(int i = 0; i < (int)scc.dag.size(); i++){
+        cout << i << ": ";
+        for(int v : scc.dag[i]) cout << v << " ";
+        cout << "\n";
+    }
+
+    // -------- DAG DP（最長経路） --------
+    int C = scc.sz.size();
+    vector<long long> dp(C, 0);
+
+    // 初期値：SCCサイズ
+    for(int i = 0; i < C; i++){
+        dp[i] = scc.sz[i];
+    }
+
+    for(int u : scc.topo){
+        for(int v : scc.dag[u]){
+            dp[v] = max(dp[v], dp[u] + scc.sz[v]);
+        }
+    }
+
+    cout << "\n=== DAG DP result ===\n";
+    for(int i = 0; i < C; i++){
+        cout << "dp[SCC " << i << "] = " << dp[i] << "\n";
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

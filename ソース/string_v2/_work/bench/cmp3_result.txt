@@ -1,0 +1,12 @@
+SA  N=1e6 sigma=26 : ACL suffix_array   83.6 ms / make_suffix_array   85.7 ms | ACL lcp_array   29.4 ms / make_lcp_array   30.1 ms
+SA  N=1e6 sigma= 2 : ACL suffix_array   79.2 ms / make_suffix_array   79.5 ms | ACL lcp_array   28.8 ms / make_lcp_array   27.3 ms
+SA  N=1e6 sigma= 1 : ACL suffix_array   19.0 ms / make_suffix_array   17.9 ms | ACL lcp_array    4.8 ms / make_lcp_array    3.2 ms
+SA  N=1e6 long long  : ACL suffix_array  255.9 ms / make_suffix_array  230.3 ms
+Z   N=1e7 sigma=26 : ACL z_algorithm   88.5 ms / z_array   37.3 ms
+Z   N=1e7 sigma= 2 : ACL z_algorithm  117.7 ms / z_array   84.7 ms
+Z   N=1e7 sigma= 1 : ACL z_algorithm   94.6 ms / z_array   40.3 ms
+RH  構築 N=1e7     : 旧   83.5 ms / 新   76.2 ms | get x1e7 : 旧  428.2 ms / 新  374.6 ms | lcp x1e6 (N=1e6, sigma=2) : 旧 1085.0 ms / 新  273.3 ms
+PAL 構築 N=1e7     : 旧 Manacher  299.1 ms / Palindromes  337.0 ms | is_palindrome x1e7 : 旧  188.4 ms / 新  167.5 ms
+TRIE 文字 1e6 insert + 検索 : 旧  122.6 ms / 新  138.0 ms | kth x1e5 : 旧   92.3 ms / 新  116.8 ms
+LIS N=1e6 復元     : 旧 A24   33.7 ms / lis_restore   31.7 ms（lis_length   41.7 ms）
+check 3

@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N;
+    cin>>N;
+    //3次元累積和
+    vector<vector<vector<ll>>> A(N+1,vector<vector<ll>>(N+1,vector<ll>(N+1,0)));
+    erep(i,1,N)erep(j,1,N)erep(k,1,N)cin>>A[i][j][k];
+    erep(i,1,N)erep(j,1,N)erep(k,1,N)A[i][j][k]+=A[i-1][j][k];
+    erep(i,1,N)erep(j,1,N)erep(k,1,N)A[i][j][k]+=A[i][j-1][k];
+    erep(i,1,N)erep(j,1,N)erep(k,1,N)A[i][j][k]+=A[i][j][k-1];
+    int Q;
+    cin>>Q;
+    //展開式を考える式がわかりやすい
+    //lが負なのでlの個数で正負を判断できる
+    rep(i,0,Q){
+        int lx,rx,ly,ry,lz,rz;
+        cin>>lx>>rx>>ly>>ry>>lz>>rz;
+        lx--;
+        ly--;
+        lz--;
+        cout<<A[rx][ry][rz]-A[lx][ry][rz]-A[rx][ly][rz]-A[rx][ry][lz]+
+        A[rx][ly][lz]+A[lx][ry][lz]+A[lx][ly][rz]-A[lx][ly][lz]<<"\n";
+    }
+    return 0;
+}

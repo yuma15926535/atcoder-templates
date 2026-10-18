@@ -1,0 +1,529 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * 2^61 - 1 を法とするローリングハッシュ用のユーティリティ
+ */
+struct RollingHash {
+    static const uint64_t MOD = (1ULL << 61) - 1;
+    uint64_t base;
+    vector<uint64_t> power;
+
+    RollingHash(uint64_t n, uint64_t b = 0) {
+        if (b == 0) {
+            mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+            uniform_int_distribution<uint64_t> dist(128, MOD - 1);
+            base = dist(rng);
+        } else {
+            base = b;
+        }
+        power.assign(n + 1, 1);
+        for (int i = 0; i < n; i++) {
+            power[i + 1] = mul(power[i], base);
+        }
+    }
+
+    static uint64_t add(uint64_t a, uint64_t b) {
+        if ((a += b) >= MOD) a -= MOD;
+        return a;
+    }
+
+    static uint64_t mul(uint64_t a, uint64_t b) {
+        __uint128_t ans = (__uint128_t)a * b;
+        uint64_t res = (uint64_t)(ans >> 61) + (uint64_t)(ans & MOD);
+        if (res >= MOD) res -= MOD;
+        return res;
+    }
+};
+
+// グローバルなRollingHash設定 (必要に応じて初期化)
+RollingHash* rh_ptr = nullptr;
+
+struct S {
+    uint64_t hash;
+    int len;
+};
+
+S op(S a, S b) {
+    if (a.len == 0) return b;
+    if (b.len == 0) return a;
+    return {RollingHash::add(RollingHash::mul(a.hash, rh_ptr->power[b.len]), b.hash), a.len + b.len};
+}
+
+S e() {
+    return {0, 0};
+}
+
+#include <vector>
+#include <algorithm>
+#include <cassert>
+
+template <class S, S (*op)(S, S), S (*e)()>
+struct SegTree {
+  public:
+    SegTree() : SegTree(0) {}
+    explicit SegTree(int n) : SegTree(std::vector<S>(n, e())) {}
+    explicit SegTree(const std::vector<S>& v) : _n(int(v.size())) {
+        size = 1;
+        log = 0;
+        while (size < _n) {
+            size <<= 1;
+            log++;
+        }
+        d = std::vector<S>(2 * size, e());
+        for (int i = 0; i < _n; i++) d[size + i] = v[i];
+        for (int i = size - 1; i >= 1; i--) {
+            update(i);
+        }
+    }
+
+    void set(int p, S x) {
+        assert(0 <= p && p < _n);
+        p += size;
+        d[p] = x;
+        for (int i = 1; i <= log; i++) update(p >> i);
+    }
+
+    S get(int p) const {
+        assert(0 <= p && p < _n);
+        return d[p + size];
+    }
+
+    S prod(int l, int r) const {
+        assert(0 <= l && l <= r && r <= _n);
+        S sml = e(), smr = e();
+        l += size;
+        r += size;
+
+        while (l < r) {
+            if (l & 1) sml = op(sml, d[l++]);
+            if (r & 1) smr = op(d[--r], smr);
+            l >>= 1;
+            r >>= 1;
+        }
+        return op(sml, smr);
+    }
+
+    S all_prod() const { return d[1]; }
+
+    template <class F> int max_right(int l, F f) const {
+        assert(0 <= l && l <= _n);
+        assert(f(e()));
+        if (l == _n) return _n;
+        l += size;
+        S sm = e();
+        do {
+            while (l % 2 == 0) l >>= 1;
+            if (!f(op(sm, d[l]))) {
+                while (l < size) {
+                    l = (2 * l);
+                    if (f(op(sm, d[l]))) {
+                        sm = op(sm, d[l]);
+                        l++;
+                    }
+                }
+                return l - size;
+            }
+            sm = op(sm, d[l]);
+            l++;
+        } while ((l & -l) != l);
+        return _n;
+    }
+
+    template <class F> int min_left(int r, F f) const {
+        assert(0 <= r && r <= _n);
+        assert(f(e()));
+        if (r == 0) return 0;
+        r += size;
+        S sm = e();
+        do {
+            r--;
+            while (r > 1 && (r % 2)) r >>= 1;
+            if (!f(op(d[r], sm))) {
+                while (r < size) {
+                    r = (2 * r + 1);
+                    if (f(op(d[r], sm))) {
+                        sm = op(d[r], sm);
+                        r--;
+                    }
+                }
+                return r + 1 - size;
+            }
+            sm = op(d[r], sm);
+        } while ((r & -r) != r);
+        return 0;
+    }
+
+  private:
+    int _n, size, log;
+    std::vector<S> d;
+
+    void update(int k) { d[k] = op(d[2 * k], d[2 * k + 1]); }
+};
+
+/**
+ * RollingHashをSegTreeで管理するクラス
+ */
+class RollingHashSegTree {
+    int n;
+    SegTree<S, op, e> seg;
+
+public:
+    RollingHashSegTree(const string& s) : n(s.size()) {
+        if (rh_ptr == nullptr || (int)rh_ptr->power.size() < n + 1) {
+            if (rh_ptr) delete rh_ptr;
+            rh_ptr = new RollingHash(n);
+        }
+        vector<S> initial(n);
+        for (int i = 0; i < n; i++) initial[i] = { (uint64_t)s[i], 1 };
+        seg = SegTree<S, op, e>(initial);
+    }
+
+    void set(int i, char c) {
+        seg.set(i, { (uint64_t)c, 1 });
+    }
+
+    uint64_t get_hash(int l, int r) {
+        return seg.prod(l, r).hash;
+    }
+
+    bool equal(int l1, int r1, int l2, int r2) {
+        if (r1 - l1 != r2 - l2) return false;
+        return get_hash(l1, r1) == get_hash(l2, r2);
+    }
+
+    int lcp(int l1, int l2) {
+        int len = min(n - l1, n - l2);
+        int low = 0, high = len + 1;
+        while (high - low > 1) {
+            int mid = (low + high) / 2;
+            if (get_hash(l1, l1 + mid) == get_hash(l2, l2 + mid)) low = mid;
+            else high = mid;
+        }
+        return low;
+    }
+
+    int compare(int l1, int r1, int l2, int r2) {
+        int len1 = r1 - l1;
+        int len2 = r2 - l2;
+        int common = lcp(l1, l2);
+        if (common >= len1 || common >= len2) {
+            if (len1 == len2) return 0;
+            return len1 < len2 ? -1 : 1;
+        }
+        char c1 = (char)seg.get(l1 + common).hash;
+        char c2 = (char)seg.get(l2 + common).hash;
+        return c1 < c2 ? -1 : 1;
+    }
+};
+
+/**
+ * RollingHashSegTreeのランダムテスト
+ */
+void test_rolling_hash() {
+    int n = 1000;
+    string s = "";
+    mt19937 rng(1337);
+    for (int i = 0; i < n; i++) s += (char)('a' + rng() % 3);
+
+    RollingHashSegTree rh_seg(s);
+
+    for (int q = 0; q < 5000; q++) {
+        int type = rng() % 5;
+        if (type == 0) { // set
+            int i = rng() % n;
+            char c = (char)('a' + rng() % 3);
+            s[i] = c;
+            rh_seg.set(i, c);
+        } else if (type == 1) { // equal
+            int l1 = rng() % n, r1 = l1 + rng() % (n - l1 + 1);
+            int l2 = rng() % n, r2 = l2 + rng() % (n - l2 + 1);
+            bool res = rh_seg.equal(l1, r1, l2, r2);
+            bool expected = s.substr(l1, r1 - l1) == s.substr(l2, r2 - l2);
+            assert(res == expected);
+        } else if (type == 2) { // lcp
+            int l1 = rng() % n, l2 = rng() % n;
+            int res = rh_seg.lcp(l1, l2);
+            int expected = 0;
+            while (l1 + expected < n && l2 + expected < n && s[l1 + expected] == s[l2 + expected]) expected++;
+            assert(res == expected);
+        } else if (type == 3) { // compare
+            int l1 = rng() % n, r1 = l1 + rng() % (n - l1 + 1);
+            int l2 = rng() % n, r2 = l2 + rng() % (n - l2 + 1);
+            int res = rh_seg.compare(l1, r1, l2, r2);
+            string s1 = s.substr(l1, r1 - l1);
+            string s2 = s.substr(l2, r2 - l2);
+            int expected = (s1 == s2 ? 0 : (s1 < s2 ? -1 : 1));
+            assert(res == expected);
+        }
+    }
+    cout << "RollingHashSegTree test passed!" << endl;
+}
+
+void confirm_rolling_hash() {
+
+    cout << "===== RollingHashSegTree 動作確認 =====\n";
+
+    string s = "banana";
+    cout << "初期文字列 : " << s << '\n';
+
+    RollingHashSegTree seg(s);
+
+    // get_hash
+    cout << "\n[get_hash]\n";
+    cout << "\"ana\" と \"ana\" のハッシュ比較\n";
+
+    cout << "s[1,4) = " << s.substr(1, 3) << '\n';
+    cout << "s[3,6) = " << s.substr(3, 3) << '\n';
+
+    cout << "hash一致? : "
+         << (seg.get_hash(1, 4) == seg.get_hash(3, 6) ? "Yes" : "No")
+         << '\n';
+
+    // equal
+    cout << "\n[equal]\n";
+
+    cout << "equal(1,4,3,6) : "
+         << (seg.equal(1, 4, 3, 6) ? "true" : "false")
+         << " (期待値:true)\n";
+
+    cout << "equal(0,3,1,4) : "
+         << (seg.equal(0, 3, 1, 4) ? "true" : "false")
+         << " (期待値:false)\n";
+
+    // lcp
+    cout << "\n[lcp]\n";
+
+    cout << "suffix \"anana\" と \"ana\" のLCP\n";
+
+    cout << "lcp(1,3) = "
+         << seg.lcp(1, 3)
+         << " (期待値:3)\n";
+
+    // compare
+    cout << "\n[compare]\n";
+
+    cout << "\"ban\" vs \"ana\" : "
+         << seg.compare(0, 3, 1, 4)
+         << " (期待値:1)\n";
+
+    cout << "\"ana\" vs \"ana\" : "
+         << seg.compare(1, 4, 3, 6)
+         << " (期待値:0)\n";
+
+    cout << "\"an\" vs \"ana\" : "
+         << seg.compare(1, 3, 1, 4)
+         << " (期待値:-1)\n";
+
+    // set
+    cout << "\n[set]\n";
+
+    cout << "s[0]='c' に更新\n";
+
+    seg.set(0, 'c');
+    s[0] = 'c';
+
+    cout << "現在の文字列 : " << s << '\n';
+
+    cout << "\"can\" vs \"ana\"\n";
+
+    cout << "equal(0,3,3,6) : "
+         << (seg.equal(0, 3, 3, 6) ? "true" : "false")
+         << " (期待値:false)\n";
+
+    cout << "compare(0,3,3,6) : "
+         << seg.compare(0, 3, 3, 6)
+         << " (期待値:1)\n";
+
+    cout << "\n===== 動作確認終了 =====\n";
+}
+
+void solv(){
+    test_rolling_hash();
+    confirm_rolling_hash();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

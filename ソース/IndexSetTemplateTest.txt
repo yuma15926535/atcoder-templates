@@ -1,0 +1,540 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================================
+// IndexSet（set版）
+// 値 → その値を持つ index の集合を管理する
+// 想定用途：
+//   ・値の出現位置管理
+//   ・区間内存在判定
+//   ・最近距離取得
+//   ・動的更新
+// 計算量：基本すべて O(log N)
+// ============================================================
+template<class T = int>
+struct IndexSet {
+
+    // 値 → その値を持つ index の昇順集合
+    map<T, set<int>> mp;
+
+    // --------------------------------------------------------
+    // 値 val を index idx に追加
+    // --------------------------------------------------------
+    void add(T val, int idx){
+        mp[val].insert(idx);
+    }
+
+    // --------------------------------------------------------
+    // 値 val の index idx を削除
+    // （空になったら map からも消す）
+    // --------------------------------------------------------
+    void remove(T val, int idx){
+        if(!mp.count(val)) return;
+        mp[val].erase(idx);
+        if(mp[val].empty()) mp.erase(val);
+    }
+
+    // --------------------------------------------------------
+    // 値 val が存在するか
+    // --------------------------------------------------------
+    bool contains_value(T val) const {
+        return mp.count(val);
+    }
+
+    // --------------------------------------------------------
+    // 値 val の出現回数
+    // --------------------------------------------------------
+    int size(T val) const {
+        if(!mp.count(val)) return 0;
+        return mp.at(val).size();
+    }
+
+    // --------------------------------------------------------
+    // 値 val の最小 index
+    // 存在しない場合 -1
+    // --------------------------------------------------------
+    int min_index(T val) const {
+        if(!mp.count(val)) return -1;
+        return *mp.at(val).begin();
+    }
+
+    // --------------------------------------------------------
+    // 値 val の最大 index
+    // 存在しない場合 -1
+    // --------------------------------------------------------
+    int max_index(T val) const {
+        if(!mp.count(val)) return -1;
+        return *mp.at(val).rbegin();
+    }
+
+    // --------------------------------------------------------
+    // 値 val が区間 [l, r) に存在するか
+    // 超頻出機能
+    // --------------------------------------------------------
+    bool exist_in_range(T val, int l, int r) const {
+        if(!mp.count(val)) return false;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(l);
+        return (it != st.end() && *it < r);
+    }
+
+    // --------------------------------------------------------
+    // 値 val の index x 以上で最小の index
+    // 存在しない場合 -1
+    // --------------------------------------------------------
+    int next_index(T val, int x) const {
+        if(!mp.count(val)) return -1;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(x);
+        if(it == st.end()) return -1;
+        return *it;
+    }
+
+    // --------------------------------------------------------
+    // 値 val の index x より小さい最大の index
+    // 存在しない場合 -1
+    // --------------------------------------------------------
+    int prev_index(T val, int x) const {
+        if(!mp.count(val)) return -1;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(x);
+        if(it == st.begin()) return -1;
+        --it;
+        return *it;
+    }
+
+    // --------------------------------------------------------
+    // 値 val の index x に最も近い index を返す
+    // 存在しない場合 -1
+    // --------------------------------------------------------
+    int nearest_index(T val, int x) const {
+        if(!mp.count(val)) return -1;
+        const auto& st = mp.at(val);
+
+        auto it = st.lower_bound(x);
+
+        int ans = -1;
+
+        // 右側候補
+        if(it != st.end()){
+            ans = *it;
+        }
+
+        // 左側候補
+        if(it != st.begin()){
+            int cand = *prev(it);
+            if(ans == -1 || abs(cand - x) <= abs(ans - x)){
+                ans = cand;
+            }
+        }
+
+        return ans;
+    }
+
+    // --------------------------------------------------------
+    // 値 val の区間 [l, r) 内の個数
+    // ※ 注意：O(N) の可能性あり（distance使用）
+    // --------------------------------------------------------
+    int count_in_range(T val, int l, int r) const {
+        if(!mp.count(val)) return 0;
+        const auto& st = mp.at(val);
+        return distance(st.lower_bound(l), st.lower_bound(r));
+    }
+
+};
+
+template<class T = int>
+struct NaiveIndexSet {
+    map<T, set<int>> mp;
+
+    void add(T val, int idx) {
+        mp[val].insert(idx);
+    }
+
+    void remove(T val, int idx) {
+        if (!mp.count(val)) return;
+        mp[val].erase(idx);
+        if (mp[val].empty()) mp.erase(val);
+    }
+
+    bool contains_value(T val) const {
+        return mp.count(val) > 0;
+    }
+
+    int size(T val) const {
+        if (!mp.count(val)) return 0;
+        return (int)mp.at(val).size();
+    }
+
+    int min_index(T val) const {
+        if (!mp.count(val)) return -1;
+        return *mp.at(val).begin();
+    }
+
+    int max_index(T val) const {
+        if (!mp.count(val)) return -1;
+        return *mp.at(val).rbegin();
+    }
+
+    bool exist_in_range(T val, int l, int r) const {
+        if (!mp.count(val)) return false;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(l);
+        return (it != st.end() && *it < r);
+    }
+
+    int next_index(T val, int x) const {
+        if (!mp.count(val)) return -1;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(x);
+        if (it == st.end()) return -1;
+        return *it;
+    }
+
+    int prev_index(T val, int x) const {
+        if (!mp.count(val)) return -1;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(x);
+        if (it == st.begin()) return -1;
+        --it;
+        return *it;
+    }
+
+    int nearest_index(T val, int x) const {
+        if (!mp.count(val)) return -1;
+        const auto& st = mp.at(val);
+        auto it = st.lower_bound(x);
+        int ans = -1;
+        if (it != st.end()) ans = *it;
+        if (it != st.begin()) {
+            int cand = *prev(it);
+            if (ans == -1 || abs(cand - x) <= abs(ans - x)) {
+                ans = cand;
+            }
+        }
+        return ans;
+    }
+
+    int count_in_range(T val, int l, int r) const {
+        if (!mp.count(val)) return 0;
+        const auto& st = mp.at(val);
+        int cnt = 0;
+        for (int v : st) {
+            if (l <= v && v < r) cnt++;
+        }
+        return cnt;
+    }
+};
+
+void run_random_test(int num_ops, int max_val, int max_idx, uint32_t seed) {
+    cout << "シード値 " << seed << " でランダムテストを開始します (試行回数: " << num_ops << ")..." << endl;
+
+    IndexSet<int> iset;
+    NaiveIndexSet<int> naive;
+    mt19937 mt(seed);
+
+    for (int i = 0; i < num_ops; ++i) {
+        int op = mt() % 11;
+        int val = mt() % max_val;
+        int idx = mt() % max_idx;
+
+        try {
+            if (op == 0) { // add
+                iset.add(val, idx);
+                naive.add(val, idx);
+            } else if (op == 1) { // remove
+                iset.remove(val, idx);
+                naive.remove(val, idx);
+            } else if (op == 2) { // contains_value
+                assert(iset.contains_value(val) == naive.contains_value(val));
+            } else if (op == 3) { // size
+                assert(iset.size(val) == naive.size(val));
+            } else if (op == 4) { // min_index
+                assert(iset.min_index(val) == naive.min_index(val));
+            } else if (op == 5) { // max_index
+                assert(iset.max_index(val) == naive.max_index(val));
+            } else if (op == 6) { // exist_in_range
+                int l = mt() % max_idx;
+                int r = mt() % max_idx;
+                if (l > r) swap(l, r);
+                assert(iset.exist_in_range(val, l, r) == naive.exist_in_range(val, l, r));
+            } else if (op == 7) { // next_index
+                assert(iset.next_index(val, idx) == naive.next_index(val, idx));
+            } else if (op == 8) { // prev_index
+                assert(iset.prev_index(val, idx) == naive.prev_index(val, idx));
+            } else if (op == 9) { // nearest_index
+                assert(iset.nearest_index(val, idx) == naive.nearest_index(val, idx));
+            } else if (op == 10) { // count_in_range
+                int l = mt() % max_idx;
+                int r = mt() % max_idx;
+                if (l > r) swap(l, r);
+                assert(iset.count_in_range(val, l, r) == naive.count_in_range(val, l, r));
+            }
+        } catch (...) {
+            cout << "エラー発生: ループ " << i << ", 操作 " << op << ", 値 " << val << ", インデックス " << idx << endl;
+            throw;
+        }
+
+        if ((i + 1) % 1000 == 0) {
+            cout << (i + 1) << " 回の操作を完了..." << endl;
+        }
+    }
+
+    cout << "テストが正常に終了しました！" << endl;
+}
+
+void solv(){
+    try {
+        // 小規模な範囲でのテスト
+        run_random_test(10000, 10, 100, 42);
+        
+        // より広範囲なテスト
+        run_random_test(10000, 100, 10000, 123);
+        
+    } catch (const exception& e) {
+        cerr << "例外が発生しました: " << e.what() << endl;
+        return;
+    }
+
+    
+    cout << "=====================================\n";
+    cout << " IndexSet（set版）動作確認開始\n";
+    cout << "=====================================\n\n";
+
+    IndexSet<int> idx;
+
+    vector<int> A = {5, 1, 5, 3, 5, 1};
+
+    cout << "▼ 初期配列\n";
+    for(int i = 0; i < A.size(); i++){
+        cout << "index " << i << " -> 値 " << A[i] << "\n";
+        idx.add(A[i], i);
+    }
+
+    cout << "\n▼ 値5の情報\n";
+    cout << "出現回数: " << idx.size(5) << "\n";
+    cout << "最小index: " << idx.min_index(5) << "\n";
+    cout << "最大index: " << idx.max_index(5) << "\n";
+
+    cout << "\n▼ 区間[1,4)に値5は存在するか？\n";
+    cout << (idx.exist_in_range(5,1,4) ? "存在する" : "存在しない") << "\n";
+
+    cout << "\n▼ index 3 に最も近い値5の位置\n";
+    cout << idx.nearest_index(5,3) << "\n";
+
+    cout << "\n▼ index 2 以上の値5\n";
+    cout << idx.next_index(5,2) << "\n";
+
+    cout << "\n▼ index 4 未満の値5\n";
+    cout << idx.prev_index(5,4) << "\n";
+
+    cout << "\n=====================================\n";
+    cout << " 更新テスト\n";
+    cout << "=====================================\n";
+
+    cout << "\n▼ index 2 の値を 5 → 7 に変更\n";
+    idx.remove(5,2);
+    idx.add(7,2);
+
+    cout << "値5の出現回数: " << idx.size(5) << "\n";
+    cout << "値7の出現回数: " << idx.size(7) << "\n";
+
+    cout << "\n▼ 値5の全位置確認\n";
+    if(idx.contains_value(5)){
+        for(int pos : idx.mp[5]){
+            cout << pos << " ";
+        }
+        cout << "\n";
+    }
+
+    cout << "\n=====================================\n";
+    cout << " 存在しない値テスト\n";
+    cout << "=====================================\n";
+
+    cout << "値100は存在するか？ ";
+    cout << (idx.contains_value(100) ? "存在する" : "存在しない") << "\n";
+
+    cout << "値100の最近位置: ";
+    cout << idx.nearest_index(100,3) << "\n";
+
+    cout << "\n=====================================\n";
+    cout << " 動作確認終了\n";
+    cout << "=====================================\n";
+
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

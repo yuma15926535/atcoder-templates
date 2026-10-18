@@ -1,0 +1,32 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main(){
+    int N,K;
+    cin>>N>>K;
+    ll y=1,x=1;
+    //y:K桁の最大の整数
+    rep(i,0,K)y*=10;
+    y--;
+    rep(i,0,N){
+        ll a;
+        cin>>a;
+        //積のオーバーフロー対策
+        //x*a>y同値x>y/a
+        if(x>y/a)x=1;
+        else x*=a;
+    }
+    cout<<x<<"\n";
+    return 0;
+}

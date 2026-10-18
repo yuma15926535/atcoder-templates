@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+bool comp(ll x,ll y){
+    if(x>=y)return false;
+    else return true;
+}
+
+int main()
+{
+    int N,D;
+    ll P;
+    cin>>N>>D>>P;
+    vector<ll> F(N),S(N+1,0);
+    rep(i,0,N)cin>>F[i];
+    sort(nall(F),comp);
+    ll ans=1000000000000000000;
+    rep(i,0,N)S[i+1]=S[i]+F[i];
+    int notuse=N,pass=0;
+    //累積和+余ってでも使った方が安い場合のため
+    //貪欲に枚数を決めるとうまくいかない
+    while(notuse+D>=0){
+        if(notuse>=0)ans=min(ans,S[notuse]-S[0]+P*pass);
+        else ans=min(ans,P*pass);
+        notuse-=D;
+        pass++;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

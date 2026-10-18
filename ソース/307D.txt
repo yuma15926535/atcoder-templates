@@ -1,0 +1,38 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N;
+    string S;
+    cin>>N>>S;
+    vector<int> v(N+1,0);
+    //括弧列なのでstackで管理
+    stack<int> s;
+    //いもす法で囲まれていないiindexを求める
+    rep(i,0,N){
+        if(S[i]=='(')s.push(i);
+        else if(S[i]==')'&&(!s.empty())){
+            v[s.top()]++;
+            s.pop();
+            v[i+1]--;
+        }
+    }
+    rep(i,0,N){
+        v[i+1]+=v[i];
+        if(v[i]==0)cout<<S[i];
+    }
+    cout<<"\n";
+    return 0;
+}

@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+//ベクトルの構造体
+struct V{
+    int x,y;
+    //デフォルト引数を使い引数ありのコンストラクタと引数なしのコンストラクタを同時に定義
+    //メンバ変数の初期化はコロンを使って書ける
+    V(int x=0,int y=0):x(x),y(y){}
+    V operator-(const V &a){
+        return V(x-a.x,y-a.y);
+    }
+    //外積
+    //const関数はconst関数しか呼び出せない
+    int cross(const V &a)const{
+        return x*a.y-y*a.x;
+    }
+    //外積は張る平行四辺形の面積なのでなす角の判定に使える
+    //ccwは反時計回り cw:時計回り coliner:共線
+    int ccw(const V &a)const{
+        int area=cross(a);
+        if(area>0)return 1;
+        if(area<0)return -1;
+        return 0;
+    }
+};
+
+int main()
+{
+    vector<V> p(4);
+    rep(i,0,4)cin>>p[i].x>>p[i].y;
+    rep(i,0,4){
+        V a=p[i%4];
+        V b=p[(i+1)%4];
+        V c=p[(i+2)%4];
+        V vb=b-a,vc=c-a;
+        if(vb.ccw(vc)!=1){
+            NO;
+            return 0;
+        }
+    }
+    YES;
+    return 0;
+}

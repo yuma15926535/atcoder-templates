@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int N;
+    cin>>N;
+    vector<vector<ll>>cnt(2002,vector<ll>(2002,0)),rec(2002,vector<ll>(2002,0));
+    //imos
+    erep(i,1,N){
+        int u,d,l,r;
+        cin>>u>>d>>l>>r;
+        d++;r++;
+        cnt[u][l]++;
+        cnt[d][r]++;
+        cnt[u][r]--;
+        cnt[d][l]--;
+        rec[u][l]+=i;
+        rec[d][r]+=i;
+        rec[u][r]-=i;
+        rec[d][l]-=i;
+    }
+    rep(i,0,2002)rep(j,0,2001)cnt[i][j+1]+=cnt[i][j],rec[i][j+1]+=rec[i][j];
+    rep(i,0,2002)rep(j,0,2001)cnt[j+1][i]+=cnt[j][i],rec[j+1][i]+=rec[j][i];
+    vector<ll>ans(N+1,0);
+    erep(i,1,2000)erep(j,1,2000){
+        if(cnt[i][j]==0)ans[0]++;
+        else if(cnt[i][j]==1)ans[rec[i][j]]++;
+    }
+    erep(i,1,N)cout<<ans[0]+ans[i]<<'\n';
+    return 0;
+}

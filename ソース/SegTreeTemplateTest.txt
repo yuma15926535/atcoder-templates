@@ -1,0 +1,307 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+=====================================================
+★ モノイド定義（問題ごとに変更）
+=====================================================
+
+S : ノードの値
+combine : 区間結合
+id : 単位元
+
+※ prefix探索を使う場合は
+累積が単調になる演算であること
+=====================================================
+*/
+
+using S = ll;
+
+// ★区間結合
+S combine(S a, S b) {
+    return a + b; // 例：区間和
+}
+
+// ★単位元
+S id() {
+    return 0;
+}
+
+/*
+=====================================================
+SegTree 本体
+=====================================================
+*/
+
+struct SegTree {
+    int n;
+    vector<S> seg;
+
+    SegTree(int sz) {
+        n = 1;
+        while (n < sz) n <<= 1;
+        seg.assign(2*n, id());
+    }
+
+    // 配列初期化
+    SegTree(const vector<S>& v) {
+        int sz = v.size();
+        n = 1;
+        while (n < sz) n <<= 1;
+        seg.assign(2*n, id());
+
+        for (int i = 0; i < sz; i++)
+            seg[n+i] = v[i];
+
+        for (int i = n-1; i > 0; i--)
+            seg[i] = combine(seg[i<<1], seg[i<<1|1]);
+    }
+
+    // ========================
+    // 点更新
+    // ========================
+    void set(int i, S x) {
+        i += n;
+        seg[i] = x;
+
+        while (i >>= 1)
+            seg[i] = combine(seg[i<<1], seg[i<<1|1]);
+    }
+
+    // 和専用の便利関数
+    void add(int i, S x) {
+        set(i, get(i) + x);
+    }
+
+    // ========================
+    // 区間取得 [l,r)
+    // ========================
+    S range(int l, int r) {
+        S L = id(), R = id();
+        for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) L = combine(L, seg[l++]);
+            if (r & 1) R = combine(seg[--r], R);
+        }
+        return combine(L, R);
+    }
+
+    S get(int i) {
+        return seg[n+i];
+    }
+
+    S all() {
+        return seg[1];
+    }
+
+    // ========================
+    // prefix探索
+    // ========================
+    // 累積 >= x の最小 index
+    int ge(S x) {
+        if (all() < x) return n;
+
+        int node = 1;
+        S acc = id();
+
+        while (node < n) {
+            S nxt = combine(acc, seg[node<<1]);
+            if (nxt >= x) {
+                node <<= 1;
+            } else {
+                acc = nxt;
+                node = node<<1 | 1;
+            }
+        }
+        return node - n;
+    }
+
+    // 累積 > x
+    int gt(S x) { return ge(x+1); }
+
+    // 累積 ≤ x
+    int le(S x) {
+        int pos = ge(x+1);
+        return pos - 1;
+    }
+
+    // 累積 < x
+    int lt(S x) {
+        int pos = ge(x);
+        return pos - 1;
+    }
+
+    // ========================
+    // デバッグ
+    // ========================
+    void dump(int sz) {
+        for (int i = 0; i < sz; i++)
+            cout << get(i) << " ";
+        cout << "\n";
+    }
+};
+
+void solv(){
+    cout<<"=============================\n";
+    cout<<" SegTree 動作確認\n";
+    cout<<"=============================\n\n";
+
+    vector<ll> v={5,3,7,1,4};
+    SegTree seg(v);
+
+    cout<<"▼ 初期配列:\n";
+    seg.dump(v.size());
+
+    cout<<"\n▼ get(2): index2 の値 = "
+        <<seg.get(2)<<"\n";
+
+    cout<<"\n▼ range(1,4): 区間[1,4) の和 = "
+        <<seg.range(1,4)<<"\n";
+
+    cout<<"\n▼ all(): 全体の和 = "
+        <<seg.all()<<"\n";
+
+    cout<<"\n▼ set(1,10): index1 を 10 に更新\n";
+    seg.set(1,10);
+    seg.dump(v.size());
+
+    cout<<"\n▼ add(2,5): index2 に +5\n";
+    seg.add(2,5);
+    seg.dump(v.size());
+
+    cout<<"\n▼ range(0,5): 全区間和 = "
+        <<seg.range(0,5)<<"\n";
+
+    cout<<"\n=============================\n";
+    cout<<" prefix探索テスト\n";
+    cout<<"=============================\n";
+
+    for(int x=1;x<=25;x+=5){
+        cout<<"\nx="<<x<<"\n";
+
+        cout<<" 累積 >= x : index "
+            <<seg.ge(x)<<"\n";
+
+        cout<<" 累積 > x : index "
+            <<seg.gt(x)<<"\n";
+
+        cout<<" 累積 <= x : index "
+            <<seg.le(x)<<"\n";
+
+        cout<<" 累積 < x : index "
+            <<seg.lt(x)<<"\n";
+    }
+
+    cout<<"\n=============================\n";
+    cout<<" 最終状態\n";
+    cout<<"=============================\n";
+
+    seg.dump(v.size());
+
+    cout<<"\n✅ 動作確認完了\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

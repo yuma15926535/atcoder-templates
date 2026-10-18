@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct aapa{
+    vector<ll> v;
+    unordered_set<int> s;
+    int q1;
+    aapa(int n){
+        v.resize(n);
+        rep(i,0,n)cin>>v[i];
+        q1=-1;
+    }
+    void query1(int x){
+        s.clear();
+        q1=x;
+    }
+    void query2(int i,int x){
+        i--;
+        if(q1==-1)v[i]+=x;
+        else{
+            if(s.count(i))v[i]+=x;
+            else{
+                s.insert(i);
+                v[i]=x;
+            }
+        }
+    }
+    ll query3(int i){
+        i--;
+        if(q1==-1)return v[i];
+        else{
+            if(s.count(i))return q1+v[i];
+            else return q1;
+        }
+    }
+};
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N,Q;
+    cin>>N;
+    aapa ap=aapa(N);
+    cin>>Q;
+    rep(i,0,Q){
+        int q;
+        cin>>q;
+        if(q==1){
+            int x;
+            cin>>x;
+            ap.query1(x);
+        }else if(q==2){
+            int i,x;
+            cin>>i>>x;
+            ap.query2(i,x);
+        }else{
+            int i;
+            cin>>i;
+            cout<<ap.query3(i)<<"\n";
+        }
+    }
+    return 0;
+}

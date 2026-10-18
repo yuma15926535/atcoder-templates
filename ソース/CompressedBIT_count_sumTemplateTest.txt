@@ -1,0 +1,1412 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * 座標圧縮 + BIT（Fenwick Tree）による多機能データ構造
+ *
+ * 【概要】
+ * ・値を座標圧縮して、順序統計＋個数＋総和を高速に管理する
+ * ・同一値の重複を許す multiset 的な構造
+ *
+ * 【計算量】
+ * ・add / erase / count / sum / kth など：O(log N)
+ * ・median / cost / sum_k など：O(log N)
+ * ・LIS / inversion_count：O(N log N)
+ *
+ * 【内部構造】
+ * ・bit      : 個数を管理するBIT
+ * ・bit_sum  : 値の総和を管理するBIT
+ * ・data     : 各値の出現回数（配列）
+ * ・values   : 座圧後の元値配列（昇順・重複なし）
+ * ・idx      : 値 → index の対応
+ * ・unique_cnt : 出現している値の種類数
+ *
+ * 【できること】
+ * ■ 個数系
+ *   ・count / count_lt / count_le / count_range / count_all
+ *
+ * ■ 和系
+ *   ・sum / sum(l,r)
+ *   ・sum_k_smallest / sum_k_largest
+ *
+ * ■ 順序統計
+ *   ・kth / kth_smallest / kth_largest
+ *   ・rank
+ *   ・prev / next
+ *   ・first_ge / first_gt
+ *
+ * ■ 距離・最適化
+ *   ・median
+ *   ・median_cost（Σ|Ai - median|）
+ *   ・cost(x)（Σ|Ai - x|）
+ *   ・cost_range(l,r,x)
+ *
+ * ■ その他
+ *   ・unique_count（種類数）
+ *   ・LIS（最長増加部分列）
+ *   ・inversion_count（転倒数）
+ *
+ * 【注意】
+ * ・コンストラクタで渡した値のみ扱える（座圧前提）
+ * ・存在しない値に対する add / erase は無効（falseを返す）
+ * ・kth系は1-indexed
+ * ・空集合時は関数ごとに適切な値（-1 / 0）を返す
+ *
+ * 【用途】
+ * ・順序付きmultisetの代替
+ * ・中央値管理 / スライド中央値
+ * ・距離最小化（median, cost）
+ * ・上位k / 下位kの和
+ * ・転倒数 / LIS
+ *
+ * → 競プロで頻出の「順序 + 和」を1つで扱える汎用構造
+ */
+struct CompressedBIT {
+    using ll = long long;
+
+    int n;                     // 圧縮後のサイズ
+    vector<ll> bit;            // BIT本体
+    vector<ll> data;           // 元の値の集計（個数）
+    vector<ll> bit_sum;        // 和BIT
+    vector<ll> values;         // 圧縮前の値（ソート済み、重複なし）
+    unordered_map<ll,int> idx; // 値 -> 圧縮後index
+    ll unique_cnt;             // 出現している値の種類数
+
+    // ----------------------------
+    // コンストラクタ / build
+    // ----------------------------
+    // all_values: 全ての値の配列
+    // init_type: 0=0初期化, 1=配列どおりに初期化
+    CompressedBIT(const vector<ll>& all_values, int init_type=0) {
+        // 重複削除 + ソート
+        values = all_values;
+        sort(values.begin(), values.end());
+        values.erase(unique(values.begin(), values.end()), values.end());
+
+        n = (int)values.size();
+        bit.assign(n+1, 0);
+        bit_sum.assign(n+1, 0);
+        data.assign(n, 0);
+        unique_cnt = 0;
+
+        // 値 -> 圧縮index のマッピング
+        for (int i=0; i<n; i++) idx[values[i]] = i;
+
+        if (init_type == 1) {
+            for (ll v : all_values) add(v, 1);
+        }
+    }
+
+    // ----------------------------
+    // BIT操作（内部）
+    // ----------------------------
+    void internal_add(vector<ll>& b, int i, ll x) {
+        i++;
+        while (i <= n) {
+            b[i] += x;
+            i += i & -i;
+        }
+    }
+
+    ll internal_sum(const vector<ll>& b, int i) const {
+        ll res = 0;
+        i++;
+        while (i > 0) {
+            res += b[i];
+            i -= i & -i;
+        }
+        return res;
+    }
+
+    ll internal_sum(const vector<ll>& b, int l, int r) const {
+        if (l > r) return 0;
+        return internal_sum(b, r) - (l ? internal_sum(b, l-1) : 0);
+    }
+
+    // =============================
+    // 内部：BIT上でk以上になる最小indexを探す
+    // （0-indexedで返す）
+    // 戻り値は「prefix和がk未満である最大index」
+    // → kth(k) でそのまま使うと「k番目の位置」になる
+    // =============================
+    int lower_bound_bit(ll k) const {
+        if (k <= 0) return 0;
+        int idx = 0;
+        int bit_mask = 1;
+
+        // 最大の2冪を探す
+        while ((bit_mask << 1) <= n) bit_mask <<= 1;
+
+        for (int d = bit_mask; d > 0; d >>= 1) {
+            int next = idx + d;
+            if (next <= n && bit[next] < k) {
+                k -= bit[next];
+                idx = next;
+            }
+        }
+        return idx; // ここは「prefixがk未満の最大位置」
+    }
+
+    // 値 v を個数 cnt だけ追加
+    // ・事前にコンストラクタで登録した値のみ追加可能
+    // ・存在しない値は false を返す
+    bool add(ll v, ll cnt=1) {
+        auto it = idx.find(v);
+        if (it == idx.end()) return false; // 事前にbuildしていない値は不可
+        int i = it->second;
+        if (data[i] == 0 && cnt > 0) unique_cnt++;
+        data[i] += cnt;
+        internal_add(bit, i, cnt);
+        internal_add(bit_sum, i, v * cnt);
+        return true;
+    }
+
+    // 値 v を個数 cnt だけ削除
+    // ・存在する分だけ削除（不足していれば全部削除）
+    // ・cnt以上削除できた場合のみ true
+    bool erase(ll v, ll cnt=1) {
+        auto it = idx.find(v);
+        if (it == idx.end()) return false; // 事前にbuildしていない値は不可
+        int i = it->second;
+        ll removed = min(cnt, data[i]);
+        data[i] -= removed;
+        if (data[i] == 0 && removed > 0) unique_cnt--;
+        internal_add(bit, i, -removed);
+        internal_add(bit_sum, i, -v * removed);
+        return removed == cnt; // cnt以上消せたらtrue, 足りなければfalse
+    }
+
+    // ----------------------------
+    // 集計系
+    // ----------------------------
+
+    // count(v)
+    // 値 v の出現回数を返す
+    // 存在しない値は 0
+    ll count(ll v) const {
+        auto it = idx.find(v);
+        if (it == idx.end()) return 0;
+        return data[it->second];
+    }
+
+    // 出現している値の種類数
+    ll unique_count() const {
+        return unique_cnt;
+    }
+
+    // v未満の個数（strict）
+    // lower_boundを使うため、vが存在しなくてもOK
+    ll count_lt(ll v) const { // v未満の個数
+        auto it = lower_bound(values.begin(), values.end(), v);
+        int i = it - values.begin();
+        return internal_sum(bit, i-1);
+    }
+
+    // v以下の個数
+    // upper_boundを使うため、vが存在しなくてもOK
+    ll count_le(ll v) const { // v以下の個数
+        auto it = upper_bound(values.begin(), values.end(), v);
+        int i = it - values.begin();
+        return internal_sum(bit, i-1);
+    }
+
+    // count_gt(v)
+    // vより大きい要素数
+    ll count_gt(ll v) const {
+        return count_all() - count_le(v);
+    }
+
+    // count_ge(v)
+    // v以上の要素数
+    ll count_ge(ll v) const {
+        return count_all() - count_lt(v);
+    }
+
+    ll count_range(ll l, ll r) const { // [l, r] の個数
+        return count_le(r) - count_lt(l);
+    }
+
+    ll count_all() const { // 全体の個数
+        return internal_sum(bit, n-1);
+    }
+
+    // ----------------------------
+    // sum系
+    // ----------------------------
+
+    // sum(v)
+    // v以下の要素の総和を返す
+    // vが存在しなくてもOK
+    ll sum(ll v) const {
+        auto it = upper_bound(values.begin(), values.end(), v);
+        int i = it - values.begin();
+        return internal_sum(bit_sum, i-1);
+    }
+
+    // sum(l, r)
+    // 値が [l, r] に属する要素の総和を返す
+    ll sum(ll l, ll r) const {
+        if (l > r) return 0;
+        return sum(r) - sum(l-1);
+    }
+
+    // 小さい方からk個の総和
+    // ・k=0 → 0
+    // ・k > 全体 → 全体の和
+    ll sum_k_smallest(ll k) const {
+        if (k <= 0) return 0;
+        ll total = count_all();
+        if (k >= total) {
+            return internal_sum(bit_sum, n-1);
+        }
+        ll x = kth(k);
+        ll cnt_lt = count_lt(x);
+        ll sum_lt = sum(x-1);
+        ll need = k - cnt_lt;
+        return sum_lt + x * need;
+    }
+
+    // 大きい方からk個の総和
+    // ・k=0 → 0
+    // ・k > 全体 → 全体の和
+    ll sum_k_largest(ll k) const {
+        if (k <= 0) return 0;
+
+        ll total = count_all();
+        if (k >= total) {
+            return internal_sum(bit_sum, n-1);
+        }
+
+        // 全体 - 小さい方から(total - k)個
+        return internal_sum(bit_sum, n-1) - sum_k_smallest(total - k);
+    }
+
+    // 中央値（下側中央値）
+    // ・空なら -1
+    ll median() const {
+        ll n = count_all();
+        if (n == 0) return -1;
+        return kth((n + 1) / 2);
+    }
+
+    // median_cost()
+    // 全要素に対して Σ |Ai - median| を返す
+    // 中央値は「下側中央値」を使用
+    // 空集合の場合は 0
+    ll median_cost() const {
+        ll n = count_all();
+        if (n == 0) return 0;
+
+        ll m = median();
+
+        ll cntL = count_le(m);
+        ll sumL = sum(m);
+
+        ll total_sum = sum(values.back());
+        ll cntR = n - cntL;
+        ll sumR = total_sum - sumL;
+
+        ll costL = m * cntL - sumL;
+        ll costR = sumR - m * cntR;
+
+        return costL + costR;
+    }
+
+    // 任意の値xに対するコスト
+    // Σ |Ai - x|
+    ll cost(ll x) const {
+        ll n = count_all();
+        if (n == 0) return 0;
+
+        // 左側（<= x）
+        ll cntL = count_le(x);
+        ll sumL = sum(x);
+
+        // 全体
+        ll total_sum = sum(values.back());
+
+        // 右側（> x）
+        ll cntR = n - cntL;
+        ll sumR = total_sum - sumL;
+
+        ll costL = x * cntL - sumL;
+        ll costR = sumR - x * cntR;
+
+        return costL + costR;
+    }
+
+    // cost_range(l, r, x)
+    // 値が [l, r] に属する要素のみを対象に
+    // Σ |Ai - x| を返す
+    // 区間外のxにも対応（全要素が片側に寄るケースを考慮）
+    ll cost_range(ll l, ll r, ll x) const {
+        if (l > r) return 0;
+
+        ll cnt_all = count_range(l, r);
+        if (cnt_all == 0) return 0;
+
+        ll sum_all = sum(l, r);
+
+        // ------------------------
+        // x が左にある
+        // ------------------------
+        if (x <= l) {
+            // 全部右側
+            return sum_all - x * cnt_all;
+        }
+
+        // ------------------------
+        // x が右にある
+        // ------------------------
+        if (x >= r) {
+            // 全部左側
+            return x * cnt_all - sum_all;
+        }
+
+        // ------------------------
+        // x が区間内
+        // ------------------------
+        ll cntL = count_range(l, x);
+        ll sumL = sum(l, x);
+
+        ll cntR = cnt_all - cntL;
+        ll sumR = sum_all - sumL;
+
+        ll costL = x * cntL - sumL;
+        ll costR = sumR - x * cntR;
+
+        return costL + costR;
+    }
+
+    // x未満で最大の値
+    // 存在しなければ -1
+    ll prev(ll x) const {
+        ll k = count_lt(x);
+        if (k == 0) return -1;
+        return kth(k);
+    }
+
+    // xより大きい最小の値
+    // 存在しなければ -1
+    ll next(ll x) const {
+        ll k = count_le(x) + 1;
+        if (k > count_all()) return -1;
+        return kth(k);
+    }
+
+    // k番目に小さい値（1-indexed）
+    // ・k=1 が最小
+    // ・存在しない場合は -1
+    ll kth(ll k) const {
+        if (k <= 0 || k > count_all()) return -1;
+        int i = lower_bound_bit(k);
+        return values[i];
+    }
+
+    // 小さい方からk番目（1-indexed）
+    // 範囲外なら -1
+    ll kth_smallest(ll k) const {
+        return kth(k);
+    }
+
+    // 大きい方からk番目（1-indexed）
+    // 範囲外なら -1
+    ll kth_largest(ll k) const {
+        ll n = count_all();
+        if (k <= 0 || k > n) return -1;
+        return kth(n - k + 1);
+    }
+
+    // ----------------------------
+    // 順位（1-indexed）
+    // 「vより小さい要素数」
+    // ----------------------------
+    ll rank(ll v) const {
+        return count_lt(v) + 1;
+    }
+
+    // v以上で最小の値（lower_bound的）
+    // ・存在しなければ -1
+    ll first_ge(ll v) const {
+        ll k = count_lt(v) + 1; // v以上の最初 = (v未満の次)
+        if (k > count_all()) return -1;
+        return kth(k);
+    }
+
+    // vより大きい値の最小（upper_bound的）
+    // ・存在しなければ -1
+    ll first_gt(ll v) const {
+        ll k = count_le(v) + 1; // v以下の次
+        if (k > count_all()) return -1;
+        return kth(k);
+    }
+
+    // LIS（最長増加部分列）
+    // ・この構造体の座圧を使って O(N log N) で計算
+    // ・strict増加（同値は不可）
+    ll LIS(const vector<ll>& seq) {
+        vector<ll> xs = seq;
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+
+        int m = xs.size();
+        vector<ll> bit(m+1, 0);
+
+        auto get_idx = [&](ll v){
+            return lower_bound(xs.begin(), xs.end(), v) - xs.begin();
+        };
+
+        auto update = [&](int i, ll x){
+            i++;
+            while(i <= m){
+                bit[i] = max(bit[i], x);
+                i += i & -i;
+            }
+        };
+
+        auto query = [&](int i){
+            ll res = 0;
+            i++;
+            while(i > 0){
+                res = max(res, bit[i]);
+                i -= i & -i;
+            }
+            return res;
+        };
+
+        ll res = 0;
+        for(ll v : seq){
+            int i = get_idx(v);
+            ll best = query(i-1);
+            update(i, best+1);
+            res = max(res, best+1);
+        }
+        return res;
+    }
+
+    // 転倒数
+    // ・valuesを使って別インスタンスで計算
+    // ・O(N log N)
+    ll inversion_count(const vector<ll>& seq) {
+        CompressedBIT tmp(values);
+        ll res = 0;
+        for (ll v : seq) {
+            res += tmp.count_gt(v); // vより大きい要素数
+            tmp.add(v, 1);
+        }
+        return res;
+    }
+};
+
+void random_test(){
+    mt19937_64 rng(0);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        // =========================
+        // 座圧は全集合で固定（ここが重要）
+        // =========================
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++){
+            vals.push_back(i);
+        }
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%9;
+            ll x = rng()%20;
+
+            // ------------------------
+            // add
+            // ------------------------
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            // ------------------------
+            // erase
+            // ------------------------
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // ------------------------
+            // count_lt
+            // ------------------------
+            if(type == 2){
+                ll a = bit.count_lt(x);
+                ll b = distance(st.begin(), st.lower_bound(x));
+                if(a != b){
+                    cout << "count_lt error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+
+            // ------------------------
+            // count_le
+            // ------------------------
+            if(type == 3){
+                ll a = bit.count_le(x);
+                ll b = distance(st.begin(), st.upper_bound(x));
+                if(a != b){
+                    cout << "count_le error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+
+            // ------------------------
+            // count_gt
+            // ------------------------
+            if(type == 4){
+                ll a = bit.count_gt(x);
+                ll b = distance(st.upper_bound(x), st.end());
+                if(a != b){
+                    cout << "count_gt error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+
+            // ------------------------
+            // count_ge
+            // ------------------------
+            if(type == 5){
+                ll a = bit.count_ge(x);
+                ll b = distance(st.lower_bound(x), st.end());
+                if(a != b){
+                    cout << "count_ge error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+
+            // ------------------------
+            // kth
+            // ------------------------
+            if(type == 6){
+                if(st.empty()) continue;
+
+                int k = rng()%st.size() + 1;
+
+                ll a = bit.kth(k);
+
+                auto it = st.begin();
+                advance(it, k-1);
+                ll b = *it;
+
+                if(a != b){
+                    cout << "kth error\n";
+                    cout << "k=" << k << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+
+            // ------------------------
+            // first系
+            // ------------------------
+            if(type == 7){
+                ll a = bit.first_ge(x);
+                ll b = -1;
+                auto it = st.lower_bound(x);
+                if(it != st.end()) b = *it;
+
+                if(a != b){
+                    cout << "first_ge error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+
+                ll c = bit.first_gt(x);
+                ll d = -1;
+                auto it2 = st.upper_bound(x);
+                if(it2 != st.end()) d = *it2;
+
+                if(c != d){
+                    cout << "first_gt error\n";
+                    cout << "x=" << x << "\n";
+                    cout << c << " vs " << d << "\n";
+                    return;
+                }
+            }
+
+            // ------------------------
+            // rank（1-indexed）
+            // ------------------------
+            if(type == 8){
+                ll a = bit.rank(x);
+                ll b = distance(st.begin(), st.lower_bound(x)) + 1;
+
+                if(a != b){
+                    cout << "rank error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK\n";
+}
+
+void random_test2(){
+    mt19937_64 rng(1);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%4;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // sum(x)
+            if(type == 2){
+                ll a = bit.sum(x);
+
+                ll b = 0;
+                for(ll v : st) if(v <= x) b += v;
+
+                if(a != b){
+                    cout << "sum(x) error\n";
+                    cout << "x=" << x << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+
+            // sum(l,r)
+            if(type == 3){
+                ll y = rng()%20;
+                ll l = min(x,y);
+                ll r = max(x,y);
+
+                ll a = bit.sum(l,r);
+
+                ll b = 0;
+                for(ll v : st) if(l <= v && v <= r) b += v;
+
+                if(a != b){
+                    cout << "sum(l,r) error\n";
+                    cout << "l=" << l << " r=" << r << "\n";
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK2\n";
+}
+
+void random_test3(){
+    mt19937_64 rng(2);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // sum_k_smallest
+            if(type == 2){
+                ll sz = st.size();
+                ll k = (sz == 0 ? 0 : rng() % (sz + 2)); // あえてオーバーも含む
+
+                ll a = bit.sum_k_smallest(k);
+
+                // 愚直
+                ll b = 0;
+                int cnt = 0;
+                for(ll v : st){
+                    if(cnt == k) break;
+                    b += v;
+                    cnt++;
+                }
+
+                if(a != b){
+                    cout << "sum_k_smallest error\n";
+                    cout << "k=" << k << "\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK3\n";
+}
+
+void random_test4(){
+    mt19937_64 rng(3);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // sum_k_largest
+            if(type == 2){
+                ll sz = st.size();
+                ll k = (sz == 0 ? 0 : rng() % (sz + 2)); // オーバー含む
+
+                ll a = bit.sum_k_largest(k);
+
+                // 愚直
+                ll b = 0;
+                int cnt = 0;
+
+                auto it = st.rbegin();
+                while(it != st.rend() && cnt < k){
+                    b += *it;
+                    ++it;
+                    cnt++;
+                }
+
+                if(a != b){
+                    cout << "sum_k_largest error\n";
+                    cout << "k=" << k << "\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK4\n";
+}
+
+void random_test5(){
+    mt19937_64 rng(4);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // median + cost
+            if(type == 2){
+                ll a_med = bit.median();
+                ll a_cost = bit.median_cost();
+
+                // 愚直
+                ll b_med = -1;
+                ll b_cost = 0;
+
+                if(!st.empty()){
+                    vector<ll> v(st.begin(), st.end());
+                    int n = v.size();
+
+                    b_med = v[(n-1)/2];
+
+                    for(ll x : v){
+                        b_cost += abs(x - b_med);
+                    }
+                }
+
+                if(a_med != b_med || a_cost != b_cost){
+                    cout << "median error\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << "median: " << a_med << " vs " << b_med << "\n";
+                    cout << "cost: " << a_cost << " vs " << b_cost << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK5\n";
+}
+
+void random_test6(){
+    mt19937_64 rng(5);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // cost(x)
+            if(type == 2){
+                ll a = bit.cost(x);
+
+                // 愚直
+                ll b = 0;
+                for(ll v : st){
+                    b += abs(v - x);
+                }
+
+                if(a != b){
+                    cout << "cost(x) error\n";
+                    cout << "x=" << x << "\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK6\n";
+}
+
+void random_test7(){
+    mt19937_64 rng(6);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // cost_range
+            if(type == 2){
+                ll y = rng()%20;
+                ll l = min(x,y);
+                ll r = max(x,y);
+                ll target = rng()%20;
+
+                ll a = bit.cost_range(l, r, target);
+
+                // 愚直
+                ll b = 0;
+                for(ll v : st){
+                    if(l <= v && v <= r){
+                        b += abs(v - target);
+                    }
+                }
+
+                if(a != b){
+                    cout << "cost_range error\n";
+                    cout << "l=" << l << " r=" << r << " x=" << target << "\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK7\n";
+}
+
+void random_test8(){
+    mt19937_64 rng(7);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // prev / next
+            if(type == 2){
+                ll a_prev = bit.prev(x);
+                ll a_next = bit.next(x);
+
+                // 愚直
+                ll b_prev = -1;
+                auto it1 = st.lower_bound(x);
+                if(it1 != st.begin()){
+                    --it1;
+                    b_prev = *it1;
+                }
+
+                ll b_next = -1;
+                auto it2 = st.upper_bound(x);
+                if(it2 != st.end()){
+                    b_next = *it2;
+                }
+
+                if(a_prev != b_prev || a_next != b_next){
+                    cout << "prev/next error\n";
+                    cout << "x=" << x << "\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << "prev: " << a_prev << " vs " << b_prev << "\n";
+                    cout << "next: " << a_next << " vs " << b_next << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK8\n";
+}
+
+void random_test9(){
+    mt19937_64 rng(8);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            // kth系
+            if(type == 2){
+                ll n = st.size();
+                ll k = (n == 0 ? 1 : rng() % (n + 2)); // オーバーも含む
+
+                ll a_small = bit.kth_smallest(k);
+                ll a_large = bit.kth_largest(k);
+
+                // 愚直
+                vector<ll> v(st.begin(), st.end());
+
+                ll b_small = -1;
+                if(1 <= k && k <= (ll)v.size()){
+                    b_small = v[k-1];
+                }
+
+                ll b_large = -1;
+                if(1 <= k && k <= (ll)v.size()){
+                    b_large = v[v.size() - k];
+                }
+
+                if(a_small != b_small || a_large != b_large){
+                    cout << "kth error\n";
+                    cout << "k=" << k << "\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << "small: " << a_small << " vs " << b_small << "\n";
+                    cout << "large: " << a_large << " vs " << b_large << "\n";
+
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK9\n";
+}
+
+void random_test10(){
+    mt19937_64 rng(9);
+
+    for(int tc = 0; tc < 5000; tc++){
+        int Q = 200;
+
+        vector<ll> vals;
+        for(int i = 0; i < 20; i++) vals.push_back(i);
+
+        CompressedBIT bit(vals);
+        multiset<ll> st;
+
+        for(int q = 0; q < Q; q++){
+            int type = rng()%3;
+            ll x = rng()%20;
+
+            if(type == 0){
+                bit.add(x);
+                st.insert(x);
+            }
+
+            if(type == 1){
+                bit.erase(x);
+                auto it = st.find(x);
+                if(it != st.end()) st.erase(it);
+            }
+
+            if(type == 2){
+                ll a = bit.unique_count();
+
+                // 愚直
+                set<ll> s(st.begin(), st.end());
+                ll b = s.size();
+
+                if(a != b){
+                    cout << "unique_count error\n";
+
+                    cout << "st: ";
+                    for(ll v : st) cout << v << " ";
+                    cout << "\n";
+
+                    cout << a << " vs " << b << "\n";
+                    return;
+                }
+            }
+        }
+    }
+
+    cout << "OK10\n";
+}
+
+void solv(){
+    random_test();
+    random_test2();
+    random_test3();
+    random_test4();
+    random_test5();
+    random_test6();
+    random_test7();
+    random_test8();
+    random_test9();
+    random_test10();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

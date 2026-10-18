@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//modint:「剰余演算」を効率的かつ簡潔に扱うための構造体(剰余が自動計算される)
+//加減乗除、累乗(pow 引数乗を返却)、逆元(inv)
+const int M = 5000;
+modint C[M+1][M+1];
+
+void solve() {
+    int n;
+    cin >> n;
+    int s = 0;
+    modint ans = 1;
+    rep(i,0,n) {
+        int c;
+        cin >> c;
+        s += c;
+        ans *= C[s][c];
+    }
+    cout << ans.val() << '\n';
+}
+
+int main(){
+    BUFF;
+    int T, mod;
+    cin >> T >> mod;
+    //modintのmodを指定
+    modint::set_mod(mod);
+    //modが総数とは限らない場合は逆元が存在しない場合がある
+    //Cの和が小さいのでパスカルの三角形で計算
+    //構築は2乗オーダーになる
+    C[0][0] = 1;
+    rep(i,0,M)rep(j,0,i+1) {
+        C[i+1][j] += C[i][j];
+        C[i+1][j+1] += C[i][j];
+    }
+    rep(ti,0,T) solve();
+    return 0;
+}

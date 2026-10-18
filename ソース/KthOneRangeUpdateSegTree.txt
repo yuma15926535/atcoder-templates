@@ -1,0 +1,651 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/*
+=====================================================
+★ ノード情報（区間代入 + k-th One）
+=====================================================
+
+0/1配列を管理
+
+sum : 区間内の1の個数
+len : 区間長
+
+=====================================================
+*/
+
+struct S {
+    int sum;
+    int len;
+};
+
+/*
+=====================================================
+★ 更新情報
+=====================================================
+
+-1 : no-op
+ 0 : 全部0
+ 1 : 全部1
+
+=====================================================
+*/
+
+using F = int;
+
+/*
+=====================================================
+★ 演算定義
+=====================================================
+*/
+
+// ノード結合
+S combine(S a, S b) {
+    return {
+        a.sum + b.sum,
+        a.len + b.len
+    };
+}
+
+// 更新適用
+S apply(F f, S x) {
+
+    if (f == -1)
+        return x;
+
+    return {
+        x.len * f,
+        x.len
+    };
+}
+
+// 更新の合成
+F compose(F f, F g) {
+
+    return (f != -1 ? f : g);
+}
+
+S idS() {
+    return {0,0};
+}
+
+F idF() {
+    return -1;
+}
+
+/*
+=====================================================
+Lazy SegTree 本体
+=====================================================
+*/
+
+struct LazySegTree {
+
+    int n;
+
+    vector<S> seg;
+
+    vector<F> lazy;
+
+    LazySegTree(const vector<int>& v) {
+
+        int sz = v.size();
+
+        n = 1;
+
+        while (n < sz)
+            n <<= 1;
+
+        seg.assign(2 * n, idS());
+
+        lazy.assign(2 * n, idF());
+
+        for (int i = 0; i < sz; i++)
+            seg[n + i] = {v[i],1};
+
+        for (int i = sz; i < n; i++)
+            seg[n + i] = {0,1};
+
+        for (int i = n - 1; i > 0; i--)
+            seg[i] = combine(seg[i << 1], seg[i << 1 | 1]);
+    }
+
+    void apply_node(int k, F f) {
+
+        seg[k] = apply(f, seg[k]);
+
+        if (k < n)
+            lazy[k] = compose(f, lazy[k]);
+    }
+
+    void push(int k) {
+
+        if (lazy[k] == idF())
+            return;
+
+        apply_node(k << 1, lazy[k]);
+
+        apply_node(k << 1 | 1, lazy[k]);
+
+        lazy[k] = idF();
+    }
+
+    void range_apply(int l, int r, F f, int k, int a, int b) {
+
+        if (r <= a || b <= l)
+            return;
+
+        if (l <= a && b <= r) {
+            apply_node(k, f);
+            return;
+        }
+
+        push(k);
+
+        int mid = (a + b) / 2;
+
+        range_apply(l, r, f, k << 1, a, mid);
+
+        range_apply(l, r, f, k << 1 | 1, mid, b);
+
+        seg[k] = combine(seg[k << 1], seg[k << 1 | 1]);
+    }
+
+    void range_apply(int l, int r, F f) {
+        range_apply(l, r, f, 1, 0, n);
+    }
+
+    S range(int l, int r, int k, int a, int b) {
+
+        if (r <= a || b <= l)
+            return idS();
+
+        if (l <= a && b <= r)
+            return seg[k];
+
+        push(k);
+
+        int mid = (a + b) / 2;
+
+        return combine(
+            range(l, r, k << 1, a, mid),
+            range(l, r, k << 1 | 1, mid, b)
+        );
+    }
+
+    // ========================
+    // 区間和 [l,r)
+    // ========================
+    int range_sum(int l, int r) {
+        return range(l, r, 1, 0, n).sum;
+    }
+
+    // ========================
+    // k-th One
+    // ========================
+    // 1-indexed
+    // k番目の1の位置
+    // 存在しないなら -1
+    // ========================
+    int kth_one(int k) {
+
+        if (seg[1].sum < k)
+            return -1;
+
+        int i = 1;
+
+        while (i < n) {
+
+            push(i);
+
+            if (seg[i << 1].sum >= k) {
+                i <<= 1;
+            }
+            else {
+                k -= seg[i << 1].sum;
+                i = i << 1 | 1;
+            }
+        }
+
+        return i - n;
+    }
+};
+
+void random_test() {
+
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+    rep(_,0,10000){
+
+        int N = rng()%20 + 1;
+
+        vector<int> a(N);
+
+        rep(i,0,N)
+            a[i] = rng()%2;
+
+        LazySegTree seg(a);
+
+        rep(q,0,1000){
+
+            int type = rng()%3;
+
+            // ========================
+            // 区間代入更新
+            // ========================
+            if(type==0){
+
+                int l = rng()%N;
+                int r = rng()%N;
+
+                if(l>r)swap(l,r);
+
+                r++;
+
+                int x = rng()%2;
+
+                rep(i,l,r)
+                    a[i] = x;
+
+                seg.range_apply(l,r,x);
+            }
+
+            // ========================
+            // 区間和
+            // ========================
+            else if(type==1){
+
+                int l = rng()%N;
+                int r = rng()%N;
+
+                if(l>r)swap(l,r);
+
+                r++;
+
+                int ans1 = 0;
+
+                rep(i,l,r)
+                    ans1 += a[i];
+
+                int ans2 = seg.range_sum(l,r);
+
+                if(ans1!=ans2){
+
+                    cerr << "range_sum error\n";
+
+                    cerr << "N = " << N << "\n";
+
+                    cerr << "array : ";
+
+                    for(auto x:a)
+                        cerr << x << " ";
+
+                    cerr << "\n";
+
+                    cerr << "l r = " << l << " " << r << "\n";
+
+                    cerr << "naive = " << ans1 << "\n";
+
+                    cerr << "seg   = " << ans2 << "\n";
+
+                    exit(0);
+                }
+            }
+
+            // ========================
+            // kth_one
+            // ========================
+            else{
+
+                int total = 0;
+
+                for(auto x:a)
+                    total += x;
+
+                int k = rng()%(total+2);
+
+                if(k==0)
+                    k=1;
+
+                int ans1 = -1;
+
+                if(k<=total){
+
+                    int cnt = 0;
+
+                    rep(i,0,N){
+
+                        if(a[i])
+                            cnt++;
+
+                        if(cnt==k){
+                            ans1 = i;
+                            break;
+                        }
+                    }
+                }
+
+                int ans2 = seg.kth_one(k);
+
+                if(ans1!=ans2){
+
+                    cerr << "kth_one error\n";
+
+                    cerr << "N = " << N << "\n";
+
+                    cerr << "array : ";
+
+                    for(auto x:a)
+                        cerr << x << " ";
+
+                    cerr << "\n";
+
+                    cerr << "k = " << k << "\n";
+
+                    cerr << "naive = " << ans1 << "\n";
+
+                    cerr << "seg   = " << ans2 << "\n";
+
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    cerr << "OK\n";
+}
+
+void sample_test() {
+
+    vector<int> a = {0,1,0,1,1,0,0,1};
+
+    LazySegTree seg(a);
+
+    cout << "初期配列\n";
+
+    for(auto x:a)
+        cout << x << " ";
+
+    cout << "\n\n";
+
+    // ========================
+    // 区間和
+    // ========================
+
+    cout << "区間 [0,8) の1の個数 : ";
+    cout << seg.range_sum(0,8) << "\n";
+
+    cout << "区間 [2,6) の1の個数 : ";
+    cout << seg.range_sum(2,6) << "\n\n";
+
+    // ========================
+    // kth_one
+    // ========================
+
+    cout << "1番目の1の位置 : ";
+    cout << seg.kth_one(1) << "\n";
+
+    cout << "2番目の1の位置 : ";
+    cout << seg.kth_one(2) << "\n";
+
+    cout << "3番目の1の位置 : ";
+    cout << seg.kth_one(3) << "\n";
+
+    cout << "4番目の1の位置 : ";
+    cout << seg.kth_one(4) << "\n";
+
+    cout << "5番目の1の位置 : ";
+    cout << seg.kth_one(5) << "\n\n";
+
+    // ========================
+    // 区間代入更新（全部0）
+    // ========================
+
+    cout << "区間 [2,5) を全部0に変更\n";
+
+    seg.range_apply(2,5,0);
+
+    rep(i,2,5)
+        a[i]=0;
+
+    cout << "現在の配列\n";
+
+    for(auto x:a)
+        cout << x << " ";
+
+    cout << "\n\n";
+
+    cout << "区間 [0,8) の1の個数 : ";
+    cout << seg.range_sum(0,8) << "\n";
+
+    cout << "1番目の1の位置 : ";
+    cout << seg.kth_one(1) << "\n";
+
+    cout << "2番目の1の位置 : ";
+    cout << seg.kth_one(2) << "\n";
+
+    cout << "3番目の1の位置 : ";
+    cout << seg.kth_one(3) << "\n\n";
+
+    // ========================
+    // 区間代入更新（全部1）
+    // ========================
+
+    cout << "区間 [3,7) を全部1に変更\n";
+
+    seg.range_apply(3,7,1);
+
+    rep(i,3,7)
+        a[i]=1;
+
+    cout << "現在の配列\n";
+
+    for(auto x:a)
+        cout << x << " ";
+
+    cout << "\n\n";
+
+    cout << "区間 [0,8) の1の個数 : ";
+    cout << seg.range_sum(0,8) << "\n";
+
+    cout << "1番目の1の位置 : ";
+    cout << seg.kth_one(1) << "\n";
+
+    cout << "2番目の1の位置 : ";
+    cout << seg.kth_one(2) << "\n";
+
+    cout << "3番目の1の位置 : ";
+    cout << seg.kth_one(3) << "\n";
+
+    cout << "4番目の1の位置 : ";
+    cout << seg.kth_one(4) << "\n";
+
+    cout << "5番目の1の位置 : ";
+    cout << seg.kth_one(5) << "\n";
+
+    cout << "6番目の1の位置 : ";
+    cout << seg.kth_one(6) << "\n";
+}
+
+void solv(){
+    random_test();
+    sample_test();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

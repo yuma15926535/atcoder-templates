@@ -1,0 +1,425 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+//#define popcount __builtin_popcountll
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// ============================================
+// Implicit Treap（index指定の参照、挿入、削除）（反転なし・build付き軽量版）
+// root非公開・外からは位置指定のみ
+//
+// できること:
+//  - build(vector)
+//  - insert(k, val)
+//  - erase(k)
+//  - get(k)
+//  - range_sum(l, r)
+//  - size()
+// ============================================
+struct ImplicitTreap {
+
+private:
+
+    struct Node {
+        ll val;
+        ll sum;
+        int sz;
+        unsigned pri;
+        Node *l, *r;
+
+        Node(ll v)
+            : val(v), sum(v), sz(1),
+              pri((unsigned)rand() << 16 ^ rand()),
+              l(nullptr), r(nullptr) {}
+    };
+
+    Node* root = nullptr;
+
+    // ===== utility =====
+
+    int sz(Node* t) { return t ? t->sz : 0; }
+    ll sum(Node* t) { return t ? t->sum : 0; }
+
+    void pull(Node* t) {
+        if (!t) return;
+        t->sz = 1 + sz(t->l) + sz(t->r);
+        t->sum = t->val + sum(t->l) + sum(t->r);
+    }
+
+    // ===== merge =====
+
+    Node* merge(Node* a, Node* b) {
+        if (!a || !b) return a ? a : b;
+
+        if (a->pri > b->pri) {
+            a->r = merge(a->r, b);
+            pull(a);
+            return a;
+        } else {
+            b->l = merge(a, b->l);
+            pull(b);
+            return b;
+        }
+    }
+
+    // ===== split =====
+    // [0,k) と [k,n)
+
+    void split(Node* t, int k, Node*& a, Node*& b) {
+        if (!t) {
+            a = b = nullptr;
+            return;
+        }
+
+        if (sz(t->l) >= k) {
+            split(t->l, k, a, t->l);
+            b = t;
+        } else {
+            split(t->r, k - sz(t->l) - 1, t->r, b);
+            a = t;
+        }
+        pull(t);
+    }
+
+    // ===== get内部 =====
+
+    ll get(Node* t, int k) {
+        int left = sz(t->l);
+        if (k < left) return get(t->l, k);
+        if (k == left) return t->val;
+        return get(t->r, k - left - 1);
+    }
+
+public:
+
+    // ===== size =====
+    int size() {
+        return sz(root);
+    }
+
+    // ===== build O(N) =====
+    void build(const vector<ll>& v) {
+        vector<Node*> st;
+
+        for (ll x : v) {
+            Node* cur = new Node(x);
+            Node* last = nullptr;
+
+            while (!st.empty() && st.back()->pri < cur->pri) {
+                pull(st.back());
+                last = st.back();
+                st.pop_back();
+            }
+
+            cur->l = last;
+
+            if (!st.empty()) {
+                st.back()->r = cur;
+            }
+
+            st.push_back(cur);
+        }
+
+        while (st.size() > 1) {
+            pull(st.back());
+            st.pop_back();
+        }
+
+        root = st.empty() ? nullptr : st[0];
+        if (root) pull(root);
+    }
+
+    // ===== k番目取得 =====
+    ll get(int k) {
+        return get(root, k);
+    }
+
+    // ===== 挿入 =====
+    void insert(int k, ll v) {
+        Node *a, *b;
+        split(root, k, a, b);
+        root = merge(merge(a, new Node(v)), b);
+    }
+
+    // ===== 削除 =====
+    void erase(int k) {
+        Node *a, *b, *c;
+        split(root, k, a, b);
+        split(b, 1, b, c);
+        delete b;
+        root = merge(a, c);
+    }
+
+    // ===== 区間和 =====
+    ll range_sum(int l, int r) {
+        Node *a, *b, *c;
+        split(root, r, b, c);
+        split(b, l, a, b);
+        ll ans = sum(b);
+        root = merge(merge(a, b), c);
+        return ans;
+    }
+};
+
+void solv(){
+    /*
+    ★ 思い出すポイント
+
+    - splitは [0,k) と [k,n)
+    - insert(k,x) → kの前に入る
+    - erase(k) → k番目削除
+    - range_sum(l,r) → [l,r)
+    - size()はO(1)
+    - すべて0-index
+    */
+    srand(time(nullptr));
+
+    ImplicitTreap tr;
+
+    cout << "=============================\n";
+    cout << " Implicit Treap 動作確認\n";
+    cout << "=============================\n\n";
+
+    // -------------------------
+    // 1. build テスト
+    // -------------------------
+    cout << "▼ buildテスト\n";
+    vector<ll> v = {10, 20, 30, 40, 50};
+    tr.build(v);
+
+    cout << "size: " << tr.size() << "\n";
+    cout << "配列: ";
+    for(int i=0;i<tr.size();i++)
+        cout << tr.get(i) << " ";
+    cout << "\n\n";
+
+    // -------------------------
+    // 2. insert テスト
+    // -------------------------
+    cout << "▼ insertテスト (位置2に99挿入)\n";
+    tr.insert(2, 99);
+
+    cout << "配列: ";
+    for(int i=0;i<tr.size();i++)
+        cout << tr.get(i) << " ";
+    cout << "\n\n";
+
+    // -------------------------
+    // 3. erase テスト
+    // -------------------------
+    cout << "▼ eraseテスト (位置3削除)\n";
+    tr.erase(3);
+
+    cout << "配列: ";
+    for(int i=0;i<tr.size();i++)
+        cout << tr.get(i) << " ";
+    cout << "\n\n";
+
+    // -------------------------
+    // 4. get テスト
+    // -------------------------
+    cout << "▼ getテスト\n";
+    for(int i=0;i<tr.size();i++)
+        cout << "index " << i << " = "
+             << tr.get(i) << "\n";
+    cout << "\n";
+
+    // -------------------------
+    // 5. range_sum テスト
+    // -------------------------
+    cout << "▼ range_sumテスト\n";
+    cout << "[0,3) = "
+         << tr.range_sum(0,3) << "\n";
+    cout << "[1,4) = "
+         << tr.range_sum(1,4) << "\n\n";
+
+    // -------------------------
+    // 6. 端操作テスト
+    // -------------------------
+    cout << "▼ 端操作テスト\n";
+    tr.insert(0, 111);
+    tr.insert(tr.size(), 222);
+
+    cout << "両端挿入後: ";
+    for(int i=0;i<tr.size();i++)
+        cout << tr.get(i) << " ";
+    cout << "\n";
+
+    tr.erase(0);
+    tr.erase(tr.size()-1);
+
+    cout << "両端削除後: ";
+    for(int i=0;i<tr.size();i++)
+        cout << tr.get(i) << " ";
+    cout << "\n\n";
+
+    cout << "=============================\n";
+    cout << " 動作確認終了\n";
+    cout << "=============================\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

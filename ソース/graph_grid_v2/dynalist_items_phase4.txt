@@ -1,0 +1,170 @@
+02_bellman_ford（ベルマンフォード：負の重みの最短路・−∞・負閉路）
+	説明
+		auto r = bellman_ford(G, s) / bellman_ford(G, {s1, ...}) / bellman_ford_core(n, s, adj)（push(u, w)）
+		r.dist[v]（DIST_INF = 届かない、-DIST_INF = −∞）/ r.neg_inf(v) / r.reached(v) / r.path(t) / r.par_edge[v] / r.negative_cycle
+		find_negative_cycle(G)：どこかの負閉路を 1 つ（Cycle: c.found() / c.vs / c.es）
+	メモ
+		グラフ基盤・閉路を同梱済み。O(NM)。重みが 0 以上なら 02_dijkstra
+		最大化は重みを負にして最短路（ABC061 D）。牛ゲー: x[v] - x[u] ≤ w を辺 u → v（重み w）
+		無向グラフの負の辺は、それだけで負閉路（行って戻る）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\02_bellman_ford.cpp
+02_warshall_floyd（ワーシャルフロイド：全点対の最短距離・経路・辺を足したときの更新）
+	説明
+		WarshallFloyd W(G) / WarshallFloyd W(N); W.add_edge(u, v, w); W.run();（行列で与えられたとき）
+		W[i][j] / W.dist(i, j)（DIST_INF / -DIST_INF = −∞）/ W.reachable(i, j) / W.neg_inf(i, j) / W.negative_cycle / W.path(i, j) / W.matrix()
+		W.update_edge(u, v, w) / W.update_undirected(u, v, w)：計算の後に辺を足して O(N^2) で更新
+	メモ
+		グラフ基盤を同梱済み。N ≤ 400 程度。負の辺・負閉路にも対応（あふれない）
+		辺を消していくクエリは、逆順に update_edge で足していく（ABC375 F）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\02_warshall_floyd.cpp
+03_weighted_union_find（重み付き Union-Find：9/23 版 ＋ weighted_union_find_from）
+	説明
+		WeightedUnionFind<T> wuf(n) / wuf.unite(x, y, w)（値[y] - 値[x] = w）/ wuf.diff(x, y)（値[y] - 値[x]）/ wuf.weight(x) / wuf.same(x, y)
+		wuf.consistent() / wuf.consistent(x, y, w) / wuf.unite_check(x, y, w) / groups / members / group_ids / roots / add / init / XorWeight
+		weighted_union_find_from(G)：辺 u → v（重み w）を「値[v] - 値[u] = w」として全部登録
+	メモ
+		9/23 版をそのまま採用（API は同じ）。グラフ基盤を同梱済み
+		類題：ABC087 D、ABC320 D（2 次元）、ABC327 D（XorWeight で 2 色）、ABC328 F（矛盾するものを捨てる）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\03_weighted_union_find.cpp
+03_rollback_union_find（巻き戻せる Union-Find）
+	説明
+		RollbackUnionFind uf(n) / uf.unite(x, y) / uf.same(x, y) / uf.find(x) / uf.size(x) / uf.group_count() / uf.groups()
+		uf.undo()（直前の unite を取り消す）/ int s = uf.snapshot(); ... uf.rollback(s);
+	メモ
+		9/23 版 dynamic_connectivity_offline.cpp の RollbackUnionFind をそのまま取り出したもの（単独で貼る）
+		dynamic_connectivity_offline.cpp と両方を貼るときは、こちらを貼らない（同じ構造体が入っている）
+		使いどころ: 木（操作の履歴）を DFS して戻るときに取り消す / 試しに併合して戻す
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\03_rollback_union_find.cpp
+03_prim（プリム法：密なグラフの最小・最大全域木）
+	説明
+		prim_dense(N, cost) / prim_dense_max(N, cost)：cost(u, v) で重み（辺なしは DIST_INF）。O(N^2)
+		prim(G) / prim_max(G)：辺が与えられたグラフ
+		結果 r: r.cost / r.par[v]（木の辺は (v, par[v])）/ r.edges / r.connected / r.components
+	メモ
+		グラフ基盤を同梱済み。全部の組の間に辺がある（重みが式で決まる）ときに使う
+		類題：ABC282 E（prim_dense_max）。辺が M 本で与えられるなら 03_kruskal でよい
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\03_prim.cpp
+05_hld（HLD：パス・部分木の集計と更新）
+	説明
+		LCA L(G, root) を作ってから TreeQuery Q(L, init, op, e, edge = false, commutative = false)
+		Q.set(v, x) / Q.get(v) / Q.set_edge(u, v, x) / Q.path(u, v)（u → v の順に畳み込む）/ Q.subtree(v)
+		TreeLazyQuery Q(L, init, op, e, mapping, composition, id, edge, commutative)：Q.path_apply(u, v, f) / Q.subtree_apply(v, f) も
+		edge = true：辺に値を載せる（子の側の頂点に置く）。commutative = true：和・最大など可換なら付けると速い
+	メモ
+		グラフ基盤・根付き木・LCA を同梱済み（セグ木も中に入っている）。森は LCA L(RootedTree::forest(G))
+		非可換の演算（文字列の連結・一次関数の合成）でも向きどおりに畳み込む
+		類題：ABC294 G（辺の重みの更新 + 距離）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\05_hld.cpp
+05_rerooting（全方位木DP）
+	説明
+		auto ans = rerooting(G, e, merge, put_edge, put_vertex)：ans[v] = v を根にしたときの木DP の値。O(N)
+		dp[v] = put_vertex( merge(put_edge(dp[子], 辺 v→子), ...), v )。merge は結合的・可換、e は単位元
+		put_edge(x, const Edge& e)：子の側の値 x を辺 e（e.to が子、e.w が重み）を通して持ち上げる / put_vertex(x, int v)
+	メモ
+		グラフ基盤を同梱済み。非再帰・森も可。逆元は要らない（左右からの累積）
+		例（使い方デモ）: 最遠距離（max と + w）、距離の和（{和, 個数}。ABC220 F）、EDPC V Subtree（掛け算）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\05_rerooting.cpp
+05_centroid（重心分解・木の重心）
+	説明
+		tree_centroids(G)：木の重心（1 つか 2 つ）
+		CentroidDecomposition C(G)：C.par / C.level / C.order / C.roots / C.ancestor(v, k) / C.dist_to_ancestor(v, k)
+		C.each_component(c, f)：f(頂点, c からの距離, 枝の番号) を重心 c の成分の頂点ごとに
+	メモ
+		グラフ基盤を同梱済み。非再帰。重心の木の深さは log2(N) + 1 以下
+		距離が K 以下の組の数: 重心ごとに c を通る組を数え、同じ枝どうしを引く（使い方デモ）
+		「一番近い印までの距離」: 祖先の重心をたどって更新・質問（O(log N)）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\05_centroid.cpp
+06_euler_path（オイラー路：一筆書き）
+	説明
+		euler_path_undirected(G, s = -1, lex_min = false) / euler_path_directed(G, s, lex_min)
+		euler_circuit_undirected(G, s, lex_min) / euler_circuit_directed(G, s, lex_min)：始点に戻ってくるもの
+		結果 r: r.ok / r.vs（頂点の列）/ r.es（辺番号の列）/ r.closed()
+	メモ
+		グラフ基盤を同梱済み。有向版は G.es の向き、無向版は向きなしとして使う。孤立点は無視
+		できる条件: 無向は奇数次数の頂点が 0 か 2 個、有向は (出 - 入) が全部 0 か +1 と -1 が 1 つずつ（＋辺がつながっていること）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\06_euler_path.cpp
+07_scc（強連結成分分解・縮約 DAG）
+	説明
+		SCC S(G) / scc_core(n, adj)：S.count / S.id[v]（トポロジカル順）/ S.group(c) / S.size_of(c) / S.sizes() / S.groups() / S.same(u, v)
+		S.dag(G, unique = true)：成分を 1 頂点に縮めた DAG / S.dag_edges(G, unique)：その辺の元の番号
+	メモ
+		グラフ基盤を同梱済み。非再帰の Tarjan 法
+		成分の番号順がトポロジカル順なので、DAG 上の DP は番号順に回すだけ
+		類題：ABC245 F（サイズ 2 以上の成分に行ける頂点）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\07_scc.cpp
+07_lowlink（橋・関節点・二重辺連結成分・二重頂点連結成分）
+	説明
+		LowLink L(G)：L.bridges / L.is_bridge[id] / L.articulations / L.is_articulation[v] / L.components
+		L.two_edge_id[v] / L.two_edge_count / L.bridge_tree()：二重辺連結成分と、それを橋で結んだ木
+		L.block_of_edge[id] / L.block_vertices(b) / L.block_count / L.block_cut_tree()：二重頂点連結成分（ブロック）
+		L.components_after_removing_vertex(v) / L.pieces_after_removing_vertex(v) / ..._edge(id)：消したときの成分の数・大きさ
+	メモ
+		グラフ基盤を同梱済み。辺の向きは無視。多重辺・自己ループ・非連結に対応。非再帰
+		類題：ABC334 G（頂点を消したときの成分の数）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\07_lowlink.cpp
+07_two_sat（2-SAT）
+	説明
+		TwoSat ts(n) / ts.add_clause(i, f, j, g)：(x_i == f) または (x_j == g)
+		ts.add_imply(i, f, j, g) / ts.add_nand(i, f, j, g) / ts.must(i, f) / ts.add_equal(i, j) / ts.add_not_equal(i, j) / ts.at_most_one({{i, f}, ...})
+		ts.satisfiable() / ts.answer[i]（1 / 0）
+	メモ
+		グラフ基盤・SCC を同梱済み
+		類題：ACL Practice H（旗）、ABC210 F（素因数ごとに at_most_one）
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\07_two_sat.cpp
+08_max_flow（最大流・最小カット・下限つきの流れ）
+	説明
+		MaxFlow F(n) / int id = F.add_edge(from, to, cap) / F.flow(s, t, limit = CAP_INF) / F.add_vertex()
+		F.min_cut(s)（s 側なら 1）/ F.cut_edges(s) / F.get_edge(id)（{from, to, cap, flow}）/ F.edges() / F.change_edge(id, cap, flow)
+		LowerBoundFlow L(n); L.add_edge(u, v, lo, hi); L.max_flow(s, t) / L.min_flow(s, t) / L.feasible() / L.flow_of(id)（解なしは -1、L.ok）
+	メモ
+		単独で貼る。Dinic 法（非再帰。ACL と同じ速さ）。容量無限は MaxFlow::CAP_INF
+		燃やす埋める（2 択の最適化）は最小カット（使い方デモ）。マッチングだけなら 08_bipartite_matching
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\08_max_flow.cpp
+08_bipartite_matching（二部マッチング・最小点被覆・最大独立集合）
+	説明
+		BipartiteMatching M(L, R) / M.add_edge(l, r) / M.solve()（最大マッチングの大きさ）
+		M.pairs() / M.match_l[l] / M.match_r[r]（相手。いなければ -1）
+		M.min_vertex_cover() / M.max_independent_set()（{left, right}）/ M.min_edge_cover()
+	メモ
+		単独で貼る。Hopcroft-Karp 法（非再帰）。左右は別々に 0 から番号を付ける
+		辺を足してもう一度 solve() すると続きから増やす
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\08_bipartite_matching.cpp
+08_min_cost_flow（最小費用流）
+	説明
+		MinCostFlow F(n) / F.add_edge(from, to, cap, cost)（cost は負も可。負閉路は不可）
+		auto [f, c] = F.flow(s, t, limit) / F.flow_min_cost(s, t)（コストが減る間だけ流す）/ F.slope(s, t)
+		F.get_edge(id) / F.edges()（{from, to, cap, flow, cost}）
+	メモ
+		単独で貼る。主双対法（ACL と同じくらいの速さ）
+		流量をちょうど K: flow(s, t, K) の流量が K 未満なら不可能。最大重みはコストを -重み にする
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\08_min_cost_flow.cpp
+08_hungarian（割り当て問題）
+	説明
+		auto r = hungarian(a) / hungarian_max(a)：a[i][j] = 行 i に列 j を割り当てるコスト（n 行 m 列）
+		r.cost / r.row_to_col[i] / r.col_to_row[j]（なければ -1）
+	メモ
+		単独で貼る。O(n^3)（N = 1000 でも一瞬）。全部の組にコストがある割り当てなら最小費用流より速い
+		割り当ててはいけない組は大きいコスト（10^15 など）にする
+	C:\atcoder_template\典型90\ソース\graph_grid_v2\08_hungarian.cpp
+△ 再帰DFS（バックトラック・全探索の型）
+	型
+		auto rec = [&](auto&& self, int v, ...) -> void { if (終わり) { 答えを更新; return; } for (次の候補) { 選ぶ; self(self, 次, ...); 戻す; } };
+		rec(rec, 始点, ...);
+	メモ
+		N が小さい（N ≤ 10 程度・深さが浅い）ときだけ。深い DFS は 01_dfs（非再帰）
+		Visual Studio はスタックが 1MB なので、深さ 10^4 を超える再帰は避ける
+		類題：ABC284 E（単純パスの数え上げ）
+△ 木DP（根付き木の DP の型）
+	型
+		RootedTree T(G, 0);
+		for (int k = T.n - 1; k >= 0; --k) { int v = T.order[k]; dp[v] = 初期値; for (int c : T.children(v)) dp[v] = 合わせる(dp[v], dp[c]); }
+	メモ
+		05_rooted_tree を使う（order は行きがけ順なので、逆順に回すと子が先に終わる）
+		部分木の和・最大は T.subtree_sum / T.subtree_fold、全頂点を根にするなら 05_rerooting
+△ DAG上のDP（トポロジカル順に回す型）
+	型
+		auto t = topo_sort(G);
+		for (int v : t.order) for (auto& e : G[v]) dp[e.to] = max(dp[e.to], dp[v] + e.w);   // 前から配る
+	メモ
+		04_topo_sort を使う。最長路・路の数は dag_longest_path / dag_count_paths が既にある
+		閉路があるなら 07_scc で縮約してから、成分の番号順に回す

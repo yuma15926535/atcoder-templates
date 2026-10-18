@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    //頂点数が十分小さい時の単純グラフの同型判定
+    int N,M;
+    cin>>N>>M;
+    vector<unordered_set<int>> G1(N),G2(N);
+    rep(i,0,M){
+        int u,v;
+        cin>>u>>v;
+        u--;
+        v--;
+        G1[u].insert(v);
+        G1[v].insert(u);
+    }
+    rep(i,0,M){
+        int u,v;
+        cin>>u>>v;
+        u--;
+        v--;
+        G2[u].insert(v);
+        G2[v].insert(u);
+    }
+    vector<int> ind(N);
+    iota(nall(ind),0);
+    bool bo=false;
+    do{
+        bool b=true;
+        rep(i,0,N)for(int a:G1[i])if(!G2[ind[i]].count(ind[a]))b=false;
+        if(b){
+            YES;
+            return 0;
+        }
+    }while(next_p(ind));
+    NO;
+    return 0;
+}

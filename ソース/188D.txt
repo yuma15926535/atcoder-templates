@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+void solv(){
+    int N;
+    ll C;
+    cin>>N>>C;
+    auto cmp=[](pair<int,int>a,pair<int,int>b){return a.first!=b.first?a.first>b.first:a.second>b.second;};
+    priority_queue<pair<int,int>,vector<pair<int,int>>,decltype(cmp)> pq(cmp);
+    vector<ll>cost(N);
+    rep(i,0,N){
+        int a,b;
+        cin>>a>>b>>cost[i];
+        pq.push(make_pair(a,i));
+        pq.push(make_pair(b+1,i));
+    }
+    vector<bool>use(N,false);
+    ll ans=0,sum=0,now=0;
+    //状況が変わるのは加入、停止タイミングのみ
+    //小さい順に現在のcostの和とCを比較しながらansへの加算を行う
+    while(!pq.empty()){
+        auto [time,idx]=pq.top();
+        pq.pop();
+        if(sum<C)ans+=sum*(time-now);
+        else ans+=C*(time-now);
+        now=time;
+        use[idx]=use[idx]^true;
+        if(use[idx])sum+=cost[idx];
+        else sum-=cost[idx];
+    }
+    cout<<ans<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

@@ -1,0 +1,159 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+struct BIT {
+    int n;
+    vector<long long> bit;
+
+    BIT(int n=0): n(n), bit(n+1,0) {}
+
+    // index i に v を加算
+    void add(int i, long long v){
+        for(i++; i<=n; i+=i&-i) bit[i] += v;
+    }
+
+    // [0, i] の和
+    long long sum(int i) const {
+        long long s = 0;
+        for(i++; i>0; i-=i&-i) s += bit[i];
+        return s;
+    }
+
+    // 累積和が k 以上になる最小の index を返す
+    // (k >= 1 を想定)
+    int lower_bound(long long k) const {
+        int idx = 0;
+        long long cur = 0;
+        for(int d = 1<<20; d > 0; d >>= 1){
+            if(idx + d <= n && cur + bit[idx + d] < k){
+                cur += bit[idx + d];
+                idx += d;
+            }
+        }
+        return idx; // 0-index
+    }
+};
+
+// ==============================================
+// MEX / 欠番管理本体
+// ==============================================
+struct MEX {
+    int N;                 // ID の最大数
+    vector<int> cnt;       // 各 ID の出現回数
+    BIT bit;               // 欠番なら 1, 存在するなら 0
+    long long sz = 0;      // 現在の要素数（重複込み）
+
+    // 初期状態：すべて欠番
+    MEX(int N): N(N), cnt(N,0), bit(N) {
+        for(int i=0;i<N;i++) bit.add(i,1);
+    }
+
+    // ID x を追加（重複可）
+    void add(int x){
+        if(cnt[x] == 0) bit.add(x, -1); // 欠番でなくなる
+        cnt[x]++;
+        sz++;
+    }
+
+    // ID x を削除（cnt[x] >= 1 が保証される）
+    void remove(int x){
+        cnt[x]--;
+        if(cnt[x] == 0) bit.add(x, +1); // 再び欠番
+        sz--;
+    }
+
+    // 現在の要素数（重複込み）
+    long long size() const {
+        return sz;
+    }
+
+    // 最小の欠番（存在しなければ -1）
+    int get_min_missing() const {
+        if(bit.sum(N-1) == 0) return -1;
+        return bit.lower_bound(1);
+    }
+
+    // 最大の欠番（存在しなければ -1）
+    int get_max_missing() const {
+        long long tot = bit.sum(N-1);
+        if(tot == 0) return -1;
+        return bit.lower_bound(tot);
+    }
+
+    // k 番目の欠番（1-indexed, 存在しなければ -1）
+    int get_kth_missing(long long k) const {
+        if(bit.sum(N-1) < k) return -1;
+        return bit.lower_bound(k);
+    }
+
+    // l 以上で最小の欠番
+    int get_min_missing_from(int l) const {
+        if(l >= N) return -1;
+        long long before = (l == 0 ? 0 : bit.sum(l-1));
+        long long total  = bit.sum(N-1);
+        if(before == total) return -1;
+        return bit.lower_bound(before + 1);
+    }
+
+    // [l, r) に含まれる欠番の個数
+    long long count_missing_range(int l, int r) const {
+        if(l >= r) return 0;
+        return bit.sum(r-1) - (l == 0 ? 0 : bit.sum(l-1));
+    }
+
+    // 全体の欠番数
+    long long count_missing() const {
+        return bit.sum(N-1);
+    }
+
+    // ID x が欠番か？
+    bool is_missing(int x) const {
+        return cnt[x] == 0;
+    }
+};
+
+void solv(){
+    int N,M;
+    cin>>N>>M;
+    vector<int>A(N);
+    rep(i,0,N)cin>>A[i];
+    MEX mex(N+5);
+    rep(i,0,M)mex.add(A[i]);
+    ll ans=mex.get_min_missing();
+    rep(i,0,N){
+        if(i+M>=N)break;
+        mex.remove(A[i]);
+        mex.add(A[i+M]);
+        chmin(ans,(ll)mex.get_min_missing());
+    }
+    cout<<ans<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

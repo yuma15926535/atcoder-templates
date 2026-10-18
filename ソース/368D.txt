@@ -1,0 +1,157 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+//整数の累乗
+ll power(ll base,ll exp){
+    ll result=1;
+    while(exp>0){
+        if(exp&1)result*=base;
+        base*=base;
+        exp>>=1;
+    }
+    return result;
+}
+
+//整数の累乗(mod)
+ll mod_pow(ll base,ll exp,ll mod) {
+    ll result=1%mod;
+    base%=mod;
+    while(exp>0){
+        if(exp&1)result = (ll)((__int128)result * base % mod);
+        base=(ll)((__int128)base*base%mod);
+        exp>>=1;
+    }
+    return result;
+}
+
+//整数の逆元(mod)
+ll mod_inv(ll a,ll mod){
+    return mod_pow(a,mod-2,mod);
+}
+
+//nCrのn->rの最大値
+constexpr int MAXN=2000000;
+//nCr mod MOD
+ll MOD;
+//階乗
+ll fact[MAXN+1];
+//階乗の逆数
+ll invfact[MAXN+1];
+
+//二項係数計算の初期処理
+void init_comb(ll mod){
+    MOD=mod;
+    fact[0]=1;
+    erep(i,1,MAXN)fact[i]=fact[i-1]*i%MOD;
+    invfact[MAXN]=mod_inv(fact[MAXN],MOD);
+    rrep(i,MAXN+1,1)invfact[i-1]=invfact[i]*i%MOD;
+}
+
+//nCrを返却(modが素数の場合)
+ll comb(int n,int r){
+    if(r<0||r>n)return 0;
+    return fact[n]*invfact[r]%MOD*invfact[n-r]%MOD;
+}
+
+// 重複組合せ(nHr)
+ll homo(int n,int r){
+    if(r<0)return 0;
+    if(n<=0)return (r == 0)?1%MOD:0;
+    return comb(n+r-1,r);
+}
+
+// 順列(nPr)
+ll perm(int n,int r){
+    if(r<0||r>n)return 0;
+    return fact[n]*invfact[n - r]%MOD;
+}
+
+//nが小さい場合のnCr
+ll comb_small(ll n,ll r,ll mod) {
+    if(r<0||r>n)return 0;
+    chmin(r,n-r);
+    ll res=1;
+    erep(i,1,r){
+        res=res*(n-i+1)%mod;
+        res=res*mod_inv(i,mod)%mod;
+    }
+    return res;
+}
+
+//mod_inv_用
+ll extgcd(ll a,ll b,ll &x,ll &y) {
+    if(b==0){
+        x=1;
+        y=0;
+        return a;
+    }
+    ll g=extgcd(b,a%b,y,x);
+    y-=(a/b)*x;
+    return g;
+}
+
+//整数の逆元(非素数mod)
+ll mod_inv_(ll a,ll mod){
+    ll x,y;
+    ll g=extgcd(a,mod,x,y);
+    if(g!=1)return -1;// 逆元なし
+    return (x%mod+mod)%mod;
+}
+
+int main(){
+    int N,K;
+    cin>>N>>K;
+    vector<vector<int>>G(N);
+    rep(i,0,N-1){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    vector<int>degree(N,0);
+    rep(i,0,N)degree[i]=G[i].size();
+    queue<int>q;
+    rep(i,0,N)if(degree[i]==1)q.push(i);
+    unordered_set<int>V;
+    rep(i,0,K){
+        int v;
+        cin>>v;
+        v--;
+        V.insert(v);
+    }
+    vector<bool>used(N,true);
+    //特定の頂点を含む最小の部分木
+    //特定の頂点でない葉を消しつづっける
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        if(V.count(pos))continue;
+        used[pos]=false;
+        for(int nxt:G[pos])if(used[nxt]){
+            degree[nxt]--;
+            if(degree[nxt]==1)q.push(nxt);
+        }
+    }
+    cout<<count(nall(used),true)<<'\n';
+    return 0;
+}

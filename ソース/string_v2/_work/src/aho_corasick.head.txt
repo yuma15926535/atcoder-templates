@@ -1,0 +1,49 @@
+// =============================================================================
+//  Aho–Corasick（多数のパターンの照合：出現回数・最初の出現・すべての出現・含むか・遷移の表（DP 用）・パターンどうしの包含）   --- 文字列第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 02 一致・出現（パターン検索）
+//  依存       : 00_str_base（同梱済み）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  AhoCorasick ac(A)：add(p) でパターンを足し（番号 0, 1, … を返す。同じ文字列を 2 回足してもよい）、build() してから使う
+//  状態 = Trie のノード（0 が根）。遷移の表は ノード数 × σ 個の int（パターンの長さの合計 10^6・σ = 26 で約 100MB）
+//  パターン 1 つなら 02_pattern_match（find_all・KmpAutomaton）で足りる
+//
+//  機能一覧                                                                       計算量
+//    ac.add(p) / build()                   パターンを足す（番号を返す）/ 遷移と失敗のリンクを作る           O(|p|) / O(ノード数 × σ)
+//    ac.count_each(t)                      パターンごとの出現回数（ABC362 G）                             O(|t| + ノード数)
+//    ac.count_total(t) / contains_any(t)   出現回数の合計 / どれかが現れるか                               O(|t|)
+//    ac.first_occurrence_each(t)           パターンごとの最初の出現の開始位置（なければ -1）                 O(|t| + ノード数)
+//    ac.for_each_match(t, f)               すべての出現で f(開始位置, 番号)                                O(|t| + 出現の数)
+//    ac.contained_patterns(id)             パターン id の中に現れるほかのパターン（包含関係。ABC354 G）       O(|p| + 個数)
+//    状態（DP 用）: next(s, c) / next_id(s, id)（O(1)）/ match_count(s) / longest_match(s) / match_ids(s)
+//                  depth(s) / link(s) / node_of(id) / pattern_length(id) / bfs_order() / size() / pattern_count()
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    ac_test::random_test()  … すべての位置でパターンを比べる愚直解と全機能を突き合わせるランダムテスト
+//    ac_test::benchmark()    … 速度計測
+//    ac_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>

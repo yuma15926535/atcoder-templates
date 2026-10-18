@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+int main(){
+    int N;
+    string S, T;
+    cin >> N >> S >> T;
+    rep(i,0,N){
+        if(T[i]=='A')break;
+        if(S[i]=='A'&&T[i]=='B'){
+            cout<<-1<<endl;
+            return 0;
+        }
+    }
+    rrep(i,N,0){
+        if(T[i]=='B')break;
+        if(S[i]=='B'&&T[i]=='A'){
+            cout<<-1<<endl;
+            return 0;
+        }
+    }
+    int ba=0,ans=0;
+    rep(i,0,N){
+        if(S[i]!=T[i]){
+            if(T[i]=='A'){
+                ba++;
+            }else{
+                if(ba>0){
+                    ba--;
+                    ans++;
+                }else{
+                    ans++;
+                }
+            }
+        }
+    }
+    cout<<ans+ba<<'\n';
+    return 0;
+}

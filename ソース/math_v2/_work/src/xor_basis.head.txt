@@ -1,0 +1,52 @@
+// =============================================================================
+//  XOR の基底（XorBasis：XOR で作れる値の最大・k 番目・作れるか・どの要素で作るか、区間の要素の基底、mod 2 の連立一次方程式）   --- 数学第二世代
+// -----------------------------------------------------------------------------
+//  分類       : 05 行列・線形代数
+//  依存       : 00_int_common, 00_math_base（同梱済み。このファイルだけ貼れば動く）
+//  依存ライブラリ : 標準ライブラリのみ（C++17 以上）
+//  文字コード : UTF-8 (BOM 付き)。Windows のコンソールでも文字化けしないよう main で自動設定
+//
+//  「作れる値」= いくつかの要素（0 個でもよい）の XOR。値は unsigned long long（64 ビット）
+//
+//  機能一覧                                                                    計算量
+//    XorBasis B;                      空の基底
+//      B.insert(x)                    x を加える（作れる値が増えたら true）                         O(64)
+//      B.contains(x)                  x を作れるか
+//      B.max_xor(x = 0) / B.min_xor(x = 0)   x XOR (作れる値) の最大 / 最小
+//      B.kth(k)                       作れる値を小さい順に並べた k 番目（0 から。0 番目は 0。k < 2^rank）
+//      B.count_le(x)                  x 以下の作れる値の個数（Int128）
+//      B.rank() / B.count()           基底の大きさ / 作れる値の個数 2^rank（Int128）
+//      B.zero_by_nonempty()           1 個以上の要素の XOR で 0 を作れるか（insert で増えなかった要素がある）
+//      B.represent(x)                 x を作る要素の番号（insert した順に 0, 1, …）。Maybe
+//      B.merge(C) / B.basis()         C の分も加える / 基底（簡約済み。大きい順）
+//    PrefixXorBasis P;                a_0, a_1, … を P.push_back(a) で順に足し、今の末尾までの [l, size()) について
+//      P.contains(l, x) / P.max_xor(l, x = 0) / P.rank(l) / P.basis(l)    （クエリは右端の順に並べて答える） O(64)
+//    Gf2System S(m);                  mod 2 の連立一次方程式（変数 x_0〜x_{m−1}）
+//      S.add(vars, rhs) / S.add_row(coef, rhs)   vars の XOR = rhs / Σ coef_j x_j = rhs を加える
+//      S.rank() / S.solvable() / S.free_count()  階数 / 解があるか / 自由な変数の数（解の数は 2^free_count）
+//      S.solve() / S.kernel()         解の 1 つ（Maybe）/ 右辺 0 の解の基底                         O(式 × rank × m / 64)
+//
+//  ファイル構成
+//    [テンプレート本体]  ← 提出時はここだけコピーすればよい
+//    xorb_test::random_test()  … 部分集合を全部試す愚直解との突き合わせ
+//    xorb_test::benchmark()    … 速度計測
+//    xorb_demo::demo()         … 全機能の使い方デモ（日本語の説明付き）
+// =============================================================================
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numeric>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>

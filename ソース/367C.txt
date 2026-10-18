@@ -1,0 +1,42 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+ll N,K;
+vector<int> R,rec;
+//再帰関数は動くのは1関数のみなのでvectorで値の記録が可能
+void solv(int c){
+    if(c==N){
+        int sum=0;
+        for(int a:rec)sum+=a;
+        if(sum%K==0){
+            for(int a:rec)cout<<a<<" ";
+            cout<<"\n";
+        }
+        return;
+    }
+    erep(i,1,R[c]){
+        rec[c]=i;
+        solv(c+1);
+    }
+}
+
+int main()
+{
+    cin>>N>>K;
+    R.resize(N);
+    rep(i,0,N)cin>>R[i];
+    rec.resize(N);
+    solv(0);
+    return 0;
+}

@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+bool chk(string X,string Y){
+    int N=X.size();
+    int xac=0,yac=0,xbc=0,ybc=0,xcc=0;
+    rep(i,0,N){
+        if(X[i]=='A')xac++;
+        else if(X[i]=='B')xbc++;
+        else xcc++;
+        if(Y[i]=='A')yac++;
+        else ybc++;
+    }
+    if(xac>yac||xbc>ybc)return false;
+    xac=yac-xac;
+    rep(i,0,N)if(X[i]=='C'){
+        if(xac){
+            X[i]='A';
+            xac--;
+        }else X[i]='B';
+    }
+    int cnt=0;
+    rep(i,0,N){
+        if(X[i]=='A')cnt++;
+        if(Y[i]=='A')cnt--;
+        if(cnt<0)return false;
+    }
+    return true;
+}
+
+void solv(){
+    int N;
+    string X,Y;
+    cin>>N>>X>>Y;
+    vector<pair<int,int>>v;
+    int idx=0,len=-1;
+    rep(i,0,N){
+        len++;
+        if(Y[i]=='C'){
+            if(X[i]!='C'){
+                NO;
+                return;
+            }
+            if(len!=0)v.push_back(make_pair(idx,len));
+            idx=i+1;
+            len=-1;
+        }
+    }
+    len++;
+    if(len!=0)v.push_back(make_pair(idx,len));
+    for(auto [i,l]:v)if(!chk(X.substr(i,l),Y.substr(i,l))){
+        NO;
+        return;
+    }
+    YES;
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    cin>>T;
+    while(T--)solv();
+    return 0;
+}

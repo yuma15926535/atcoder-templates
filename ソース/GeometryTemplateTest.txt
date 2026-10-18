@@ -1,0 +1,893 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+ AtCoder 幾何フルテンプレ（整数主導）
+ -------------------------------------------------
+ 可能な限り long long（整数）で完結させた幾何テンプレ。
+ 判定・距離比較・交差判定はすべて浮動小数なし。
+ 座標を実際に求める必要がある最小包含円のみ long double を使用。
+ 偏角ソートと扇形判定。
+*/
+
+// =========================
+//  基本構造体・演算
+// =========================
+
+struct Point {
+    ll x, y;
+};
+
+Point operator+(Point a, Point b){ return {a.x+b.x, a.y+b.y}; }
+Point operator-(Point a, Point b){ return {a.x-b.x, a.y-b.y}; }
+
+// 内積 a・b
+ll dot(Point a, Point b){ return a.x*b.x + a.y*b.y; }
+
+// 外積 a×b（符号付き面積×2）
+ll cross(Point a, Point b){ return a.x*b.y - a.y*b.x; }
+
+// ベクトルの長さ²
+ll norm2(Point a){ return a.x*a.x + a.y*a.y; }
+
+
+// =========================
+//  CCW / 線分交差
+// =========================
+
+/*
+ ccw(a,b,c)
+ a→b と a→c の向きを判定
+ +1: 反時計回り
+ -1: 時計回り
+ +2: c-a-b の順
+ -2: a-b-c の順
+  0: 直線上
+*/
+int ccw(Point a, Point b, Point c){
+    Point ab = b - a;
+    Point ac = c - a;
+    ll cr = cross(ab, ac);
+    if(cr > 0) return +1;
+    if(cr < 0) return -1;
+    if(dot(ab, ac) < 0) return +2;
+    if(norm2(ab) < norm2(ac)) return -2;
+    return 0;
+}
+
+// 線分 a1-a2 と b1-b2 が交差するか
+bool intersect_ss(Point a1, Point a2, Point b1, Point b2){
+    return ccw(a1,a2,b1)*ccw(a1,a2,b2) <= 0 &&
+           ccw(b1,b2,a1)*ccw(b1,b2,a2) <= 0;
+}
+
+
+// =========================
+//  距離関係（整数）
+// =========================
+
+// 点 p と線分 a-b の距離²
+ll dist2_ps(Point a, Point b, Point p){
+    Point ab = b - a;
+    Point ap = p - a;
+    ll t = dot(ab, ap);
+    if(t <= 0) return norm2(ap);
+    ll ab2 = dot(ab, ab);
+    if(t >= ab2) return norm2(p - b);
+    ll cr = cross(ab, ap);
+    return (cr*cr) / ab2; // 比較用途前提
+}
+
+// 線分 a1-a2 と b1-b2 の距離²
+ll dist2_ss(Point a1, Point a2, Point b1, Point b2){
+    if(intersect_ss(a1,a2,b1,b2)) return 0;
+    return min({
+        dist2_ps(a1,a2,b1),
+        dist2_ps(a1,a2,b2),
+        dist2_ps(b1,b2,a1),
+        dist2_ps(b1,b2,a2)
+    });
+}
+
+
+// =========================
+//  円
+// =========================
+
+struct Circle {
+    Point c;  // 中心
+    ll r;     // 半径
+};
+
+/*
+ 点と円の関係
+ -1: 外部
+  0: 境界上
+  1: 内部
+*/
+int point_circle(Point p, Circle c){
+    ll d2 = norm2(p - c.c);
+    ll r2 = c.r * c.r;
+    if(d2 < r2) return 1;
+    if(d2 == r2) return 0;
+    return -1;
+}
+
+/*
+ 円と直線の位置関係
+ -1: 交わらない
+  0: 接する
+  1: 2点で交わる
+*/
+int circle_line_relation(Point A, Point B, Circle c){
+    Point AB = B - A;
+    Point AC = c.c - A;
+    ll cr = cross(AB, AC);
+    ll lhs = cr * cr;
+    ll rhs = c.r * c.r * dot(AB, AB);
+    if(lhs > rhs) return -1;
+    if(lhs == rhs) return 0;
+    return 1;
+}
+
+/*
+ 円と線分の位置関係
+ -1: 交わらない
+  0: 接する
+  1: 2点で交わる
+*/
+int circle_segment_relation(Point A, Point B, Circle c){
+    Point AB = B - A;
+    Point AC = c.c - A;
+    Point BC = c.c - B;
+    ll ab2 = dot(AB, AB);
+    ll t = dot(AB, AC);
+
+    // 射影が線分外
+    if(t < 0){
+        ll d2 = norm2(AC);
+        if(d2 > c.r*c.r) return -1;
+        if(d2 == c.r*c.r) return 0;
+        return 1;
+    }
+    if(t > ab2){
+        ll d2 = norm2(BC);
+        if(d2 > c.r*c.r) return -1;
+        if(d2 == c.r*c.r) return 0;
+        return 1;
+    }
+
+    // 射影が線分内
+    ll cr = cross(AB, AC);
+    ll lhs = cr * cr;
+    ll rhs = c.r * c.r * ab2;
+    if(lhs > rhs) return -1;
+    if(lhs == rhs) return 0;
+    return 1;
+}
+
+
+// =========================
+//  凸包（Andrew Monotone Chain）
+// =========================
+
+/*
+ 点集合から凸包を求める（反時計回り）
+ 重複点は除去される
+*/
+vector<Point> convex_hull(vector<Point> p){
+    sort(p.begin(), p.end(), [](auto& a, auto& b){
+        if(a.x != b.x) return a.x < b.x;
+        return a.y < b.y;
+    });
+    p.erase(unique(p.begin(), p.end(), [](auto& a, auto& b){
+        return a.x==b.x && a.y==b.y;
+    }), p.end());
+
+    int n = p.size();
+    if(n <= 1) return p;
+
+    vector<Point> ch;
+    for(int i=0;i<n;i++){
+        while(ch.size()>=2 && cross(ch.back()-ch[ch.size()-2], p[i]-ch.back()) <= 0)
+            ch.pop_back();
+        ch.push_back(p[i]);
+    }
+    int k = ch.size();
+    for(int i=n-2;i>=0;i--){
+        while((int)ch.size()>k && cross(ch.back()-ch[ch.size()-2], p[i]-ch.back()) <= 0)
+            ch.pop_back();
+        ch.push_back(p[i]);
+    }
+    ch.pop_back();
+    return ch;
+}
+
+
+// =========================
+//  凸包ユーティリティ
+// =========================
+
+// 凸包の面積×2（整数）
+ll area2(const vector<Point>& p){
+    ll s = 0;
+    for(int i=0;i<(int)p.size();i++){
+        int j = (i+1)%p.size();
+        s += cross(p[i], p[j]);
+    }
+    return llabs(s);
+}
+
+/*
+ 凸包の直径（最遠点対）
+ 回転キャリパー O(N)
+*/
+pair<Point,Point> convex_diameter(const vector<Point>& ch){
+    int n = ch.size();
+    if(n == 1) return {ch[0], ch[0]};
+    int j = 1;
+    ll best = 0;
+    pair<Point,Point> res;
+    for(int i=0;i<n;i++){
+        int ni = (i+1)%n;
+        while(true){
+            int nj = (j+1)%n;
+            if(llabs(cross(ch[ni]-ch[i], ch[nj]-ch[i])) >
+               llabs(cross(ch[ni]-ch[i], ch[j]-ch[i]))) j = nj;
+            else break;
+        }
+        ll d = norm2(ch[i]-ch[j]);
+        if(d > best){ best = d; res = {ch[i], ch[j]}; }
+    }
+    return res;
+}
+
+// =========================
+//  凸包 内点判定（整数・二分探索）
+// =========================
+
+/*
+ 凸多角形 ch に対する点 p の位置判定
+ 戻り値：
+  -1 : 外部
+   0 : 境界上
+   1 : 内部
+
+ 前提：
+  - ch は反時計回り
+  - ch.size() >= 3
+ 計算量：O(log N)
+*/
+int convex_contains(const vector<Point>& ch, const Point& p){
+    int n = ch.size();
+
+    if(n == 1){
+        if(p.x == ch[0].x && p.y == ch[0].y) return 0;
+        return -1;
+    }
+
+    if(ch.size() == 2){
+        if(cross(ch[1]-ch[0], p-ch[0]) == 0 && dot(p-ch[0], p-ch[1]) <= 0)return 0;
+        return -1;
+    }
+
+    // 原点を ch[0] に固定して三角形分割
+    Point a0 = ch[0];
+
+    // 扇の外側（最初と最後の辺）
+    if(cross(ch[1] - a0, p - a0) < 0) return -1;
+    if(cross(ch[n-1] - a0, p - a0) > 0) return -1;
+
+    // 二分探索で p が入る扇形を探す
+    int l = 1, r = n - 1;
+    while(r - l > 1){
+        int m = (l + r) / 2;
+        if(cross(ch[m] - a0, p - a0) >= 0) l = m;
+        else r = m;
+    }
+
+    // 三角形 (a0, ch[l], ch[l+1]) に含まれるか
+    ll c = cross(ch[l+1] - ch[l], p - ch[l]);
+
+    if(c < 0) return -1;          // 三角形の外
+    if(c == 0) return 0;          // 境界上
+
+    // 辺 a0-ch[l], a0-ch[l+1] 上のチェック
+    if(cross(ch[l] - a0, p - a0) == 0) return 0;
+    if(cross(ch[l+1] - a0, p - a0) == 0) return 0;
+
+    return 1;                     // 内部
+}
+
+
+// =========================
+//  最近点対（O(N log N)）
+// =========================
+
+/*
+ 点集合の最近点対を返す（距離は二乗）
+ pts は内部で並び替えられる
+*/
+pair<Point,Point> closest_pair(vector<Point>& pts){
+    const ll INF = (1LL<<62);
+    sort(pts.begin(), pts.end(), [](auto& a, auto& b){
+        if(a.x != b.x) return a.x < b.x;
+        return a.y < b.y;
+    });
+    vector<Point> buf(pts.size());
+
+    function<pair<ll,pair<Point,Point>>(int,int)> dfs =
+    [&](int l, int r){
+        if(r-l <= 1) return make_pair(INF, make_pair(Point{0,0}, Point{0,0}));
+        int m = (l+r)/2;
+        ll midx = pts[m].x;
+        auto [dl, pl] = dfs(l,m);
+        auto [dr, pr] = dfs(m,r);
+        ll d = dl;
+        pair<Point,Point> res = pl;
+        if(dr < d){ d = dr; res = pr; }
+
+        inplace_merge(pts.begin()+l, pts.begin()+m, pts.begin()+r,
+            [](auto& a, auto& b){ return a.y < b.y; });
+
+        int sz = 0;
+        for(int i=l;i<r;i++){
+            ll dx = pts[i].x - midx;
+            if(dx*dx >= d) continue;
+            for(int j=sz-1;j>=0;j--){
+                ll dy = pts[i].y - buf[j].y;
+                if(dy*dy >= d) break;
+                ll dist = norm2(pts[i] - buf[j]);
+                if(dist < d){ d = dist; res = {pts[i], buf[j]}; }
+            }
+            buf[sz++] = pts[i];
+        }
+        return make_pair(d, res);
+    };
+    return dfs(0, pts.size()).second;
+}
+
+
+// =========================
+//  最小包含円（最小限の浮動小数）
+// =========================
+
+struct CircleD {
+    long double x, y, r;
+};
+
+// 点が円内か
+bool in_circle(Point p, CircleD c){
+    long double dx = p.x - c.x;
+    long double dy = p.y - c.y;
+    return dx*dx + dy*dy <= c.r*c.r + 1e-12;
+}
+
+// 2点から円を作る
+CircleD circle_from(Point a, Point b){
+    long double cx = (a.x + b.x) / 2.0L;
+    long double cy = (a.y + b.y) / 2.0L;
+    long double r = hypot(a.x-cx, a.y-cy);
+    return {cx, cy, r};
+}
+
+// 3点から円を作る（外接円）
+CircleD circle_from(Point A, Point B, Point C){
+    long double a = B.x - A.x, b = B.y - A.y;
+    long double c = C.x - A.x, d = C.y - A.y;
+    long double e = a*(A.x+B.x) + b*(A.y+B.y);
+    long double f = c*(A.x+C.x) + d*(A.y+C.y);
+    long double g = 2*(a*(C.y-B.y) - b*(C.x-B.x));
+    if(fabsl(g) < 1e-12) return {0,0,1e18};
+    long double cx = (d*e - b*f) / g;
+    long double cy = (a*f - c*e) / g;
+    long double r = hypot(A.x-cx, A.y-cy);
+    return {cx, cy, r};
+}
+
+/*
+ 最小包含円（Welzl 安定版）
+*/
+CircleD minimum_enclosing_circle(vector<Point>& p){
+    static std::mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    shuffle(p.begin(), p.end(), rng);
+
+    CircleD c = {(long double)p[0].x, (long double)p[0].y, 0};
+    for(int i=0;i<(int)p.size();i++){
+        if(in_circle(p[i], c)) continue;
+        c = {(long double)p[i].x, (long double)p[i].y, 0};
+        for(int j=0;j<i;j++){
+            if(in_circle(p[j], c)) continue;
+            c = circle_from(p[i], p[j]);
+            for(int k=0;k<j;k++){
+                if(in_circle(p[k], c)) continue;
+                c = circle_from(p[i], p[j], p[k]);
+            }
+        }
+    }
+    return c;
+}
+
+// =========================
+//  半平面交差（Half-Plane Intersection）
+// =========================
+
+/*
+ 半平面：有向直線 a -> b の左側
+ cross(b-a, p-a) >= 0 が有効領域
+*/
+struct HalfPlane {
+    Point a, b;   // 有向直線 a -> b
+};
+
+/*
+ 半平面の角度順比較
+ cross(方向ベクトル) の象限でソート
+*/
+bool halfplane_cmp(const HalfPlane& h1, const HalfPlane& h2){
+    Point v1 = h1.b - h1.a;
+    Point v2 = h2.b - h2.a;
+
+    auto upper = [&](Point v){
+        return (v.y > 0) || (v.y == 0 && v.x > 0);
+    };
+
+    bool u1 = upper(v1);
+    bool u2 = upper(v2);
+    if(u1 != u2) return u1 > u2;
+
+    ll cr = cross(v1, v2);
+    if(cr != 0) return cr > 0;
+
+    // 同一直線方向：より内側を優先
+    return cross(v1, h2.a - h1.a) < 0;
+}
+
+/*
+ 点 p が半平面 h に含まれるか（整数）
+*/
+bool inside(const HalfPlane& h, const Point& p){
+    return cross(h.b - h.a, p - h.a) >= 0;
+}
+
+/*
+ 2直線の交点（long double）
+ 平行な場合は呼ばれない前提
+*/
+Point intersection_ll(const HalfPlane& h1, const HalfPlane& h2){
+    Point a = h1.a, b = h1.b;
+    Point c = h2.a, d = h2.b;
+    Point ab = b - a;
+    Point cd = d - c;
+
+    long double A1 = ab.y;
+    long double B1 = -ab.x;
+    long double C1 = A1 * a.x + B1 * a.y;
+
+    long double A2 = cd.y;
+    long double B2 = -cd.x;
+    long double C2 = A2 * c.x + B2 * c.y;
+
+    long double det = A1 * B2 - A2 * B1;
+    // det != 0 前提
+
+    long double x = (C1 * B2 - C2 * B1) / det;
+    long double y = (A1 * C2 - A2 * C1) / det;
+
+    return {(ll)floor(x), (ll)floor(y)}; // ※座標用途でなければ floor でOK
+}
+
+/*
+ 半平面交差本体
+ 戻り値：交差領域の凸多角形（反時計回り）
+ 空なら empty
+*/
+vector<Point> halfplane_intersection(vector<HalfPlane>& hps){
+    sort(hps.begin(), hps.end(), halfplane_cmp);
+
+    deque<HalfPlane> dq;
+    deque<Point> pts;
+
+    for(auto& h : hps){
+        // 後ろを削る
+        while(dq.size() >= 2 && !inside(h, pts.back())){
+            dq.pop_back();
+            pts.pop_back();
+        }
+        // 前を削る
+        while(dq.size() >= 2 && !inside(h, pts.front())){
+            dq.pop_front();
+            pts.pop_front();
+        }
+
+        // 平行で内側がないなら skip
+        if(!dq.empty()){
+            ll cr = cross(h.b - h.a, dq.back().b - dq.back().a);
+            if(cr == 0){
+                // より内側のみ残す
+                if(inside(h, dq.back().a)){
+                    dq.pop_back();
+                }else{
+                    continue;
+                }
+            }
+        }
+
+        if(!dq.empty()){
+            Point ip = intersection_ll(dq.back(), h);
+            pts.push_back(ip);
+        }
+        dq.push_back(h);
+    }
+
+    while(dq.size() >= 3 && !inside(dq.front(), pts.back())){
+        dq.pop_back();
+        pts.pop_back();
+    }
+    while(dq.size() >= 3 && !inside(dq.back(), pts.front())){
+        dq.pop_front();
+        pts.pop_front();
+    }
+
+    if(dq.size() < 3) return {};
+
+    pts.push_back(intersection_ll(dq.back(), dq.front()));
+
+    return vector<Point>(pts.begin(), pts.end());
+}
+
+// =========================
+//  偏角ソート（Arg Sort）
+// =========================
+
+/*
+ 偏角ソート用ファンクタ
+ - 基準点 O から見た偏角でソート
+ - 角度範囲：[0, 2π)
+ - 反時計回り
+ - 同角度の場合は基準点から近い順
+
+ 用途：
+  - Graham Scan
+  - 原点（または任意点）基準の角度ソート
+  - 回転キャリパー前処理
+*/
+struct ArgSorter {
+    Point O;   // ★ 基準点
+
+    ArgSorter(Point origin = {0, 0}) : O(origin) {}
+
+    /*
+     上半平面判定（[0, 2π) 用）
+     y > 0 または y == 0 && x >= 0 を上側とする
+    */
+    static bool upper_2pi(const Point& a) {
+        return (a.y > 0) || (a.y == 0 && a.x >= 0);
+    }
+
+    /*
+     偏角比較関数
+     A, B を基準点 O から見て反時計回りに並べる
+    */
+    bool operator()(const Point& A, const Point& B) const {
+        Point a = A - O;
+        Point b = B - O;
+
+        bool ua = upper_2pi(a);
+        bool ub = upper_2pi(b);
+        if (ua != ub) return ua > ub;
+
+        ll cr = cross(a, b);
+        if (cr != 0) return cr > 0;   // ★ 反時計回り
+
+        // ★ 同一直線上：距離が近い順
+        return norm2(a) < norm2(b);
+    }
+
+    /*
+     基準点 O と一致する点を除外し、
+     偏角順に sort するユーティリティ
+    */
+    void sort_points(vector<Point>& ps) const {
+        ps.erase(
+            remove_if(ps.begin(), ps.end(),
+                [&](const Point& p){
+                    return p.x == O.x && p.y == O.y;
+                }),
+            ps.end()
+        );
+        sort(ps.begin(), ps.end(), *this);
+    }
+
+    /*
+     基準点 O を除外
+     ↓
+     偏角ソート
+     ↓
+     同角度の点は「最遠点のみ残す」
+    */
+    void sort_unique_farthest(vector<Point>& ps) const {
+        // 基準点を除外
+        ps.erase(
+            remove_if(ps.begin(), ps.end(),
+                [&](const Point& p){
+                    return p.x == O.x && p.y == O.y;
+                }),
+            ps.end()
+        );
+
+        if(ps.empty()) return;
+
+        // 偏角ソート
+        sort(ps.begin(), ps.end(), *this);
+
+        // 同角度処理（最遠点のみ残す）
+        vector<Point> res;
+        for(int i = 0; i < (int)ps.size(); ){
+            int j = i + 1;
+            // 同角度をまとめる
+            while(j < (int)ps.size() &&
+                  cross(ps[i] - O, ps[j] - O) == 0)
+                j++;
+
+            // ★ ps[j-1] が最遠（距離昇順ソートなので）
+            res.push_back(ps[j-1]);
+
+            i = j;
+        }
+
+        ps.swap(res);
+    }
+
+    // =========================
+    //  偏角比較（基準点 O）
+    // =========================
+
+    /*
+     点 A, B を基準点 O から見た偏角で比較
+     戻り値：
+      -1 : A < B
+       0 : 同角度
+      +1 : A > B
+    */
+    int arg_compare(const Point& A, const Point& B, const Point& O){
+        Point a = A - O;
+        Point b = B - O;
+
+        bool ua = ArgSorter::upper_2pi(a);
+        bool ub = ArgSorter::upper_2pi(b);
+        if(ua != ub) return ua ? -1 : 1;
+
+        ll cr = cross(a, b);
+        if(cr > 0) return -1;
+        if(cr < 0) return 1;
+        return 0;
+    }
+
+    // =========================
+    //  偏角 lower_bound
+    // =========================
+
+    /*
+     基準点 O から見て、
+     偏角が key 以上となる最初の index を返す
+
+     ps : 偏角ソート済み
+     key: 探索したい方向ベクトル（O→key）
+    */
+    int arg_lower_bound(
+        const vector<Point>& ps,
+        const Point& key,
+        const Point& O
+    ){
+        int l = 0, r = (int)ps.size();
+        while(l < r){
+            int m = (l + r) / 2;
+            if(arg_compare(ps[m], key, O) < 0)
+                l = m + 1;
+            else
+                r = m;
+        }
+        return l;
+    }
+
+    // =========================
+    //  偏角 upper_bound
+    // =========================
+
+    /*
+     偏角が key より大きくなる最初の index
+    */
+    int arg_upper_bound(
+        const vector<Point>& ps,
+        const Point& key,
+        const Point& O
+    ){
+        int l = 0, r = (int)ps.size();
+        while(l < r){
+            int m = (l + r) / 2;
+            if(arg_compare(ps[m], key, O) <= 0)
+                l = m + 1;
+            else
+                r = m;
+        }
+        return l;
+    }
+
+    // =========================
+    //  扇形判定
+    // =========================
+
+    /*
+     偏角が [L, R) に入る点が存在するか
+     L, R は基準点 O からの方向ベクトル
+    */
+    bool exists_in_sector(
+        const vector<Point>& ps,
+        const Point& L,
+        const Point& R,
+        const Point& O
+    ){
+        int il = arg_lower_bound(ps, L, O);
+        int ir = arg_lower_bound(ps, R, O);
+        return il < ir;
+    }
+
+    /*
+     [L, R) が 2π を跨ぐ場合
+    */
+    bool exists_in_sector_circular(
+        const vector<Point>& ps,
+        const Point& L,
+        const Point& R,
+        const Point& O
+    ){
+        // L <= R
+        if(arg_compare(L, R, O) <= 0){
+            return exists_in_sector(ps, L, R, O);
+        }
+        // L > R（wrap）
+        return exists_in_sector(ps, L, Point{O.x+1, O.y}, O) ||
+               exists_in_sector(ps, Point{O.x+1, O.y}, R, O);
+    }
+};
+
+void solv(){
+    cout << "=== 凸包・内点判定テスト ===\n";
+
+    // ---------------------
+    // n = 1（点）
+    // ---------------------
+    vector<Point> ch1 = {{1,1}};
+    cout << "[n=1]\n";
+    cout << "点 (1,1): "
+         << convex_contains(ch1, {1,1})
+         << "（0=境界）\n";
+    cout << "点 (2,2): "
+         << convex_contains(ch1, {2,2})
+         << "（-1=外部）\n";
+
+    // ---------------------
+    // n = 2（線分）
+    // ---------------------
+    vector<Point> ch2 = {{0,0},{5,0}};
+    cout << "[n=2]\n";
+    cout << "点 (3,0): "
+         << convex_contains(ch2, {3,0})
+         << "（0=境界）\n";
+    cout << "点 (3,1): "
+         << convex_contains(ch2, {3,1})
+         << "（-1=外部）\n";
+
+    // ---------------------
+    // n >= 3（通常凸多角形）
+    // ---------------------
+    vector<Point> pts = {
+        {0,0},{5,0},{5,5},{0,5},
+        {2,2},{3,3}
+    };
+    auto ch = convex_hull(pts);
+
+    cout << "[n>=3]\n";
+    cout << "凸包の頂点数: " << ch.size() << "\n";
+
+    Point inside = {2,3};
+    Point boundary = {0,3};
+    Point outside = {6,6};
+
+    cout << "点 (2,3): "
+        << convex_contains(ch, inside)
+         << "（1=内部）\n";
+    cout << "点 (0,3): "
+        << convex_contains(ch, boundary)
+         << "（0=境界）\n";
+    cout << "点 (6,6): "
+         << convex_contains(ch, outside)
+         << "（-1=外部）\n";
+
+    cout << "=== 半平面交差：正方形 ===\n";
+    vector<HalfPlane> hps1 = {
+        {{0,0},{1,0}},   // y>=0
+        {{5,0},{5,1}},   // x<=5
+        {{5,5},{4,5}},   // y<=5
+        {{0,5},{0,4}}    // x>=0
+    };
+    auto poly1 = halfplane_intersection(hps1);
+    if(poly1.empty()){
+        cout << "結果: 空集合 or 有界でない\n";
+    }else{
+        cout << "頂点数: " << poly1.size() << "\n";
+    }
+    for(auto&p:poly1) cout << p.x << " " << p.y << "\n";
+
+    cout << "\n=== 半平面交差：平行で空 ===\n";
+    vector<HalfPlane> hps2 = {
+        {{0,0},{1,0}},   // y>=0
+        {{0,-1},{1,-1}} // y<=-1
+    };
+    auto poly2 = halfplane_intersection(hps2);
+    cout << "結果: " << (poly2.empty() ? "空集合" : "非空") << "\n";
+
+    cout << "\n=== 半平面交差：平行制約あり ===\n";
+    vector<HalfPlane> hps3 = {
+        {{0,0},{1,0}},   // y>=0
+        {{0,0},{0,1}},   // x>=0
+        {{5,0},{5,1}}    // x<=5
+    };
+    auto poly3 = halfplane_intersection(hps3);
+    cout << "頂点数: " << poly3.size() << "\n";
+    for(auto&p:poly3) cout << p.x << " " << p.y << "\n";
+
+    cout << "\n=== sort_unique_farthestのテスト ===\n";
+    Point O = {0, 0};
+
+    vector<Point> ps = {
+        {1,0}, {3,0}, {5,0},
+        {1,1}, {2,2}, {4,4},
+        {0,2}, {0,5},
+        {-1,1}, {-2,0}
+    };
+
+    ArgSorter sorter(O);
+
+    cout << "=== before ===\n";
+    for(auto &p: ps){
+        cout << "(" << p.x << "," << p.y << ")\n";
+    }
+
+    sorter.sort_unique_farthest(ps);
+
+    cout << "\n=== after (unique farthest) ===\n";
+    for(auto &p: ps){
+        cout << "(" << p.x << "," << p.y << ")\n";
+    }
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

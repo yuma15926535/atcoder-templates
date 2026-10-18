@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+struct repl{
+    map<int,int> m;
+    ll ans;
+    repl(int n){
+        ans=0;
+        rep(i,0,n){
+            int a;
+            cin>>a;if(m.count(a))m[a]++;
+            else m[a]=1;
+            ans+=a;
+        }
+    }
+    ll query(int b,int c){
+        if(m.count(b)){
+            ans+=(ll)c*m[b]-(ll)b*m[b];
+            if(m.count(c))m[c]+=m[b];
+            else m[c]=m[b];
+            m.erase(b);
+        }
+        return ans;
+    }
+};
+
+int main()
+{
+    cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    int N;
+    cin>>N;
+    repl r=repl(N);
+    int Q;
+    cin>>Q;
+    rep(i,0,Q){
+        int B,C;
+        cin>>B>>C;
+        cout<<r.query(B,C)<<"\n";
+    }
+    return 0;
+}

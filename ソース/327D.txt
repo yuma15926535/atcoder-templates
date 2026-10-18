@@ -1,0 +1,52 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define next_p(v) next_permutation(v.begin(),v.end())
+
+int main()
+{
+    int N,M;
+    cin>>N>>M;
+    vector<set<int>> G(N);
+    vector<int> A(M);
+    rep(i,0,M)cin>>A[i];
+    rep(i,0,M){
+        int b;
+        cin>>b;
+        A[i]--;
+        b--;
+        G[A[i]].insert(b);
+        G[b].insert(A[i]);
+    }
+    //2色で彩色
+    A.assign(N,0);
+    bool b=true;
+    rep(i,0,N)if(A[i]==0){
+        queue<int> q;
+        q.push(i);
+        A[i]=1;
+        while(!q.empty()){
+            int p=q.front();
+            q.pop();
+            for(int n:G[p]){
+                if(A[n]){
+                    if(A[n]!=(-1)*A[p])b=false;
+                }else{
+                    A[n]=(-1)*A[p];
+                    q.push(n);
+                }
+            }
+        }
+    }
+    if(b)YN;
+    return 0;
+}

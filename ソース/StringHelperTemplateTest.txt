@@ -1,0 +1,542 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+//#define popcount __builtin_popcountll
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+#define FIXED(n) fixed << setprecision(n)
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+/**
+ * StringHelper（文字列補助構造体）
+ * 
+ * 概要：
+ *  文字列に対して「次/前の出現」「区間存在判定」「出現位置列」を高速に扱うための補助構造体。
+ *  貪欲・部分列判定・DP高速化などで使用する。
+ * 
+ * 対応文字：
+ *  - 英小文字 a-z → 0〜25
+ *  - 英大文字 A-Z → 26〜51
+ *  ※ 合計52種類（混在OK）
+ * 
+ * 前処理：
+ *  - O(N * 52)
+ * 
+ * 各操作：
+ *  - next(i, c)   : O(1)
+ *      → i以上で最初に現れるcの位置（なければ n）
+ * 
+ *  - prev(i, c)   : O(1)
+ *      → i未満で最後に現れるcの位置（なければ -1）
+ * 
+ *  - exists(l, r, c) : O(log N)
+ *      → 区間 [l, r) に c が存在するか
+ * 
+ *  - get_pos(c) : O(1)
+ *      → cの出現位置配列（昇順）
+ * 
+ * 内部データ：
+ *  - pos[c] : 文字cの出現位置リスト
+ *  - nxt[i][c] : i以降で最初のcの位置
+ *  - prv[i][c] : i未満で最後のcの位置
+ * 
+ * 使いどころ：
+ *  - 部分列判定（nextを使ってO(|T|)）
+ *  - 貪欲で「次の条件を満たす位置」を探す
+ *  - DPで遷移先を高速に取得
+ *  - 区間内に特定文字が存在するかの判定
+ * 
+ * 注意：
+ *  - nextの戻り値が n のときは「存在しない」
+ *  - prevの戻り値が -1 のときは「存在しない」
+ *  - インデックスは0-index
+ * 
+ * 拡張：
+ *  - 文字種類を増やす場合は id() と SIGMA を変更
+ *  - 複数文字列の場合は vector<StringHelper> で管理
+ */
+struct StringHelper {
+    string s;
+    int n;
+    static const int SIGMA = 52;
+
+    vector<vector<int>> pos;
+    vector<vector<int>> nxt;
+    vector<vector<int>> prv;
+
+    // 文字 → index
+    int id(char c) const {
+        if ('a' <= c && c <= 'z') return c - 'a';
+        else return c - 'A' + 26;
+    }
+
+    StringHelper(const string& _s) : s(_s) {
+        n = s.size();
+        pos.assign(SIGMA, {});
+
+        for (int i = 0; i < n; i++) {
+            pos[id(s[i])].push_back(i);
+        }
+
+        // nxt[i][c] = i以降で最初のc（なければn）
+        nxt.assign(n + 1, vector<int>(SIGMA, n));
+        for (int i = n - 1; i >= 0; i--) {
+            nxt[i] = nxt[i + 1];
+            nxt[i][id(s[i])] = i;
+        }
+
+        // prv[i][c] = i未満で最後のc（なければ-1）
+        prv.assign(n + 1, vector<int>(SIGMA, -1));
+        for (int i = 0; i < n; i++) {
+            prv[i + 1] = prv[i];
+            prv[i + 1][id(s[i])] = i;
+        }
+    }
+
+    // i以上で最初に現れるc（なければn）
+    int next(int i, char c) const {
+        if (i < 0) i = 0;
+        if (i > n) i = n;
+        return nxt[i][id(c)];
+    }
+
+    // i未満で最後に現れるc（なければ-1）
+    int prev(int i, char c) const {
+        if (i < 0) i = 0;
+        if (i > n) i = n;
+        return prv[i][id(c)];
+    }
+
+    // cの出現位置リスト（参照返し）
+    const vector<int>& get_pos(char c) const {
+        return pos[id(c)];
+    }
+
+    // 区間 [l, r) に c が存在するか
+    bool exists(int l, int r, char c) const {
+        if (l < 0) l = 0;
+        if (r > n) r = n;
+        if (l >= r) return false;
+
+        const auto& v = pos[id(c)];
+        auto it = lower_bound(v.begin(), v.end(), l);
+        return it != v.end() && *it < r;
+    }
+};
+
+struct MultiStringHelper {
+    vector<StringHelper> hs;
+
+    MultiStringHelper(const vector<string>& vs) {
+        for (auto& s : vs) {
+            hs.emplace_back(s);
+        }
+    }
+
+    int size() const {
+        return hs.size();
+    }
+
+    const StringHelper& operator[](int i) const {
+        return hs[i];
+    }
+
+    StringHelper& operator[](int i) {
+        return hs[i];
+    }
+};
+
+void random_test_string_helper() {
+    std::mt19937 rng(0);
+
+    for (int t = 0; t < 500; t++) {
+        int n = rng() % 50 + 1;
+
+        string s;
+        for (int i = 0; i < n; i++) {
+            int x = rng() % 52;
+            if (x < 26) s += char('a' + x);
+            else s += char('A' + (x - 26));
+        }
+
+        StringHelper sh(s);
+
+        // next / prev / exists を検証
+        for (int i = -5; i <= n + 5; i++) {
+            for (int c = 0; c < 52; c++) {
+                char ch = (c < 26 ? char('a' + c) : char('A' + (c - 26)));
+
+                // --- next ---
+                int naive_next = n;
+                for (int j = max(i, 0); j < n; j++) {
+                    if (s[j] == ch) {
+                        naive_next = j;
+                        break;
+                    }
+                }
+                int my_next = sh.next(i, ch);
+                if (naive_next != my_next) {
+                    cout << "next error\n";
+                    cout << s << "\n";
+                    cout << i << " " << ch << "\n";
+                    cout << naive_next << " " << my_next << "\n";
+                    return;
+                }
+
+                // --- prev ---
+                int naive_prev = -1;
+                for (int j = min(i, n) - 1; j >= 0; j--) {
+                    if (s[j] == ch) {
+                        naive_prev = j;
+                        break;
+                    }
+                }
+                int my_prev = sh.prev(i, ch);
+                if (naive_prev != my_prev) {
+                    cout << "prev error\n";
+                    cout << s << "\n";
+                    cout << i << " " << ch << "\n";
+                    cout << naive_prev << " " << my_prev << "\n";
+                    return;
+                }
+
+                // --- exists ---
+                int l = rng() % (n + 5) - 2;
+                int r = rng() % (n + 5) - 2;
+                if (l > r) swap(l, r);
+
+                int L = max(l, 0);
+                int R = min(r, n);
+
+                bool naive_exists = false;
+                for (int j = L; j < R; j++) {
+                    if (s[j] == ch) naive_exists = true;
+                }
+
+                bool my_exists = sh.exists(l, r, ch);
+                if (naive_exists != my_exists) {
+                    cout << "exists error\n";
+                    cout << s << "\n";
+                    cout << l << " " << r << " " << ch << "\n";
+                    cout << naive_exists << " " << my_exists << "\n";
+                    return;
+                }
+            }
+        }
+
+        // --- get_pos 検証 ---
+        for (int c = 0; c < 52; c++) {
+            char ch = (c < 26 ? char('a' + c) : char('A' + (c - 26)));
+
+            vector<int> naive;
+            for (int i = 0; i < n; i++) {
+                if (s[i] == ch) naive.push_back(i);
+            }
+
+            auto& v = sh.get_pos(ch);
+            if (v != naive) {
+                cout << "get_pos error\n";
+                cout << s << "\n";
+                return;
+            }
+        }
+    }
+
+    cout << "random_test_string_helper OK\n";
+}
+
+void demo_string_helper() {
+    string s = "aAbBaA";
+    StringHelper sh(s);
+
+    cout << "文字列: " << s << "\n\n";
+
+    // next
+    cout << "=== next ===\n";
+    for (int i = 0; i <= (int)s.size(); i++) {
+        cout << "位置 " << i << " から 'A' の次: ";
+        int j = sh.next(i, 'A');
+        if (j == sh.n) cout << "なし\n";
+        else cout << j << "\n";
+    }
+
+    cout << "\n=== prev ===\n";
+    for (int i = 0; i <= (int)s.size(); i++) {
+        cout << "位置 " << i << " より前の 'a': ";
+        int j = sh.prev(i, 'a');
+        if (j == -1) cout << "なし\n";
+        else cout << j << "\n";
+    }
+
+    cout << "\n=== get_pos ===\n";
+    auto& v = sh.get_pos('a');
+    cout << "'a' の出現位置: ";
+    for (auto x : v) cout << x << " ";
+    cout << "\n";
+
+    cout << "\n=== exists ===\n";
+    cout << "[1,5) に 'B' があるか: ";
+    cout << (sh.exists(1, 5, 'B') ? "ある" : "ない") << "\n";
+
+    cout << "[2,4) に 'a' があるか: ";
+    cout << (sh.exists(2, 4, 'a') ? "ある" : "ない") << "\n";
+}
+
+void demo_multi_string_helper() {
+    vector<string> vs = {
+        "aAbB",
+        "BbAa",
+        "abcABC"
+    };
+
+    MultiStringHelper ms(vs);
+
+    cout << "=== 複数文字列デモ ===\n\n";
+
+    // 各文字列表示
+    for (int i = 0; i < ms.size(); i++) {
+        cout << "文字列[" << i << "] = " << ms[i].s << "\n";
+    }
+
+    cout << "\n=== next の確認 ===\n";
+    for (int i = 0; i < ms.size(); i++) {
+        int pos = 0;
+        char c = 'A';
+        int j = ms[i].next(pos, c);
+        cout << "文字列[" << i << "] で位置 " << pos << " から '" << c << "' の次: ";
+        if (j == ms[i].n) cout << "なし\n";
+        else cout << j << "\n";
+    }
+
+    cout << "\n=== prev の確認 ===\n";
+    for (int i = 0; i < ms.size(); i++) {
+        int pos = ms[i].n;
+        char c = 'a';
+        int j = ms[i].prev(pos, c);
+        cout << "文字列[" << i << "] で位置 " << pos << " より前の '" << c << "': ";
+        if (j == -1) cout << "なし\n";
+        else cout << j << "\n";
+    }
+
+    cout << "\n=== exists の確認 ===\n";
+    for (int i = 0; i < ms.size(); i++) {
+        int l = 1, r = 3;
+        char c = 'B';
+        cout << "文字列[" << i << "] の [" << l << "," << r << ") に '" << c << "' があるか: ";
+        cout << (ms[i].exists(l, r, c) ? "ある\n" : "ない\n");
+    }
+
+    cout << "\n=== get_pos の確認 ===\n";
+    for (int i = 0; i < ms.size(); i++) {
+        char c = 'a';
+        auto& v = ms[i].get_pos(c);
+        cout << "文字列[" << i << "] の '" << c << "' の出現位置: ";
+        for (auto x : v) cout << x << " ";
+        cout << "\n";
+    }
+
+    cout << "\n=== 全文字列で存在するか（例）===\n";
+    char c = 'A';
+    bool ok = true;
+    for (int i = 0; i < ms.size(); i++) {
+        if (!ms[i].exists(0, ms[i].n, c)) ok = false;
+    }
+    cout << "全ての文字列に '" << c << "' が存在するか: ";
+    cout << (ok ? "YES\n" : "NO\n");
+
+    cout << "\n=== 部分列判定（簡易例）===\n";
+    string t = "AB";
+    for (int i = 0; i < ms.size(); i++) {
+        int pos = 0;
+        bool ok = true;
+        for (char ch : t) {
+            pos = ms[i].next(pos, ch);
+            if (pos == ms[i].n) {
+                ok = false;
+                break;
+            }
+            pos++; // 次へ
+        }
+        cout << "文字列[" << i << "] に \"" << t << "\" が部分列として存在するか: ";
+        cout << (ok ? "YES\n" : "NO\n");
+    }
+
+    cout << "\n=== デモ終了 ===\n";
+}
+
+void solv(){
+    random_test_string_helper();
+    demo_string_helper();
+    demo_multi_string_helper();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

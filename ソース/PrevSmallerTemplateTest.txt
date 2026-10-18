@@ -1,0 +1,271 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+
+/*
+==================================================
+ Next / Prev Smaller & Greater (Mono Stack Template)
+==================================================
+
+与えられた数列 a に対して、単調スタックを用いて
+以下の 8 種類の「隣接要素」をすべて O(N) で前処理する。
+
+【smaller 系】
+- prev_smaller_strict(i)   : 左で最も近い a[j] <  a[i]
+- prev_smaller_or_equal(i) : 左で最も近い a[j] <= a[i]
+- next_smaller_strict(i)   : 右で最も近い a[j] <  a[i]
+- next_smaller_or_equal(i) : 右で最も近い a[j] <= a[i]
+
+【greater 系】
+- prev_greater_strict(i)   : 左で最も近い a[j] >  a[i]
+- prev_greater_or_equal(i) : 左で最も近い a[j] >= a[i]
+- next_greater_strict(i)   : 右で最も近い a[j] >  a[i]
+- next_greater_or_equal(i) : 右で最も近い a[j] >= a[i]
+
+存在しない場合は -1
+
+--------------------------------------------------
+ 典型用途:
+ - ヒストグラム最大長方形
+ - 各要素が最小 / 最大となる支配区間
+ - 区間DPの遷移制限
+ - Cartesian Tree 構築
+==================================================
+*/
+template <class T>
+struct MonoNeighbor {
+private:
+    int n;
+    vector<T> a;
+
+    vector<int> pss, pso, nss, nso;
+    vector<int> pgs, pgo, ngs, ngo;
+
+public:
+    MonoNeighbor(const vector<T>& a_) : a(a_) {
+        n = (int)a.size();
+
+        pss.assign(n, -1);
+        pso.assign(n, -1);
+        nss.assign(n, -1);
+        nso.assign(n, -1);
+        pgs.assign(n, -1);
+        pgo.assign(n, -1);
+        ngs.assign(n, -1);
+        ngo.assign(n, -1);
+
+        build_smaller();
+        build_greater();
+    }
+
+    // ===== smaller 系 API =====
+
+    // 左で最も近い a[j] < a[i]
+    int prev_smaller_strict(int i) const {
+        return pss[i];
+    }
+
+    // 左で最も近い a[j] <= a[i]
+    int prev_smaller_or_equal(int i) const {
+        return pso[i];
+    }
+
+    // 右で最も近い a[j] < a[i]
+    int next_smaller_strict(int i) const {
+        return nss[i];
+    }
+
+    // 右で最も近い a[j] <= a[i]
+    int next_smaller_or_equal(int i) const {
+        return nso[i];
+    }
+
+    // ===== greater 系 API =====
+
+    // 左で最も近い a[j] > a[i]
+    int prev_greater_strict(int i) const {
+        return pgs[i];
+    }
+
+    // 左で最も近い a[j] >= a[i]
+    int prev_greater_or_equal(int i) const {
+        return pgo[i];
+    }
+
+    // 右で最も近い a[j] > a[i]
+    int next_greater_strict(int i) const {
+        return ngs[i];
+    }
+
+    // 右で最も近い a[j] >= a[i]
+    int next_greater_or_equal(int i) const {
+        return ngo[i];
+    }
+
+private:
+    void build_smaller() {
+        // prev smaller strict (<)
+        {
+            stack<int> st;
+            for (int i = 0; i < n; i++) {
+                while (!st.empty() && a[st.top()] >= a[i]) st.pop();
+                pss[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+
+        {
+            stack<int> st;
+            for (int i = 0; i < n; i++) {
+                while (!st.empty() && a[st.top()] > a[i]) st.pop();
+                pso[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+
+        {
+            stack<int> st;
+            for (int i = n - 1; i >= 0; i--) {
+                while (!st.empty() && a[st.top()] >= a[i]) st.pop();
+                nss[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+
+        {
+            stack<int> st;
+            for (int i = n - 1; i >= 0; i--) {
+                while (!st.empty() && a[st.top()] > a[i]) st.pop();
+                nso[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+    }
+
+    void build_greater() {
+        // prev greater strict (>)
+        {
+            stack<int> st;
+            for (int i = 0; i < n; i++) {
+                while (!st.empty() && a[st.top()] <= a[i]) st.pop();
+                pgs[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+
+        {
+            stack<int> st;
+            for (int i = 0; i < n; i++) {
+                while (!st.empty() && a[st.top()] < a[i]) st.pop();
+                pgo[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+
+        {
+            stack<int> st;
+            for (int i = n - 1; i >= 0; i--) {
+                while (!st.empty() && a[st.top()] <= a[i]) st.pop();
+                ngs[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+
+        {
+            stack<int> st;
+            for (int i = n - 1; i >= 0; i--) {
+                while (!st.empty() && a[st.top()] < a[i]) st.pop();
+                ngo[i] = st.empty() ? -1 : st.top();
+                st.push(i);
+            }
+        }
+    }
+};
+
+void solv(){
+    vector<int> a = {3, 1, 2, 2, 4, 2, 1};
+    int n = a.size();
+
+    MonoNeighbor<int> mn(a);
+
+    cout << "==============================\n";
+    cout << " 元の配列\n";
+    cout << "==============================\n";
+    for (int i = 0; i < n; i++) {
+        cout << "index " << i << " : value = " << a[i] << "\n";
+    }
+    cout << "\n";
+
+    auto print = [&](const string& title, auto func) {
+        cout << "------------------------------\n";
+        cout << title << "\n";
+        cout << "------------------------------\n";
+        for (int i = 0; i < n; i++) {
+            int j = func(i);
+            cout << "i = " << i << " (value = " << a[i] << ") -> ";
+            if (j == -1) {
+                cout << "該当なし (-1)";
+            } else {
+                cout << "index = " << j
+                     << " (value = " << a[j] << ")";
+            }
+            cout << "\n";
+        }
+        cout << "\n";
+    };
+
+    // ===== smaller 系 =====
+    print("【prev_smaller_strict】左で最も近い a[j] < a[i]",
+          [&](int i){ return mn.prev_smaller_strict(i); });
+
+    print("【prev_smaller_or_equal】左で最も近い a[j] <= a[i]",
+          [&](int i){ return mn.prev_smaller_or_equal(i); });
+
+    print("【next_smaller_strict】右で最も近い a[j] < a[i]",
+          [&](int i){ return mn.next_smaller_strict(i); });
+
+    print("【next_smaller_or_equal】右で最も近い a[j] <= a[i]",
+          [&](int i){ return mn.next_smaller_or_equal(i); });
+
+    // ===== greater 系 =====
+    print("【prev_greater_strict】左で最も近い a[j] > a[i]",
+          [&](int i){ return mn.prev_greater_strict(i); });
+
+    print("【prev_greater_or_equal】左で最も近い a[j] >= a[i]",
+          [&](int i){ return mn.prev_greater_or_equal(i); });
+
+    print("【next_greater_strict】右で最も近い a[j] > a[i]",
+          [&](int i){ return mn.next_greater_strict(i); });
+
+    print("【next_greater_or_equal】右で最も近い a[j] >= a[i]",
+          [&](int i){ return mn.next_greater_or_equal(i); });
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

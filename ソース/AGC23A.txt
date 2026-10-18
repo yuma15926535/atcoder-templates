@@ -1,0 +1,178 @@
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define rep(i,s,n) for(ll i=s;i<n;i++)//i=s,s+1...n-1 ノーマルfor
+#define erep(i,s,n) for(ll i=s;i<=n;i++)//i=s,s+1...n イコールfor
+#define rrep(i,s,n) for(ll i = (s)-1; i>=n;i--)//s-1スタートでnまで落ちる
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+#define chmax(x,y) x = max(x,y)
+#define chmin(x,y) x = min(x,y)
+#define popcount __builtin_popcountll
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+/*
+==================================================
+ 連続部分列和ユーティリティ（O(N)版・非円環）
+ - 負の数あり対応
+ - 区間数のみ高速で計算
+ - 最短 / 最長区間は復元不可（O(N^2)でしか正確に出せない）
+==================================================
+*/
+struct SubarraySumUtils {
+    int n;
+
+    // ==============================
+    // 和 = K
+    // ==============================
+    ll count_eqK;   // 区間数
+    bool exist_eqK; // 存在するか
+
+    // ==============================
+    // 最大 / 最小部分列和
+    // ==============================
+    ll max_sum, min_sum;
+
+    SubarraySumUtils(const vector<ll>& a, ll K) {
+        n = a.size();
+
+        // ------------------------------
+        // 1. 和 = K (O(N)版)
+        // ------------------------------
+        count_eqK = 0;
+        exist_eqK = false;
+
+        unordered_map<ll,ll> mp; // prefix sum の出現回数だけカウント
+        mp[0] = 1;
+
+        ll sum = 0;
+        for(int i=0;i<n;i++){
+            sum += a[i];
+            ll need = sum - K;
+            if(mp.count(need)) count_eqK += mp[need]; // 個数を足すだけ
+            mp[sum]++;
+        }
+        exist_eqK = (count_eqK > 0);
+
+        // ------------------------------
+        // 2. 最大 / 最小部分列和 (Kadane O(N))
+        // ------------------------------
+        max_sum = LLONG_MIN; min_sum = LLONG_MAX;
+        ll cur_max = 0, cur_min = 0;
+        for(int i=0;i<n;i++){
+            // 最大部分列和
+            cur_max = max((ll)a[i], cur_max + a[i]);
+            max_sum = max(max_sum, cur_max);
+
+            // 最小部分列和
+            cur_min = min((ll)a[i], cur_min + a[i]);
+            min_sum = min(min_sum, cur_min);
+        }
+    }
+};
+
+/*
+==================================================
+ 円環 連続部分列和ユーティリティ（O(N)版）
+ - 最大 / 最小部分列和を Kadane 円環版で計算
+ - 和 = K の区間数は O(N) で計算
+ - 最短 / 最長区間は復元不可
+==================================================
+*/
+struct CircularSubarraySumUtils {
+    int n;
+
+    // ==============================
+    // 和 = K
+    // ==============================
+    ll count_eqK;
+    bool exist_eqK;
+
+    // ==============================
+    // 最大 / 最小部分列和
+    // ==============================
+    ll max_sum, min_sum;
+
+    CircularSubarraySumUtils(const vector<ll>& a, ll K) {
+        n = a.size();
+
+        // ------------------------------
+        // 1. 和 = K (O(N)版)
+        // ------------------------------
+        count_eqK = 0;
+
+        vector<ll> P(n+1,0);
+        for(int i=0;i<n;i++) P[i+1]=P[i]+a[i];
+
+        unordered_map<ll,ll> mp; // prefix sum の出現回数
+        mp[0] = 1;
+
+        // 非円環の個数計算をそのまま使って、円環分も prefix sum を 2倍して考える
+        ll sum = 0;
+        for(int i=0;i<2*n;i++){
+            sum += a[i%n];
+            ll need = sum - K;
+            if(mp.count(need)) count_eqK += mp[need];
+            mp[sum]++;
+            if(i>=n-1){ // 古い prefix は数を減らす
+                ll old = sum - accumulate(a.begin()+i-n+1, a.begin()+i+1,0LL);
+                mp[old]--;
+                if(mp[old]==0) mp.erase(old);
+            }
+        }
+        exist_eqK = (count_eqK>0);
+
+        // ------------------------------
+        // 2. 最大 / 最小部分列和 (Kadane 円環版)
+        // ------------------------------
+        ll total = accumulate(a.begin(),a.end(),0LL);
+
+        // 非円環 Kadane
+        ll cur_max = a[0], best_max = a[0];
+        ll cur_min = a[0], best_min = a[0];
+        for(int i=1;i<n;i++){
+            cur_max = max((ll)a[i], cur_max+a[i]);
+            best_max = max(best_max, cur_max);
+
+            cur_min = min((ll)a[i], cur_min+a[i]);
+            best_min = min(best_min, cur_min);
+        }
+
+        // 円環最大
+        max_sum = max(best_max, total - best_min);
+        // 円環最小
+        min_sum = min(best_min, total - best_max);
+    }
+};
+
+
+void solv(){
+    int N;
+    cin>>N;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    SubarraySumUtils ssu(A,0);
+    cout<<ssu.count_eqK<<'\n';
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}
