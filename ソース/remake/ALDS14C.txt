@@ -1,0 +1,381 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  Trie (文字列のmultiset)
+//  （作り直し版：元ファイル ALDS14C.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - stringの追加削除
+//    - 完全一致検索
+//    - prefix検索
+//    - 辞書順k番目取得
+//    - 辞書順取得
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+//https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=ALDS1_4_C&lang=ja
+// Trie (文字列のmultiset)
+//stringの追加削除、完全一致検索、prefix検索、辞書順k番目取得、辞書順取得を高速に
+// ★ 文字種を変える
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+// 文字列の多重集合を管理する Trie
+//   Trie tr;                 文字は 'a'〜'z'
+//   Trie tr("ACGT");         使う文字を文字列で渡す（記号・数字まじりも可。並び順は気にしなくてよい＝中で辞書順に並べる）
+//   insert(s, +1 / -1)、count(s)、contains(s)、count_prefix(s)、starts_with(s)、size()、kth(k)、words()
+struct Trie {
+    int A;                       // 文字の種類数
+    string alphabet;             // 番号 → 文字（辞書順）
+    array<int, 256> code;        // 文字 → 番号（使えない文字は -1）
+    vector<int> nxt;             // nxt[v * A + c]：子のノード番号（無ければ -1）
+    vector<long long> cnt;       // このノードを通る文字列数
+    vector<long long> ed;        // このノードで終わる文字列数
+
+    Trie(string alpha = "abcdefghijklmnopqrstuvwxyz"){
+        sort(alpha.begin(), alpha.end());
+        alpha.erase(unique(alpha.begin(), alpha.end()), alpha.end());
+        alphabet = alpha;
+        A = alpha.size();
+        code.fill(-1);
+        for(int i = 0; i < A; i++) code[(unsigned char)alpha[i]] = i;
+        new_node(); // root
+    }
+
+    int new_node(){
+        nxt.insert(nxt.end(), A, -1);
+        cnt.push_back(0);
+        ed.push_back(0);
+        return (int)cnt.size() - 1;
+    }
+    int id(char c) const { return code[(unsigned char)c]; }
+
+    // s のノード（無ければ -1）
+    int find(const string& s) const {
+        int v = 0;
+        for(char c : s){
+            int k = id(c);
+            if(k < 0 || nxt[v * A + k] == -1) return -1;
+            v = nxt[v * A + k];
+        }
+        return v;
+    }
+
+    // ===== 挿入・削除 =====
+    // delta = +1 : 追加,  -1 : 削除（入っていないもの・足りない分は消さない）
+    void insert(const string& s, long long delta){
+        if(delta < 0 && count(s) < -delta) return;
+        int v = 0;
+        for(char c : s){
+            int k = id(c);
+            assert(k >= 0);                // alphabet に無い文字
+            if(nxt[v * A + k] == -1){
+                int w = new_node();        // nxt が伸びるので先に作る
+                nxt[v * A + k] = w;
+            }
+            v = nxt[v * A + k];
+            cnt[v] += delta;
+        }
+        ed[v] += delta;
+    }
+
+    // ===== 完全一致の個数（多重集合なので 2 個以上もある）=====
+    long long count(const string& s) const {
+        int v = find(s);
+        return v == -1 ? 0 : ed[v];
+    }
+    // ===== 完全一致があるか =====
+    bool contains(const string& s) const { return count(s) > 0; }
+    // ===== s を接頭辞に持つ文字列の個数 =====
+    long long count_prefix(const string& s) const {
+        int v = find(s);
+        if(v == -1) return 0;
+        return v == 0 ? size() : cnt[v];
+    }
+    // ===== 入っている文字列の総数（重複込み）=====
+    long long size() const {
+        long long r = ed[0];
+        for(int c = 0; c < A; c++) if(nxt[c] != -1) r += cnt[nxt[c]];
+        return r;
+    }
+
+    // ===== prefix存在 =====
+    bool starts_with(const string& s) const { return count_prefix(s) > 0; }
+
+    // ===== k番目に小さい文字列（辞書順）=====
+    // ★ 1-indexed。k が総数より大きいときは "" を返す
+    string kth(long long k) const {
+        if(k < 1 || k > size()) return "";
+        string res;
+        int v = 0;
+        while(true){
+            // このノードで終わる文字列
+            if(ed[v]){
+                if(k <= ed[v]) return res;
+                k -= ed[v];
+            }
+            // 子ノードを辞書順に
+            for(int c = 0; c < A; c++){
+                int to = nxt[v * A + c];
+                if(to == -1) continue;
+                if(cnt[to] >= k){
+                    res.push_back(alphabet[c]);
+                    v = to;
+                    break;
+                }else{
+                    k -= cnt[to];
+                }
+            }
+        }
+    }
+
+    // ===== 辞書順で全て取得（非再帰）=====
+    vector<string> words() const {
+        vector<string> res;
+        string cur;
+        vector<pair<int,int>> st = {{0, -1}};   // (ノード, 次に見る子の番号。-1 は「まだ自分を出していない」)
+        while(!st.empty()){
+            auto& [v, c] = st.back();
+            if(c == -1){
+                for(long long i = 0; i < ed[v]; i++) res.push_back(cur);
+                c = 0;
+            }
+            while(c < A && (nxt[v * A + c] == -1 || cnt[nxt[v * A + c]] == 0)) c++;
+            if(c == A){
+                st.pop_back();
+                if(!cur.empty() && !st.empty()) cur.pop_back();
+                continue;
+            }
+            int to = nxt[v * A + c];
+            cur.push_back(alphabet[c]);
+            c++;
+            st.push_back({to, -1});
+        }
+        return res;
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（AOJ ALDS1_4_C）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+int solve_ALDS1_4_C(){
+    BUFF;
+    int N;
+    cin>>N;
+    Trie t("ACGT");   // 使う文字を渡す
+    rep(_,0,N){
+        string q,s;
+        cin>>q>>s;
+        if(q=="insert")t.insert(s,1);
+        else cout<<(t.contains(s)?"yes":"no")<<'\n';
+    }
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== Trie（文字列の多重集合）デモ =====\n";
+    Trie tr("ACGT");                           // 使う文字を渡す（何も渡さなければ 'a'〜'z'）
+    for (string s : {"ACG", "AC", "ACG", "TT", "AGT"}) tr.insert(s, +1);   // +1 で追加
+    cout << "tr.count(\"ACG\") = " << tr.count("ACG") << ", tr.contains(\"AG\") = " << tr.contains("AG") << "   // ACG は 2 個、AG は無い\n";
+    cout << "tr.count_prefix(\"AC\") = " << tr.count_prefix("AC") << "   // AC, ACG, ACG の 3 個\n";
+    cout << "tr.starts_with(\"AG\") = " << tr.starts_with("AG") << ", tr.size() = " << tr.size() << "\n";
+    cout << "tr.kth(3) = " << tr.kth(3) << "   // 辞書順 AC, ACG, ACG, AGT, TT の 3 番目\n";
+    tr.insert("ACG", -1);                      // -1 で 1 個削除
+    tr.insert("GGG", -1);                      // 入っていないものは何もしない
+    cout << "削除後 tr.words() = "; for (auto& w : tr.words()) cout << w << " "; cout << "\n";
+    // 記号まじりの文字列も使える（使う文字をすべて渡す）
+    Trie tr2("abc_-0123456789");
+    for (string s : {"a_1", "a-2", "b_10", "a_1"}) tr2.insert(s, +1);
+    cout << "tr2.count(\"a_1\") = " << tr2.count("a_1") << ", tr2.count_prefix(\"a\") = " << tr2.count_prefix("a") << ", tr2.kth(1) = " << tr2.kth(1) << "   // '-' < '_' なので a-2 が先\n";
+    cout << "tr2.count(\"zzz\") = " << tr2.count("zzz") << "   // 使えない文字を含む文字列は 0（insert すると assert）\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    return 0;
+}
+

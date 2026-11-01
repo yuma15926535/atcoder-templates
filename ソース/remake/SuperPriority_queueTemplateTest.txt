@@ -1,0 +1,476 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  priority_queue（拡張版）
+//  （作り直し版：元ファイル SuperPriority_queueTemplateTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - OrderedPriorityQueue
+//    - multisetを使った順序付き拡張優先度付きキュー
+//    - 引数の前後の要素
+//    - k番目/rank/max/min/
+//    - TreapQueue
+//    - range_query(sum/min/max)
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// priority_queue（拡張版）
+// OrderedPriorityQueue: multisetを使った順序付き拡張優先度付きキュー
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+struct OrderedPriorityQueue {
+    multiset<long long> s; // 要素を昇順に保持
+    // --- 基本操作 ---
+    void push(long long x) {
+        s.insert(x); // O(log n)
+    }
+
+    void pop() {
+        if(!s.empty()) s.erase(prev(s.end())); // 最大値を削除 O(log n)
+    }
+
+    long long top() {
+        return *prev(s.end()); // 最大値を取得 O(1)
+    }
+
+    bool empty() {
+        return s.empty(); // O(1)
+    }
+
+    int size() {
+        return s.size(); // O(1)
+    }
+
+    // --- 順序操作 ---
+    // x の前の値（predecessor）
+    long long predecessor(long long x) {
+        auto it = s.lower_bound(x);
+        if(it == s.begin()) return LLONG_MIN; // predecessorなし
+        return *prev(it); // O(log n)
+    }
+
+    // x の後の値（successor）
+    long long successor(long long x) {
+        auto it = s.upper_bound(x);
+        if(it == s.end()) return LLONG_MAX; // successorなし
+        return *it; // O(log n)
+    }
+
+    // x の順位（0-indexedで何番目か）
+    int rank(long long x) {
+        return distance(s.begin(), s.lower_bound(x)); // O(log n)
+    }
+
+    // k番目の値 (0-indexed)
+    long long select(int k) {
+        if(k < 0 || k >= size()) return LLONG_MIN;
+        auto it = s.begin();
+        advance(it, k);
+        return *it; // O(log n) multisetでは線形だが平衡BSTならO(log n)
+    }
+
+    // x の個数
+    int count(long long x) {
+        return s.count(x); // O(log n)
+    }
+
+    // 最大値 / 最小値
+    long long global_max() { return *prev(s.end()); } // O(1)
+    long long global_min() { return *s.begin(); }     // O(1)
+
+    // x を1つ削除
+    void erase_value(long long x) {
+        auto it = s.find(x);
+        if(it != s.end()) s.erase(it); // O(log n)
+    }
+
+    // x を全て削除
+    void erase_value_all(long long x) {
+        s.erase(x); // O(log n)
+    }
+
+    void dump(){
+        cout<<"現在の集合: ";
+        for(auto v:s) cout<<v<<" ";
+        cout<<"\n";
+    }
+};
+
+// =====================================================
+
+// Treapノード
+struct Node {
+    long long val, sum, min_val, max_val;
+    int size;
+    int priority;
+    Node *l, *r;
+    Node(long long v) : val(v), sum(v), min_val(v), max_val(v), size(1), priority(rand()), l(nullptr), r(nullptr) {}
+};
+
+int getSize(Node* t) { return t ? t->size : 0; }
+long long getSum(Node* t) { return t ? t->sum : 0; }
+long long getMin(Node* t) { return t ? t->min_val : LLONG_MAX; }
+long long getMax(Node* t) { return t ? t->max_val : LLONG_MIN; }
+
+void update(Node* t) {
+    if(!t) return;
+    t->size = 1 + getSize(t->l) + getSize(t->r);
+    t->sum = t->val + getSum(t->l) + getSum(t->r);
+    t->min_val = min({t->val, getMin(t->l), getMin(t->r)});
+    t->max_val = max({t->val, getMax(t->l), getMax(t->r)});
+}
+
+// Split by position: [0, k-1], [k, ...]
+void split(Node* t, int k, Node*& l, Node*& r) {
+    if(!t) { l = r = nullptr; return; }
+    if(getSize(t->l) >= k) { 
+        split(t->l, k, l, t->l); r = t; 
+    } else { 
+        split(t->r, k - getSize(t->l) - 1, t->r, r); l = t; 
+    }
+    update(t);
+}
+
+Node* merge(Node* l, Node* r) {
+    if(!l || !r) return l ? l : r;
+    if(l->priority > r->priority) { l->r = merge(l->r, r); update(l); return l; }
+    else { r->l = merge(l, r->l); update(r); return r; }
+}
+
+// Treap-based priority queue with range query
+struct TreapQueue {
+    Node* root = nullptr;
+
+    void push(long long x) { // push_back
+        Node* n = new Node(x);
+        root = merge(root, n);
+    }
+
+    void pop() { // pop_back
+        Node *l, *r;
+        split(root, getSize(root)-1, l, r);
+        delete r;
+        root = l;
+    }
+
+    long long top() { // back
+        Node* t = root;
+        while(t && t->r) t = t->r;
+        return t->val;
+    }
+
+    bool empty() { return !root; }
+    int size() { return getSize(root); }
+
+    void insert(int pos, long long x) {
+        Node *l, *r;
+        split(root, pos, l, r);
+        root = merge(merge(l, new Node(x)), r);
+    }
+
+    void erase_pos(int pos) {
+        Node *l, *m, *r;
+        split(root, pos, l, r);
+        split(r, 1, m, r);
+        delete m;
+        root = merge(l, r);
+    }
+
+    // 区間クエリ [l, r) の sum / min / max
+    tuple<long long,long long,long long> range_query(int lpos, int rpos) {
+        Node *l, *m, *r;
+        split(root, lpos, l, r);
+        split(r, rpos-lpos, m, r);
+        long long s = getSum(m), mn = getMin(m), mx = getMax(m);
+        root = merge(merge(l, m), r);
+        return {s, mn, mx};
+    }
+
+    // ノードの位置取得（0-indexed）
+    int index(Node* node) {
+        if(!node) return -1;
+        int idx = getSize(node->l);
+        Node* t = node;
+        while(t != root) {
+            // 親情報がない場合、TreapだけではO(n)探索
+            // 実際には親ポインタを持つとO(log n)可能
+            t = nullptr; // placeholder
+        }
+        return idx;
+    }
+
+    void dump(Node*t){
+        if(!t)return;
+        dump(t->l);
+        cout<<t->val<<" ";
+        dump(t->r);
+    }
+
+    void dump(){
+        cout<<"現在の配列: ";
+        dump(root);
+        cout<<"\n";
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+void solv(){
+    mt19937 rng(123456);
+
+    cout<<"=============================\n";
+    cout<<" OrderedPriorityQueue 動作確認\n";
+    cout<<"=============================\n";
+
+    OrderedPriorityQueue pq;
+
+    pq.push(10);
+    pq.push(5);
+    pq.push(20);
+    pq.push(10);
+
+    pq.dump();
+
+    cout<<"最大値(top): "<<pq.top()<<"\n";
+    cout<<"最小値: "<<pq.global_min()<<"\n";
+    cout<<"要素数: "<<pq.size()<<"\n";
+
+    cout<<"10の個数: "<<pq.count(10)<<"\n";
+    cout<<"rank(10): "<<pq.rank(10)<<"\n";
+    cout<<"select(2): "<<pq.select(2)<<"\n";
+
+    cout<<"predecessor(10): "<<pq.predecessor(10)<<"\n";
+    cout<<"successor(10): "<<pq.successor(10)<<"\n";
+
+    pq.erase_value(10);
+    cout<<"10を1つ削除\n";
+    pq.dump();
+
+    pq.erase_value_all(5);
+    cout<<"5を全削除\n";
+    pq.dump();
+
+    pq.pop();
+    cout<<"最大値をpop\n";
+    pq.dump();
+
+    cout<<"\n=============================\n";
+    cout<<" TreapQueue 動作確認\n";
+    cout<<"=============================\n";
+
+    TreapQueue tq;
+
+    tq.push(10);
+    tq.push(20);
+    tq.push(30);
+    tq.dump();
+
+    cout<<"末尾(top): "<<tq.top()<<"\n";
+
+    tq.insert(1,99);
+    cout<<"位置1に99を挿入\n";
+    tq.dump();
+
+    tq.erase_pos(2);
+    cout<<"位置2を削除\n";
+    tq.dump();
+
+    auto [s,mn,mx]=tq.range_query(0,tq.size());
+    cout<<"全区間クエリ:\n";
+    cout<<"  合計 = "<<s<<"\n";
+    cout<<"  最小 = "<<mn<<"\n";
+    cout<<"  最大 = "<<mx<<"\n";
+
+    tq.pop();
+    cout<<"末尾pop\n";
+    tq.dump();
+
+    cout<<"\n===== 動作確認終了 =====\n";
+
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

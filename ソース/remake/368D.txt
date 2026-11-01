@@ -1,0 +1,374 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  nCrを返却(modが素数の場合)
+//  重複組合せ(nHr)
+//  順列(nPr)
+//  nが小さい場合のnCr
+//  整数の累乗
+//  整数の累乗(mod)
+//  整数の逆元(mod)
+//  整数の逆元(非素数mod)
+//  （作り直し版：元ファイル 368D.txt）
+// -----------------------------------------------------------------------------
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+//整数の累乗
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+//整数の累乗（溢れは確認しない。溢れが心配なら math_v2/00_math_base の pow_int / pow_cap）
+ll pow_int(ll base,ll exp){
+    ll result=1;
+    while(exp>0){
+        if(exp&1)result*=base;
+        exp>>=1;
+        if(exp) base*=base; // 最後は 2 乗しない（答えが収まるのに途中で溢れるのを防ぐ）
+    }
+    return result;
+}
+//整数の累乗(mod)  base^exp mod m（m は 2^62 程度まで。__int128 で掛ける）
+ll mod_pow(ll base,ll exp,ll mod) {
+    ll result=1%mod;
+    base%=mod;
+    if(base<0)base+=mod;
+    while(exp>0){
+        if(exp&1)result = (ll)((__int128)result * base % mod);
+        base=(ll)((__int128)base*base%mod);
+        exp>>=1;
+    }
+    return result;
+}
+//拡張ユークリッド: a x + b y = g = gcd(a, b) となる x, y を求めて g を返す
+ll ext_gcd(ll a,ll b,ll &x,ll &y) {
+    if(b==0){
+        x=1;
+        y=0;
+        return a;
+    }
+    ll g=ext_gcd(b,a%b,y,x);
+    y-=(a/b)*x;
+    return g;
+}
+//整数の逆元(mod)  a x ≡ 1 (mod m) となる x（0 ≤ x < m）。m は素数でなくてよい。逆元が無ければ -1
+ll mod_inv(ll a,ll mod){
+    ll x,y;
+    a%=mod; if(a<0)a+=mod;
+    ll g=ext_gcd(a,mod,x,y);
+    if(g!=1)return -1;// 逆元なし
+    return (x%mod+mod)%mod;
+}
+//nCr を計算する mod（init_comb で設定。素数であること）
+ll COMB_MOD;
+//表の大きさ（n の最大値。init_comb で決まる）
+int COMB_MAXN = -1;
+//階乗・階乗の逆数
+vector<ll> fact, invfact;
+//二項係数計算の初期処理 O(maxn)。最初に 1 回 init_comb(998244353) / init_comb(998244353, 200000) のように呼ぶ
+//  maxn：使う n の最大値（既定 2×10^6）。必要な分だけにすると速く、メモリも少ない
+//  mod が maxn 以下の素数（例 mod = 3, 10007）なら表は mod - 1 までにして、n ≥ mod は Lucas の定理で計算する
+void init_comb(ll mod, int maxn = 2000000){
+    COMB_MOD=mod;
+    COMB_MAXN=(int)min<ll>(maxn, mod-1);
+    fact.assign(COMB_MAXN+1,0);
+    invfact.assign(COMB_MAXN+1,0);
+    fact[0]=1%mod;
+    erep(i,1,COMB_MAXN)fact[i]=fact[i-1]*i%COMB_MOD;
+    invfact[COMB_MAXN]=mod_inv(fact[COMB_MAXN],COMB_MOD);
+    rrep(i,COMB_MAXN+1,1)invfact[i-1]=invfact[i]*i%COMB_MOD;
+}
+//nCrを返却(modが素数の場合)
+//  n ≤ COMB_MAXN なら O(1)。mod が小さい素数（mod ≤ maxn）なら n が巨大でも Lucas の定理で O(log_mod n)
+ll comb(ll n,ll r){
+    if(r<0||r>n)return 0;
+    if(n>COMB_MAXN){
+        assert(COMB_MAXN==COMB_MOD-1 && "n が init_comb の maxn を超えている（mod が大きい素数のとき）");
+        ll res=1%COMB_MOD;   // Lucas：mod 進数の各桁の nCr の積
+        while(n>0||r>0){
+            ll ni=n%COMB_MOD, ri=r%COMB_MOD;
+            if(ri>ni)return 0;
+            res=res*(fact[ni]*invfact[ri]%COMB_MOD*invfact[ni-ri]%COMB_MOD)%COMB_MOD;
+            n/=COMB_MOD; r/=COMB_MOD;
+        }
+        return res;
+    }
+    return fact[n]*invfact[r]%COMB_MOD*invfact[n-r]%COMB_MOD;
+}
+// 重複組合せ(nHr) = (n+r-1)Cr
+ll homo(ll n,ll r){
+    if(r<0)return 0;
+    if(n<=0)return (r == 0)?1%COMB_MOD:0;
+    return comb(n+r-1,r);
+}
+// 順列(nPr) = n (n-1) … (n-r+1)
+ll perm(ll n,ll r){
+    if(r<0||r>n)return 0;
+    if(n>COMB_MAXN){
+        assert(COMB_MAXN==COMB_MOD-1 && "n が init_comb の maxn を超えている（mod が大きい素数のとき）");
+        // mod が小さい素数：n, n-1, …, n-r+1 に mod の倍数が入れば 0、入らなければ余りだけで計算できる
+        ll m=n%COMB_MOD;
+        if(r>m)return 0;
+        return fact[m]*invfact[m-r]%COMB_MOD;
+    }
+    return fact[n]*invfact[n - r]%COMB_MOD;
+}
+//nが小さい場合のnCr（r が小さければ n が巨大でもよい。O(r log mod)。1〜r が mod と互いに素であること）
+ll comb_small(ll n,ll r,ll mod) {
+    if(r<0||r>n)return 0;
+    chmin(r,n-r);
+    ll res=1;
+    erep(i,1,r){
+        res=(ll)((__int128)res*((n-i+1)%mod)%mod);
+        res=(ll)((__int128)res*mod_inv(i,mod)%mod);
+    }
+    return res;
+}
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（ABC368 D）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+int solve_ABC368D(){
+    int N,K;
+    cin>>N>>K;
+    vector<vector<int>>G(N);
+    rep(i,0,N-1){
+        int a,b;
+        cin>>a>>b;
+        a--;b--;
+        G[a].push_back(b);
+        G[b].push_back(a);
+    }
+    vector<int>degree(N,0);
+    rep(i,0,N)degree[i]=G[i].size();
+    queue<int>q;
+    rep(i,0,N)if(degree[i]==1)q.push(i);
+    unordered_set<int>V;
+    rep(i,0,K){
+        int v;
+        cin>>v;
+        v--;
+        V.insert(v);
+    }
+    vector<bool>used(N,true);
+    //特定の頂点を含む最小の部分木
+    //特定の頂点でない葉を消しつづっける
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        if(V.count(pos))continue;
+        used[pos]=false;
+        for(int nxt:G[pos])if(used[nxt]){
+            degree[nxt]--;
+            if(degree[nxt]==1)q.push(nxt);
+        }
+    }
+    cout<<count(nall(used),true)<<'\n';
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== 累乗・逆元・二項係数 デモ =====\n";
+    cout << "pow_int(3, 13) = " << pow_int(3, 13) << "\n";
+    cout << "mod_pow(2, 100, 1000000007) = " << mod_pow(2, 100, 1000000007) << "\n";
+    cout << "mod_inv(3, 7) = " << mod_inv(3, 7) << "   // 3*5 = 15 ≡ 1 (mod 7)\n";
+    cout << "mod_inv(3, 10) = " << mod_inv(3, 10) << ", mod_inv(4, 10) = " << mod_inv(4, 10) << "   // 素数でない mod も OK、無ければ -1\n";
+    ll x, y; ll g = ext_gcd(12, 18, x, y);
+    cout << "ext_gcd(12, 18) = " << g << " (x=" << x << ", y=" << y << ")   // 12x + 18y = 6\n";
+    init_comb(998244353, 200000);               // 最初に 1 回。使う n の最大値（ここでは 2×10^5）までの表を作る O(maxn)
+    cout << "comb(5, 2) = " << comb(5, 2) << ", perm(5, 2) = " << perm(5, 2) << ", homo(3, 2) = " << homo(3, 2) << "   // 10, 20, 6\n";
+    cout << "COMB_MAXN = " << COMB_MAXN << "   // 表の大きさ（これを超える n は assert で止まる）\n";
+    init_comb(7);                               // mod が小さい素数なら表は mod - 1 まで。n ≥ mod は Lucas の定理
+    cout << "mod 7: comb(10, 3) = " << comb(10, 3) << ", comb(1000000000000, 49) = " << comb(1000000000000LL, 49) << ", perm(10, 3) = " << perm(10, 3) << "   // 120 ≡ 1、Lucas、720 ≡ 6\n";
+    cout << "comb_small(1000000000000, 3, 998244353) = " << comb_small(1000000000000LL, 3, 998244353) << "   // n が巨大でも r が小さければ OK\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    return 0;
+}
+

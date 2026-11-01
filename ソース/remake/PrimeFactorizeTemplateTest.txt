@@ -1,0 +1,677 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  素因数分解系テンプレート
+//  （作り直し版：元ファイル PrimeFactorizeTemplateTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - 素因数分解（試し割り版）
+//    - 1 <= n <= 10^12 程度
+//    - O(√n)
+//    - 約数列挙（試し割り版）
+//    - 1 <= n <= 10^12 程度
+//    - O(τ(n))（τ(n) は約数の個数）
+//    - 約数の個数 τ(n)
+//    - 1 <= n <= 10^12 程度
+//    - O(√n)
+//    - 約数の和 σ(n)
+//    - 1 <= n <= 10^12 程度
+//    - O(√n)
+//    - N 以下の素数列挙（エラトステネスの篩）
+//    - 0 <= n <= 10^7 程度
+//    - O(n log log n)
+//    - SPFは下のテンプレートを使用
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+/*
+====================================
+素因数分解系テンプレート
+====================================
+*/
+
+/*
+==================================================
+ 素因数分解（試し割り版）
+==================================================
+
+【機能】
+与えられた自然数 n を素因数分解し，
+素因数の vector と指数の vector を pair で返す。
+
+【引数】
+- n : 分解したい自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- pair<primes, exps>
+  primes[i]^exps[i] が n の素因数分解を表す
+
+【計算量】
+- O(√n)
+
+【用途】
+- 単発の素因数分解
+*/
+pair<vector<ll>, vector<int>> prime_factorize(ll n) {
+    vector<ll> primes;
+    vector<int> exps;
+
+    for (ll p = 2; p * p <= n; p++) {
+        if (n % p == 0) {
+            int cnt = 0;
+            while (n % p == 0) {
+                n /= p;
+                cnt++;
+            }
+            primes.push_back(p);
+            exps.push_back(cnt);
+        }
+    }
+    if (n > 1) {
+        primes.push_back(n);
+        exps.push_back(1);
+    }
+    return {primes, exps};
+}
+
+/*
+==================================================
+ 素因数分解（数学第二世代と同じ形：vector<PrimePower>）
+==================================================
+- factorize(n) は p の昇順の {p, e} の列（n = 1 なら空）。中身は prime_factorize と同じ試し割り O(√n)
+- for (auto [p, e] : factorize(n)) のように使える
+- 数学第二世代の 02_factorize を先に貼ってあるときは、そちら（ポラード・ロー）を使う
+*/
+#ifndef GG_FACTORIZE
+struct PrimePower {  // 素因数分解の 1 項 p^e
+    long long p;
+    int e;
+    friend bool operator==(const PrimePower& a, const PrimePower& b) { return a.p == b.p && a.e == b.e; }
+    friend bool operator!=(const PrimePower& a, const PrimePower& b) { return !(a == b); }
+    friend std::ostream& operator<<(std::ostream& os, const PrimePower& f) { return f.e == 1 ? os << f.p : os << f.p << "^" << f.e; }
+};
+vector<PrimePower> factorize(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    vector<PrimePower> res;
+    for (int i = 0; i < (int)primes.size(); i++) res.push_back({primes[i], exps[i]});
+    return res;
+}
+#endif
+
+/*
+==================================================
+ 約数列挙（試し割り版）
+==================================================
+
+【機能】
+n のすべての正の約数を列挙する（順序は未保証）。
+
+【引数】
+- n : 自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- n の約数をすべて含む vector
+
+【計算量】
+- O(τ(n))（τ(n) は約数の個数）
+
+【備考】
+- 昇順にしたい場合は sort を呼ぶ
+*/
+vector<ll> divisors_of(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    vector<ll> divisors = {1};
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        vector<ll> next;
+        ll p = primes[i];
+        int e = exps[i];
+
+        for (ll d : divisors) {
+            ll cur = 1;
+            for (int k = 1; k <= e; k++) {
+                cur *= p;
+                next.push_back(d * cur);
+            }
+        }
+        divisors.insert(divisors.end(), next.begin(), next.end());
+    }
+    return divisors;
+}
+
+/*
+==================================================
+ 約数の個数 τ(n)
+==================================================
+
+【機能】
+n の正の約数の個数を返す。
+
+【引数】
+- n : 自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- 約数の個数
+
+【計算量】
+- O(√n)
+*/
+ll count_divisors(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    ll res = 1;
+    for (int e : exps) {
+        res *= (e + 1);
+    }
+    return res;
+}
+
+/*
+==================================================
+ 約数の和 σ(n)
+==================================================
+
+【機能】
+n の正の約数の総和を返す。
+
+【引数】
+- n : 自然数（1 <= n <= 10^12 程度）
+
+【戻り値】
+- 約数の和
+
+【計算量】
+- O(√n)
+
+【注意】
+- オーバーフローに注意（mod がある場合は別実装推奨）
+*/
+ll sum_divisors(ll n) {
+    auto [primes, exps] = prime_factorize(n);
+    ll res = 1;
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        ll p = primes[i];
+        int e = exps[i];
+
+        ll term = 1;
+        ll cur = 1;
+        for (int k = 0; k < e; k++) {
+            cur *= p;
+            term += cur;
+        }
+        res *= term;
+    }
+    return res;
+}
+
+/*
+==================================================
+ N 以下の素数列挙（エラトステネスの篩）
+==================================================
+
+【機能】
+n 以下のすべての素数を列挙する。
+
+【引数】
+- n : 上限（0 <= n <= 10^7 程度）
+
+【戻り値】
+- n 以下の素数を昇順に並べた vector
+
+【計算量】
+- O(n log log n)
+*/
+vector<int> primes_up_to(int n) {
+    vector<bool> is_prime(n + 1, true);
+    vector<int> primes;
+
+    if (n < 2) return primes;
+
+    is_prime[0] = is_prime[1] = false;
+    for (int i = 2; i * i <= n; i++) {
+        if (is_prime[i]) {
+            for (int j = i * i; j <= n; j += i) {
+                is_prime[j] = false;
+            }
+        }
+    }
+    for (int i = 2; i <= n; i++) {
+        if (is_prime[i]) primes.push_back(i);
+    }
+    return primes;
+}
+
+/*
+==================================================
+ 最小素因数（SPF）テーブル構築
+==================================================
+
+【機能】
+各数の最小素因数を前計算する。
+
+【引数】
+- n : テーブルを作る最大値（1 <= n <= 10^7 程度）
+
+【戻り値】
+- spf[i] = i の最小素因数
+
+【計算量】
+- O(n log log n)
+
+【用途】
+- 多数回の素因数分解を高速化
+*/
+vector<int> build_spf(int n) {
+    vector<int> spf(n + 1);
+    for (int i = 0; i <= n; i++) spf[i] = i;
+
+    for (int i = 2; i * i <= n; i++) {
+        if (spf[i] == i) { // i は素数
+            for (int j = i * i; j <= n; j += i) {
+                if (spf[j] == j) spf[j] = i;
+            }
+        }
+    }
+    return spf;
+}
+
+/*
+==================================================
+ SPF を用いた素因数分解
+==================================================
+
+【機能】
+SPF テーブルを使って高速に素因数分解する。
+
+【引数】
+- n   : 分解したい自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- pair<primes, exps>
+
+【計算量】
+- O(log n)
+*/
+pair<vector<int>, vector<int>> prime_factorize_spf(int n, const vector<int>& spf) {
+    vector<int> primes, exps;
+
+    while (n > 1) {
+        int p = spf[n];
+        int cnt = 0;
+        while (n % p == 0) {
+            n /= p;
+            cnt++;
+        }
+        primes.push_back(p);
+        exps.push_back(cnt);
+    }
+    return {primes, exps};
+}
+
+/*
+==================================================
+ SPF版 約数列挙
+==================================================
+
+【機能】
+SPF を使って n の約数を列挙する（順序未保証）。
+
+【引数】
+- n   : 自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- n の約数をすべて含む vector
+
+【計算量】
+- O(τ(n))
+*/
+vector<int> divisors_of_spf(int n, const vector<int>& spf) {
+    auto [primes, exps] = prime_factorize_spf(n, spf);
+    vector<int> divisors = {1};
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        vector<int> next;
+        int p = primes[i];
+        int e = exps[i];
+
+        for (int d : divisors) {
+            int cur = 1;
+            for (int k = 1; k <= e; k++) {
+                cur *= p;
+                next.push_back(d * cur);
+            }
+        }
+        divisors.insert(divisors.end(), next.begin(), next.end());
+    }
+    return divisors;
+}
+
+/*
+==================================================
+ SPF版 約数の個数
+==================================================
+
+【機能】
+SPF を用いて n の約数の個数を返す。
+
+【引数】
+- n   : 自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- 約数の個数
+
+【計算量】
+- O(log n)
+*/
+ll count_divisors_spf(int n, const vector<int>& spf) {
+    auto [primes, exps] = prime_factorize_spf(n, spf);
+    ll res = 1;
+    for (int e : exps) res *= (e + 1);
+    return res;
+}
+
+/*
+==================================================
+ SPF版 約数の和
+==================================================
+
+【機能】
+SPF を用いて n の約数の総和を返す。
+
+【引数】
+- n   : 自然数（1 <= n < spf.size()）
+- spf : build_spf で構築した配列
+
+【戻り値】
+- 約数の和
+
+【計算量】
+- O(log n)
+*/
+ll sum_divisors_spf(int n, const vector<int>& spf) {
+    auto [primes, exps] = prime_factorize_spf(n, spf);
+    ll res = 1;
+
+    for (int i = 0; i < (int)primes.size(); i++) {
+        ll p = primes[i];
+        int e = exps[i];
+
+        ll term = 1;
+        ll cur = 1;
+        for (int k = 0; k < e; k++) {
+            cur *= p;
+            term += cur;
+        }
+        res *= term;
+    }
+    return res;
+}
+// ======================= ここまでテンプレート本体 =======================
+
+// =============================================================================
+//  愚直解とのランダム比較テスト（作り直しで追加）
+// =============================================================================
+void random_test_bruteforce(){ int bad=0; auto spf=build_spf(5000); auto pr=primes_up_to(5000);
+ vector<int> np; for(int i=2;i<=5000;i++){bool p=true; for(int j=2;j*j<=i;j++) if(i%j==0)p=false; if(p)np.push_back(i);} if(pr!=np)bad++;
+ for(ll n=1;n<=5000;n++){ vector<ll> d; for(ll k=1;k<=n;k++) if(n%k==0)d.push_back(k);
+  auto e=divisors_of(n); sort(e.begin(),e.end()); if(e!=d)bad++;
+  if(count_divisors(n)!=(ll)d.size())bad++; ll s=accumulate(d.begin(),d.end(),0LL); if(sum_divisors(n)!=s)bad++;
+  auto e2=divisors_of_spf(n,spf); sort(e2.begin(),e2.end()); vector<ll> e3(e2.begin(),e2.end()); if(e3!=d)bad++;
+  if(count_divisors_spf(n,spf)!=(ll)d.size())bad++; if(sum_divisors_spf(n,spf)!=s)bad++;
+  auto [ps,es]=prime_factorize(n); ll prod=1; for(size_t i=0;i<ps.size();i++) for(int k=0;k<es[i];k++) prod*=ps[i]; if(prod!=n)bad++;
+  auto [ps2,es2]=prime_factorize_spf(n,spf); ll prod2=1; for(size_t i=0;i<ps2.size();i++) for(int k=0;k<es2[i];k++) prod2*=ps2[i]; if(prod2!=n)bad++;
+ } 
+    cout << "random_test_bruteforce（愚直解とのランダム比較）: " << (((bad)==0) ? "OK" : "NG") << "\n";
+    assert((bad)==0);
+}
+
+void solv(){
+    ll n = 360;   // 2^3 * 3^2 * 5
+    int m = 50;
+
+    // ---- 試し割り版 素因数分解 ----
+    auto [pf_p, pf_e] = prime_factorize(n);
+    cout << "[prime_factorize]\n";
+    for (int i = 0; i < (int)pf_p.size(); i++) {
+        cout << pf_p[i] << "^" << pf_e[i] << " ";
+    }
+    cout << "\n";
+    cout << "[factorize]（数学第二世代と同じ形 vector<PrimePower>）\n";
+    for (auto [p, e] : factorize(n)) cout << p << "^" << e << " ";
+    cout << "  / そのまま出力すると: ";
+    for (const PrimePower& f : factorize(n)) cout << f << " ";
+    cout << "\n\n";
+
+    // ---- 試し割り版 約数列挙 ----
+    auto divs = divisors_of(n);
+    sort(divs.begin(), divs.end());
+    cout << "[divisors_of]\n";
+    for (ll d : divs) cout << d << " ";
+    cout << "\n\n";
+
+    // ---- 約数の個数・約数の和（試し割り） ----
+    cout << "[count_divisors] " << count_divisors(n) << "\n";
+    cout << "[sum_divisors]   " << sum_divisors(n) << "\n\n";
+
+    // ---- n 以下の素数列挙 ----
+    auto primes = primes_up_to(m);
+    cout << "[primes_up_to]\n";
+    for (int p : primes) cout << p << " ";
+    cout << "\n\n";
+
+    // ---- SPF 構築 ----
+    int MAXN = 1000;
+    auto spf = build_spf(MAXN);
+
+    // ---- SPF版 素因数分解 ----
+    auto [spf_p, spf_e] = prime_factorize_spf((int)n, spf);
+    cout << "[prime_factorize_spf]\n";
+    for (int i = 0; i < (int)spf_p.size(); i++) {
+        cout << spf_p[i] << "^" << spf_e[i] << " ";
+    }
+    cout << "\n\n";
+
+    // ---- SPF版 約数列挙 ----
+    auto divs_spf = divisors_of_spf((int)n, spf);
+    sort(divs_spf.begin(), divs_spf.end());
+    cout << "[divisors_of_spf]\n";
+    for (int d : divs_spf) cout << d << " ";
+    cout << "\n\n";
+
+    // ---- SPF版 約数の個数・約数の和 ----
+    cout << "[count_divisors_spf] " << count_divisors_spf((int)n, spf) << "\n";
+    cout << "[sum_divisors_spf]   " << sum_divisors_spf((int)n, spf) << "\n";
+    random_test_bruteforce();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

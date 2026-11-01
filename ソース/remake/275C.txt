@@ -1,0 +1,386 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  90度回転（任意中心・左右統合）
+//  範囲判定（動的サイズ対応）
+//  BFS用 近傍ジェネレータ
+//  （作り直し版：元ファイル 275C.txt）
+// -----------------------------------------------------------------------------
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ================================
+// 90度回転（任意中心・左右統合）
+// ================================
+// left = true : 左90度（反時計）
+// left = false: 右90度（時計）
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+pair<ll,ll> rot90(pair<ll,ll> p, pair<ll,ll> c, bool left){
+    ll x = p.first  - c.first;
+    ll y = p.second - c.second;
+
+    ll nx, ny;
+    if(left){
+        nx = -y;
+        ny =  x;
+    }else{
+        nx =  y;
+        ny = -x;
+    }
+    return {nx + c.first, ny + c.second};
+}
+
+// ================================
+// グリッド範囲判定（動的サイズ対応）
+// ================================
+struct GridRange {
+    int H, W;
+
+    GridRange(int h, int w) : H(h), W(w) {}
+
+    GridRange(const vector<string>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    template<class T>
+    GridRange(const vector<vector<T>>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    bool in(int x, int y) const {
+        return (0 <= x && x < H && 0 <= y && y < W);
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// トーラスグリッド（上下左右が接続）
+// ================================
+struct TorusGrid {
+    int H, W;
+
+    TorusGrid(int h, int w) : H(h), W(w) {}
+
+    TorusGrid(const vector<string>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    template<class T>
+    TorusGrid(const vector<vector<T>>& g){
+        H = g.size();
+        W = (H ? g[0].size() : 0);
+    }
+
+    pair<int,int> norm(int x, int y) const {
+        x = (x % H + H) % H;
+        y = (y % W + W) % W;
+        return {x, y};
+    }
+};
+
+// ================================
+// マンハッタン距離制限
+// ================================
+struct Manhattan {
+    int cx, cy, D;
+
+    Manhattan(int x, int y, int d) : cx(x), cy(y), D(d) {}
+
+    bool in(int x, int y) const {
+        return abs(x - cx) + abs(y - cy) <= D;
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// チェビシェフ距離制限
+// ================================
+struct Chebyshev {
+    int cx, cy, D;
+
+    Chebyshev(int x, int y, int d) : cx(x), cy(y), D(d) {}
+
+    bool in(int x, int y) const {
+        return max(abs(x - cx), abs(y - cy)) <= D;
+    }
+
+    bool in(pair<int,int> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// 円（ユークリッド距離）制限
+// ================================
+struct Circle {
+    ll cx, cy, R2;
+
+    Circle(ll x, ll y, ll r) : cx(x), cy(y), R2(r*r) {}
+
+    bool in(ll x, ll y) const {
+        ll dx = x - cx;
+        ll dy = y - cy;
+        return dx*dx + dy*dy <= R2;
+    }
+
+    bool in(pair<ll,ll> p) const {
+        return in(p.first, p.second);
+    }
+};
+
+// ================================
+// BFS用 近傍ジェネレータ
+// ================================
+struct Neighbors {
+    vector<pair<int,int>> d;
+
+    // 4近傍
+    static Neighbors four(){
+        return {{{1,0},{-1,0},{0,1},{0,-1}}};
+    }
+
+    // 8近傍
+    static Neighbors eight(){
+        return {{{1,0},{-1,0},{0,1},{0,-1},
+                 {1,1},{1,-1},{-1,1},{-1,-1}}};
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（ABC275 C）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+void solve_ABC275C(){
+    vector<string>S(9);
+    rep(i,0,9)cin>>S[i];
+    ll ans=0;
+    auto gr=GridRange(9,9);
+    rep(i,0,9)rep(j,0,9)rep(k,0,9)rep(l,0,9){
+        if(i==k&&j==l)continue;
+        if(S[i][j]!='#')continue;
+        if(S[k][l]!='#')continue;
+        auto p=rot90(make_pair(i,j),make_pair(k,l),true);
+        if((!gr.in(p))||S[p.first][p.second]!='#')continue;
+        p=rot90(make_pair(k,l),p,true);
+        if((!gr.in(p))||S[p.first][p.second]!='#')continue;
+        ans++;
+    }
+    cout<<ans/4<<'\n';
+    return;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== 回転・範囲判定・近傍 デモ =====\n";
+    auto p = rot90({3, 1}, {1, 1}, true);                   // (3,1) を中心 (1,1) で左（反時計回り）に 90 度
+    auto q = rot90({3, 1}, {1, 1}, false);                  // 右（時計回り）
+    cout << "rot90({3,1}, 中心{1,1}, 左) = (" << p.first << "," << p.second << "), 右 = (" << q.first << "," << q.second << ")\n";
+    vector<string> g = {"...", "..."};
+    GridRange gr(g);                                         // H=2, W=3
+    cout << "GridRange: gr.in(1, 2) = " << gr.in(1, 2) << ", gr.in(2, 0) = " << gr.in(2, 0) << "\n";
+    TorusGrid tg(2, 3);
+    auto t = tg.norm(-1, 4);
+    cout << "TorusGrid: tg.norm(-1, 4) = (" << t.first << "," << t.second << ")   // 上下・左右がつながる\n";
+    cout << "Manhattan(0,0,2).in(1,1) = " << Manhattan(0, 0, 2).in(1, 1) << ", Chebyshev(0,0,1).in(1,1) = " << Chebyshev(0, 0, 1).in(1, 1) << ", Circle(0,0,1).in(1,1) = " << Circle(0, 0, 1).in(1, 1) << "\n";
+    cout << "4 近傍: "; for (auto [dx, dy] : Neighbors::four().d) cout << "(" << dx << "," << dy << ") "; cout << "\n";
+    cout << "8 近傍の数 = " << Neighbors::eight().d.size() << "\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    return 0;
+}
+

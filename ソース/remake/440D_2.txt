@@ -1,0 +1,329 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  ForbiddenList(X以上Y番目の欠番)(X,Yが巨大)
+//  （作り直し版：元ファイル 440D_2.txt）
+// -----------------------------------------------------------------------------
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+//https://atcoder.jp/contests/abc440/tasks/abc440_d
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+template<class T>
+struct SortedArrayHelper {
+    vector<T> a;
+
+    /*
+     * コンストラクタ
+     * v: 元の配列
+     * sorted_flag: ソート済みかどうか
+     */
+    SortedArrayHelper(const vector<T>& v, bool sorted_flag) {
+        a = v;
+        if (!sorted_flag) sort(a.begin(), a.end());
+    }
+
+    SortedArrayHelper(){}
+
+    /*
+     * x 以下の要素数 (<= x)
+     */
+    int count_le(const T& x) const {
+        return upper_bound(a.begin(), a.end(), x) - a.begin();
+    }
+
+    /*
+     * x 未満の要素数 (< x)
+     */
+    int count_lt(const T& x) const {
+        return lower_bound(a.begin(), a.end(), x) - a.begin();
+    }
+
+    /*
+     * x 以上の要素数 (>= x)
+     */
+    int count_ge(const T& x) const {
+        return a.end() - lower_bound(a.begin(), a.end(), x);
+    }
+
+    /*
+     * x より大きい要素数 (> x)
+     */
+    int count_gt(const T& x) const {
+        return a.end() - upper_bound(a.begin(), a.end(), x);
+    }
+
+    // 半開区間 [l, r) に含まれる要素数（l >= r なら 0）
+    int count_range(const T& l, const T& r) const {
+        if (!(l < r)) return 0;
+        return count_lt(r) - count_lt(l);
+    }
+
+    // 閉区間 [l, r] に含まれる要素数（l > r なら 0）
+    int count_range_closed(const T& l, const T& r) const {
+        if (r < l) return 0;
+        return count_le(r) - count_lt(l);
+    }
+
+    // k 番目 (0-indexed)
+    T kth(int k) const {
+        return a[k];
+    }
+
+    // 存在判定
+    bool contains(const T& x) const {
+        auto it = lower_bound(a.begin(), a.end(), x);
+        return it != a.end() && *it == x;
+    }
+};
+
+// X以上Y番目の欠番
+// 数列Aの範囲が広い、かつX,Yが大きい
+struct ForbiddenList{
+    SortedArrayHelper<ll> sah;
+
+    /*
+     * コンストラクタ
+     * v: 元の配列、重複なし
+     * sorted_flag: ソート済みかどうか
+     */
+    ForbiddenList(const vector<ll>& v, bool sorted_flag){
+        sah=SortedArrayHelper<ll>(v,sorted_flag);
+        auto& a=sah.a;
+        a.erase(unique(a.begin(),a.end()),a.end());   // 重複があっても正しく動くように取り除く
+    }
+
+    // num 以上の整数のうち、配列に含まれない（欠番の）もので小さい方から k 番目（k は 1 始まり）
+    // O(log N)：num 以上の要素 a[j] について「[num, a[j]) の欠番の数 = a[j] - num - (j - s)」は増えていくので、
+    //           それが k 以上になる最初の j を二分探索し、答え = num + k - 1 + (j - s)（s = num 以上が始まる位置）
+    ll kth_missing_from(ll num,ll k) const {
+        const auto& a=sah.a;
+        int s=lower_bound(a.begin(),a.end(),num)-a.begin();
+        int lo=s,hi=a.size();   // [lo, hi) で「欠番の数 >= k」となる最初の j を探す
+        while(lo<hi){
+            int mid=(lo+hi)/2;
+            if(a[mid]-num-(mid-s)>=k) hi=mid;
+            else lo=mid+1;
+        }
+        return num+k-1+(lo-s);
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（ABC440 D）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+void solve_ABC440D(){
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>A(N);
+    cin>>A;
+    ForbiddenList fl(A,false);
+    rep(i,0,Q){
+        ll X,Y;
+        cin>>X>>Y;
+        cout<<fl.kth_missing_from(X,Y)<<'\n';
+    }
+    return;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== ForbiddenList（巨大な範囲の欠番）デモ =====\n";
+    ForbiddenList fl({3, 5, 6, 10}, false);    // 重複なしの配列（ソート済みなら第 2 引数 true）
+    cout << "fl.kth_missing_from(3, 1) = " << fl.kth_missing_from(3, 1) << "   // 3 以上で 3,5,6,10 以外: 4,7,8,9,11,... の 1 番目 → 4\n";
+    cout << "fl.kth_missing_from(3, 3) = " << fl.kth_missing_from(3, 3) << "   // → 8\n";
+    cout << "fl.kth_missing_from(11, 1000000000) = " << fl.kth_missing_from(11, 1000000000) << "   // 巨大でも O(log)\n";
+    SortedArrayHelper<ll> sah({5, 1, 3, 3}, false);
+    cout << "SortedArrayHelper: count_le(3) = " << sah.count_le(3) << ", count_range(2, 5) = " << sah.count_range(2, 5) << "（[2,5)）, count_range_closed(2, 5) = " << sah.count_range_closed(2, 5) << "   // [2,5]（閉区間）に 3,3,5\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    return 0;
+}
+

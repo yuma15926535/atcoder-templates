@@ -1,0 +1,687 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  ナップサックDP 総合テンプレート（完全版）
+//  （作り直し版：元ファイル knapsackTemplateTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - （詳しい説明はこの下の元のコメントを参照）
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+/*
+==================================================
+ ナップサックDP 総合テンプレート（完全版）
+==================================================
+
+【含まれるもの】
+
+1. YES / NO 判定ナップサック
+   - 0/1     :品物は入れるか入れないか
+   - 完全    :品物ごとの個数制限無
+   - 個数制限:品物ごとに個数制限有
+
+2. YES / NO + 最小個数
+   - 0/1
+   - 完全
+   - 個数制限
+
+3. 最大個数ナップサック（0/1）
+
+4. 0/1 ナップサック（価値最大化）
+   - 復元あり
+
+5. 価値DP（重さが大きい場合）
+   - 価値最大化 + 復元
+   - 最小個数
+   - 最小個数 + 復元
+
+6. 通り数ナップサック
+   - 0/1
+   - 完全
+
+==================================================
+*/
+
+/* ==================================================
+   1. YES / NO 判定ナップサック
+   ================================================== */
+
+// ---------- 0/1 ナップサック（YES / NO） ----------
+// res[w] = 重さ w が作れるか
+vector<bool> knapsack_bool(int N, int W, const vector<int>& wt) {
+    vector<bool> dp(W+1, false);
+    dp[0] = true;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = W; w >= wt[i]; w--) {
+            if (dp[w - wt[i]]) dp[w] = true;
+        }
+    }
+    return dp;
+}
+
+// ---------- 完全ナップサック（YES / NO） ----------
+vector<bool> knapsack_bool_unbounded(int N, int W, const vector<int>& wt) {
+    vector<bool> dp(W+1, false);
+    dp[0] = true;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = wt[i]; w <= W; w++) {
+            if (dp[w - wt[i]]) dp[w] = true;
+        }
+    }
+    return dp;
+}
+
+// ---------- 個数制限付き（YES / NO） ----------
+// O(N W)：used[w] = 重さ w を作るのにこの品物を使った最小の個数 として、個数が cnt[i] 以下のときだけ広げる
+vector<bool> knapsack_bool_bounded(int N, int W,
+                                   const vector<int>& wt,
+                                   const vector<int>& cnt) {
+    vector<bool> dp(W+1, false);
+    dp[0] = true;
+    vector<int> used(W+1);
+
+    for (int i = 0; i < N; i++) {
+        fill(used.begin(), used.end(), 0);
+        for (int w = wt[i]; w <= W; w++) {
+            if (!dp[w] && dp[w - wt[i]] && used[w - wt[i]] < cnt[i]) {
+                dp[w] = true;
+                used[w] = used[w - wt[i]] + 1;
+            }
+        }
+    }
+    return dp;
+}
+
+/* ==================================================
+   2. YES / NO + 最小個数
+   ================================================== */
+
+// ---------- 0/1 ナップサック（最小個数） ----------
+// res[w] = 重さ w を作るための最小使用個数（作れない場合 -1）
+vector<int> knapsack_min_count(int N, int W, const vector<int>& wt) {
+    const int INF = 1e9;
+    vector<int> dp(W+1, INF);
+    dp[0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = W; w >= wt[i]; w--) {
+            dp[w] = min(dp[w], dp[w - wt[i]] + 1);
+        }
+    }
+
+    vector<int> res(W+1, -1);
+    for (int w = 0; w <= W; w++) {
+        if (dp[w] != INF) res[w] = dp[w];
+    }
+    return res;
+}
+
+// ---------- 完全ナップサック（最小個数） ----------
+vector<int> knapsack_min_count_unbounded(int N, int W, const vector<int>& wt) {
+    const int INF = 1e9;
+    vector<int> dp(W+1, INF);
+    dp[0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = wt[i]; w <= W; w++) {
+            dp[w] = min(dp[w], dp[w - wt[i]] + 1);
+        }
+    }
+
+    vector<int> res(W+1, -1);
+    for (int w = 0; w <= W; w++) {
+        if (dp[w] != INF) res[w] = dp[w];
+    }
+    return res;
+}
+
+// ---------- 個数制限付き（最小個数） ----------
+// 二進分割：個数 cnt を 1, 2, 4, …, 残り のまとまりに分けて 0/1 ナップサックにする。O(W × Σ log cnt)
+vector<int> knapsack_min_count_bounded(int N, int W,
+                                       const vector<int>& wt,
+                                       const vector<int>& cnt) {
+    const int INF = 1e9;
+    vector<int> dp(W+1, INF);
+    dp[0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        int rest = cnt[i];
+        for (int s = 1; rest > 0; s <<= 1) {
+            int k = min(s, rest);   // k 個のまとまり（重さ k * wt、個数 k）
+            rest -= k;
+            long long kw = (long long)k * wt[i];
+            if (kw > W) continue;
+            for (int w = W; w >= kw; w--) {
+                if (dp[w - kw] != INF) dp[w] = min(dp[w], dp[w - kw] + k);
+            }
+        }
+    }
+
+    vector<int> res(W+1, -1);
+    for (int w = 0; w <= W; w++) {
+        if (dp[w] != INF) res[w] = dp[w];
+    }
+    return res;
+}
+
+/* ==================================================
+   3. 最大個数ナップサック（0/1）
+   ================================================== */
+
+// dp[w] = 重さ w を作るための最大使用個数
+vector<int> knapsack_max_count(int N, int W, const vector<int>& wt) {
+    const int NEG = -1e9;
+    vector<int> dp(W+1, NEG);
+    dp[0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = W; w >= wt[i]; w--) {
+            if (dp[w - wt[i]] != NEG) {
+                dp[w] = max(dp[w], dp[w - wt[i]] + 1);
+            }
+        }
+    }
+    return dp;
+}
+
+/* ==================================================
+   4. 0/1 ナップサック（価値最大化 + 復元）
+   ================================================== */
+
+void knapsack01_restore(int N, int W,
+                        const vector<int>& wt,
+                        const vector<int>& val,
+                        vector<int>& chosen) {
+    vector<vector<long long>> dp(N+1, vector<long long>(W+1, -1));
+    vector<vector<bool>> use(N+1, vector<bool>(W+1, false));
+
+    dp[0][0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = 0; w <= W; w++) {
+            if (dp[i][w] < 0) continue;
+
+            // 使わない
+            if (dp[i+1][w] < dp[i][w]) {
+                dp[i+1][w] = dp[i][w];
+                use[i+1][w] = false;
+            }
+
+            // 使う
+            if (w + wt[i] <= W) {
+                if (dp[i+1][w + wt[i]] < dp[i][w] + val[i]) {
+                    dp[i+1][w + wt[i]] = dp[i][w] + val[i];
+                    use[i+1][w + wt[i]] = true;
+                }
+            }
+        }
+    }
+
+    int best_w = max_element(dp[N].begin(), dp[N].end()) - dp[N].begin();
+
+    chosen.clear();
+    for (int i = N; i >= 1; i--) {
+        if (use[i][best_w]) {
+            chosen.push_back(i-1);
+            best_w -= wt[i-1];
+        }
+    }
+    reverse(chosen.begin(), chosen.end());
+}
+
+/* ==================================================
+   5. 価値DP
+   ================================================== */
+
+// ---------- 価値最大化 + 復元 ----------
+void knapsack_value_restore(int N, int W,
+                            const vector<int>& wt,
+                            const vector<int>& val,
+                            vector<int>& chosen) {
+    const long long INF = 4e18;
+    int Vsum = accumulate(val.begin(), val.end(), 0);
+
+    vector<vector<long long>> dp(N+1, vector<long long>(Vsum+1, INF));
+    vector<vector<bool>> use(N+1, vector<bool>(Vsum+1, false));
+    dp[0][0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int v = 0; v <= Vsum; v++) {
+            if (dp[i][v] == INF) continue;
+
+            if (dp[i+1][v] > dp[i][v]) {
+                dp[i+1][v] = dp[i][v];
+                use[i+1][v] = false;
+            }
+            if (v + val[i] <= Vsum &&
+                dp[i+1][v + val[i]] > dp[i][v] + wt[i]) {
+                dp[i+1][v + val[i]] = dp[i][v] + wt[i];
+                use[i+1][v + val[i]] = true;
+            }
+        }
+    }
+
+    int best_v = 0;
+    for (int v = 0; v <= Vsum; v++) {
+        if (dp[N][v] <= W) best_v = v;
+    }
+
+    chosen.clear();
+    for (int i = N; i >= 1; i--) {
+        if (use[i][best_v]) {
+            chosen.push_back(i-1);
+            best_v -= val[i-1];
+        }
+    }
+    reverse(chosen.begin(), chosen.end());
+}
+
+// ---------- 価値DP × 最小個数 ----------
+// res[v] = 価値の合計をちょうど v にする最小の個数（作れない場合 -1。他の関数と同じ）
+vector<int> knapsack_value_min_count(int N, const vector<int>& val) {
+    const int INF = 1e9;
+    int Vsum = accumulate(val.begin(), val.end(), 0);
+
+    vector<int> dp(Vsum+1, INF);
+    dp[0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int v = Vsum; v >= val[i]; v--) {
+            dp[v] = min(dp[v], dp[v - val[i]] + 1);
+        }
+    }
+    for (int& x : dp) if (x == INF) x = -1;
+    return dp;
+}
+
+// ---------- 価値DP × 最小個数 + 復元 ----------
+// 価値の合計をちょうど V にする最小個数を返し（作れなければ -1）、選んだ品物の番号（昇順）を chosen に入れる
+int knapsack_value_min_count_restore(int N,
+                                      const vector<int>& val,
+                                      int V,
+                                      vector<int>& chosen) {
+    const int INF = 1e9;
+    int Vsum = accumulate(val.begin(), val.end(), 0);
+    chosen.clear();
+    if (V < 0 || V > Vsum) return -1;
+
+    vector<vector<int>> dp(N+1, vector<int>(Vsum+1, INF));
+    vector<vector<bool>> use(N+1, vector<bool>(Vsum+1, false));
+    dp[0][0] = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int v = 0; v <= Vsum; v++) {
+            if (dp[i][v] == INF) continue;
+
+            if (dp[i+1][v] > dp[i][v]) {
+                dp[i+1][v] = dp[i][v];
+                use[i+1][v] = false;
+            }
+            if (v + val[i] <= Vsum &&
+                dp[i+1][v + val[i]] > dp[i][v] + 1) {
+                dp[i+1][v + val[i]] = dp[i][v] + 1;
+                use[i+1][v + val[i]] = true;
+            }
+        }
+    }
+
+    if (dp[N][V] == INF) return -1;
+    int best_v = V;
+    for (int i = N; i >= 1; i--) {
+        if (use[i][best_v]) {
+            chosen.push_back(i-1);
+            best_v -= val[i-1];
+        }
+    }
+    reverse(chosen.begin(), chosen.end());
+    return dp[N][V];
+}
+
+/* ==================================================
+   6. 通り数ナップサック
+   ================================================== */
+
+// ---------- 0/1 通り数 ----------
+long long knapsack_count(int N, int W, const vector<int>& wt, long long MOD) {
+    vector<long long> dp(W+1, 0);
+    dp[0] = 1;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = W; w >= wt[i]; w--) {
+            dp[w] = (dp[w] + dp[w - wt[i]]) % MOD;
+        }
+    }
+    return dp[W];
+}
+
+// ---------- 完全ナップサック 通り数 ----------
+long long knapsack_count_unbounded(int N, int W,
+                                   const vector<int>& wt,
+                                   long long MOD) {
+    vector<long long> dp(W+1, 0);
+    dp[0] = 1;
+
+    for (int i = 0; i < N; i++) {
+        for (int w = wt[i]; w <= W; w++) {
+            dp[w] = (dp[w] + dp[w - wt[i]]) % MOD;
+        }
+    }
+    return dp[W];
+}
+// ======================= ここまでテンプレート本体 =======================
+
+// =============================================================================
+//  愚直解とのランダム比較テスト（作り直しで追加）
+// =============================================================================
+void random_test_bruteforce(){ mt19937 rng(6); int bad=0;
+ for(int it=0;it<3000;it++){ int N=rng()%5+1, W=rng()%15; vector<int> wt(N),val(N),cnt(N); for(int i=0;i<N;i++){wt[i]=rng()%6+1; val[i]=rng()%10+1; cnt[i]=rng()%3+1;}
+  // brute over 0/1 subsets
+  vector<int> mn01(W+1,INT_MAX), mx01(W+1,-1); vector<long long> ways(W+1,0); long long bestv=0;
+  for(int m=0;m<(1<<N);m++){ int w=0,v=0,c=0; for(int i=0;i<N;i++) if(m>>i&1){w+=wt[i];v+=val[i];c++;} if(w<=W){ mn01[w]=min(mn01[w],c); mx01[w]=max(mx01[w],c); ways[w]++; bestv=max(bestv,(long long)v);} }
+  auto b=knapsack_bool(N,W,wt); auto mc=knapsack_min_count(N,W,wt); auto xc=knapsack_max_count(N,W,wt);
+  for(int w=0;w<=W;w++){ if(b[w]!=(mn01[w]!=INT_MAX))bad++; if(mc[w]!=(mn01[w]==INT_MAX?-1:mn01[w]))bad++; if(mx01[w]>=0 && xc[w]!=mx01[w])bad++; }
+  if(knapsack_count(N,W,wt,1000000007)!=ways[W]%1000000007)bad++;
+  vector<int> ch; knapsack01_restore(N,W,wt,val,ch); long long sv=0,sw=0; for(int i:ch){sv+=val[i];sw+=wt[i];} if(sv!=bestv||sw>W)bad++;
+  ch.clear(); knapsack_value_restore(N,W,wt,val,ch); sv=0;sw=0; for(int i:ch){sv+=val[i];sw+=wt[i];} if(sv!=bestv||sw>W)bad++;
+  // unbounded / bounded via brute recursion on counts
+  vector<int> ub(W+1,INT_MAX), bb(W+1,INT_MAX); vector<long long> uw(W+1,0);
+  function<void(int,int,int,bool)> rec=[&](int i,int w,int c,bool bounded){ if(w>W)return; if(i==N){ if(bounded) bb[w]=min(bb[w],c); else {ub[w]=min(ub[w],c); uw[w]++;} return;} for(int k=0;;k++){ if(bounded&&k>cnt[i])break; if(w+k*wt[i]>W)break; rec(i+1,w+k*wt[i],c+k,bounded);} };
+  rec(0,0,0,false); rec(0,0,0,true);
+  auto bu=knapsack_bool_unbounded(N,W,wt), bbd=knapsack_bool_bounded(N,W,wt,cnt); auto mu=knapsack_min_count_unbounded(N,W,wt), mbd=knapsack_min_count_bounded(N,W,wt,cnt);
+  for(int w=0;w<=W;w++){ if(bu[w]!=(ub[w]!=INT_MAX))bad++; if(bbd[w]!=(bb[w]!=INT_MAX))bad++; if(mu[w]!=(ub[w]==INT_MAX?-1:ub[w]))bad++; if(mbd[w]!=(bb[w]==INT_MAX?-1:bb[w]))bad++; }
+  if(knapsack_count_unbounded(N,W,wt,1000000007)!=uw[W]%1000000007)bad++;
+  // 価値DP × 最小個数（+ 復元）
+  { int Vs=accumulate(val.begin(),val.end(),0); vector<int> want(Vs+1,INT_MAX);
+    for(int m=0;m<(1<<N);m++){ int v=0,c=0; for(int i=0;i<N;i++) if(m>>i&1){v+=val[i];c++;} want[v]=min(want[v],c); }
+    auto vm=knapsack_value_min_count(N,val); for(int v=0;v<=Vs;v++) if(vm[v]!=(want[v]==INT_MAX?-1:want[v]))bad++;
+    int V=rng()%(Vs+2); vector<int> ch; int r=knapsack_value_min_count_restore(N,val,V,ch);
+    int wv=(V<=Vs&&want[V]!=INT_MAX)?want[V]:-1; if(r!=wv)bad++;
+    if(r>=0){ int sv2=0; for(int i:ch) sv2+=val[i]; if(sv2!=V||(int)ch.size()!=r)bad++; } else if(!ch.empty())bad++; }
+ } 
+    cout << "random_test_bruteforce（愚直解とのランダム比較）: " << (((bad)==0) ? "OK" : "NG") << "\n";
+    assert((bad)==0);
+}
+
+void solv(){
+    // ===== テスト用データ =====
+    int N = 3;
+    int W = 7;
+    vector<int> wt  = {2, 3, 4};
+    vector<int> val = {3, 4, 5};
+    vector<int> cnt = {2, 1, 3};
+    const long long MOD = 1000000007;
+
+    cout << "==== 1. YES / NO 判定 ====\n";
+
+    auto b1 = knapsack_bool(N, W, wt);
+    auto b2 = knapsack_bool_unbounded(N, W, wt);
+    auto b3 = knapsack_bool_bounded(N, W, wt, cnt);
+
+    cout << "0/1        : ";
+    for (int w = 0; w <= W; w++) cout << b1[w];
+    cout << "\n";
+
+    cout << "unbounded  : ";
+    for (int w = 0; w <= W; w++) cout << b2[w];
+    cout << "\n";
+
+    cout << "bounded    : ";
+    for (int w = 0; w <= W; w++) cout << b3[w];
+    cout << "\n\n";
+
+    cout << "==== 2. YES / NO + 最小個数 ====\n";
+
+    auto m1 = knapsack_min_count(N, W, wt);
+    auto m2 = knapsack_min_count_unbounded(N, W, wt);
+    auto m3 = knapsack_min_count_bounded(N, W, wt, cnt);
+
+    cout << "0/1        : ";
+    for (int w = 0; w <= W; w++) cout << m1[w] << " ";
+    cout << "\n";
+
+    cout << "unbounded  : ";
+    for (int w = 0; w <= W; w++) cout << m2[w] << " ";
+    cout << "\n";
+
+    cout << "bounded    : ";
+    for (int w = 0; w <= W; w++) cout << m3[w] << " ";
+    cout << "\n\n";
+
+    cout << "==== 3. 最大個数ナップサック ====\n";
+
+    auto mx = knapsack_max_count(N, W, wt);
+    cout << "max count  : ";
+    for (int w = 0; w <= W; w++) cout << mx[w] << " ";
+    cout << "\n\n";
+
+    cout << "==== 4. 0/1 価値最大化 + 復元 ====\n";
+
+    vector<int> chosen01;
+    knapsack01_restore(N, W, wt, val, chosen01);
+
+    cout << "chosen idx : ";
+    for (int x : chosen01) cout << x << " ";
+    cout << "\n\n";
+
+    cout << "==== 5. 価値DP ====\n";
+
+    vector<int> chosenV;
+    knapsack_value_restore(N, W, wt, val, chosenV);
+
+    cout << "value restore idx : ";
+    for (int x : chosenV) cout << x << " ";
+    cout << "\n";
+
+    auto vmc = knapsack_value_min_count(N, val);
+    cout << "value min count   : ";
+    for (int x : vmc) cout << x << " ";
+    cout << "\n";
+
+    vector<int> chosenVMC;
+    int vmcnt = knapsack_value_min_count_restore(N, val, 9, chosenVMC);   // 価値の合計をちょうど 9 にする
+
+    cout << "value min restore : 価値 9 を最小 " << vmcnt << " 個で、品物 ";
+    for (int x : chosenVMC) cout << x << " ";
+    cout << "  // 4+5 = 9 なので 2 個（品物 1, 2）。作れない価値なら -1\n\n";
+
+    cout << "==== 6. 通り数ナップサック ====\n";
+
+    cout << "0/1 count      : "
+         << knapsack_count(N, W, wt, MOD) << "\n";
+
+    cout << "unbounded count: "
+         << knapsack_count_unbounded(N, W, wt, MOD) << "\n";
+    random_test_bruteforce();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

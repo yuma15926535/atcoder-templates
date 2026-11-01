@@ -1,0 +1,411 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  （作り直し版：元ファイル RSQandRAQ.txt）
+// -----------------------------------------------------------------------------
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+//https://onlinejudge.u-aizu.ac.jp/courses/library/3/DSL/all/DSL_2_G
+//セグメント木（遅延あり）
+//区間加算、区間和
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+// 遅延セグメント木（区間作用・区間取得）。関数を引数で渡すので、種類の違う木を同時にいくつも持てる
+//   mapping に区間の長さ len が渡るので、区間和でも S に長さを持たなくてよい
+//   auto op          = [](ll a, ll b){ return a + b; };                 // ★ マージ（子 2 つ → 親）
+//   auto e           = [](){ return 0LL; };                             // ★ 単位元（S の型は e の返り値の型）
+//   auto mapping     = [](ll f, ll x, int len){ return x + f * len; };  // ★ 値 x・長さ len の区間に作用 f
+//   auto composition = [](ll f, ll g){ return f + g; };                 // ★ 作用 g の後に f（f ∘ g）
+//   auto id          = [](){ return 0LL; };                             // ★ 何もしない作用（F の型は id の返り値の型）
+//   LazySegTree lst(N, op, e, mapping, composition, id);
+//   apply(l, r, f) / prod(l, r)（[l, r)）/ get(i) / all_prod() / max_right(l, g) / min_left(r, g)
+//   非再帰（ACL の lazy_segtree と同じやり方）。max_right / min_left の g はテンプレート引数（std::function を使わない）
+template<class Op, class E, class Mapping, class Composition, class Id>
+struct LazySegTree {
+    using S = decltype(std::declval<E>()());
+    using F = decltype(std::declval<Id>()());
+
+    int n, lg, sz;
+    vector<S> seg;
+    vector<F> lazy;   // lazy[k]：子にまだ伝えていない作用（seg[k] には反映済み）
+    Op op; E e; Mapping mapping; Composition composition; Id id;
+
+    LazySegTree(int _n, Op op_, E e_, Mapping mp_, Composition cp_, Id id_)
+        : op(op_), e(e_), mapping(mp_), composition(cp_), id(id_) {
+        sz = _n;
+        n = 1; lg = 0;
+        while(n < _n){ n <<= 1; lg++; }
+        seg.assign(2*n, e());
+        lazy.assign(2*n, id());
+    }
+
+    void build(const vector<S>& v){
+        for(int i=0;i<(int)v.size();i++) seg[i + n] = v[i];   // 葉に値をセット
+        for(int i=n-1;i>0;i--) update(i);                     // 内部ノードを構築
+    }
+
+    int len_of(int k) const { return n >> (31 - __builtin_clz(k)); }   // ノード k の区間の長さ
+    void update(int k){ seg[k] = op(seg[k<<1], seg[k<<1|1]); }
+    void all_apply(int k, F f){
+        seg[k] = mapping(f, seg[k], len_of(k));
+        if(k < n) lazy[k] = composition(f, lazy[k]);
+    }
+    void push(int k){
+        all_apply(k<<1, lazy[k]);
+        all_apply(k<<1|1, lazy[k]);
+        lazy[k] = id();
+    }
+
+    // 区間 [l, r) に作用 f
+    void apply(int l, int r, F f){
+        if(l >= r) return;
+        l += n; r += n;
+        for(int i = lg; i >= 1; i--){
+            if(((l >> i) << i) != l) push(l >> i);
+            if(((r >> i) << i) != r) push((r - 1) >> i);
+        }
+        for(int a = l, b = r; a < b; a >>= 1, b >>= 1){
+            if(a & 1) all_apply(a++, f);
+            if(b & 1) all_apply(--b, f);
+        }
+        for(int i = 1; i <= lg; i++){
+            if(((l >> i) << i) != l) update(l >> i);
+            if(((r >> i) << i) != r) update((r - 1) >> i);
+        }
+    }
+
+    // 区間 [l, r) の集約
+    S prod(int l, int r){
+        if(l >= r) return e();
+        l += n; r += n;
+        for(int i = lg; i >= 1; i--){
+            if(((l >> i) << i) != l) push(l >> i);
+            if(((r >> i) << i) != r) push((r - 1) >> i);
+        }
+        S sml = e(), smr = e();
+        for(; l < r; l >>= 1, r >>= 1){
+            if(l & 1) sml = op(sml, seg[l++]);
+            if(r & 1) smr = op(seg[--r], smr);
+        }
+        return op(sml, smr);
+    }
+
+    S get(int p){
+        p += n;
+        for(int i = lg; i >= 1; i--) push(p >> i);
+        return seg[p];
+    }
+    S all_prod() const { return seg[1]; }
+
+    // g(op(a[l..r))) == true となる最大の r を返す（g(e()) は true であること）
+    template<class G>
+    int max_right(int l, G g){
+        if(l == sz) return sz;
+        l += n;
+        for(int i = lg; i >= 1; i--) push(l >> i);
+        S sm = e();
+        do {
+            while(l % 2 == 0) l >>= 1;
+            if(!g(op(sm, seg[l]))){
+                while(l < n){
+                    push(l);
+                    l <<= 1;
+                    if(g(op(sm, seg[l]))){ sm = op(sm, seg[l]); l++; }
+                }
+                return min(l - n, sz);
+            }
+            sm = op(sm, seg[l]);
+            l++;
+        } while((l & -l) != l);
+        return sz;
+    }
+
+    // g(op(a[l..r))) == true となる最小の l を返す（g(e()) は true であること）
+    template<class G>
+    int min_left(int r, G g){
+        if(r == 0) return 0;
+        r += n;
+        for(int i = lg; i >= 1; i--) push((r - 1) >> i);
+        S sm = e();
+        do {
+            r--;
+            while(r > 1 && (r % 2)) r >>= 1;
+            if(!g(op(seg[r], sm))){
+                while(r < n){
+                    push(r);
+                    r = r<<1 | 1;
+                    if(g(op(seg[r], sm))){ sm = op(seg[r], sm); r--; }
+                }
+                return r + 1 - n;
+            }
+            sm = op(seg[r], sm);
+        } while((r & -r) != r);
+        return 0;
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（AOJ DSL_2_G（RSQ and RAQ））… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+int solve_AOJ_DSL_2_G(){
+    int N,Q;
+    cin>>N>>Q;
+    vector<ll>A(N,0);
+    LazySegTree lst(N,
+        [](ll a,ll b){ return a+b; },                 // op
+        [](){ return 0LL; },                          // e
+        [](ll f,ll x,int len){ return x+f*len; },     // mapping
+        [](ll f,ll g){ return f+g; },                 // composition
+        [](){ return 0LL; });                         // id
+    lst.build(A);
+    rep(_,0,Q){
+        int a,s,t;
+        cin>>a>>s>>t;
+        if(a==0){
+            int x;
+            cin>>x;
+            lst.apply(s-1,t,x);
+        }else cout<<lst.prod(s-1,t)<<'\n';
+    }
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== LazySegTree（区間加算・区間和）デモ =====\n";
+    auto op          = [](ll a, ll b){ return a + b; };                 // ★ マージ
+    auto e           = [](){ return 0LL; };                             // ★ 単位元
+    auto mapping     = [](ll f, ll x, int len){ return x + f * len; };  // ★ 長さ len の区間に +f
+    auto composition = [](ll f, ll g){ return f + g; };                 // ★ 作用の合成
+    auto id          = [](){ return 0LL; };                             // ★ 何もしない作用
+    LazySegTree lst(5, op, e, mapping, composition, id);
+    lst.build({1, 2, 3, 4, 5});
+    cout << "lst.prod(0, 5) = " << lst.prod(0, 5) << "   // 15\n";
+    lst.apply(1, 4, 10);                 // a[1..3] += 10
+    cout << "lst.apply(1, 4, 10) 後: lst.prod(0, 2) = " << lst.prod(0, 2) << ", lst.prod(1, 4) = " << lst.prod(1, 4) << "   // 13, 39\n";
+    cout << "lst.get(2) = " << lst.get(2) << ", lst.all_prod() = " << lst.all_prod() << "   // 13, 45\n";
+    // max_right：先頭からの和が 20 以下でいられる最大の r
+    cout << "lst.max_right(0, 和 <= 20) = " << lst.max_right(0, [](ll s){ return s <= 20; }) << "   // 1+12 = 13, +13 = 26 > 20 → r = 2\n";
+    cout << "lst.min_left(5, 和 <= 20) = " << lst.min_left(5, [](ll s){ return s <= 20; }) << "   // 5+14 = 19, +13 > 20 → l = 3\n";
+    // 種類の違う木を同時に持てる（区間代入・区間最大）
+    LazySegTree mx(5, [](ll a, ll b){ return max(a, b); }, [](){ return LLONG_MIN; },
+                      [](ll f, ll x, int){ return f == LLONG_MIN ? x : f; },   // f = 代入する値（LLONG_MIN は何もしない）
+                      [](ll f, ll g){ return f == LLONG_MIN ? g : f; }, [](){ return LLONG_MIN; });
+    mx.build({3, 1, 4, 1, 5});
+    mx.apply(0, 2, 7);
+    cout << "区間代入・区間最大の木: mx.apply(0, 2, 7) 後 mx.prod(0, 3) = " << mx.prod(0, 3) << ", mx.prod(2, 5) = " << mx.prod(2, 5) << "   // 7, 5\n";
+}
+
+void random_test_bruteforce(){
+    mt19937 rng(21);
+    for(int it = 0; it < 3000; it++){
+        int n = rng() % 12 + 1;
+        vector<ll> a(n);
+        for(auto& x : a) x = rng() % 10;
+        LazySegTree lst(n, [](ll x, ll y){ return x + y; }, [](){ return 0LL; },
+                           [](ll f, ll x, int len){ return x + f * len; }, [](ll f, ll g){ return f + g; }, [](){ return 0LL; });
+        lst.build(a);
+        for(int q = 0; q < 60; q++){
+            int l = rng() % (n + 1), r = rng() % (n + 1);
+            if(l > r) swap(l, r);
+            int t = rng() % 4;
+            if(t == 0){ ll f = rng() % 5; lst.apply(l, r, f); for(int i = l; i < r; i++) a[i] += f; }
+            else if(t == 1){ ll s = 0; for(int i = l; i < r; i++) s += a[i]; assert(lst.prod(l, r) == s); }
+            else if(t == 2){ ll lim = rng() % 40; int want = l; ll s = 0; while(want < n && s + a[want] <= lim){ s += a[want]; want++; } assert(lst.max_right(l, [&](ll v){ return v <= lim; }) == want); }
+            else { ll lim = rng() % 40; int want = r; ll s = 0; while(want > 0 && s + a[want - 1] <= lim){ s += a[want - 1]; want--; } assert(lst.min_left(r, [&](ll v){ return v <= lim; }) == want); }
+        }
+    }
+    cout << "random_test_bruteforce（愚直解とのランダム比較）: OK\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    random_test_bruteforce();
+    return 0;
+}
+

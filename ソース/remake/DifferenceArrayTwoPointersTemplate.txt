@@ -1,0 +1,316 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  Difference Array（差分配列 / 1次元 Imos）
+//  Two Pointers / Sliding Window（判定関数差し替え型）
+//  （作り直し版：元ファイル DifferenceArrayTwoPointersTemplate.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - 区間加算・区間操作の最終差分配列を返却
+//  メモ
+//    - add:O(1)
+//    - restore:O(N)
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+/*
+==================================================
+ Difference Array（差分配列 / 1次元 Imos）
+==================================================
+
+【用途】
+- 区間加算・区間操作を高速に処理したいとき
+- すべての更新後に最終配列が欲しいとき
+
+【計算量】
+- add : O(1)
+- restore : O(N)
+
+【区間】
+- [l, r)（l以上 r未満）
+*/
+template <class T>
+struct DifferenceArray {
+    int n;
+    vector<T> diff;
+
+
+    DifferenceArray(int n_) : n(n_), diff(n + 1, T(0)) {}
+
+    // [l,r)にxを加算
+    void add(int l, int r, T x) {
+        diff[l] += x;
+        diff[r] -= x;
+    }
+
+    // 差分から元の配列を復元
+    vector<T> restore() const {
+        vector<T> a(n);
+        T cur = 0;
+        for (int i = 0; i < n; i++) {
+            cur += diff[i];
+            a[i] = cur;
+        }
+        return a;
+    }
+};
+
+/*
+==================================================
+ Two Pointers / Sliding Window（判定関数差し替え型）
+==================================================
+【使い方】window の出し入れと判定をラムダで渡す
+  two_pointers(n,
+      [&](int i){ ... a[i] を window に入れる ... },        // add(i)
+      [&](int i){ ... a[i] を window から出す ... },        // remove(i)
+      [&]{ return ...今の window が条件を満たすか...; },    // ok()
+      [&](int l, int r){ ... [l, r) で答えを更新 ... });    // on_window(l, r)
+【動き】右端を 1 つずつ伸ばし、条件を満たさなくなったら満たすまで左端を縮める。
+  on_window(l, r) は右端 r-1 ごとに「条件を満たす最長の window [l, r)」で呼ばれる
+  （空の window で呼ばれることもある）。
+【前提】条件を満たす window の部分区間も条件を満たす（単調性）
+  例: 和 ≤ K（要素が 0 以上）/ 種類数 ≤ K / 最大値 − 最小値 ≤ K
+【答えの例】最長: ans = max(ans, r - l) / 条件を満たす区間の個数: ans += r - l
+【計算量】全体で O(N)（add / remove / ok が O(1) のとき）
+*/
+template <class Add, class Remove, class Ok, class OnWindow>
+void two_pointers(int n, Add add, Remove remove, Ok ok, OnWindow on_window) {
+    int l = 0;
+    for (int r = 0; r < n; r++) {
+        add(r);                                  // window [l, r] に r を入れる
+        while (l <= r && !ok()) remove(l++);     // 条件を満たすまで左端を縮める
+        on_window(l, r + 1);                     // [l, r + 1) は条件を満たす
+    }
+}
+// ======================= ここまでテンプレート本体 =======================
+
+// =============================================================================
+//  使い方デモ
+// =============================================================================
+void demo(){
+    cout << "===== DifferenceArray（いもす法）デモ =====\n";
+    DifferenceArray<ll> da(6);
+    da.add(1, 4, 5);                      // [1,4) に +5
+    da.add(3, 6, 2);                      // [3,6) に +2
+    auto a = da.restore();                // 最後にまとめて復元 O(N)
+    cout << "da.restore() = "; for (ll x : a) cout << x << " "; cout << "  // 0 5 5 7 2 2\n";
+
+    cout << "===== two_pointers デモ =====\n";
+    vector<ll> v = {2, 1, 3, 4, 1, 1, 5};
+    ll K = 6;
+    // 例1: 和が K 以下の区間の最長と個数
+    ll sum = 0, best = 0, cnt = 0;
+    two_pointers((int)v.size(),
+        [&](int i){ sum += v[i]; },
+        [&](int i){ sum -= v[i]; },
+        [&]{ return sum <= K; },
+        [&](int l, int r){ best = max(best, (ll)(r - l)); cnt += r - l; });
+    cout << "v = {2,1,3,4,1,1,5}, 和 <= 6 の最長 = " << best << "（{2,1,3} など）, 区間の個数 = " << cnt << "\n";
+    // 例2: 最大値 − 最小値 <= 2 の最長（deque で index を持つ）
+    deque<int> mx, mn; ll best2 = 0;
+    two_pointers((int)v.size(),
+        [&](int i){
+            while (!mx.empty() && v[mx.back()] <= v[i]) mx.pop_back(); mx.push_back(i);
+            while (!mn.empty() && v[mn.back()] >= v[i]) mn.pop_back(); mn.push_back(i);
+        },
+        [&](int i){
+            if (!mx.empty() && mx.front() == i) mx.pop_front();
+            if (!mn.empty() && mn.front() == i) mn.pop_front();
+        },
+        [&]{ return mx.empty() || v[mx.front()] - v[mn.front()] <= 2; },
+        [&](int l, int r){ best2 = max(best2, (ll)(r - l)); });
+    cout << "最大 − 最小 <= 2 の最長 = " << best2 << "   // {2,1,3}\n";
+}
+
+void solv(){
+    demo();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

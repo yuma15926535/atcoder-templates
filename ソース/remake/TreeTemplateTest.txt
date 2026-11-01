@@ -1,0 +1,526 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  木テンプレート統合版（LCA + 木DP + 全方位木DP + HLD）
+//  （作り直し版：元ファイル TreeTemplateTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - LCA（二分探索）
+//    - 共通祖先
+//    - 距離計算 / k番目の祖先 / パス判定 / パス取得
+//    - 木DP（根固定）
+//    - 全方位木DP（Rerooting）
+//    - 全頂点が根になる
+//    - Heavy-Light Decomposition (HLD)
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+/*
+==================================================
+ 木テンプレート統合版（LCA + 木DP + 全方位木DP + HLD）
+==================================================
+
+【含まれる機能】
+- LCA（二分探索）
+- 距離計算 / k番目の祖先 / パス判定 / パス取得
+- 木DP（根固定） ★問題依存
+- 全方位木DP（Rerooting） ★問題依存
+- Heavy-Light Decomposition (HLD)
+
+【注意】
+- ★が付いている部分は問題ごとに実装を変更する
+- 日本語コメントは削除しない前提
+*/
+struct Tree {
+    int N;
+    vector<vector<int>> g;
+    vector<vector<ll>> gw;     // gw[v][i] = 辺 v - g[v][i] の重み
+
+    // ===== LCA =====
+    int LOG;
+    vector<int> depth;
+    vector<vector<int>> parent;
+    vector<ll> dist_from_root;
+
+    // ===== HLD =====
+    vector<int> sz, heavy, head, in, out;
+    int cur;
+
+    // ===== 木DP =====
+    vector<ll> dp;        // ★部分木DP
+
+    // ===== 全方位木DP =====
+    vector<ll> dp_all;    // ★全方位の答え
+
+    Tree(int n=0){ init(n); }
+
+    void init(int n){
+        N = n;
+        g.assign(N, {});
+        gw.assign(N, {});
+
+        LOG = 1;
+        while((1<<LOG) <= N) LOG++;
+        depth.assign(N, 0);
+        parent.assign(LOG, vector<int>(N, -1));
+        dist_from_root.assign(N, 0);
+
+        sz.assign(N, 0);
+        heavy.assign(N, -1);
+        head.assign(N, 0);
+        in.assign(N, 0);
+        out.assign(N, 0);
+        cur = 0;
+
+        dp.assign(N, 0);
+        dp_all.assign(N, 0);
+    }
+
+    // 辺の追加（無向木）
+    void add_edge(int u, int v, ll w=1){
+        g[u].push_back(v); gw[u].push_back(w);
+        g[v].push_back(u); gw[v].push_back(w);
+    }
+
+    // ===== build =====
+    void build(int root=0){
+        dfs_lca(root, -1, 0, 0);
+        for(int k=0;k+1<LOG;k++){
+            for(int v=0;v<N;v++){
+                if(parent[k][v] < 0) parent[k+1][v] = -1;
+                else parent[k+1][v] = parent[k][ parent[k][v] ];
+            }
+        }
+        dfs_size(root, -1);
+        dfs_hld(root, -1, root);
+    }
+
+    // ===== LCA 構築 DFS =====
+    void dfs_lca(int v, int p, int d, ll dist){
+        parent[0][v] = p;
+        depth[v] = d;
+        dist_from_root[v] = dist;
+        for(int i = 0; i < (int)g[v].size(); i++){
+            int to = g[v][i];
+            if(to == p) continue;
+            dfs_lca(to, v, d+1, dist + gw[v][i]);   // 重みを足す（重みなしなら 1）
+        }
+    }
+
+    // LCA取得
+    int lca(int a, int b){
+        if(depth[a] < depth[b]) swap(a,b);
+        int diff = depth[a] - depth[b];
+        for(int k=0;k<LOG;k++) if(diff&(1<<k)) a = parent[k][a];
+        if(a == b) return a;
+        for(int k=LOG-1;k>=0;k--){
+            if(parent[k][a] != parent[k][b]){
+                a = parent[k][a];
+                b = parent[k][b];
+            }
+        }
+        return parent[0][a];
+    }
+
+    // 距離取得
+    ll dist(int u, int v){
+        int c = lca(u,v);
+        return dist_from_root[u] + dist_from_root[v] - 2*dist_from_root[c];
+    }
+
+    // k番目の祖先
+    // k番目の祖先（根より上なら -1）
+    int kth_ancestor(int v, int k){
+        if(k > depth[v]) return -1;
+        for(int i=0;i<LOG;i++) if(k&(1<<i)) v = parent[i][v];
+        return v;
+    }
+
+    // u-vパス上にaがあるか
+    bool on_path(int u, int v, int a){
+        return dist(u,v) == dist(u,a) + dist(a,v);
+    }
+
+    // u→vのパス取得
+    vector<int> path(int u, int v){
+        int c = lca(u,v);
+        vector<int> a,b;
+        while(u!=c){ a.push_back(u); u = parent[0][u]; }
+        a.push_back(c);
+        while(v!=c){ b.push_back(v); v = parent[0][v]; }
+        reverse(b.begin(), b.end());
+        for(int x:b) a.push_back(x);
+        return a;
+    }
+
+    // ===== HLD =====
+    void dfs_size(int v, int p){
+        sz[v] = 1;
+        int mx = 0;
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_size(to, v);
+            sz[v] += sz[to];
+            if(sz[to] > mx){
+                mx = sz[to];
+                heavy[v] = to;
+            }
+        }
+    }
+
+    void dfs_hld(int v, int p, int h){
+        head[v] = h;
+        in[v] = cur++;
+        if(heavy[v] != -1) dfs_hld(heavy[v], v, h);
+        for(int to : g[v]){
+            if(to == p || to == heavy[v]) continue;
+            dfs_hld(to, v, to);
+        }
+        out[v] = cur;
+    }
+
+    // HLDでu-vパスを区間に分解（各区間は HLD の順番 in[] での半開区間 [l, r)）
+    vector<pair<int,int>> path_segments(int u, int v){
+        vector<pair<int,int>> res;
+        while(head[u] != head[v]){
+            if(depth[head[u]] < depth[head[v]]) swap(u,v);
+            res.push_back({in[head[u]], in[u] + 1});
+            u = parent[0][head[u]];
+        }
+        if(depth[u] > depth[v]) swap(u,v);
+        res.push_back({in[u], in[v] + 1});
+        return res;
+    }
+
+    // ===== 木DP（根固定） =====
+    void dfs_tree_dp(int v, int p){
+        dp[v] = 0; // ★初期値
+        for(int to : g[v]){
+            if(to == p) continue;
+            dfs_tree_dp(to, v);
+            dp[v] += dp[to]; // ★マージ処理
+        }
+        dp[v] += 1; // ★自身の寄与
+    }
+
+    // ===== 全方位木DP =====
+    void dfs_reroot(int v, int p, ll from_parent){
+        vector<ll> pref, suff;
+        for(int to : g[v]){
+            if(to == p) pref.push_back(from_parent);
+            else pref.push_back(dp[to]);
+        }
+        int m = pref.size();
+        suff = pref;
+        for(int i=1;i<m;i++) pref[i] += pref[i-1]; // ★
+        for(int i=m-2;i>=0;i--) suff[i] += suff[i+1]; // ★
+
+        dp_all[v] = (m?pref[m-1]:0) + 1; // ★
+
+        int idx = 0;
+        for(int to : g[v]){
+            if(to == p){ idx++; continue; }
+            ll val = 1;
+            if(idx>0) val += pref[idx-1];
+            if(idx+1<m) val += suff[idx+1];
+            dfs_reroot(to, v, val);
+            idx++;
+        }
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+// =============================================================================
+//  愚直解とのランダム比較テスト（作り直しで追加）
+// =============================================================================
+void random_test_bruteforce(){ mt19937 rng(9); int bad=0;
+ for(int it=0;it<500;it++){ int n=rng()%12+1; Tree tr(n); vector<vector<pair<int,ll>>> g(n);
+  for(int v=1;v<n;v++){ int p=rng()%v; ll w=rng()%5+1; tr.add_edge(p,v,w); g[p].push_back({v,w}); g[v].push_back({p,w}); }
+  tr.build(0);
+  vector<int> dep(n,0), pa(n,-1); vector<ll> dist0(n,0); vector<int> st={0}; vector<int> seen(n,0); seen[0]=1;
+  while(!st.empty()){int v=st.back(); st.pop_back(); for(auto [to,w]:g[v]) if(!seen[to]){seen[to]=1; pa[to]=v; dep[to]=dep[v]+1; dist0[to]=dist0[v]+w; st.push_back(to);} }
+  auto lca=[&](int a,int b){ while(dep[a]>dep[b])a=pa[a]; while(dep[b]>dep[a])b=pa[b]; while(a!=b){a=pa[a];b=pa[b];} return a; };
+  for(int a=0;a<n;a++)for(int b=0;b<n;b++){ int c=lca(a,b); if(tr.lca(a,b)!=c)bad++; if(tr.dist(a,b)!=dist0[a]+dist0[b]-2*dist0[c])bad++;
+    vector<int> p1,p2; int x=a; while(x!=c){p1.push_back(x); x=pa[x];} p1.push_back(c); x=b; while(x!=c){p2.push_back(x); x=pa[x];} reverse(p2.begin(),p2.end()); for(int y:p2)p1.push_back(y);
+    if(tr.path(a,b)!=p1)bad++;
+    for(int q=0;q<n;q++){ bool on=find(p1.begin(),p1.end(),q)!=p1.end(); if(tr.on_path(a,b,q)!=on)bad++; }
+    vector<int> cov; for(auto [l,r]:tr.path_segments(a,b)) for(int i=l;i<r;i++) cov.push_back(i); vector<int> want; for(int y:p1) want.push_back(tr.in[y]); sort(cov.begin(),cov.end()); sort(want.begin(),want.end()); if(cov!=want)bad++; }
+  for(int v=0;v<n;v++)for(int k=0;k<=n;k++){ int x=v; for(int t=0;t<k&&x!=-1;t++) x=pa[x]; if(tr.kth_ancestor(v,k)!=x)bad++; }
+ } 
+    cout << "random_test_bruteforce（愚直解とのランダム比較）: " << (((bad)==0) ? "OK" : "NG") << "\n";
+    assert((bad)==0);
+}
+
+void solv(){
+    /*
+        木の構造（0-indexed）
+
+              0
+            /   \
+           1     2
+         /   \     \
+        3     4     5
+                      \
+                       6
+    */
+
+    int N = 7;
+    Tree tree(N);
+
+    // 辺の追加
+    tree.add_edge(0,1);
+    tree.add_edge(0,2);
+    tree.add_edge(1,3);
+    tree.add_edge(1,4);
+    tree.add_edge(2,5);
+    tree.add_edge(5,6);
+
+    // build（LCA + HLD 前処理）
+    tree.build(0);
+
+    cout << "==== LCA / 距離 ====\n";
+    cout << "lca(3,4) = " << tree.lca(3,4) << "\n"; // 1
+    cout << "lca(3,6) = " << tree.lca(3,6) << "\n"; // 0
+    cout << "dist(3,6) = " << tree.dist(3,6) << "\n"; // 5
+
+    cout << "\n==== k番目の祖先 ====\n";
+    cout << "kth_ancestor(6,1) = " << tree.kth_ancestor(6,1) << "\n"; // 5
+    cout << "kth_ancestor(6,2) = " << tree.kth_ancestor(6,2) << "\n"; // 2
+    cout << "kth_ancestor(6,3) = " << tree.kth_ancestor(6,3) << "\n"; // 0
+
+    cout << "\n==== on_path 判定 ====\n";
+    cout << "on_path(3,6,0) = " << tree.on_path(3,6,0) << "\n"; // true
+    cout << "on_path(3,6,1) = " << tree.on_path(3,6,1) << "\n"; // true
+    cout << "on_path(3,6,4) = " << tree.on_path(3,6,4) << "\n"; // false
+
+    cout << "\n==== パス取得 ====\n";
+    auto path = tree.path(3,6);
+    cout << "path 3 -> 6 : ";
+    for(int v : path) cout << v << " ";
+    cout << "\n";
+
+    cout << "\n==== HLD 情報 ====\n";
+    for(int v=0;v<N;v++){
+        cout << "v=" << v
+             << " in=" << tree.in[v]
+             << " head=" << tree.head[v]
+             << "\n";
+    }
+
+    cout << "\n==== HLD パス分解 (3 -> 6) ====\n";
+    auto segs = tree.path_segments(3,6);
+    for(auto [l,r] : segs){
+        cout << "[" << l << "," << r << ") ";
+    }
+    cout << "   // 半開区間（HLD の順番での位置）\n";
+
+    {
+        Tree wt(3);                        // 重み付きの辺
+        wt.add_edge(0, 1, 5); wt.add_edge(1, 2, 7);
+        wt.build(0);
+        cout << "重み付き: dist(0, 2) = " << wt.dist(0, 2) << "   // 5 + 7\n";
+        cout << "kth_ancestor(2, 5) = " << wt.kth_ancestor(2, 5) << "   // 根より上は -1\n";
+    }
+
+    cout << "\n==== 木DP（部分木サイズ） ====\n";
+    tree.dfs_tree_dp(0, -1);
+    for(int v=0;v<N;v++){
+        cout << "dp[" << v << "] = " << tree.dp[v] << "\n";
+    }
+
+    cout << "\n==== 全方位木DP ====\n";
+    tree.dfs_reroot(0, -1, 0);
+    for(int v=0;v<N;v++){
+        cout << "dp_all[" << v << "] = " << tree.dp_all[v] << "\n";
+    }
+    random_test_bruteforce();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

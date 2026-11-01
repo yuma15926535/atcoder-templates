@@ -1,0 +1,428 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  連続部分列和ユーティリティ（O(N)版・非円環）
+//  円環 連続部分列和ユーティリティ（O(N)版）
+//  連続部分列和ユーティリティ（hash版・非円環・完全版）
+//  （作り直し版：元ファイル AGC23A.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - 指定の区間和となる区間数の取得
+//    - 最大/最小部分列和
+//  メモ
+//    - O(N)
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+#ifndef SPLITMIX_HASH_DEFINED
+#define SPLITMIX_HASH_DEFINED
+// ハックされにくいハッシュ（splitmix64 + 実行ごとに変わる乱数）。整数はそのまま、それ以外は std::hash の結果を混ぜる
+//   unordered_map<ll, int, SplitMixHash> のように使う（HashSetTemplate.txt と同じもの）
+struct SplitMixHash {
+    static uint64_t splitmix64(uint64_t x) {
+        x += 0x9e3779b97f4a7c15;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+        return x ^ (x >> 31);
+    }
+    template<class U> size_t operator()(const U& x) const {
+        static const uint64_t R = chrono::steady_clock::now().time_since_epoch().count();
+        if constexpr (is_integral_v<U>) return splitmix64((uint64_t)x + R);
+        else return splitmix64((uint64_t)std::hash<U>{}(x) + R);
+    }
+};
+#endif
+/*
+==================================================
+ 連続部分列和ユーティリティ（O(N)版・非円環）
+ - 負の数あり対応
+ - 区間数のみ高速で計算
+ - 最短 / 最長区間は復元不可（O(N^2)でしか正確に出せない）
+==================================================
+*/
+struct SubarraySumUtils {
+    int n;
+
+    // ==============================
+    // 和 = K
+    // ==============================
+    ll count_eqK;   // 区間数
+    bool exist_eqK; // 存在するか
+
+    // ==============================
+    // 最大 / 最小部分列和
+    // ==============================
+    ll max_sum, min_sum;
+
+    SubarraySumUtils(const vector<ll>& a, ll K) {
+        n = a.size();
+
+        // ------------------------------
+        // 1. 和 = K (O(N)版)
+        // ------------------------------
+        count_eqK = 0;
+        exist_eqK = false;
+
+        unordered_map<ll, ll, SplitMixHash> mp; // prefix sum の出現回数だけカウント
+        mp[0] = 1;
+
+        ll sum = 0;
+        for(int i=0;i<n;i++){
+            sum += a[i];
+            ll need = sum - K;
+            if(mp.count(need)) count_eqK += mp[need]; // 個数を足すだけ
+            mp[sum]++;
+        }
+        exist_eqK = (count_eqK > 0);
+
+        // ------------------------------
+        // 2. 最大 / 最小部分列和 (Kadane O(N))
+        // ------------------------------
+        max_sum = LLONG_MIN; min_sum = LLONG_MAX;
+        ll cur_max = 0, cur_min = 0;
+        for(int i=0;i<n;i++){
+            // 最大部分列和
+            cur_max = max((ll)a[i], cur_max + a[i]);
+            max_sum = max(max_sum, cur_max);
+
+            // 最小部分列和
+            cur_min = min((ll)a[i], cur_min + a[i]);
+            min_sum = min(min_sum, cur_min);
+        }
+    }
+};
+
+/*
+==================================================
+ 円環 連続部分列和ユーティリティ（O(N)版）
+ - 最大 / 最小部分列和（空でない）を円環で計算
+ - 和 = K の区間数（長さ 1〜n。全体は 1 個と数える）を O(N)（平均）で計算
+ - 最短 / 最長区間がほしいときは hash版・完全版（SubarraySumUtilsTemplateTest.txt）
+==================================================
+*/
+// ------------------------------------------------------------
+// 共通（円環）: 和がちょうど T になる円環の連続部分列（長さ 1〜n）の個数と、最短・最長の 1 つ  O(N)（平均）
+//   区間は [l, r)（0 ≤ l < n、長さ r - l。r は n を超えることがあり、要素は a[i % n]）
+//   全体（長さ n）はどこから始めても同じなので 1 個と数える
+// ------------------------------------------------------------
+inline void circular_subarray_sum_eq_stats(const vector<ll>& a, ll T, ll& cnt, int& sl, int& sr, int& ll_, int& lr) {
+    int n = a.size();
+    cnt = 0; sl = sr = ll_ = lr = 0;
+    if (n == 0) return;
+    int best_short = INT_MAX, best_long = -1;
+    vector<ll> P(2 * n + 1, 0);
+    for (int i = 0; i < 2 * n; i++) P[i + 1] = P[i] + a[i % n];
+    // 長さ 1〜n-1：右端 j について、左端 i は [j-n+1, j-1] かつ [0, n-1]
+    unordered_map<ll, deque<int>, SplitMixHash> pos;
+    int lo = 0;
+    for (int j = 1; j <= 2 * n - 2; j++) {
+        if (j - 1 <= n - 1) pos[P[j - 1]].push_back(j - 1);
+        while (lo < j - n + 1) { if (lo <= n - 1) pos[P[lo]].pop_front(); lo++; }
+        auto it = pos.find(P[j] - T);
+        if (it == pos.end() || it->second.empty()) continue;
+        auto& dq = it->second;
+        cnt += dq.size();
+        if (j - dq.back() < best_short) { best_short = j - dq.back(); sl = dq.back(); sr = j; }
+        if (j - dq.front() > best_long) { best_long = j - dq.front(); ll_ = dq.front(); lr = j; }
+    }
+    // 長さ n（全体）
+    if (P[n] == T) {
+        cnt++;
+        if (n < best_short) { best_short = n; sl = 0; sr = n; }
+        if (n > best_long) { best_long = n; ll_ = 0; lr = n; }
+    }
+}
+// 円環の最大・最小部分列和（空でない）  O(N)
+//   全体ではない部分列（a[0] か a[n-1] を含まない）を除いた残りが「またぐ」部分列になる
+inline pair<ll,ll> circular_max_min_subarray(const vector<ll>& a) {
+    int n = a.size();
+    auto kad = [&](int l, int r, bool mx) {          // [l, r) の空でない最大 / 最小部分列和
+        ll best = mx ? LLONG_MIN : LLONG_MAX, cur = 0; bool first = true;
+        for (int i = l; i < r; i++) {
+            if (first) { cur = a[i]; first = false; }
+            else cur = mx ? max(a[i], cur + a[i]) : min(a[i], cur + a[i]);
+            best = mx ? max(best, cur) : min(best, cur);
+        }
+        return best;
+    };
+    ll total = accumulate(a.begin(), a.end(), 0LL);
+    ll mx = kad(0, n, true), mn = kad(0, n, false);
+    if (n >= 2) {
+        ll min_proper = min(kad(1, n, false), kad(0, n - 1, false));
+        ll max_proper = max(kad(1, n, true), kad(0, n - 1, true));
+        mx = max(mx, total - min_proper);
+        mn = min(mn, total - max_proper);
+    }
+    return {mx, mn};
+}
+
+struct CircularSubarraySumUtils {
+    int n;
+    // ===== 和 = K =====
+    ll count_eqK;
+    bool exist_eqK;
+    // ===== 最大 / 最小部分列和 =====
+    ll max_sum, min_sum;
+    CircularSubarraySumUtils(const vector<ll>& a, ll K) {
+        n = a.size();
+        int d1, d2, d3, d4;
+        circular_subarray_sum_eq_stats(a, K, count_eqK, d1, d2, d3, d4);
+        exist_eqK = (count_eqK > 0);
+        max_sum = min_sum = 0;
+        if (n > 0) tie(max_sum, min_sum) = circular_max_min_subarray(a);
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（AGC023 A）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+void solve_AGC023A(){
+    int N;
+    cin>>N;
+    vector<ll>A(N);
+    rep(i,0,N)cin>>A[i];
+    SubarraySumUtils ssu(A,0);
+    cout<<ssu.count_eqK<<'\n';
+    return;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+// ---- ランダムテスト用: 円環も扱える区間和 [l, r)（l > r なら折り返し）----
+ll csum_test(const vector<ll>&a,int l,int r){ int n=a.size(); ll s=0; if(l<r){for(int i=l;i<r;i++)s+=a[i%n];} else if(l>r){for(int i=l;i<n;i++)s+=a[i]; for(int i=0;i<r;i++)s+=a[i];} return s; }
+
+void random_test_subarray(){ mt19937 rng(3); int bad[10]={0};
+ for(int it=0;it<20000;it++){ int n=rng()%6+1; vector<ll>a(n); for(auto&x:a)x=(ll)(rng()%7)-3; ll K=(ll)(rng()%7)-3;
+  ll cnt=0; int mnl=INT_MAX,mxl=-1; ll mx=LLONG_MIN,mn=LLONG_MAX;
+  for(int l=0;l<n;l++){ll s=0; for(int r=l;r<n;r++){s+=a[r]; if(s==K){cnt++; mnl=min(mnl,r-l+1); mxl=max(mxl,r-l+1);} mx=max(mx,s); mn=min(mn,s);} }
+  ll mxc=0,mnc=0; int mxs=INT_MAX,mxlg=-1,mns=INT_MAX,mnlg=-1;
+  for(int l=0;l<n;l++){ll s=0; for(int r=l;r<n;r++){s+=a[r]; if(s==mx){mxc++; mxs=min(mxs,r-l+1); mxlg=max(mxlg,r-l+1);} if(s==mn){mnc++; mns=min(mns,r-l+1); mnlg=max(mnlg,r-l+1);} } }
+  SubarraySumUtils u(a,K);
+  if(u.count_eqK!=cnt)bad[0]++;
+  if(u.max_sum!=mx)bad[1]++; if(u.min_sum!=mn)bad[2]++;
+ } int tot=0; for(int i=0;i<8;i++) tot+=bad[i];
+ cout << "random_test_subarray: " << (tot==0 ? "OK" : "NG") << "（愚直解と 20000 回比較）\n"; assert(tot==0);
+}
+
+
+void random_test_circular_subarray(){ mt19937 rng(5); int bad[10]={0};
+ for(int it=0;it<20000;it++){ int n=rng()%6+1; vector<ll>a(n); for(auto&x:a)x=(ll)(rng()%7)-3; ll K=(ll)(rng()%7)-3;
+  // circular subarrays: start s, length 1..n, but full-length counted once
+  ll cnt=0; int mnl=INT_MAX,mxl=-1; ll mx=LLONG_MIN,mn=LLONG_MAX;
+  vector<tuple<ll,int>> all;
+  for(int s=0;s<n;s++){ll t=0; for(int len=1;len<=n;len++){ t+=a[(s+len-1)%n]; if(len==n&&s>0)continue; all.push_back({t,len}); } }
+  for(auto [t,len]:all){ if(t==K){cnt++; mnl=min(mnl,len); mxl=max(mxl,len);} mx=max(mx,t); mn=min(mn,t);}
+  ll mxc=0,mnc=0; int mxs=INT_MAX,mxlg=-1,mns=INT_MAX,mnlg=-1;
+  for(auto [t,len]:all){ if(t==mx){mxc++; mxs=min(mxs,len); mxlg=max(mxlg,len);} if(t==mn){mnc++; mns=min(mns,len); mnlg=max(mnlg,len);} }
+  CircularSubarraySumUtils u(a,K);
+  if(u.count_eqK!=cnt)bad[0]++;
+  if(u.max_sum!=mx)bad[1]++; if(u.min_sum!=mn)bad[2]++;
+#if 0
+  auto L=[&](int l,int r){ return r-l; };
+#endif
+ } int tot=0; for(int i=0;i<8;i++) tot+=bad[i];
+ cout << "random_test_circular_subarray: " << (tot==0 ? "OK" : "NG") << "（愚直解と 20000 回比較）\n"; assert(tot==0);
+}
+
+void demo(){
+    cout << "===== 連続部分列和ユーティリティ（O(N)版）デモ =====\n";
+    vector<ll> a = {1, -1, 1, -1};
+    SubarraySumUtils u(a, 0);                   // 和が K = 0 の連続部分列
+    cout << "a = {1, -1, 1, -1}, K = 0: u.count_eqK = " << u.count_eqK << "   // 和 0 の区間の数（AGC023 A）\n";
+    cout << "u.max_sum = " << u.max_sum << ", u.min_sum = " << u.min_sum << "   // 空でない最大 / 最小部分列和\n";
+    CircularSubarraySumUtils c({3, -10, 4}, 7);
+    cout << "円環 {3, -10, 4}, K = 7: c.count_eqK = " << c.count_eqK << " (4,3 をまたぐ 1 個), c.max_sum = " << c.max_sum << ", c.min_sum = " << c.min_sum << "\n";
+    random_test_subarray();
+    random_test_circular_subarray();
+}
+
+int main(){
+    BUFF;
+    demo();
+    return 0;
+}
+

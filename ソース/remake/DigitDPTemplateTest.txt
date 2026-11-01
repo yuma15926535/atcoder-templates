@@ -1,0 +1,357 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  Digit DP Template (Competitive Programming Version)
+//  （作り直し版：元ファイル DigitDPTemplateTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - 桁DP
+//    - 巨大整数 N 以下の整数の中で条件を満たす数を数える
+//    - 桁和
+//    - mod
+//    - 特定の数字の出現回数
+//    - 禁止数字
+//    - bitmask
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+/*
+============================================================
+ 桁 DP（Digit DP）
+------------------------------------------------------------
+ 0 以上 N 以下（N は 10 進の文字列か long long）の整数のうち、条件を満たすものを数える。
+ 条件は関数（ラムダ）で渡すので、1 つのプログラムで何種類でも数えられる。
+
+   digit_dp<T>(N, STATE, init, next, ok)
+     STATE : 状態の数（状態は 0〜STATE-1）
+     init  : 数え始める前の状態（先頭の 0 の間はこの状態のまま）
+     next(state, digit) : digit（0〜9）を後ろに付けた後の状態。-1 を返すとその桁は置けない（禁止）
+                          ※ 先頭の 0 の間は呼ばれない（数え始めたかどうかは別に持つので、
+                            mod や bitmask で状態が 0 に戻っても正しく数える）
+     ok(state) : 最後にこの状態なら数える
+     T     : 数える型。long long（既定）か、mod で数えるなら modint998244353 など
+     0 そのものは「状態 init のまま」として ok(init) のときに数える
+
+   digit_dp_range<T>(L, R, STATE, init, next, ok) : L 以上 R 以下の個数（0 ≤ L）
+
+ 計算量 O(桁数 × STATE × 10 × 4)
+============================================================
+*/
+template<class T = long long, class Next, class Ok>
+T digit_dp(const string& N, int STATE, int init, Next next, Ok ok){
+    // dp[state][tight][started]：tight = まだ N と一致しているか、started = 0 でない桁を置いたか
+    vector<array<array<T,2>,2>> dp(STATE), nd(STATE);
+    for(auto& a : dp) for(auto& b : a) for(auto& c : b) c = T(0);
+    dp[init][1][0] = T(1);
+    for(char ch : N){
+        int nd_lim = ch - '0';
+        for(auto& a : nd) for(auto& b : a) for(auto& c : b) c = T(0);
+        for(int s = 0; s < STATE; s++) for(int t = 0; t < 2; t++) for(int st = 0; st < 2; st++){
+            T cur = dp[s][t][st];
+            if(cur == T(0)) continue;
+            int lim = t ? nd_lim : 9;
+            for(int d = 0; d <= lim; d++){
+                int nt = (t && d == lim);
+                if(!st && d == 0){ nd[s][nt][0] += cur; continue; }   // まだ数え始めていない（先頭の 0）
+                int ns = next(s, d);
+                if(ns < 0) continue;                                   // 置けない桁
+                nd[ns][nt][1] += cur;
+            }
+        }
+        swap(dp, nd);
+    }
+    T ans = T(0);
+    for(int s = 0; s < STATE; s++) if(ok(s)) ans += dp[s][0][1] + dp[s][1][1];
+    if(ok(init)) ans += dp[init][0][0] + dp[init][1][0];   // 0 そのもの
+    return ans;
+}
+template<class T = long long, class Next, class Ok>
+T digit_dp(long long N, int STATE, int init, Next next, Ok ok){
+    if(N < 0) return T(0);
+    return digit_dp<T>(to_string(N), STATE, init, next, ok);
+}
+// L 以上 R 以下（0 ≤ L）
+template<class T = long long, class Next, class Ok>
+T digit_dp_range(long long L, long long R, int STATE, int init, Next next, Ok ok){
+    if(L > R) return T(0);
+    T res = digit_dp<T>(R, STATE, init, next, ok);
+    if(L > 0) res -= digit_dp<T>(L - 1, STATE, init, next, ok);
+    return res;
+}
+
+/*
+============================================================
+整数 → digit配列
+============================================================
+*/
+vector<int> to_digits(long long x){
+
+    string s = to_string(x);
+
+    vector<int> d;
+
+    for(char c : s)
+        d.push_back(c-'0');
+
+    return d;
+}
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（入力 L R で L〜R の個数を出す）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+void solve_DigitDP_input(){
+    // 例：L〜R のうち「桁和 ≤ 100」の数を数える
+    long long L,R;
+    cin >> L >> R;
+    auto next = [](int s, int d){ return s + d <= 200 ? s + d : -1; };   // 状態 = 桁和
+    auto ok = [](int s){ return s <= 100; };
+    cout << digit_dp_range(L, R, 201, 0, next, ok) << endl;
+    return;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== 桁 DP デモ =====\n";
+    auto brute = [](long long N, auto pred){ long long c = 0; for (long long x = 0; x <= N; x++) if (pred(x)) c++; return c; };
+    auto dsum = [](long long x){ int s = 0; for (; x > 0; x /= 10) s += x % 10; return s; };
+
+    // (1) 桁和 ≤ 10 の数（状態 = 桁和）
+    auto next_sum = [](int s, int d){ return s + d <= 10 ? s + d : -1; };   // 10 を超えたら置かない（数えないので）
+    auto ok_sum = [](int s){ return true; };
+    cout << "桁和 <= 10（0〜12345）: " << digit_dp(12345, 11, 0, next_sum, ok_sum)
+         << "   愚直 " << brute(12345, [&](long long x){ return dsum(x) <= 10; }) << "\n";
+
+    // (2) 7 の倍数（状態 = 7 で割った余り。余りが 0 に戻っても started を別に持つので正しい）
+    auto next_mod = [](int s, int d){ return (s * 10 + d) % 7; };
+    auto ok_mod = [](int s){ return s == 0; };
+    cout << "7 の倍数（0〜12345）: " << digit_dp(12345, 7, 0, next_mod, ok_mod)
+         << "   愚直 " << brute(12345, [](long long x){ return x % 7 == 0; }) << "\n";
+
+    // (3) 4 と 9 を使わない数（-1 で禁止）。同じプログラムで別の条件も数えられる
+    auto next_ban = [](int s, int d){ return (d == 4 || d == 9) ? -1 : 0; };
+    cout << "4 と 9 を使わない（100〜999）: " << digit_dp_range(100, 999, 1, 0, next_ban, [](int){ return true; })
+         << "   // 7 × 8 × 8 = 448\n";
+
+    // (4) 使った数字の種類が 2 種類以下（状態 = 使った数字の bitmask）
+    auto next_mask = [](int s, int d){ return s | (1 << d); };
+    auto ok_mask = [](int s){ return __builtin_popcount(s) <= 2; };
+    cout << "数字が 2 種類以下（0〜12345）: " << digit_dp(12345, 1 << 10, 0, next_mask, ok_mask)
+         << "   愚直 " << brute(12345, [](long long x){ int m = 0; if (x == 0) m = 1; for (; x > 0; x /= 10) m |= 1 << (x % 10); return __builtin_popcount(m) <= 2; }) << "\n";
+
+    // (5) mod で数える（10^18 を超える個数）：100 桁の N 以下で 3 の倍数の個数 mod 998244353
+    string big(100, '9');
+    auto cnt = digit_dp<modint998244353>(big, 3, 0, [](int s, int d){ return (s + d) % 3; }, [](int s){ return s == 0; });
+    cout << "10^100 - 1 以下の 3 の倍数の個数 mod 998244353 = " << cnt.val() << "\n";
+    // 確認：個数は (10^100 - 1) / 3 + 1
+    modint998244353 want = (modint998244353(10).pow(100) - 1) / 3 + 1;
+    cout << "  （確認）(10^100 - 1) / 3 + 1 mod 998244353 = " << want.val() << "\n";
+}
+
+void random_test_bruteforce(){
+    mt19937 rng(41);
+    for (int it = 0; it < 300; it++) {
+        long long L = rng() % 3000, R = L + rng() % 3000;
+        int K = rng() % 9 + 1;
+        long long want = 0;
+        for (long long x = L; x <= R; x++) if (x % K == 0) want++;
+        assert(digit_dp_range(L, R, K, 0, [&](int s, int d){ return (s * 10 + d) % K; }, [](int s){ return s == 0; }) == want);
+        int ban = rng() % 10;
+        long long want2 = 0;
+        for (long long x = L; x <= R; x++) { bool okx = true; long long y = x; do { if (y % 10 == ban) okx = false; y /= 10; } while (y > 0); if (okx) want2++; }
+        assert(digit_dp_range(L, R, 1, 0, [&](int s, int d){ return d == ban ? -1 : 0; }, [&](int){ return true; }) - (ban == 0 && L == 0 ? 1 : 0) == want2);
+    }
+    cout << "random_test_bruteforce（愚直解とのランダム比較）: OK\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    random_test_bruteforce();
+    return 0;
+}
+

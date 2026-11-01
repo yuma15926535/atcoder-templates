@@ -1,0 +1,348 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  トポロジカルソート
+//  有向・無向 両対応 閉路検出
+//  （作り直し版：元ファイル 315E.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - 有向非巡回グラフ(Directed Acyclic Graph, DAG）の各ノードを順序付けして, どのノードもその出力辺の先のノードより前にくるように並べる
+//    - トポロジカル順序((辞書順最小)（DAGでない場合は空）を返却
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+// 有向・無向 両対応 閉路検出（非再帰 DFS）
+// 戻り値: 閉路の頂点列（存在しなければ空）。先頭と末尾は同じ頂点（例: {2, 3, 4, 2}）
+// 無向グラフは graph[u] に v、graph[v] に u の両方を入れておく。
+//   親へ戻る辺は「1 本だけ」飛ばすので、同じ 2 頂点を結ぶ多重辺（長さ 2 の閉路 {u, v, u}）や自己ループ（{v, v}）も検出する
+vector<int> find_cycle(const vector<vector<int>>& graph, bool directed) {
+    int N = graph.size();
+    vector<int> state(N, 0), parent(N, -1), it(N, 0);
+    vector<char> skipped(N, 0);  // 無向: 親への辺を 1 本飛ばしたか
+    vector<int> st;
+    for (int s = 0; s < N; s++) {
+        if (state[s] != 0) continue;
+        state[s] = 1; parent[s] = -1; st.push_back(s);
+        while (!st.empty()) {
+            int v = st.back();
+            if (it[v] == (int)graph[v].size()) { state[v] = 2; st.pop_back(); continue; }
+            int to = graph[v][it[v]++];
+            if (!directed && to == parent[v] && !skipped[v]) { skipped[v] = 1; continue; }  // 来た辺を戻らない
+            if (state[to] == 0) {
+                state[to] = 1; parent[to] = v; st.push_back(to);
+            } else if (state[to] == 1) {  // 探索中の頂点（スタック上の祖先）へ戻る辺 → 閉路
+                vector<int> cycle;
+                cycle.push_back(to);
+                for (int cur = v; cur != to; cur = parent[cur]) cycle.push_back(cur);
+                cycle.push_back(to);
+                reverse(cycle.begin(), cycle.end());
+                return cycle;
+            }
+            // state[to] == 2：有向なら探索済み（閉路ではない）。無向では起きない
+        }
+    }
+    return {};
+}
+
+// トポロジカルソート（queue 版・O(N + M)）
+// graph: 有向グラフ（隣接リスト）
+// 戻り値: トポロジカル順序の 1 つ（DAG でない場合は空）
+vector<int> topo_sort(const vector<vector<int>>& graph) {
+    int N = graph.size();
+    vector<int> indeg(N, 0);
+    for (int u = 0; u < N; u++) for (int v : graph[u]) indeg[v]++;
+    vector<int> ret;
+    ret.reserve(N);
+    for (int i = 0; i < N; i++) if (indeg[i] == 0) ret.push_back(i);
+    for (int head = 0; head < (int)ret.size(); head++) {  // ret をそのまま queue として使う
+        int u = ret[head];
+        for (int v : graph[u]) if (--indeg[v] == 0) ret.push_back(v);
+    }
+    if ((int)ret.size() != N) return {};  // DAG でない
+    return ret;
+}
+
+// トポロジカルソート（辞書順最小・O((N + M) log N)）
+// graph: 有向グラフ（隣接リスト）
+// 戻り値: トポロジカル順序(辞書順最小)（DAGでない場合は空）
+vector<int> topo_sort_lex_min(const vector<vector<int>>& graph) {
+    int N = graph.size();
+    vector<int> indeg(N, 0);
+
+    // 各頂点の入次数を数える
+    rep(in,0,N)for(int out:graph[in])indeg[out]++;
+
+    // 入次数が 0 の頂点を小さい順に取り出す（辞書順が不要なら topo_sort の方が速い）
+    PQ_g<int> q;
+    rep(i,0,N)if(indeg[i]==0)q.push(i);
+
+    vector<int> ret;
+
+    while (!q.empty()) {
+        int u = q.top();
+        q.pop();
+        ret.push_back(u);
+
+        // u から出る辺を削除するイメージ
+        for (int v : graph[u]) {
+            indeg[v]--;
+            if (indeg[v] == 0)q.push(v);
+        }
+    }
+
+    // すべての頂点が並ばなかったらサイクルあり
+    if ((int)ret.size() != N)return {}; // DAGでない
+
+    return ret;
+}
+// ======================= ここまでテンプレート本体 =======================
+
+
+// -----------------------------------------------------------------------------
+//  実戦での使用例（ABC315 E）… 標準入力を読むので main からは呼ばない
+// -----------------------------------------------------------------------------
+
+int solve_ABC315E(){
+    int N;
+    cin>>N;
+    vector<vector<int>>G(N);
+    rep(i,0,N){
+        int c;
+        cin>>c;
+        rep(j,0,c){
+            int p;
+            cin>>p;
+            G[i].push_back(p-1);
+        }
+    }
+    auto v=topo_sort_lex_min(G);
+    reverse(nall(v));
+
+    queue<int>q;
+    q.push(0);
+    //BFSで0に必要な頂点のみを記録
+    vector<bool>visited(N,true);
+    while(!q.empty()){
+        int pos=q.front();
+        q.pop();
+        for(int nxt:G[pos])if(visited[nxt]){
+            visited[nxt]=false;
+            q.push(nxt);
+        }
+    }
+
+    rep(i,0,N)if(!visited[v[i]])cout<<v[i]+1<<' ';
+    cout<<'\n';
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+//  使い方デモ（入力なしで動く）
+// -----------------------------------------------------------------------------
+void demo(){
+    cout << "===== find_cycle / topo_sort / topo_sort_lex_min デモ =====\n";
+    vector<vector<int>> dag = {{2}, {2, 3}, {}, {2}};        // 0→2, 1→2, 1→3, 3→2
+    auto order = topo_sort_lex_min(dag);
+    cout << "topo_sort_lex_min(dag) = "; for (int v : order) cout << v << " "; cout << "  // 辞書順最小のトポロジカル順 0 1 3 2\n";
+    order = topo_sort(dag);
+    cout << "topo_sort(dag) = "; for (int v : order) cout << v << " "; cout << "  // 辞書順は気にしない速い版（O(N+M)）\n";
+    vector<vector<int>> g = {{1}, {2}, {0}, {}};             // 0→1→2→0 の閉路
+    cout << "topo_sort_lex_min(閉路あり).size() = " << topo_sort_lex_min(g).size() << "   // DAG でなければ空\n";
+    auto c = find_cycle(g, true);
+    cout << "find_cycle(g, 有向) = "; for (int v : c) cout << v << " "; cout << "  // 先頭と末尾が同じ\n";
+    vector<vector<int>> ug = {{1}, {0, 2, 3}, {1, 3}, {1, 2}};  // 無向: 1-2-3-1 が閉路
+    c = find_cycle(ug, false);
+    cout << "find_cycle(ug, 無向) = "; for (int v : c) cout << v << " "; cout << "\n";
+    vector<vector<int>> multi = {{1, 1}, {0, 0}, {}};         // 無向: 0-1 を結ぶ辺が 2 本（長さ 2 の閉路）
+    c = find_cycle(multi, false);
+    cout << "find_cycle(多重辺, 無向) = "; for (int v : c) cout << v << " "; cout << "  // 0 1 0 のような長さ 2 の閉路\n";
+    vector<vector<int>> tree = {{1, 2}, {0}, {0}};            // 無向の木：閉路なし
+    cout << "find_cycle(木, 無向).size() = " << find_cycle(tree, false).size() << "   // 閉路がなければ空\n";
+}
+
+int main(){
+    BUFF;
+    demo();
+    return 0;
+}
+

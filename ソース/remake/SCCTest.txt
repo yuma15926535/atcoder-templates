@@ -1,0 +1,357 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  SCC (有向グラフの互いに行き来できる頂点の最大の集合)
+//  （作り直し版：元ファイル SCCTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - SCCの集合をまとめて一つの頂点として扱うと全体のグラフはDAGになる
+//    - SCC分解
+//    - 縮約DAG構築
+//    - 各SCCサイズ
+//    - DAG入次数
+//    - DAGトポロジカル順->DAG DPに進める
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+/*
+  SCC (有向グラフの互いに行き来できる頂点の最大の集合)
+  SCCの集合をまとめて一つの頂点として扱うと全体のグラフはDAGになる
+  - SCC分解
+  - 縮約DAG構築
+  - 各SCCサイズ
+  - DAG入次数
+  - DAGトポロジカル順
+*/
+struct SCC {
+    int n;
+    vector<vector<int>> g;     // 元グラフ
+    vector<int> comp;          // comp[v]: 頂点vのSCC番号
+    vector<vector<int>> dag;   // 縮約後DAG
+    vector<int> sz;            // 各SCCのサイズ
+    vector<int> indeg;         // 縮約DAGの入次数
+    vector<int> topo;          // 縮約DAGのトポロジカル順
+
+    SCC(int n): n(n), g(n) {}
+
+    void add_edge(int u, int v){
+        g[u].push_back(v);
+    }
+
+    void build(){
+        // --- SCC分解 ---
+        atcoder::scc_graph sg(n);
+        for(int u = 0; u < n; u++){
+            for(int v : g[u]) sg.add_edge(u, v);
+        }
+
+        // SCCの頂点の集合のvectorをトポロジカル巡に取得
+        auto sccs = sg.scc();          // トポロジカル順
+        int C = sccs.size();           // SCC数
+
+        comp.assign(n, -1);
+        sz.assign(C, 0);
+
+        for(int i = 0; i < C; i++){
+            for(int v : sccs[i]){
+                comp[v] = i;
+                sz[i]++;
+            }
+        }
+
+        // --- 縮約DAG構築 ---
+        dag.assign(C, {});
+        indeg.assign(C, 0);
+
+        for(int u = 0; u < n; u++){
+            for(int v : g[u]){
+                if(comp[u] != comp[v]){
+                    dag[comp[u]].push_back(comp[v]);
+                }
+            }
+        }
+
+        // ★ 必要なら重複辺を消す
+        for(int i = 0; i < C; i++){
+            sort(dag[i].begin(), dag[i].end());
+            dag[i].erase(unique(dag[i].begin(), dag[i].end()), dag[i].end());
+            for(int v : dag[i]) indeg[v]++;
+        }
+
+        // --- DAGのトポロジカル順 ---
+        queue<int> q;
+        for(int i = 0; i < C; i++){
+            if(indeg[i] == 0) q.push(i);
+        }
+
+        topo.clear();
+        while(!q.empty()){
+            int u = q.front(); q.pop();
+            topo.push_back(u);
+            for(int v : dag[u]){
+                if(--indeg[v] == 0) q.push(v);
+            }
+        }
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+// =============================================================================
+//  愚直解とのランダム比較テスト（作り直しで追加）
+// =============================================================================
+void random_test_bruteforce(){ mt19937 rng(13); int bad=0;
+ for(int it=0;it<3000;it++){ int n=rng()%8+1, m=rng()%15; SCC sc(n); vector<vector<int>> reach(n,vector<int>(n,0)); for(int i=0;i<n;i++)reach[i][i]=1;
+  vector<pair<int,int>> es; for(int i=0;i<m;i++){int u=rng()%n,v=rng()%n; sc.add_edge(u,v); reach[u][v]=1; es.push_back({u,v});}
+  for(int k=0;k<n;k++)for(int i=0;i<n;i++)for(int j=0;j<n;j++) if(reach[i][k]&&reach[k][j])reach[i][j]=1;
+  sc.build();
+  for(int i=0;i<n;i++)for(int j=0;j<n;j++){ bool same=reach[i][j]&&reach[j][i]; if((sc.comp[i]==sc.comp[j])!=same)bad++; }
+  // topological: edge u->v between different comps must go forward in topo order
+  int K=sc.sz.size(); vector<int> pos(K); for(int i=0;i<(int)sc.topo.size();i++) pos[sc.topo[i]]=i; if((int)sc.topo.size()!=K)bad++;
+  for(auto [u,v]:es) if(sc.comp[u]!=sc.comp[v] && pos[sc.comp[u]]>pos[sc.comp[v]])bad++;
+  vector<int> cnt(K,0); for(int i=0;i<n;i++)cnt[sc.comp[i]]++; for(int k=0;k<K;k++) if(cnt[k]!=sc.sz[k])bad++;
+ } 
+    cout << "random_test_bruteforce（愚直解とのランダム比較）: " << (((bad)==0) ? "OK" : "NG") << "\n";
+    assert((bad)==0);
+}
+
+void solv(){
+    // -------- グラフ構築 --------
+    SCC scc(5);
+    scc.add_edge(0, 1);
+    scc.add_edge(1, 2);
+    scc.add_edge(2, 0);
+    scc.add_edge(2, 3);
+    scc.add_edge(3, 4);
+    scc.add_edge(4, 3);
+
+    // -------- SCC構築 --------
+    scc.build();
+
+    // -------- SCC確認 --------
+    cout << "=== comp ===\n";
+    for(int i = 0; i < 5; i++){
+        cout << "vertex " << i << " -> SCC " << scc.comp[i] << "\n";
+    }
+
+    cout << "\n=== SCC size ===\n";
+    for(int i = 0; i < (int)scc.sz.size(); i++){
+        cout << "SCC " << i << " size = " << scc.sz[i] << "\n";
+    }
+
+    cout << "\n=== DAG ===\n";
+    for(int i = 0; i < (int)scc.dag.size(); i++){
+        cout << i << ": ";
+        for(int v : scc.dag[i]) cout << v << " ";
+        cout << "\n";
+    }
+
+    // -------- DAG DP（最長経路） --------
+    int C = scc.sz.size();
+    vector<long long> dp(C, 0);
+
+    // 初期値：SCCサイズ
+    for(int i = 0; i < C; i++){
+        dp[i] = scc.sz[i];
+    }
+
+    for(int u : scc.topo){
+        for(int v : scc.dag[u]){
+            dp[v] = max(dp[v], dp[u] + scc.sz[v]);
+        }
+    }
+
+    cout << "\n=== DAG DP result ===\n";
+    for(int i = 0; i < C; i++){
+        cout << "dp[SCC " << i << "] = " << dp[i] << "\n";
+    }
+    random_test_bruteforce();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

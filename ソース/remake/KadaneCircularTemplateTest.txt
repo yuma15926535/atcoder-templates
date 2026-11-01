@@ -1,0 +1,516 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  円環 Kadane 最大・最小部分列和（空あり / 空なし）
+//  （作り直し版：元ファイル KadaneCircularTemplateTest.txt）
+// -----------------------------------------------------------------------------
+//  説明
+//    - 部分列和が最大/最小となる場合の値と区間
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+struct SubarrayAll {
+    // ===== 最大（空あり）=====
+    long long max_allow_sum;
+    int max_allow_l, max_allow_r;
+
+    // ===== 最大（空なし）=====
+    long long max_force_sum;
+    int max_force_l, max_force_r;
+
+    // ===== 最小（空あり）=====
+    long long min_allow_sum;
+    int min_allow_l, min_allow_r;
+
+    // ===== 最小（空なし）=====
+    long long min_force_sum;
+    int min_force_l, min_force_r;
+
+    SubarrayAll(const vector<long long>& a) {
+        int n = a.size();
+
+        // ---------- 最大（空あり）----------
+        {
+            long long cur = 0;
+            int cur_l = 0;
+            max_allow_sum = 0;
+            max_allow_l = max_allow_r = 0;
+
+            for (int i = 0; i < n; i++) {
+                cur += a[i];
+                if (cur > max_allow_sum) {
+                    max_allow_sum = cur;
+                    max_allow_l = cur_l;
+                    max_allow_r = i + 1;
+                }
+                if (cur < 0) {
+                    cur = 0;
+                    cur_l = i + 1;
+                }
+            }
+        }
+
+        // ---------- 最大（空なし）----------
+        {
+            long long cur = a[0];
+            int cur_l = 0;
+            max_force_sum = a[0];
+            max_force_l = 0;
+            max_force_r = 1;
+
+            for (int i = 1; i < n; i++) {
+                if (cur < 0) {
+                    cur = a[i];
+                    cur_l = i;
+                } else {
+                    cur += a[i];
+                }
+                if (cur > max_force_sum) {
+                    max_force_sum = cur;
+                    max_force_l = cur_l;
+                    max_force_r = i + 1;
+                }
+            }
+        }
+
+        // ---------- 最小（空あり）----------
+        {
+            long long cur = 0;
+            int cur_l = 0;
+            min_allow_sum = 0;
+            min_allow_l = min_allow_r = 0;
+
+            for (int i = 0; i < n; i++) {
+                cur += a[i];
+                if (cur < min_allow_sum) {
+                    min_allow_sum = cur;
+                    min_allow_l = cur_l;
+                    min_allow_r = i + 1;
+                }
+                if (cur > 0) {
+                    cur = 0;
+                    cur_l = i + 1;
+                }
+            }
+        }
+
+        // ---------- 最小（空なし）----------
+        {
+            long long cur = a[0];
+            int cur_l = 0;
+            min_force_sum = a[0];
+            min_force_l = 0;
+            min_force_r = 1;
+
+            for (int i = 1; i < n; i++) {
+                if (cur > 0) {
+                    cur = a[i];
+                    cur_l = i;
+                } else {
+                    cur += a[i];
+                }
+                if (cur < min_force_sum) {
+                    min_force_sum = cur;
+                    min_force_l = cur_l;
+                    min_force_r = i + 1;
+                }
+            }
+        }
+    }
+};
+
+// 円環 Kadane 最大・最小部分列和（空あり / 空なし）
+// 値 + 区間 [l, r) をすべて保持
+// ※ l > r の場合は「末尾→先頭をまたぐ円環区間」
+struct SubarrayAllCircular {
+    int n;
+
+    // ===== 円環 最大（空あり）=====
+    long long max_allow_sum;
+    int max_allow_l, max_allow_r;
+
+    // ===== 円環 最大（空なし）=====
+    long long max_force_sum;
+    int max_force_l, max_force_r;
+
+    // ===== 円環 最小（空あり）=====
+    long long min_allow_sum;
+    int min_allow_l, min_allow_r;
+
+    // ===== 円環 最小（空なし）=====
+    long long min_force_sum;
+    int min_force_l, min_force_r;
+
+    SubarrayAllCircular(const vector<long long>& a) {
+        n = a.size();
+
+        // 通常（非円環）Kadane をまず計算
+        SubarrayAll base(a);
+
+        // 全体和
+        long long total = 0;
+        for (long long x : a) total += x;
+
+        // ==================================================
+        // 円環 最大（空あり）
+        // ・通常最大（空あり）
+        // ・円環を使う場合 = total - 最小（空なし）
+        // ==================================================
+        {
+            long long cand1 = base.max_allow_sum;                 // 円を使わない
+            long long cand2 = total - base.min_force_sum;         // 円をまたぐ
+
+            if (cand1 >= cand2) {
+                max_allow_sum = cand1;
+                max_allow_l = base.max_allow_l;
+                max_allow_r = base.max_allow_r;
+            } else {
+                max_allow_sum = cand2;
+                // 「最小区間を除いた残り」が答え
+                max_allow_l = base.min_force_r;
+                max_allow_r = base.min_force_l;
+            }
+        }
+
+        // ==================================================
+        // 円環 最大（空なし）
+        // ※ 全部取るケースは禁止されない
+        // ==================================================
+        {
+            long long cand1 = base.max_force_sum;
+            long long cand2 = LLONG_MIN;
+
+            // 最小区間が「全体」でない場合のみ円環を許可
+            if (!(base.min_force_l == 0 && base.min_force_r == n)) {
+                cand2 = total - base.min_force_sum;
+            }
+
+            if (cand1 >= cand2) {
+                max_force_sum = cand1;
+                max_force_l = base.max_force_l;
+                max_force_r = base.max_force_r;
+            } else {
+                max_force_sum = cand2;
+                max_force_l = base.min_force_r;
+                max_force_r = base.min_force_l;
+            }
+        }
+
+        // ==================================================
+        // 円環 最小（空あり）
+        // ・通常最小（空あり）
+        // ・円環を使う場合 = total - 最大（空なし）
+        // ==================================================
+        {
+            long long cand1 = base.min_allow_sum;                 // 非円環
+            long long cand2 = total - base.max_force_sum;         // 円環
+
+            if (cand1 <= cand2) {
+                min_allow_sum = cand1;
+                min_allow_l = base.min_allow_l;
+                min_allow_r = base.min_allow_r;
+            } else {
+                min_allow_sum = cand2;
+                min_allow_l = base.max_force_r;
+                min_allow_r = base.max_force_l;
+            }
+        }
+
+        // ==================================================
+        // 円環 最小（空なし）
+        // ==================================================
+        {
+            long long cand1 = base.min_force_sum;                 // 非円環
+            long long cand2 = LLONG_MAX;
+            // 最大区間が「全体」でない場合のみ円環を許可（全体を除くと空になってしまう）
+            if (!(base.max_force_l == 0 && base.max_force_r == n)) {
+                cand2 = total - base.max_force_sum;         // 円環
+            }
+
+            if (cand1 <= cand2) {
+                min_force_sum = cand1;
+                min_force_l = base.min_force_l;
+                min_force_r = base.min_force_r;
+            } else {
+                min_force_sum = cand2;
+                min_force_l = base.max_force_r;
+                min_force_r = base.max_force_l;
+            }
+        }
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+// ---- ランダムテスト用: 円環も扱える区間和 [l, r)（l > r なら折り返し）----
+ll csum_test(const vector<ll>&a,int l,int r){ int n=a.size(); ll s=0; if(l<r){for(int i=l;i<r;i++)s+=a[i%n];} else if(l>r){for(int i=l;i<n;i++)s+=a[i]; for(int i=0;i<r;i++)s+=a[i];} return s; }
+
+void random_test_kadane_circular(){ mt19937 rng(7); int bad[8]={0};
+ for(int it=0;it<20000;it++){ int n=rng()%6+1; vector<ll>a(n); for(auto&x:a)x=(ll)(rng()%9)-4;
+  ll mxa=0,mxf=LLONG_MIN,mna=0,mnf=LLONG_MAX;
+  for(int l=0;l<n;l++){ll s=0; for(int r=l;r<n;r++){s+=a[r]; mxa=max(mxa,s); mxf=max(mxf,s); mna=min(mna,s); mnf=min(mnf,s);} }
+  SubarrayAll S(a);
+  if(S.max_allow_sum!=mxa||csum_test(a,S.max_allow_l,S.max_allow_r)!=mxa)bad[0]++;
+  if(S.max_force_sum!=mxf||csum_test(a,S.max_force_l,S.max_force_r)!=mxf||S.max_force_l>=S.max_force_r)bad[1]++;
+  if(S.min_allow_sum!=mna||csum_test(a,S.min_allow_l,S.min_allow_r)!=mna)bad[2]++;
+  if(S.min_force_sum!=mnf||csum_test(a,S.min_force_l,S.min_force_r)!=mnf||S.min_force_l>=S.min_force_r)bad[3]++;
+  // circular: subarrays of length 0..n (allow) or 1..n (force)
+  ll cmxa=0,cmxf=LLONG_MIN,cmna=0,cmnf=LLONG_MAX;
+  for(int s=0;s<n;s++){ll t=0; for(int len=1;len<=n;len++){ t+=a[(s+len-1)%n]; cmxa=max(cmxa,t);cmxf=max(cmxf,t);cmna=min(cmna,t);cmnf=min(cmnf,t);} }
+  SubarrayAllCircular C(a);
+  auto cs=[&](int l,int r,ll want,bool force){ if(l==r){ return force? false : want==0 ; } return csum_test(a,l,r)==want; };
+  if(C.max_allow_sum!=cmxa)bad[4]++;
+  if(C.max_force_sum!=cmxf)bad[5]++;
+  if(C.min_allow_sum!=cmna)bad[6]++;
+  if(C.min_force_sum!=cmnf)bad[7]++;
+ } int tot=0; for(int i=0;i<8;i++) tot+=bad[i];
+ cout << "random_test_kadane_circular: " << (tot==0 ? "OK" : "NG") << "（愚直解と 20000 回比較）\n"; assert(tot==0);
+}
+
+void solv(){
+    // ===== テストケース =====
+    // 円環で効いてくる典型例
+    vector<vector<ll>> tests = {
+        {1, -2, 3, -2},
+        {5, -3, 5},
+        {-3, -2, -3},
+        {2, -1, 2, -1, 2},
+        {1, -1, 1, -1, 1}
+    };
+
+    for (int tc = 0; tc < (int)tests.size(); tc++) {
+        auto &a = tests[tc];
+        int n = a.size();
+
+        cout << "=============================\n";
+        cout << "Test " << tc + 1 << "\n";
+        cout << "Array: ";
+        for (ll x : a) cout << x << " ";
+        cout << "\n";
+
+        SubarrayAll base(a);
+        SubarrayAllCircular cir(a);
+
+        // ---------- 非円環 ----------
+        cout << "\n[Non-Circular]\n";
+        cout << "max_allow : " << base.max_allow_sum
+             << " [" << base.max_allow_l << "," << base.max_allow_r << ")\n";
+        cout << "max_force : " << base.max_force_sum
+             << " [" << base.max_force_l << "," << base.max_force_r << ")\n";
+        cout << "min_allow : " << base.min_allow_sum
+             << " [" << base.min_allow_l << "," << base.min_allow_r << ")\n";
+        cout << "min_force : " << base.min_force_sum
+             << " [" << base.min_force_l << "," << base.min_force_r << ")\n";
+
+        // ---------- 円環 ----------
+        cout << "\n[Circular]\n";
+        cout << "max_allow : " << cir.max_allow_sum
+             << " [" << cir.max_allow_l << "," << cir.max_allow_r << ")";
+        if (cir.max_allow_l > cir.max_allow_r) cout << " (wrap)";
+        cout << "\n";
+
+        cout << "max_force : " << cir.max_force_sum
+             << " [" << cir.max_force_l << "," << cir.max_force_r << ")";
+        if (cir.max_force_l > cir.max_force_r) cout << " (wrap)";
+        cout << "\n";
+
+        cout << "min_allow : " << cir.min_allow_sum
+             << " [" << cir.min_allow_l << "," << cir.min_allow_r << ")";
+        if (cir.min_allow_l > cir.min_allow_r) cout << " (wrap)";
+        cout << "\n";
+
+        cout << "min_force : " << cir.min_force_sum
+             << " [" << cir.min_force_l << "," << cir.min_force_r << ")";
+        if (cir.min_force_l > cir.min_force_r) cout << " (wrap)";
+        cout << "\n";
+    }
+    random_test_kadane_circular();
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}

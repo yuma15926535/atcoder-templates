@@ -1,0 +1,424 @@
+#pragma region template
+#include <bits/stdc++.h>
+#include <atcoder/all>
+#include <random>
+using namespace std;
+using namespace atcoder;
+using ll = long long;
+using ull = unsigned long long;
+#define GET_REP(_1,_2,_3,NAME,...) NAME
+#define rep3(i,s,n) for(ll i=(s);i<(n);i++)      // [s,n)
+#define rep2(i,n) rep3(i,0,n)
+#define rep(...) GET_REP(__VA_ARGS__, rep3, rep2)(__VA_ARGS__)
+#define erep3(i,s,n) for(ll i=(s);i<=(n);i++)    // [s,n]
+#define erep2(i,n) erep3(i,0,n)
+#define erep(...) GET_REP(__VA_ARGS__, erep3, erep2)(__VA_ARGS__)
+#define rrep3(i,s,n) for(ll i=(s)-1;i>=(n);i--)  // s-1,s-2,...,n
+#define rrep2(i,n) rrep3(i,n,0)
+#define rrep(...) GET_REP(__VA_ARGS__, rrep3, rrep2)(__VA_ARGS__)
+#define nall(a) a.begin(),a.end()
+#define rall(a) a.rbegin(),a.rend()
+#define YES cout<<"Yes\n"
+#define NO cout<<"No\n"
+#define YN {cout<<"Yes\n";}else{cout<<"No\n";}
+#define BUFF cin.tie(nullptr);ios::sync_with_stdio(false)
+#define next_p(v) next_permutation(v.begin(),v.end())
+template<class T> using PQ = priority_queue<T, vector<T>>;//大きい順
+template<class T> using PQ_g = priority_queue<T, vector<T>, greater<T>>;//小さい順
+template<class T> int sizei(const T& x){return (int)x.size();}
+template<class T>bool chmax(T& a,const T& b){return a<b?a=b,1:0;}
+template<class T>bool chmin(T& a,const T& b){return a>b?a=b,1:0;}
+template<class T>int sgn(T x){return (x>0)-(x<0);}
+inline int popcnt(long long x){return __builtin_popcountll(x);}
+const ll LINF = (1LL<<60);
+const int INF = (1<<30);
+template<class A, class B> istream& operator>>(istream& is, pair<A, B>& p) { is >> p.first >> p.second; return is; }
+//template<class A, class B> ostream& operator<<(ostream& os, const pair<A, B>& p) { os << p.first << " " << p.second; return os; }
+template<class T> istream& operator>>(istream& is, vector<T>& v) { for(auto& x : v) is >> x; return is; }
+//template<class T> ostream& operator<<(ostream& os, const vector<T>& v) {for(int i = 0; i < (int)v.size(); i++) os << v[i] << (i + 1 == (int)v.size() ? "" : " ");return os;}
+//cout<<FIXED(15)<<(double)1/7<<'\n';
+#define FIXED(n) fixed << setprecision(n)
+// Pre-published templates: https://github.com/yuma15926535/atcoder-templates
+#pragma endregion
+#pragma region GraphIO
+struct GraphIO {
+    // 非重みグラフ入力
+    static vector<vector<int>>
+    read_unweighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,   // 必要なら渡す
+        vector<int>* outdeg = nullptr,  // 必要なら渡す
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<int>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            cin >> u >> v;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back(v);
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back(u);
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj; // RVOでコピーほぼなし
+    }
+    // 重み付きグラフ入力
+    static vector<vector<pair<int,long long>>>
+    read_weighted(
+        int n,
+        int m,
+        vector<int>* indeg = nullptr,
+        vector<int>* outdeg = nullptr,
+        bool directed = false,
+        int input_index = 1
+    ){
+        vector<vector<pair<int,long long>>> adj(n);
+        if(indeg)  indeg->assign(n, 0);
+        if(outdeg) outdeg->assign(n, 0);
+        for(int i = 0; i < m; i++){
+            int u, v;
+            long long w;
+            cin >> u >> v >> w;
+            u -= input_index;
+            v -= input_index;
+            adj[u].push_back({v, w});
+            if(outdeg) (*outdeg)[u]++;
+            if(indeg)  (*indeg)[v]++;
+            if(!directed){
+                adj[v].push_back({u, w});
+                if(outdeg) (*outdeg)[v]++;
+                if(indeg)  (*indeg)[u]++;
+            }
+        }
+        return adj;
+    }
+};
+#pragma endregion
+#pragma region debug
+// ===== debug color =====
+#define DBG_RESET "\033[0m"
+#define DBG_CYAN "\033[36m"
+#define DBG_COLOR DBG_CYAN
+template<class T,class=void>struct is_iter:std::false_type{};
+template<class T>struct is_iter<T,std::void_t<decltype(begin(std::declval<T>())),decltype(end(std::declval<T>()))>>:std::true_type{};
+template<class T>constexpr bool is_iter_v=is_iter<T>::value&&!std::is_same_v<T,std::string>;
+template<class A,class B>
+ostream&operator<<(ostream&os,const pair<A,B>&p){return os<<p.first<<","<<p.second;}
+template<size_t I,class...Ts>
+void _tuple_out(ostream&os,const tuple<Ts...>&t){
+    if constexpr(I<sizeof...(Ts)){
+        if(I) os<<",";
+        os<<get<I>(t);
+        _tuple_out<I+1>(os,t);
+    }
+}
+template<class...Ts>
+ostream&operator<<(ostream&os,const tuple<Ts...>&t){
+    _tuple_out<0>(os,t);
+    return os;
+}
+template<class T>
+std::enable_if_t<is_iter_v<T>,ostream&>
+operator<<(ostream&os,const T&v){
+    using V = std::decay_t<decltype(*begin(v))>;
+    if constexpr(is_iter_v<V>){
+        bool first_row=true;
+        os<<"\n";
+        for(auto&&row:v){
+            if(!first_row) os<<"\n";
+            first_row=false;
+            bool f=0;
+            for(auto&&x:row){
+                if(f) os<<" ";
+                os<<x;
+                f=1;
+            }
+        }
+    }
+    else{
+        os<<"[";
+        bool f=0;
+        for(auto&&x:v){
+            if(f) os<<", ";
+            os<<x;
+            f=1;
+        }
+        os<<"]";
+    }
+    return os;
+}
+void _dbg(const char*){
+    cerr<<DBG_COLOR<<"========================================\n"<<DBG_RESET;
+}
+template<class T,class...U>
+void _dbg(const char*names,T&&x,U&&...y){
+    const char*comma=strchr(names,',');
+    if(!comma){
+        cerr<<DBG_COLOR<<names<<" = "<<x<<"\n"<<DBG_RESET;
+    }else{
+        cerr<<DBG_COLOR;
+        cerr.write(names,comma-names)<<" = "<<x<<" | ";
+        _dbg(comma+1,y...);
+    }
+}
+// run.shを引数ありで実行するとdebug有効、なしだと無効
+#ifdef LOCAL
+#define debug(...) _dbg(#__VA_ARGS__ , ##__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+#pragma endregion
+
+// =============================================================================
+//  RandomTest
+//  （作り直し版：元ファイル RandomTest.txt）
+// -----------------------------------------------------------------------------
+//  ファイル構成
+//    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
+//    それ以降            … テスト・使い方デモ（貼り付け不要）
+// =============================================================================
+// ======================= ここからテンプレート本体（コピー範囲） =======================
+struct RandomTest {
+    mt19937 rng; // 乱数生成器
+
+    // コンストラクタ: seedを指定しなければ現在時刻で初期化
+    RandomTest(int seed = chrono::steady_clock::now().time_since_epoch().count()) { 
+        rng.seed(seed); 
+    }
+
+    // シードを後から変更したい場合
+    void set_seed(int seed) { rng.seed(seed); }
+
+    // -------------------------------
+    // 1. 整数のランダム数列生成
+    // -------------------------------
+    // n        : 生成する要素数
+    // l, r     : 要素の範囲 [l, r]
+    // unique   : true にすると要素は重複なし
+    // sorted   : true にすると昇順ソートして返す
+    vector<int> randint_sequence(int n, int l, int r, bool unique=false, bool sorted=false) {
+        vector<int> v;
+
+        // 重複なしの場合、範囲が足りないとエラー
+        if(unique && r - l + 1 < n) 
+            throw runtime_error("範囲が小さすぎてユニークにできません");
+
+        if(unique) {
+            vector<int> pool(r-l+1);
+            iota(pool.begin(), pool.end(), l);      // [l, r]の値を作る
+            shuffle(pool.begin(), pool.end(), rng); // シャッフル
+            v.assign(pool.begin(), pool.begin() + n); 
+        } else {
+            uniform_int_distribution<int> dist(l, r);
+            for(int i=0;i<n;i++) v.push_back(dist(rng));
+        }
+
+        if(sorted) sort(v.begin(), v.end());
+        return v;
+    }
+
+    // -------------------------------
+    // 2. 座標点のランダム生成
+    // -------------------------------
+    // n      : 生成する点の数
+    // x_min  : x座標の最小値
+    // x_max  : x座標の最大値
+    // y_min  : y座標の最小値
+    // y_max  : y座標の最大値
+    vector<pair<int,int>> random_points(int n, int x_min, int x_max, int y_min, int y_max) {
+        vector<pair<int,int>> pts;
+        uniform_int_distribution<int> dx(x_min, x_max);
+        uniform_int_distribution<int> dy(y_min, y_max);
+        for(int i=0;i<n;i++) pts.emplace_back(dx(rng), dy(rng));
+        return pts;
+    }
+
+    // -------------------------------
+    // 3. ランダム文字列生成
+    // -------------------------------
+    // length : 生成する文字列の長さ
+    // chars  : 使用する文字の集合（デフォルトは英数字）
+    string random_string(int length, const string& chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") {
+        string s;
+        uniform_int_distribution<int> dist(0, (int)chars.size()-1);
+        for(int i=0;i<length;i++) s += chars[dist(rng)];
+        return s;
+    }
+
+    // 複数文字列生成
+    vector<string> random_strings(int n, int length, const string& chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") {
+        vector<string> res;
+        for(int i=0;i<n;i++) res.push_back(random_string(length, chars));
+        return res;
+    }
+
+    // -------------------------------
+    // 4. グラフ生成
+    // -------------------------------
+    // 無向木（1からn-1までの辺をランダムに割り当て）
+    // 頂点を並べ替えた順に、各頂点の親を「それより前の頂点」から選ぶので必ず木になる
+    vector<vector<int>> random_tree(int n) {
+        vector<int> order(n);
+        iota(order.begin(), order.end(), 0);
+        shuffle(order.begin(), order.end(), rng);
+        vector<vector<int>> g(n);
+        for(int i=1;i<n;i++) {
+            int p = order[uniform_int_distribution<int>(0, i-1)(rng)];
+            int c = order[i];
+            g[c].push_back(p);
+            g[p].push_back(c);
+        }
+        return g;
+    }
+
+    // ランダムグラフ
+    // n        : 頂点数
+    // m        : 辺の数
+    // directed : trueなら有向グラフ、falseなら無向グラフ
+    vector<vector<int>> random_graph(int n, int m, bool directed=false) {
+        long long max_m = directed ? 1LL * n * (n - 1) : 1LL * n * (n - 1) / 2;
+        assert(m <= max_m);   // 辺が多すぎると終わらないので止める
+        set<pair<int,int>> edges;
+        uniform_int_distribution<int> dist(0, n-1);
+        while((int)edges.size() < m) {
+            int u = dist(rng), v = dist(rng);
+            if(u == v) continue; // 自己ループを除く
+            if(!directed && u > v) swap(u,v); // 無向グラフなら順序を固定
+            edges.insert({u,v});
+        }
+        vector<vector<int>> g(n);
+        for(auto &[u,v]:edges) {
+            g[u].push_back(v);
+            if(!directed) g[v].push_back(u);
+        }
+        return g;
+    }
+
+    // -------------------------------
+    // 5. 繰り返しテスト用
+    // -------------------------------
+    // times : 繰り返す回数
+    // func  : 各回に実行するラムダ関数（テスト番号が渡される）
+    template<class F>
+    void repeat(int times, F func) {   // func(i) を times 回呼ぶ（std::function を使わない）
+        for(int i=0;i<times;i++) func(i);
+    }
+
+    // -------------------------------
+    // 6. 出力確認用
+    // -------------------------------
+    void print_int(const int& num, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        cout << num << "\n";
+    }
+
+    void print_ll(const ll& num, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        cout << num << "\n";
+    }
+
+    template<typename T>
+    void print_vector(const vector<T>& v, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        for(auto &x:v) cout << x << " ";
+        cout << "\n";
+    }
+
+    template<typename T1, typename T2>
+    void print_points(const vector<pair<T1,T2>>& pts, const string &label="") {
+        if(!label.empty()) cout << label << ":\n";
+        for(auto &[x,y]:pts) cout << "("<<x<<","<<y<<") ";
+        cout << "\n";
+    }
+
+    void print_graph(const vector<vector<int>>& g, const string &label="") {
+        if(!label.empty()) cout << label << ":\n";
+        for(int i=0;i<(int)g.size();i++) {
+            cout << i << ": ";
+            for(int v:g[i]) cout << v << " ";
+            cout << "\n";
+        }
+    }
+
+    void print_string(const string& s, const string &label="") {
+        if(!label.empty()) cout << label << ": ";
+        cout << s << "\n";
+    }
+
+    void print_strings(const vector<string>& s, const string &label="") {
+        if(!label.empty()) cout << label << ":\n";
+        for(auto &str:s) cout << str << "\n";
+    }
+};
+// ======================= ここまでテンプレート本体 =======================
+
+// ------------------------
+// 問題用関数
+// ------------------------
+// デモ用にわざと間違えた自作解（常に "Odd"）。ランダムテストで反例が見つかる様子を確認する
+string my_solution(const vector<int>& a) {
+    long long sum = 0;
+    for(auto x:a) sum += x;
+    //return (sum % 2 == 0 ? "Even" : "Odd");
+    return "Odd";
+}
+
+string correct_solution(const vector<int>& a) {
+    return accumulate(a.begin(), a.end(), 0LL) % 2 == 0 ? "Even" : "Odd";
+}
+
+void solv(){
+    RandomTest rt;
+
+    int test_count = 100;
+    bool all_passed = true;
+    int fail_count = 0;  // 失敗した回数（反例は最初の 1 つだけ表示する）
+
+    rt.repeat(test_count, [&](int t){
+        //数列のサイズ
+        int n = rt.randint_sequence(1, 1, 10)[0];
+        //数列の生成
+        auto a = rt.randint_sequence(n, 0, 100);
+
+        string my_ans = my_solution(a);
+        string correct_ans = correct_solution(a);
+
+        if(my_ans != correct_ans) {
+            all_passed = false;
+            if(fail_count++ > 0) return;  // 2 つ目以降は数えるだけ
+            cout << "テスト " << t+1 << " 失敗！（最初に見つかった反例）\n";
+            rt.print_vector(a, "入力");
+            rt.print_string(my_ans,"自作解");
+            rt.print_string(correct_ans,"正解");
+            cout<<'\n';
+        }
+    });
+
+    if(all_passed) cout << "すべてのテストに合格 ✅\n";
+    else cout << test_count << " 回中 " << fail_count << " 回失敗\n";
+    // 生成した木が本当に木か（辺の数 = n-1 かつ連結）を確認
+    auto g = rt.random_tree(8);
+    int edges = 0; for(auto& v : g) edges += v.size();
+    vector<int> seen(8, 0); vector<int> st = {0}; seen[0] = 1; int cnt = 1;
+    while(!st.empty()){ int v = st.back(); st.pop_back(); for(int to : g[v]) if(!seen[to]){ seen[to] = 1; cnt++; st.push_back(to); } }
+    rt.print_graph(g, "random_tree(8)");
+    cout << "辺の数 = " << edges / 2 << ", 連結な頂点数 = " << cnt << "   // 7 と 8 なら木\n";
+    return;
+}
+
+int main(){
+    BUFF;
+    int T=1;
+    //cin>>T;
+    while(T--)solv();
+    return 0;
+}
