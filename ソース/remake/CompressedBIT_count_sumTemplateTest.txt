@@ -237,7 +237,7 @@ void _dbg(const char*names,T&&x,U&&...y){
  * 【注意】
  * ・コンストラクタで渡した値のみ扱える（座圧前提）
  * ・存在しない値に対する add / erase は無効（falseを返す）
- * ・kth系は1-indexed
+ * ・kth系・rank は 0-indexed（kth(0) が最小、rank(v) = count_lt(v)）
  * ・空集合時は関数ごとに適切な値（-1 / 0）を返す
  *
  * 【用途】
@@ -318,7 +318,7 @@ struct CompressedBIT {
     // 内部：BIT上でk以上になる最小indexを探す
     // （0-indexedで返す）
     // 戻り値は「prefix和がk未満である最大index」
-    // → kth(k) でそのまま使うと「k番目の位置」になる
+    // → kth(k) では lower_bound_bit(k + 1) で「0 始まりで k 番目の位置」を求める
     // =============================
     int lower_bound_bit(ll k) const {
         if (k <= 0) return 0;
@@ -466,7 +466,7 @@ struct CompressedBIT {
         if (k >= total) {
             return internal_sum(bit_sum, n-1);
         }
-        ll x = kth(k);
+        ll x = kth(k - 1);   // 小さい方から k 個目（0 始まりで k - 1 番目）
         ll cnt_lt = count_lt(x);
         ll sum_lt = sum(x-1);
         ll need = k - cnt_lt;
@@ -493,7 +493,7 @@ struct CompressedBIT {
     ll median() const {
         ll n = count_all();
         if (n == 0) return none;
-        return kth((n + 1) / 2);
+        return kth((n - 1) / 2);
     }
 
     // median_cost()
@@ -597,61 +597,61 @@ struct CompressedBIT {
     ll prev(ll x) const {
         ll k = count_lt(x);
         if (k == 0) return none;
-        return kth(k);
+        return kth(k - 1);
     }
 
     // xより大きい最小の値
     // 存在しなければ none（既定 -1）
     ll next(ll x) const {
-        ll k = count_le(x) + 1;
-        if (k > count_all()) return none;
+        ll k = count_le(x);
+        if (k >= count_all()) return none;
         return kth(k);
     }
 
-    // k番目に小さい値（1-indexed）
-    // ・k=1 が最小
+    // k番目に小さい値（0-indexed）
+    // ・k=0 が最小
     // ・存在しない場合は none（既定 -1）
     ll kth(ll k) const {
-        if (k <= 0 || k > count_all()) return none;
-        int i = lower_bound_bit(k);
+        if (k < 0 || k >= count_all()) return none;
+        int i = lower_bound_bit(k + 1);
         return values[i];
     }
 
-    // 小さい方からk番目（1-indexed）
+    // 小さい方からk番目（0-indexed）
     // 範囲外なら none（既定 -1）
     ll kth_smallest(ll k) const {
         return kth(k);
     }
 
-    // 大きい方からk番目（1-indexed）
+    // 大きい方からk番目（0-indexed。k=0 が最大）
     // 範囲外なら none（既定 -1）
     ll kth_largest(ll k) const {
         ll n = count_all();
-        if (k <= 0 || k > n) return none;
-        return kth(n - k + 1);
+        if (k < 0 || k >= n) return none;
+        return kth(n - 1 - k);
     }
 
     // ----------------------------
-    // 順位（1-indexed）
-    // 「vより小さい要素数」
+    // 順位（0-indexed）
+    // 「vより小さい要素数」（= count_lt(v)）
     // ----------------------------
     ll rank(ll v) const {
-        return count_lt(v) + 1;
+        return count_lt(v);
     }
 
     // v以上で最小の値（lower_bound的）
     // ・存在しなければ none（既定 -1）
     ll first_ge(ll v) const {
-        ll k = count_lt(v) + 1; // v以上の最初 = (v未満の次)
-        if (k > count_all()) return none;
+        ll k = count_lt(v); // v以上の最初 = (0 始まりで v未満の個数番目)
+        if (k >= count_all()) return none;
         return kth(k);
     }
 
     // vより大きい値の最小（upper_bound的）
     // ・存在しなければ none（既定 -1）
     ll first_gt(ll v) const {
-        ll k = count_le(v) + 1; // v以下の次
-        if (k > count_all()) return none;
+        ll k = count_le(v); // v以下の次
+        if (k >= count_all()) return none;
         return kth(k);
     }
 
@@ -814,12 +814,12 @@ void random_test(){
             if(type == 6){
                 if(st.empty()) continue;
 
-                int k = rng()%st.size() + 1;
+                int k = rng()%st.size();
 
                 ll a = bit.kth(k);
 
                 auto it = st.begin();
-                advance(it, k-1);
+                advance(it, k);
                 ll b = *it;
 
                 if(a != b){
@@ -860,11 +860,11 @@ void random_test(){
             }
 
             // ------------------------
-            // rank（1-indexed）
+            // rank（0-indexed）
             // ------------------------
             if(type == 8){
                 ll a = bit.rank(x);
-                ll b = distance(st.begin(), st.lower_bound(x)) + 1;
+                ll b = distance(st.begin(), st.lower_bound(x));
 
                 if(a != b){
                     cout << "rank error\n";
@@ -1349,7 +1349,7 @@ void random_test9(){
             // kth系
             if(type == 2){
                 ll n = st.size();
-                ll k = (n == 0 ? 1 : rng() % (n + 2)); // オーバーも含む
+                ll k = (n == 0 ? 0 : (ll)(rng() % (n + 3)) - 1); // -1 やオーバーも含む
 
                 ll a_small = bit.kth_smallest(k);
                 ll a_large = bit.kth_largest(k);
@@ -1358,13 +1358,13 @@ void random_test9(){
                 vector<ll> v(st.begin(), st.end());
 
                 ll b_small = -1;
-                if(1 <= k && k <= (ll)v.size()){
-                    b_small = v[k-1];
+                if(0 <= k && k < (ll)v.size()){
+                    b_small = v[k];
                 }
 
                 ll b_large = -1;
-                if(1 <= k && k <= (ll)v.size()){
-                    b_large = v[v.size() - k];
+                if(0 <= k && k < (ll)v.size()){
+                    b_large = v[v.size() - 1 - k];
                 }
 
                 if(a_small != b_small || a_large != b_large){
@@ -1449,7 +1449,7 @@ void demo(){
     cout << "cb.count(30) = " << cb.count(30) << ", cb.count_all() = " << cb.count_all() << ", cb.unique_count() = " << cb.unique_count() << "\n";
     cout << "cb.count_lt(30) = " << cb.count_lt(30) << ", cb.count_le(30) = " << cb.count_le(30) << ", cb.count_range(15, 40) = " << cb.count_range(15, 40) << ", cb.count_range_closed(15, 40) = " << cb.count_range_closed(15, 40) << "   // [15,40) と [15,40]\n";
     cout << "cb.sum(30) = " << cb.sum(30) << ", cb.sum(20, 40) = " << cb.sum(20, 40) << ", cb.sum_closed(20, 40) = " << cb.sum_closed(20, 40) << "   // 30 以下の和 / 値が [20,40) の和 / [20,40] の和\n";
-    cout << "cb.kth(3) = " << cb.kth(3) << ", cb.kth_largest(1) = " << cb.kth_largest(1) << "   // 1 始まり\n";
+    cout << "cb.kth(2) = " << cb.kth(2) << ", cb.kth_largest(0) = " << cb.kth_largest(0) << ", cb.rank(30) = " << cb.rank(30) << "   // 0 始まり（kth(0) が最小、kth_largest(0) が最大、rank = count_lt）\n";
     cout << "cb.prev(10) = " << cb.prev(10) << "   // 10 未満は無いので none（既定 -1）\n";
     cb.none = LLONG_MIN;                       // 負の値も入れるときは「見つからない」を表す値を変えておく
     cout << "cb.none = LLONG_MIN にした後: cb.prev(10) == LLONG_MIN → " << (cb.prev(10) == LLONG_MIN) << "\n";

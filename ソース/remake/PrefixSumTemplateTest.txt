@@ -253,29 +253,32 @@ struct PrefixSum2D {
 
     // ===== 0-index =====
 
-    // 半開区間 [x1, y1) × [x2, y2)
+    // 引数は (左上の行, 左上の列, 右下の行, 右下の列) の順（BIT2D・Imos2D などと同じ）
+
+    // 半開区間 行 [x1, x2) × 列 [y1, y2)
     long long sum(int x1, int y1, int x2, int y2) {
-        return ps[y1][y2]
+        if (x1 >= x2 || y1 >= y2) return 0;
+        return ps[x2][y2]
              - ps[x1][y2]
-             - ps[y1][x2]
-             + ps[x1][x2];
+             - ps[x2][y1]
+             + ps[x1][y1];
     }
 
-    // 閉区間 [x1, y1] × [x2, y2]
+    // 閉区間 行 [x1, x2] × 列 [y1, y2]
     long long sum_closed(int x1, int y1, int x2, int y2) {
-        return sum(x1, y1 + 1, x2, y2 + 1);
+        return sum(x1, y1, x2 + 1, y2 + 1);
     }
 
     // ===== 1-index =====
 
-    // 半開区間 [x1, y1) × [x2, y2)
+    // 半開区間 行 [x1, x2) × 列 [y1, y2)（1-index）
     long long sum1(int x1, int y1, int x2, int y2) {
         return sum(x1 - 1, y1 - 1, x2 - 1, y2 - 1);
     }
 
-    // 閉区間 [x1, y1] × [x2, y2]
+    // 閉区間 行 [x1, x2] × 列 [y1, y2]（1-index）
     long long sum1_closed(int x1, int y1, int x2, int y2) {
-        return sum(x1 - 1, y1, x2 - 1, y2);
+        return sum(x1 - 1, y1 - 1, x2, y2);
     }
 };
 // ======================= ここまでテンプレート本体 =======================
@@ -320,21 +323,60 @@ void solv(){
     }
 
     cout << "[0-index]\n";
-    cout << "sum(0,2,0,2)  = " << ps2.sum(0, 2, 0, 2)
-         << " (1+2+4+5=12)\n";
-    cout << "sum_closed(1,2,1,2) = " << ps2.sum_closed(1, 2, 1, 2)
+    cout << "引数は (左上の行, 左上の列, 右下の行, 右下の列)\n";
+    cout << "sum(0,0,2,2)  = " << ps2.sum(0, 0, 2, 2)
+         << " (行[0,2)×列[0,2): 1+2+4+5=12)\n";
+    cout << "sum(0,1,3,3)  = " << ps2.sum(0, 1, 3, 3)
+         << " (行[0,3)×列[1,3): 2+3+5+6+8+9=33)\n";
+    cout << "sum_closed(1,1,2,2) = " << ps2.sum_closed(1, 1, 2, 2)
          << " (5+6+8+9=28)\n";
 
     cout << "[1-index]\n";
-    cout << "sum1(1,3,1,3)  = " << ps2.sum1(1, 3, 1, 3)
+    cout << "sum1(1,1,3,3)  = " << ps2.sum1(1, 1, 3, 3)
          << " (1+2+4+5=12)\n";
-    cout << "sum1_closed(2,3,2,3) = " << ps2.sum1_closed(2, 3, 2, 3)
+    cout << "sum1_closed(2,2,3,3) = " << ps2.sum1_closed(2, 2, 3, 3)
          << " (5+6+8+9=28)\n";
     return;
 }
 
+// 愚直解とのランダム比較テスト（PrefixSum1D・PrefixSum2D の全関数）
+void random_test_bruteforce(){
+    mt19937 rng(12345);
+    for (int it = 0; it < 300; it++) {
+        int N = rng() % 8 + 1;
+        vector<long long> a(N);
+        for (auto& x : a) x = (long long)(rng() % 21) - 10;
+        PrefixSum1D p(a);
+        for (int l = 0; l <= N; l++) for (int r = l; r <= N; r++) {
+            long long s = 0;
+            for (int i = l; i < r; i++) s += a[i];
+            assert(p.sum(l, r) == s);
+            if (r > l) assert(p.sum_closed(l, r - 1) == s);
+            assert(p.sum1(l + 1, r + 1) == s);
+            if (r > l) assert(p.sum1_closed(l + 1, r) == s);
+        }
+        int H = rng() % 6 + 1, W = rng() % 6 + 1;
+        vector<vector<long long>> m(H, vector<long long>(W));
+        for (auto& row : m) for (auto& x : row) x = (long long)(rng() % 21) - 10;
+        PrefixSum2D q(m);
+        for (int x1 = 0; x1 <= H; x1++) for (int x2 = x1; x2 <= H; x2++)
+        for (int y1 = 0; y1 <= W; y1++) for (int y2 = y1; y2 <= W; y2++) {
+            long long s = 0;
+            for (int i = x1; i < x2; i++) for (int j = y1; j < y2; j++) s += m[i][j];
+            assert(q.sum(x1, y1, x2, y2) == s);
+            assert(q.sum1(x1 + 1, y1 + 1, x2 + 1, y2 + 1) == s);
+            if (x2 > x1 && y2 > y1) {
+                assert(q.sum_closed(x1, y1, x2 - 1, y2 - 1) == s);
+                assert(q.sum1_closed(x1 + 1, y1 + 1, x2, y2) == s);
+            }
+        }
+    }
+    cout << "random_test_bruteforce: OK\n\n";
+}
+
 int main(){
     BUFF;
+    random_test_bruteforce();
     int T=1;
     //cin>>T;
     while(T--)solv();

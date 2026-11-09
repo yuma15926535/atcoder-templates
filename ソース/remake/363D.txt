@@ -191,8 +191,8 @@ void _dbg(const char*names,T&&x,U&&...y){
  Palindrome Library (for integer palindrome ≤ 10^18)
 ------------------------------------------------------------
  機能
- 1. kth_palindrome(k)     : k番目の回文 (1-indexed)
- 2. palindrome_rank(x)    : 回文xの順位 (回文でなければ -1)
+ 1. kth_palindrome(k)     : k番目の回文数（0 番目は 0、1 番目は 1、10 番目は 11。数学第二世代と同じ番号）
+ 2. palindrome_rank(x)    : 回文数 x が何番目か（kth_palindrome の逆。回文でなければ -1）
  3. floor_palindrome(x)    : x以下で最大の回文
  4. ceil_palindrome(x)    : x以上で最小の回文
 
@@ -213,7 +213,7 @@ struct P10AutoInit { P10AutoInit(){ init_p10(); } } p10_auto_init_;
 
 /*
 ------------------------------------------------------------
- k番目の回文数 (1-indexed, 0は含まない)
+ k番目の回文数（0 番目は 0。1 番目以降は 0 を除いて数えた番号と同じ）
 ------------------------------------------------------------
  1 -> 1
  9 -> 9
@@ -252,7 +252,7 @@ long long kth_palindrome(long long k){
 
 /*
 ------------------------------------------------------------
- 回文 x が何番目か (1-indexed)
+ 回文 x が何番目か（kth_palindrome の逆。0 は 0 番目）
  回文でない場合は -1
 ------------------------------------------------------------
 */
@@ -717,7 +717,7 @@ void solve_ABC363D(){
 // -----------------------------------------------------------------------------
 void demo(){
     cout << "===== 回文数ライブラリ デモ =====\n";
-    cout << "kth_palindrome(10) = " << kth_palindrome(10) << "   // 1-indexed・0 は含まない: 1..9, 11 → 11\n";
+    cout << "kth_palindrome(0) = " << kth_palindrome(0) << ", kth_palindrome(10) = " << kth_palindrome(10) << "   // 0 番目は 0。0, 1..9, 11 → 10 番目は 11（数学第二世代と同じ）\n";
     cout << "palindrome_rank(121) = " << palindrome_rank(121) << ", palindrome_rank(123) = " << palindrome_rank(123) << "   // 回文でなければ -1\n";
     cout << "floor_palindrome(130) = " << floor_palindrome(130) << ", ceil_palindrome(130) = " << ceil_palindrome(130) << "   // 130 以下で最大 / 以上で最小\n";
     cout << "palindrome_rank_leq(130) = " << palindrome_rank_leq(130) << "   // 130 以下の回文数（0 は含まない）\n";

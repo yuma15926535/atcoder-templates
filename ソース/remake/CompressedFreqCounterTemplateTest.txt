@@ -212,7 +212,7 @@ void _dbg(const char*names,T&&x,U&&...y){
 
 N = 座圧後の種類数
 
-add / remove / count : O(log N)
+add / erase / count : O(log N)
 distinct             : O(1)
 max_freq / min_freq  : O(1)
 
@@ -290,7 +290,7 @@ struct CompressedFreqCounter {
     //--------------------------------------------------------
     // 値を1個削除（安全版）
     //--------------------------------------------------------
-    void remove(ll x){
+    void erase(ll x){
 
         int i = id(x);
 
@@ -448,38 +448,38 @@ void solv(){
 
 
 
-    cout<<"\n【remove 1】\n";
-    fc.remove(1);
+    cout<<"\n【erase 1】\n";
+    fc.erase(1);
     print_state(fc);
 
 
 
-    cout<<"\n【remove 1】\n";
-    fc.remove(1);
+    cout<<"\n【erase 1】\n";
+    fc.erase(1);
     print_state(fc);
 
 
 
-    cout<<"\n【remove 1 (0回から削除 → 安全確認)】\n";
-    fc.remove(1);
+    cout<<"\n【erase 1 (0回から削除 → 安全確認)】\n";
+    fc.erase(1);
     print_state(fc);
 
 
 
-    cout<<"\n【remove 3】\n";
-    fc.remove(3);
+    cout<<"\n【erase 3】\n";
+    fc.erase(3);
     print_state(fc);
 
 
 
-    cout<<"\n【remove 3】\n";
-    fc.remove(3);
+    cout<<"\n【erase 3】\n";
+    fc.erase(3);
     print_state(fc);
 
 
 
-    cout<<"\n【remove 2】\n";
-    fc.remove(2);
+    cout<<"\n【erase 2】\n";
+    fc.erase(2);
     print_state(fc);
 
 

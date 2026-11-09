@@ -317,12 +317,12 @@ void _dbg(const char*names,T&&x,U&&...y){
 //                 min_count max_count first_min last_min first_max last_max  O(log N)
 //  ■ 区間集約     gcd(l,r) bit_and(l,r) bit_or(l,r)                              O(1)
 //  ■ prefix/suffix prefix_/suffix_{min,max,argmin,argmax,gcd,and,or}(i)          O(1)
-//  ■ 値の個数/和  count_lt/le/ge/gt/eq(l,r,x) count_range exists_range       O(log N)
+//  ■ 値の個数/和  count_lt/le/ge/gt/eq(l,r,x) count_range contains_range       O(log N)
 //                 sum_lt/le/ge/gt(l,r,x) sum_range(l,r,x,y)                 O(log N)
 //  ■ 順位統計     kth kth_largest median quantile sum_smallest sum_largest  O(log N)
 //                 smallest_k(l,r,k) largest_k(l,r,k)  O(k + (取り出した異なる値の数)*log N)
 //                 second_min second_max second_min/max_distinct             O(log N)
-//  ■ 前後の値     prev_value prev_value_strict next_value next_value_strict
+//  ■ 前後の値     prev_value prev_value_lt next_value next_value_gt
 //                 max_le min_ge nearest sum_abs(l,r,x) median_cost majority O(log N)
 //  ■ 静的専用     distinct_count distinct_prefix mex(l,r) mex()             O(log N)
 //                 mode(l,r)                                                O(sqrt N)
@@ -1660,7 +1660,7 @@ struct StaticSeq {
         ll k = wm.prevKey(l, r, ub - 1);
         return k < 0 ? NONE : vals[(size_t)k];
     }
-    ll prev_value_strict(int l, int r, ll x) {    // [l,r) 内で x 未満の最大値
+    ll prev_value_lt(int l, int r, ll x) {    // [l,r) 内で x 未満の最大値
         build_wm();
         int lb = rank_lb(x); if (lb == 0) return NONE;
         ll k = wm.prevKey(l, r, lb - 1);
@@ -1672,7 +1672,7 @@ struct StaticSeq {
         ll k = wm.nextKey(l, r, lb);
         return k < 0 ? NONE : vals[(size_t)k];
     }
-    ll next_value_strict(int l, int r, ll x) {    // [l,r) 内で x より大きい最小値
+    ll next_value_gt(int l, int r, ll x) {    // [l,r) 内で x より大きい最小値
         build_wm();
         int ub = rank_ub(x); if (ub >= (int)vals.size()) return NONE;
         ll k = wm.nextKey(l, r, ub);
@@ -1700,8 +1700,8 @@ struct StaticSeq {
     ll second_min(int l, int r) { return (r - l >= 2) ? kth(l, r, 1) : NONE; }
     ll second_max(int l, int r) { return (r - l >= 2) ? kth(l, r, r - l - 2) : NONE; }
     // 「相異なる値」として 2 番目に小さい / 大きい値。区間が 1 種類の値だけなら NONE。O(log N)。
-    ll second_min_distinct(int l, int r) { return next_value_strict(l, r, min(l, r)); }
-    ll second_max_distinct(int l, int r) { return prev_value_strict(l, r, max(l, r)); }
+    ll second_min_distinct(int l, int r) { return next_value_gt(l, r, min(l, r)); }
+    ll second_max_distinct(int l, int r) { return prev_value_lt(l, r, max(l, r)); }
     // --- 内部用 : 圧縮後の順位 rk を直接受け取り、1 回の下降で (個数,総和) を得て
     //     Σ|a_i - x| を計算する。★build_wm_sum 済みで呼ぶこと。O(log N)。 ---
     inline ll sum_abs_rank(int l, int r, ll x, int rk) {
@@ -2588,7 +2588,7 @@ struct StaticSeq {
         return d;
     }
     // [l,r) に 値が [x,y) の範囲にある要素が存在するか。x >= y なら false。O(log N)。
-    bool exists_range(int l, int r, ll x, ll y) { return count_range(l, r, x, y) > 0; }
+    bool contains_range(int l, int r, ll x, ll y) { return count_range(l, r, x, y) > 0; }
     // 「同じ値がそれ以前にも出ている」最初の位置 (重複が無ければ -1)。★毎回 O(N)。
     int first_duplicate() {
         build_occ();
@@ -2957,7 +2957,7 @@ static void test_array(vector<ll> a, int iters) {
             CK(S.count_gt(l, r, x) == len - cle, "count_gt");
             CK(S.count_eq(l, r, x) == ceq, "count_eq");
             CK(S.count_range(l, r, x, y) == crg, "count_range");
-            CK(S.exists_range(l, r, x, y) == (crg > 0), "exists_range");
+            CK(S.contains_range(l, r, x, y) == (crg > 0), "contains_range");
             CK(S.sum_lt(l, r, x) == slt, "sum_lt");
             CK(S.sum_le(l, r, x) == sle, "sum_le");
             CK(S.sum_ge(l, r, x) == S.sum(l, r) - slt, "sum_ge");
@@ -2972,9 +2972,9 @@ static void test_array(vector<ll> a, int iters) {
                 if (v >  x && (nvs == StaticSeq::NONE || v < nvs)) nvs = v;
             }
             CK(S.prev_value(l, r, x) == pv, "prev_value");
-            CK(S.prev_value_strict(l, r, x) == pvs, "prev_value_strict");
+            CK(S.prev_value_lt(l, r, x) == pvs, "prev_value_lt");
             CK(S.next_value(l, r, x) == nv, "next_value");
-            CK(S.next_value_strict(l, r, x) == nvs, "next_value_strict");
+            CK(S.next_value_gt(l, r, x) == nvs, "next_value_gt");
             CK(S.max_le(l, r, x) == pv && S.min_ge(l, r, x) == nv, "max_le/min_ge");
             ll near = sb[0];
             for (ll v : b) { i128 d1 = (i128)v - x, d2 = (i128)near - x; if (d1 < 0) d1 = -d1; if (d2 < 0) d2 = -d2; if (d1 < d2 || (d1 == d2 && v < near)) near = v; }
@@ -3100,7 +3100,7 @@ static void test_array(vector<ll> a, int iters) {
             for (int j = l; j < r; j++) if (a[j] == x) { if (fe < 0) fe = j; le = j; }
             CK(S.first_equal(l, r, x) == fe, "first_equal");
             CK(S.last_equal(l, r, x) == le, "last_equal");
-            CK(S.contains(l, r, x) == (fe >= 0), "exists");
+            CK(S.contains(l, r, x) == (fe >= 0), "contains");
             ll c = 0; for (int j = l; j < r; j++) if (a[j] == x) c++;
             CK(S.count(l, r, x) == c, "count(l,r,x)");
             set<ll> st(a.begin(), a.begin() + r);
@@ -3460,9 +3460,9 @@ static void demo() {
     // ------------------------------------------------ predecessor / successor
     sec("9. 区間 predecessor / successor (クエリ O(log N))");
     SHOW("x=4 以下で最大の値", S.prev_value(0, 10, 4));
-    SHOW("x=4 未満で最大の値", S.prev_value_strict(0, 10, 4));
+    SHOW("x=4 未満で最大の値", S.prev_value_lt(0, 10, 4));
     SHOW("x=4 以上で最小の値", S.next_value(0, 10, 4));
-    SHOW("x=4 より大きい最小の値", S.next_value_strict(0, 10, 4));
+    SHOW("x=4 より大きい最小の値", S.next_value_gt(0, 10, 4));
     SHOW("max_le は prev_value の別名", S.max_le(0, 10, 4));
     SHOW("min_ge は next_value の別名", S.min_ge(0, 10, 4));
     SHOW("x=4 に最も近い値 (同距離なら小さい方)", S.nearest(0, 10, 4));
@@ -3535,7 +3535,7 @@ static void demo() {
     SHOW("最長増加部分列の長さ (狭義単調増加)", S.lis_length(true));
     SHOW("最長非減少部分列の長さ", S.lis_length(false));
     SHOW("2 回目の出現が最初に起きる位置 (重複なしなら -1)", S.first_duplicate());
-    SHOW("値が [3,6) の要素が [2,8) に存在するか", S.exists_range(2, 8, 3, 6));
+    SHOW("値が [3,6) の要素が [2,8) に存在するか", S.contains_range(2, 8, 3, 6));
     SHOW("階差数列 b_i = a_{i+1}-a_i", S.difference());
     SHOW("2 階差分 c_i = a_{i+2}-2a_{i+1}+a_i", S.second_difference());
     NOTE("→ StaticSeq D(S.difference()); のように、階差数列に対しても全機能が使えます。");

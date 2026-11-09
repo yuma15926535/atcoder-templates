@@ -272,19 +272,19 @@ struct ForbiddenList{
         a.erase(unique(a.begin(),a.end()),a.end());   // 重複があっても正しく動くように取り除く
     }
 
-    // num 以上の整数のうち、配列に含まれない（欠番の）もので小さい方から k 番目（k は 1 始まり）
+    // num 以上の整数のうち、配列に含まれない（欠番の）もので小さい方から k 番目（k は 0 始まり。k = 0 が num 以上で最小の欠番）
     // O(log N)：num 以上の要素 a[j] について「[num, a[j]) の欠番の数 = a[j] - num - (j - s)」は増えていくので、
-    //           それが k 以上になる最初の j を二分探索し、答え = num + k - 1 + (j - s)（s = num 以上が始まる位置）
+    //           それが k より大きくなる最初の j を二分探索し、答え = num + k + (j - s)（s = num 以上が始まる位置）
     ll kth_missing_from(ll num,ll k) const {
         const auto& a=sah.a;
         int s=lower_bound(a.begin(),a.end(),num)-a.begin();
-        int lo=s,hi=a.size();   // [lo, hi) で「欠番の数 >= k」となる最初の j を探す
+        int lo=s,hi=a.size();   // [lo, hi) で「欠番の数 > k」となる最初の j を探す
         while(lo<hi){
             int mid=(lo+hi)/2;
-            if(a[mid]-num-(mid-s)>=k) hi=mid;
+            if(a[mid]-num-(mid-s)>k) hi=mid;
             else lo=mid+1;
         }
-        return num+k-1+(lo-s);
+        return num+k+(lo-s);
     }
 };
 // ======================= ここまでテンプレート本体 =======================
@@ -303,7 +303,7 @@ void solve_ABC440D(){
     rep(i,0,Q){
         ll X,Y;
         cin>>X>>Y;
-        cout<<fl.kth_missing_from(X,Y)<<'\n';
+        cout<<fl.kth_missing_from(X,Y-1)<<'\n';   // 問題の Y は 1 始まり
     }
     return;
 }
@@ -314,15 +314,35 @@ void solve_ABC440D(){
 void demo(){
     cout << "===== ForbiddenList（巨大な範囲の欠番）デモ =====\n";
     ForbiddenList fl({3, 5, 6, 10}, false);    // 重複なしの配列（ソート済みなら第 2 引数 true）
-    cout << "fl.kth_missing_from(3, 1) = " << fl.kth_missing_from(3, 1) << "   // 3 以上で 3,5,6,10 以外: 4,7,8,9,11,... の 1 番目 → 4\n";
-    cout << "fl.kth_missing_from(3, 3) = " << fl.kth_missing_from(3, 3) << "   // → 8\n";
+    cout << "fl.kth_missing_from(3, 0) = " << fl.kth_missing_from(3, 0) << "   // 3 以上で 3,5,6,10 以外: 4,7,8,9,11,... の 0 番目（k は 0 始まり）→ 4\n";
+    cout << "fl.kth_missing_from(3, 2) = " << fl.kth_missing_from(3, 2) << "   // → 8\n";
     cout << "fl.kth_missing_from(11, 1000000000) = " << fl.kth_missing_from(11, 1000000000) << "   // 巨大でも O(log)\n";
     SortedArrayHelper<ll> sah({5, 1, 3, 3}, false);
     cout << "SortedArrayHelper: count_le(3) = " << sah.count_le(3) << ", count_range(2, 5) = " << sah.count_range(2, 5) << "（[2,5)）, count_range_closed(2, 5) = " << sah.count_range_closed(2, 5) << "   // [2,5]（閉区間）に 3,3,5\n";
 }
 
+// 愚直解とのランダム比較テスト（kth_missing_from）
+void random_test_bruteforce(){
+    mt19937 rng(440);
+    for(int it = 0; it < 2000; it++){
+        int n = rng() % 8;
+        vector<ll> a(n);
+        for(auto& x : a) x = (ll)(rng() % 25) - 5;   // 重複・負の値もあり
+        ForbiddenList fl(a, false);
+        set<ll> st(a.begin(), a.end());
+        for(int q = 0; q < 20; q++){
+            ll num = (ll)(rng() % 30) - 8, k = rng() % 15;
+            ll v = num, c = -1;
+            while(true){ if(!st.count(v) && ++c == k) break; v++; }
+            assert(fl.kth_missing_from(num, k) == v);
+        }
+    }
+    cout << "random_test_bruteforce: OK\n";
+}
+
 int main(){
     BUFF;
+    random_test_bruteforce();
     demo();
     return 0;
 }

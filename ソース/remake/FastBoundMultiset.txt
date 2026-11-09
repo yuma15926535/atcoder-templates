@@ -324,12 +324,17 @@ public:
 
     // =========================
     // 高速 範囲要素存在判定
-    // 判定範囲:[l,r]
+    // 判定範囲:[l,r)（半開区間。閉区間 [l,r] は contains_range_closed）
     // O(log N)
     // =========================
     bool contains_range(const T& l, const T& r) const {
+        if (!(l < r)) return false;
         auto it = ms.lower_bound(l);
-        return it != ms.end() && *it <= r;
+        return it != ms.end() && *it < r;
+    }
+    bool contains_range_closed(const T& l, const T& r) const {
+        auto it = ms.lower_bound(l);
+        return it != ms.end() && !(r < *it);
     }
 };
 // ======================= ここまでテンプレート本体 =======================
@@ -397,8 +402,9 @@ void solv(){
     cout << "\n";
 
     cout << "▼ 範囲要素存在判定確認\n";
-    cout << "  [9,10]の要素存在確認: " << (s.contains_range(9,10)?"存在します":"存在しません") << "\n";
-    cout << "  [11,100]の要素存在確認: " << (s.contains_range(11,100)?"存在します":"存在しません") << "\n";
+    cout << "  [9,10]の要素存在確認（contains_range_closed）: " << (s.contains_range_closed(9,10)?"存在します":"存在しません") << "\n";
+    cout << "  [9,10)の要素存在確認（contains_range）: " << (s.contains_range(9,10)?"存在します":"存在しません") << "\n";
+    cout << "  [11,100]の要素存在確認: " << (s.contains_range_closed(11,100)?"存在します":"存在しません") << "\n";
 
     cout << "\n";
 
@@ -408,7 +414,25 @@ void solv(){
     return;
 }
 
+// 愚直解とのランダム比較テスト（contains_range / contains_range_closed）
+void random_test_contains_range(){
+    mt19937 rng(7);
+    for(int it = 0; it < 3000; it++){
+        FastBoundMultiset<int> s;
+        multiset<int> ms;
+        int n = rng() % 8;
+        for(int i = 0; i < n; i++){ int x = rng() % 20; s.insert(x); ms.insert(x); }
+        int l = rng() % 22 - 1, r = rng() % 22 - 1;
+        bool h = false, c = false;
+        for(int x : ms){ if(l <= x && x < r) h = true; if(l <= x && x <= r) c = true; }
+        assert(s.contains_range(l, r) == h);
+        assert(s.contains_range_closed(l, r) == c);
+    }
+    cout << "random_test_contains_range: OK\n";
+}
+
 int main(){
+    random_test_contains_range();
     BUFF;
     int T=1;
     //cin>>T;

@@ -188,7 +188,7 @@ void _dbg(const char*names,T&&x,U&&...y){
 //    - 引数の前後の要素
 //    - k番目/rank/max/min/
 //    - TreapQueue
-//    - range_query(sum/min/max)
+//    - prod(l, r)：[l, r) の (和, 最小, 最大)
 //  ファイル構成
 //    [テンプレート本体]  ← 「ここから」〜「ここまで」をコピーして Main_base.cpp に貼り付ける
 //    それ以降            … テスト・使い方デモ（貼り付け不要）
@@ -355,7 +355,7 @@ struct TreapQueue {
     }
 
     // 区間クエリ [l, r) の sum / min / max
-    tuple<long long,long long,long long> range_query(int lpos, int rpos) {
+    tuple<long long,long long,long long> prod(int lpos, int rpos) {
         Node *l, *m, *r;
         split(root, lpos, l, r);
         split(r, rpos-lpos, m, r);
@@ -452,7 +452,7 @@ void solv(){
     cout<<"位置2を削除\n";
     tq.dump();
 
-    auto [s,mn,mx]=tq.range_query(0,tq.size());
+    auto [s,mn,mx]=tq.prod(0,tq.size());
     cout<<"全区間クエリ:\n";
     cout<<"  合計 = "<<s<<"\n";
     cout<<"  最小 = "<<mn<<"\n";

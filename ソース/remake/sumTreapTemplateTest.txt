@@ -185,8 +185,8 @@ void _dbg(const char*names,T&&x,U&&...y){
 //  説明
 //    - 【できること】
 //    - - insert / erase（多重集合）
-//    - - kth（k番目の値）
-//    - - order_of_key（未満個数）
+//    - - kth（k番目の値。0-indexed）
+//    - - count_lt（未満個数）
 //    - - lower_bound / upper_bound / prev / next
 //    - 【sum系】
 //    - - sum_k_smallest（小さい方からk個の和）
@@ -214,8 +214,8 @@ void _dbg(const char*names,T&&x,U&&...y){
  * 
  * 【できること】
  * - insert / erase（多重集合）
- * - kth（k番目の値）
- * - order_of_key（未満個数）
+ * - kth（k番目の値。0-indexed）
+ * - count_lt（未満個数）
  * - lower_bound / upper_bound / prev / next
  * 
  * 【sum系】
@@ -236,7 +236,7 @@ void _dbg(const char*names,T&&x,U&&...y){
  * - 集約情報（sz, sum）はupdateで維持
  * 
  * 【注意】
- * - kthは1-index
+ * - kth・range_kth は 0-indexed（kth(root, 0) が最小）
  * - rangeは [l, r)（0-index）
  * - split後は必ずmergeで戻す
  */
@@ -342,16 +342,16 @@ struct Treap {
         return merge(l, merge(m, r2));
     }
 
-    // k番目の値を取得（1-index）
-    // k=1が最小
+    // k番目の値を取得（0-indexed）
+    // k=0が最小
     int kth(NP t, int k) {
         if (!t) return -1; // 異常（テストで弾く前提でもOK）
 
         int left_size = size(t->l);
 
-        if (k <= left_size) {
+        if (k < left_size) {
             return kth(t->l, k);
-        } else if (k == left_size + 1) {
+        } else if (k == left_size) {
             return t->key;
         } else {
             return kth(t->r, k - left_size - 1);
@@ -359,52 +359,52 @@ struct Treap {
     }
 
     // key未満の要素数
-    int order_of_key(NP t, int key) {
+    int count_lt(NP t, int key) {
         if (!t) return 0;
 
         if (key <= t->key) {
             // 全部左にある
-            return order_of_key(t->l, key);
+            return count_lt(t->l, key);
         } else {
             // 左 + 自分 + 右の一部
-            return size(t->l) + 1 + order_of_key(t->r, key);
+            return size(t->l) + 1 + count_lt(t->r, key);
         }
     }
 
     // keyの出現回数
     int count(NP t, int key) {
-        return order_of_key(t, key + 1) - order_of_key(t, key);
+        return count_lt(t, key + 1) - count_lt(t, key);
     }
 
     // key以上で最小の値（lower_bound）
     // 存在しなければ -1
     int lower_bound(NP t, int key) {
-        int k = order_of_key(t, key) + 1;
-        if (k > size(t)) return -1;
+        int k = count_lt(t, key);
+        if (k >= size(t)) return -1;
         return kth(t, k);
     }
 
     // keyより大きい最小の値（upper_bound）
     // 存在しなければ -1
     int upper_bound(NP t, int key) {
-        int k = order_of_key(t, key + 1) + 1;
-        if (k > size(t)) return -1;
+        int k = count_lt(t, key + 1);
+        if (k >= size(t)) return -1;
         return kth(t, k);
     }
 
     // key未満で最大の値（前駆）
     // 存在しなければ -1
     int prev(NP t, int key) {
-        int k = order_of_key(t, key);
+        int k = count_lt(t, key);
         if (k == 0) return -1;
-        return kth(t, k);
+        return kth(t, k - 1);
     }
 
     // keyより大きい最小の値（後継）
     // 存在しなければ -1
     int next(NP t, int key) {
-        int k = order_of_key(t, key + 1) + 1;
-        if (k > size(t)) return -1;
+        int k = count_lt(t, key + 1);
+        if (k >= size(t)) return -1;
         return kth(t, k);
     }
 
@@ -438,7 +438,7 @@ struct Treap {
     int median(NP t) {
         int n = size(t);
         if (n == 0) return -1;
-        return kth(t, (n + 1) / 2);
+        return kth(t, (n - 1) / 2);
     }
 
     // 絶対値和（中央値基準）
@@ -448,7 +448,7 @@ struct Treap {
 
         int m = median(t);
 
-        int k = order_of_key(t, m);   // m未満の個数
+        int k = count_lt(t, m);   // m未満の個数
         int cnt_m = count(t, m);      // mの個数
 
         long long left_sum = sum_k_smallest(t, k);
@@ -502,7 +502,7 @@ struct Treap {
         return r - l;
     }
 
-    // [l, r) のk番目（1-index）
+    // [l, r) のk番目（0-indexed）
     int range_kth(NP &t, int l, int r, int k) {
         auto [a, bc] = split_kth(t, l);
         auto [b, c] = split_kth(bc, r - l);
@@ -515,7 +515,7 @@ struct Treap {
 
     // [l, r) の中央値
     int range_median(NP &t, int l, int r) {
-        return range_kth(t, l, r, (r - l + 1) / 2);
+        return range_kth(t, l, r, (r - l - 1) / 2);
     }
 
     // [l, r) の中央値コスト
@@ -958,8 +958,8 @@ void random_test_sum_step6() {
                     if (len == 0) continue;
 
                     // range_kth
-                    for (int k = 1; k <= len; k++) {
-                        int expected = sorted[l + k - 1];
+                    for (int k = 0; k < len; k++) {
+                        int expected = sorted[l + k];
                         int got = tr.range_kth(root, l, r, k);
 
                         if (expected != got) {
@@ -1039,7 +1039,7 @@ void demo_sum_treap() {
 
     cout << "\n--- 区間 ---\n";
     cout << "[1,4) の和 = " << tr.range_sum(root, 1, 4) << "\n";
-    cout << "[1,4) の2番目 = " << tr.range_kth(root, 1, 4, 2) << "\n";
+    cout << "[1,4) の1番目（0 始まり） = " << tr.range_kth(root, 1, 4, 1) << "\n";
     cout << "[1,4) の中央値 = " << tr.range_median(root, 1, 4) << "\n";
     cout << "[1,4) のコスト = " << tr.range_cost(root, 1, 4) << "\n";
 

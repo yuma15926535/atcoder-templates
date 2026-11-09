@@ -197,7 +197,7 @@ void _dbg(const char*names,T&&x,U&&...y){
 
     ・0-indexed
     ・区間は半開区間 [l, r)
-    ・set(l, r, x) : 区間 [l, r) を x に代入
+    ・assign(l, r, x) : 区間 [l, r) を x に代入
     ・get(p)       : A[p] を取得
 
     計算量
@@ -239,7 +239,7 @@ struct RangeAssignPointGet {
     }
 
     // 区間 [l, r) を x に代入（非再帰：[l, r) をちょうど覆うノードに書き込む）
-    void set(int l, int r, ll x) {
+    void assign(int l, int r, ll x) {
         ++now;
         for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
             if (l & 1) { val[l] = x; tim[l] = now; l++; }
@@ -289,7 +289,7 @@ void random_test() {
                 int r = uniform_int_distribution<int>(l, N)(rng);
                 ll x = uniform_int_distribution<ll>(-100, 100)(rng);
 
-                seg.set(l, r, x);
+                seg.assign(l, r, x);
 
                 for (int i = l; i < r; i++) a[i] = x;
             } else {
@@ -325,13 +325,13 @@ void test() {
     cout << "----- Constructor(N, x) -----\n";
     RangeAssignPointGet seg1(8, 0);
 
-    seg1.set(2, 6, 5);
+    seg1.assign(2, 6, 5);
     cout << seg1.get(1) << ' '; // 0
     cout << seg1.get(2) << ' '; // 5
     cout << seg1.get(5) << ' '; // 5
     cout << seg1.get(6) << '\n';// 0
 
-    seg1.set(4, 8, 9);
+    seg1.assign(4, 8, 9);
     cout << seg1.get(3) << ' '; // 5
     cout << seg1.get(4) << ' '; // 9
     cout << seg1.get(7) << '\n';// 9
@@ -343,7 +343,7 @@ void test() {
     cout << seg2.get(0) << ' '; // 1
     cout << seg2.get(4) << '\n';// 5
 
-    seg2.set(1, 4, 7);
+    seg2.assign(1, 4, 7);
     cout << seg2.get(0) << ' '; // 1
     cout << seg2.get(1) << ' '; // 7
     cout << seg2.get(2) << ' '; // 7

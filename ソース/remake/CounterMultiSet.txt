@@ -284,16 +284,16 @@ struct Treap {
         return merge(l, merge(m, r2));
     }
 
-    // k番目の値を取得（1-index）
-    // k=1が最小
+    // k番目の値を取得（0-indexed）
+    // k=0が最小
     int kth(NP t, int k) {
         if (!t) return -1; // 異常（テストで弾く前提でもOK）
 
         int left_size = size(t->l);
 
-        if (k <= left_size) {
+        if (k < left_size) {
             return kth(t->l, k);
-        } else if (k == left_size + 1) {
+        } else if (k == left_size) {
             return t->key;
         } else {
             return kth(t->r, k - left_size - 1);
@@ -301,52 +301,52 @@ struct Treap {
     }
 
     // key未満の要素数
-    int order_of_key(NP t, int key) {
+    int count_lt(NP t, int key) {
         if (!t) return 0;
 
         if (key <= t->key) {
             // 全部左にある
-            return order_of_key(t->l, key);
+            return count_lt(t->l, key);
         } else {
             // 左 + 自分 + 右の一部
-            return size(t->l) + 1 + order_of_key(t->r, key);
+            return size(t->l) + 1 + count_lt(t->r, key);
         }
     }
 
     // keyの出現回数
     int count(NP t, int key) {
-        return order_of_key(t, key + 1) - order_of_key(t, key);
+        return count_lt(t, key + 1) - count_lt(t, key);
     }
 
     // key以上で最小の値（lower_bound）
     // 存在しなければ -1
     int lower_bound(NP t, int key) {
-        int k = order_of_key(t, key) + 1;
-        if (k > size(t)) return -1;
+        int k = count_lt(t, key);
+        if (k >= size(t)) return -1;
         return kth(t, k);
     }
 
     // keyより大きい最小の値（upper_bound）
     // 存在しなければ -1
     int upper_bound(NP t, int key) {
-        int k = order_of_key(t, key + 1) + 1;
-        if (k > size(t)) return -1;
+        int k = count_lt(t, key + 1);
+        if (k >= size(t)) return -1;
         return kth(t, k);
     }
 
     // key未満で最大の値（前駆）
     // 存在しなければ -1
     int prev(NP t, int key) {
-        int k = order_of_key(t, key);
+        int k = count_lt(t, key);
         if (k == 0) return -1;
-        return kth(t, k);
+        return kth(t, k - 1);
     }
 
     // keyより大きい最小の値（後継）
     // 存在しなければ -1
     int next(NP t, int key) {
-        int k = order_of_key(t, key + 1) + 1;
-        if (k > size(t)) return -1;
+        int k = count_lt(t, key + 1);
+        if (k >= size(t)) return -1;
         return kth(t, k);
     }
 
@@ -487,31 +487,31 @@ private:
             return merge(l, merge(m, r2));
         }
 
-        int kth(NP t, int k) const {
+        int kth(NP t, int k) const {   // 0-indexed
             int left_size = size(t->l);
 
-            if (k <= left_size) {
+            if (k < left_size) {
                 return kth(t->l, k);
-            } else if (k == left_size + 1) {
+            } else if (k == left_size) {
                 return t->key;
             } else {
                 return kth(t->r, k - left_size - 1);
             }
         }
 
-        int order_of_key(NP t, int key) const {
+        int count_lt(NP t, int key) const {
             if (!t) return 0;
 
             if (key <= t->key) {
-                return order_of_key(t->l, key);
+                return count_lt(t->l, key);
             } else {
-                return size(t->l) + 1 + order_of_key(t->r, key);
+                return size(t->l) + 1 + count_lt(t->r, key);
             }
         }
 
         int count(NP t, int key) const {
-            return order_of_key(t, key + 1)
-                 - order_of_key(t, key);
+            return count_lt(t, key + 1)
+                 - count_lt(t, key);
         }
     };
 
@@ -543,12 +543,12 @@ public:
 
     // x未満
     int count_lt(int x) const {
-        return tr.order_of_key(tr.root, x);
+        return tr.count_lt(tr.root, x);
     }
 
     // x以下
     int count_le(int x) const {
-        return tr.order_of_key(tr.root, x + 1);
+        return tr.count_lt(tr.root, x + 1);
     }
 
     // xより大
@@ -573,7 +573,7 @@ public:
 
     // k番目 (0-indexed)
     int kth(int k) const {
-        return tr.kth(tr.root, k + 1);
+        return tr.kth(tr.root, k);
     }
 
     // x以上の最初のindex

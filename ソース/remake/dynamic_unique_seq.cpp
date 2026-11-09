@@ -265,12 +265,13 @@ void _dbg(const char*names,T&&x,U&&...y){
  *
  *   [値の順序 (set 相当)]
  *     rank_of_value(x)   (= x 未満の個数)                       O(log N)
- *     count_lt/le/greater/ge(x), count_value_range(lo,hi)    O(log N)
+ *     count_lt/le/gt/ge(x), count_value_range(lo,hi)         O(log N)
  *     sum_less(x), sum_value_range(lo,hi), sum_of_k_smallest(k) O(log N)
  *     kth_smallest(k), kth_largest(k)                          O(log N)
  *     kth_smallest_index(k) 等                                 O(log N)
- *     prev_value(x), next_value(x)                             O(log N)
- *     lower_bound_value(x), upper_bound_value(x)               O(log N)
+ *     prev_value(x) (x 以下の最大), next_value(x) (x 以上の最小) O(log N)
+ *     prev_value_lt(x) (x 未満の最大), next_value_gt(x) (x より大きい最小) O(log N)
+ *     lower_bound_value(x) (= next_value), upper_bound_value(x) (= next_value_gt) O(log N)
  *     rank_of_index(i)                                         O(log N)
  *     prev_index_by_value(i), next_index_by_value(i)           O(log N)
  *     minimum_gap(), minimum_gap_pair(), minimum_gap_indices() O(1) / O(log N)
@@ -1058,24 +1059,33 @@ struct DynUniqueSeq {
         return r;
     }
 
-    int v_prev_node(ll x) const { int t = vroot, res = 0; while (t) { if (V[t].key <  x) { res = t; t = V[t].r; } else t = V[t].l; } return res; }
-    int v_next_node(ll x) const { int t = vroot, res = 0; while (t) { if (V[t].key >  x) { res = t; t = V[t].l; } else t = V[t].r; } return res; }
-    int v_lb_node(ll x)   const { int t = vroot, res = 0; while (t) { if (V[t].key >= x) { res = t; t = V[t].l; } else t = V[t].r; } return res; }
+    int v_prev_node(ll x) const { int t = vroot, res = 0; while (t) { if (V[t].key <  x) { res = t; t = V[t].r; } else t = V[t].l; } return res; }  // x 未満の最大
+    int v_le_node(ll x)   const { int t = vroot, res = 0; while (t) { if (V[t].key <= x) { res = t; t = V[t].r; } else t = V[t].l; } return res; }  // x 以下の最大
+    int v_next_node(ll x) const { int t = vroot, res = 0; while (t) { if (V[t].key >  x) { res = t; t = V[t].l; } else t = V[t].r; } return res; }  // x より大きい最小
+    int v_lb_node(ll x)   const { int t = vroot, res = 0; while (t) { if (V[t].key >= x) { res = t; t = V[t].l; } else t = V[t].r; } return res; }  // x 以上の最小
+    std::pair<ll,int> v_with_index(int u, ll none) const { return u ? std::pair<ll,int>{V[u].key, index_of_node(u)} : std::pair<ll,int>{none, -1}; }
 
-    ll prev_value(ll x)        const { int u = v_prev_node(x); return u ? V[u].key : NINF; }  // x 未満の最大値
-    ll next_value(ll x)        const { int u = v_next_node(x); return u ? V[u].key : INF;  }  // x より大きい最小値
-    ll lower_bound_value(ll x) const { int u = v_lb_node(x);   return u ? V[u].key : INF;  }  // x 以上の最小値
-    ll upper_bound_value(ll x) const { return next_value(x); }                                // x より大きい最小値
-    std::pair<ll,int> prev_value_with_index(ll x) const { int u = v_prev_node(x); return u ? std::pair<ll,int>{V[u].key, index_of_node(u)} : std::pair<ll,int>{NINF, -1}; }
-    std::pair<ll,int> next_value_with_index(ll x) const { int u = v_next_node(x); return u ? std::pair<ll,int>{V[u].key, index_of_node(u)} : std::pair<ll,int>{INF, -1}; }
-    std::pair<ll,int> lower_bound_value_with_index(ll x) const { int u = v_lb_node(x); return u ? std::pair<ll,int>{V[u].key, index_of_node(u)} : std::pair<ll,int>{INF, -1}; }
-    std::pair<ll,int> upper_bound_value_with_index(ll x) const { return next_value_with_index(x); }
-    int prev_value_index(ll x) const { int u = v_prev_node(x); return u ? index_of_node(u) : -1; }
-    int next_value_index(ll x) const { int u = v_next_node(x); return u ? index_of_node(u) : -1; }
+    // 名前の約束：prev_value / next_value は「以下 / 以上」、_lt / _gt が「未満 / より大きい」（WaveletMatrix などと同じ）
+    ll prev_value(ll x)        const { int u = v_le_node(x);   return u ? V[u].key : NINF; }  // x 以下の最大値
+    ll next_value(ll x)        const { int u = v_lb_node(x);   return u ? V[u].key : INF;  }  // x 以上の最小値
+    ll prev_value_lt(ll x)     const { int u = v_prev_node(x); return u ? V[u].key : NINF; }  // x 未満の最大値
+    ll next_value_gt(ll x)     const { int u = v_next_node(x); return u ? V[u].key : INF;  }  // x より大きい最小値
+    ll lower_bound_value(ll x) const { return next_value(x); }                                // x 以上の最小値（= next_value）
+    ll upper_bound_value(ll x) const { return next_value_gt(x); }                             // x より大きい最小値（= next_value_gt）
+    std::pair<ll,int> prev_value_with_index(ll x)    const { return v_with_index(v_le_node(x),   NINF); }
+    std::pair<ll,int> next_value_with_index(ll x)    const { return v_with_index(v_lb_node(x),   INF);  }
+    std::pair<ll,int> prev_value_lt_with_index(ll x) const { return v_with_index(v_prev_node(x), NINF); }
+    std::pair<ll,int> next_value_gt_with_index(ll x) const { return v_with_index(v_next_node(x), INF);  }
+    std::pair<ll,int> lower_bound_value_with_index(ll x) const { return next_value_with_index(x); }
+    std::pair<ll,int> upper_bound_value_with_index(ll x) const { return next_value_gt_with_index(x); }
+    int prev_value_index(ll x)    const { int u = v_le_node(x);   return u ? index_of_node(u) : -1; }  // prev_value の位置
+    int next_value_index(ll x)    const { int u = v_lb_node(x);   return u ? index_of_node(u) : -1; }  // next_value の位置
+    int prev_value_lt_index(ll x) const { int u = v_prev_node(x); return u ? index_of_node(u) : -1; }  // prev_value_lt の位置
+    int next_value_gt_index(ll x) const { int u = v_next_node(x); return u ? index_of_node(u) : -1; }  // next_value_gt の位置
 
     // 位置 i の値の「値として 1 つ下/上」の要素の位置
-    int prev_index_by_value(int i) const { int u = node_at(i); return u ? prev_value_index(P[u].val) : -1; }
-    int next_index_by_value(int i) const { int u = node_at(i); return u ? next_value_index(P[u].val) : -1; }
+    int prev_index_by_value(int i) const { int u = node_at(i); return u ? prev_value_lt_index(P[u].val) : -1; }
+    int next_index_by_value(int i) const { int u = node_at(i); return u ? next_value_gt_index(P[u].val) : -1; }
 
     // 値を昇順に並べたとき隣り合う 2 値の差の最小値 (要素 2 個未満なら INF)
     ll minimum_gap() const { return V[vroot].sz < 2 ? INF : (ll)V[vroot].gap; }
@@ -1465,8 +1475,10 @@ struct Naive {
         return s;
     }
     int rank_of_index(int i) const { return rank_of_value(a[i]); }
-    ll prev_value(ll x) const { ll v = TNINF; for (ll t : a) if (t <  x) v = std::max(v, t); return v; }
-    ll next_value(ll x) const { ll v = TINF;  for (ll t : a) if (t >  x) v = std::min(v, t); return v; }
+    ll prev_value(ll x) const { ll v = TNINF; for (ll t : a) if (t <= x) v = std::max(v, t); return v; }
+    ll next_value(ll x) const { ll v = TINF;  for (ll t : a) if (t >= x) v = std::min(v, t); return v; }
+    ll prev_value_lt(ll x) const { ll v = TNINF; for (ll t : a) if (t <  x) v = std::max(v, t); return v; }
+    ll next_value_gt(ll x) const { ll v = TINF;  for (ll t : a) if (t >  x) v = std::min(v, t); return v; }
     ll lower_bound_value(ll x) const { ll v = TINF; for (ll t : a) if (t >= x) v = std::min(v, t); return v; }
     std::vector<int> value_order() const {
         std::vector<int> id(size()); std::iota(id.begin(), id.end(), 0);
@@ -1684,7 +1696,7 @@ struct Tester {
                 eq(s.get(i), t.a[i], "get");
                 eq(s[i], t.a[i], "operator[]");
                 eq(s.rank_of_index(i), t.rank_of_index(i), "rank_of_index");
-                ll pv = t.prev_value(t.a[i]), nv = t.next_value(t.a[i]);
+                ll pv = t.prev_value_lt(t.a[i]), nv = t.next_value_gt(t.a[i]);
                 eq(s.prev_index_by_value(i), pv == TNINF ? -1 : t.index_of(pv), "prev_index_by_value");
                 eq(s.next_index_by_value(i), nv == TINF  ? -1 : t.index_of(nv), "next_index_by_value");
             }
@@ -1779,14 +1791,24 @@ struct Tester {
             eq(s.sum_le(x), t.sum_less(x) + (t.index_of(x) >= 0 ? x : 0), "sum_le");
             eq(s.prev_value(x), t.prev_value(x), "prev_value");
             eq(s.next_value(x), t.next_value(x), "next_value");
+            eq(s.prev_value_lt(x), t.prev_value_lt(x), "prev_value_lt");
+            eq(s.next_value_gt(x), t.next_value_gt(x), "next_value_gt");
             eq(s.lower_bound_value(x), t.lower_bound_value(x), "lower_bound_value");
-            eq(s.upper_bound_value(x), t.next_value(x), "upper_bound_value");
-            ll pv = t.prev_value(x), nv = t.next_value(x), lb = t.lower_bound_value(x);
-            eq(s.prev_value_index(x), pv == TNINF ? -1 : t.index_of(pv), "prev_value_index");
-            eq(s.next_value_index(x), nv == TINF  ? -1 : t.index_of(nv), "next_value_index");
-            eq(s.prev_value_with_index(x), std::pair<ll,int>{pv, pv == TNINF ? -1 : t.index_of(pv)}, "prev_value_with_index");
-            eq(s.next_value_with_index(x), std::pair<ll,int>{nv, nv == TINF  ? -1 : t.index_of(nv)}, "next_value_with_index");
-            eq(s.lower_bound_value_with_index(x), std::pair<ll,int>{lb, lb == TINF ? -1 : t.index_of(lb)}, "lower_bound_value_with_index");
+            eq(s.upper_bound_value(x), t.next_value_gt(x), "upper_bound_value");
+            {
+                auto idx = [&](ll v, ll none) { return v == none ? -1 : t.index_of(v); };
+                ll pv = t.prev_value(x), nv = t.next_value(x), pl = t.prev_value_lt(x), ng = t.next_value_gt(x), lb = t.lower_bound_value(x);
+                eq(s.prev_value_index(x), idx(pv, TNINF), "prev_value_index");
+                eq(s.next_value_index(x), idx(nv, TINF), "next_value_index");
+                eq(s.prev_value_lt_index(x), idx(pl, TNINF), "prev_value_lt_index");
+                eq(s.next_value_gt_index(x), idx(ng, TINF), "next_value_gt_index");
+                eq(s.prev_value_with_index(x), std::pair<ll,int>{pv, idx(pv, TNINF)}, "prev_value_with_index");
+                eq(s.next_value_with_index(x), std::pair<ll,int>{nv, idx(nv, TINF)}, "next_value_with_index");
+                eq(s.prev_value_lt_with_index(x), std::pair<ll,int>{pl, idx(pl, TNINF)}, "prev_value_lt_with_index");
+                eq(s.next_value_gt_with_index(x), std::pair<ll,int>{ng, idx(ng, TINF)}, "next_value_gt_with_index");
+                eq(s.lower_bound_value_with_index(x), std::pair<ll,int>{lb, idx(lb, TINF)}, "lower_bound_value_with_index");
+                eq(s.upper_bound_value_with_index(x), std::pair<ll,int>{ng, idx(ng, TINF)}, "upper_bound_value_with_index");
+            }
             ll lo = x, hi = x + rnd(0, 10);
             int cnt = 0; ll sm = 0;
             for (ll v : t.a) if (lo <= v && v <= hi) { cnt++; sm += v; }
@@ -2102,11 +2124,13 @@ static void demo() {
     line("s.kth_smallest_index(2)", s.kth_smallest_index(2), "その値がいる位置");
     line("s.kth_largest(0)", s.kth_largest(0), "k 番目に大きい値");
     line("s.rank_of_index(0)", s.rank_of_index(0), "位置 0 の値は何番目に小さいか");
-    line("s.prev_value(50)", s.prev_value(50), "50 未満で最大の値");
-    line("s.next_value(50)", s.next_value(50), "50 より大きく最小の値");
+    line("s.prev_value(50)", s.prev_value(50), "50 以下で最大の値");
+    line("s.next_value(35)", s.next_value(35), "35 以上で最小の値");
+    line("s.prev_value_lt(50)", s.prev_value_lt(50), "50 未満で最大の値");
+    line("s.next_value_gt(50)", s.next_value_gt(50), "50 より大きく最小の値");
     line("s.lower_bound_value(35)", s.lower_bound_value(35), "35 以上で最小の値");
     line("s.upper_bound_value(30)", s.upper_bound_value(30), "30 より大きく最小の値");
-    line("s.prev_value_index(50)", s.prev_value_index(50), "その値がいる位置");
+    line("s.prev_value_lt_index(50)", s.prev_value_lt_index(50), "50 未満で最大の値がいる位置");
     line("s.prev_index_by_value(0)", s.prev_index_by_value(0), "位置0の値(50)の1つ下の値がいる位置");
     line("s.count_lt(50)", s.count_lt(50), "50 未満の個数");
     line("s.count_ge(50)", s.count_ge(50), "50 以上の個数");

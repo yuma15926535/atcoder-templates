@@ -15,8 +15,8 @@
 //    prefix_set_hashes(a)                  r[i] = a[0, i) に現れる値の集合のハッシュ（長さ N + 1）            O(N)（平均）
 //    prefix_multiset_hashes(a)             r[i] = a[0, i) の多重集合のハッシュ（長さ N + 1）                  O(N)
 //    MultisetPrefix mp(a)                  mp.get(l, r)（a[l, r) の多重集合のハッシュ）/ mp.same(l1, r1, l2, r2)   O(1)
-//    MultisetHash h                        h.add(x, k) / remove(x, k) / merge(o) / ==（value, count を持つ）     O(1)
-//    SetHash h                             h.add(x) / remove(x) / count(x) / distinct() / ==（個数を持つ）       O(1)（平均）
+//    MultisetHash h                        h.add(x, k) / erase(x, k) / merge(o) / ==（value, count を持つ）     O(1)
+//    SetHash h                             h.add(x) / erase(x) / count(x) / distinct() / ==（個数を持つ）       O(1)（平均）
 //
 //  ファイル構成
 //    [テンプレート本体]  ← 提出時はここだけコピーすればよい
@@ -934,7 +934,7 @@ struct MultisetHash {  // 多重集合（値の個数を持たない。足す・
         value = C::add(value, C::times(C::of(str_internal::code_of(x)), k)), count += k;
     }
     template <class T>
-    void remove(T x, long long k = 1) {  // x を k 個取り除く（入っているかは確かめない）  O(1)
+    void erase(T x, long long k = 1) {  // x を k 個取り除く（入っているかは確かめない）  O(1)
         using C = str_internal::SetHashCore;
         value = C::sub(value, C::times(C::of(str_internal::code_of(x)), k)), count -= k;
     }
@@ -950,7 +950,7 @@ struct SetHash {  // 集合（値ごとの個数を持ち、0 個 ⇔ 1 個以�
         if (cnt_[v]++ == 0) value = str_internal::SetHashCore::add(value, str_internal::SetHashCore::of(v)), ++distinct_;
     }
     template <class T>
-    bool remove(T x) {  // x を 1 つ取り除く（入っていなければ何もせず false）  O(1)（平均）
+    bool erase(T x) {  // x を 1 つ取り除く（入っていなければ何もせず false）  O(1)（平均）
         const long long v = str_internal::code_of(x);
         auto it = cnt_.find(v);
         if (it == cnt_.end()) return false;
@@ -1115,9 +1115,9 @@ static void test_dynamic(std::mt19937_64& rng, int& cases) {
                 s.add(x), m.add(x), ++c[x];
             } else {
                 const bool had = c.count(x) && c[x] > 0;
-                SHASH_CHECK(s.remove(x) == had);
+                SHASH_CHECK(s.erase(x) == had);
                 if (had) {
-                    m.remove(x);
+                    m.erase(x);
                     if (--c[x] == 0) c.erase(x);
                 }
             }
@@ -1180,7 +1180,7 @@ static void benchmark() {
     t0 = std::chrono::steady_clock::now();
     SetHash sh;
     for (int q = 0; q < N; ++q) {
-        if (q % 3 == 2) sh.remove(a[rng() % q]);
+        if (q % 3 == 2) sh.erase(a[rng() % q]);
         else sh.add(a[q]);
     }
     x += sh.value;
@@ -1288,24 +1288,24 @@ static void demo() {
         SHOW(PA.same(0, 2, 1, 3), "A[0, 2) = {1, 2} と A[1, 3) = {2, 3}");
     }
 
-    api("【3】 MultisetHash h", "h.add(x, k) / remove(x, k) / merge(o) / ==", "足し引きできる多重集合（個数の表は持たない。value と count だけ）", "O(1)");
+    api("【3】 MultisetHash h", "h.add(x, k) / erase(x, k) / merge(o) / ==", "足し引きできる多重集合（個数の表は持たない。value と count だけ）", "O(1)");
     {
         RUN(MultisetHash p, q);
         RUN(p.add(3), p.add(5, 2), q.add(5), q.add(3), q.add(5));
         SHOW(p == q, "{3, 5, 5} と {5, 3, 5}");
-        RUN(q.remove(5));
+        RUN(q.erase(5));
         SHOW(p == q, "");
         SHOW(p.count, "要素の数");
     }
 
-    api("【4】 SetHash h", "h.add(x) / remove(x) / count(x) / distinct() / ==", "足し引きできる集合（値ごとの個数を持ち、0 個 ⇔ 1 個以上 が変わるときだけ変わる）", "O(1)（平均）");
+    api("【4】 SetHash h", "h.add(x) / erase(x) / count(x) / distinct() / ==", "足し引きできる集合（値ごとの個数を持ち、0 個 ⇔ 1 個以上 が変わるときだけ変わる）", "O(1)（平均）");
     {
         RUN(SetHash s, t);
         RUN(s.add(1), s.add(2), s.add(2), t.add(2), t.add(1));
         SHOW(s == t, "{1, 2} と {2, 1}");
-        SHOW(s.remove(2), "1 つ取り除いても 2 はまだある");
+        SHOW(s.erase(2), "1 つ取り除いても 2 はまだある");
         SHOW(s == t, "");
-        SHOW(s.remove(9), "入っていない → false");
+        SHOW(s.erase(9), "入っていない → false");
         SHOW(s.distinct(), "");
     }
 

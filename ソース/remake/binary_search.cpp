@@ -268,7 +268,7 @@ void _dbg(const char*names,T&&x,U&&...y){
 //  ◆ 個数                                                                        O(log n)
 //    count_lt(x) count_le(x) count_gt(x) count_ge(x) count(x)（== x）
 //    count_range(L, R)（L <= a_i < R）  count_range_closed(L, R)（L <= a_i <= R）
-//    contains(x)  exists_range(L, R) / exists_range_closed(L, R)
+//    contains(x)  contains_range(L, R) / contains_range_closed(L, R)
 //  ◆ 前後の値（std::optional<long long>。無ければ nullopt）                     O(log n)
 //    max_lt(x)（x 未満の最大） max_le(x)（x 以下の最大）
 //    min_gt(x)（x より大きい最小） min_ge(x)（x 以上の最小）
@@ -705,12 +705,12 @@ struct BinarySearch {
         const int i = lower_bound(x);
         return i < n_ && A()[i] == x;
     }
-    bool exists_range(long long L, long long R) const {  // L <= a_i < R となる a_i があるか
+    bool contains_range(long long L, long long R) const {  // L <= a_i < R となる a_i があるか
         if (L >= R) return false;
         const int i = lower_bound(L);
         return i < n_ && A()[i] < R;
     }
-    bool exists_range_closed(long long L, long long R) const {  // L <= a_i <= R となる a_i があるか
+    bool contains_range_closed(long long L, long long R) const {  // L <= a_i <= R となる a_i があるか
         if (L > R) return false;
         const int i = lower_bound(L);
         return i < n_ && A()[i] <= R;
@@ -1296,7 +1296,7 @@ static void check_array(const BinarySearch& bs, const std::vector<long long>& so
         long long L = gen_query(mode, sorted_v), R = gen_query(mode, sorted_v);
         if (rng() % 4 == 0) std::swap(L, R);  // L > R も試す
         const int c = nv.in(L, R);
-        BS_CHECK(bs.count_range_closed(L, R) == c && bs.exists_range_closed(L, R) == (c > 0));
+        BS_CHECK(bs.count_range_closed(L, R) == c && bs.contains_range_closed(L, R) == (c > 0));
         const auto pr = bs.range_index_closed(L, R);
         BS_CHECK(pr.second - pr.first == c && pr.first == nv.lt(L));
         if (c) BS_CHECK(sorted_v[pr.first] >= L && sorted_v[pr.second - 1] <= R);
@@ -1306,7 +1306,7 @@ static void check_array(const BinarySearch& bs, const std::vector<long long>& so
         BS_CHECK(bs.distinct_count_range_closed(L, R) == dc);
         // 半開区間 [L, R) 版
         const int ch = L < R ? nv.lt(R) - nv.lt(L) : 0;
-        BS_CHECK(bs.count_range(L, R) == ch && bs.exists_range(L, R) == (ch > 0));
+        BS_CHECK(bs.count_range(L, R) == ch && bs.contains_range(L, R) == (ch > 0));
         const auto ph = bs.range_index(L, R);
         BS_CHECK(ph.second - ph.first == ch && ph.first == nv.lt(L));
         i128 sh = 0;
@@ -1799,7 +1799,7 @@ static void cheat_sheet() {
         "BinarySearch bs(A, is_sorted)      構築（false ならソートする）",
         "size empty [i] kth kth_largest min max begin end data to_vector",
         "lower_bound upper_bound equal_range range_index first_index last_index",
-        "count_lt count_le count_gt count_ge count count_range exists exists_range",
+        "count_lt count_le count_gt count_ge count count_range contains contains_range",
         "max_lt max_le min_gt min_ge nearest（optional）  min_dist",
         "prefix_sum sum_index sum_all sum_lt/le/gt/ge sum_range sum_smallest sum_largest sum_abs_diff",
         "distinct_count distinct_count_range distinct_rank distinct_kth distinct_values",
@@ -1870,8 +1870,8 @@ static void demo() {
     SHOW(bs.count_range(5, 2), "L >= R なら 0");
     SHOW(bs.contains(7), "7 はある");
     SHOW(bs.contains(6), "6 はない");
-    SHOW(bs.exists_range_closed(6, 6), "[6, 6] に要素はない");
-    SHOW(bs.exists_range(6, 8), "[6, 8) には 7 がある");
+    SHOW(bs.contains_range_closed(6, 6), "[6, 6] に要素はない");
+    SHOW(bs.contains_range(6, 8), "[6, 8) には 7 がある");
 
     // ------------------------------------------------------------------ 【5】
     head("【5】 前後の値（std::optional<long long>。無ければ nullopt）");

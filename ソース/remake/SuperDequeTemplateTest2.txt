@@ -202,7 +202,8 @@ void _dbg(const char*names,T&&x,U&&...y){
 - insert(k, x)
 - erase(k)
 - k番目アクセス
-- range sum / min / max
+- prod(l, r)：[l, r) の (和, 最小, 最大)。閉区間 [l, r] は prod_closed
+- range_sum / range_min / range_max(l, r)：[l, r)
 ========================================================
 */
 template<class T>
@@ -327,10 +328,11 @@ struct OrderStatisticDeque {
     // range query
     //============================
 
-    tuple<T,T,T> range_query(int l,int r){
+    // [l, r) の (和, 最小, 最大)。l < r であること
+    tuple<T,T,T> prod(int l,int r){
         np a,b,c;
         split(root,a,b,l);
-        split(b,b,c,r-l+1);
+        split(b,b,c,r-l);
 
         T S=sum(b);
         T MN=mn(b);
@@ -340,16 +342,20 @@ struct OrderStatisticDeque {
         return {S,MN,MX};
     }
 
+    // [l, r] の (和, 最小, 最大)（閉区間版）
+    tuple<T,T,T> prod_closed(int l,int r){ return prod(l, r + 1); }
+
+    // [l, r) の和 / 最小 / 最大
     T range_sum(int l,int r){
-        auto [s,mn,mx]=range_query(l,r);
+        auto [s,mn,mx]=prod(l,r);
         return s;
     }
     T range_min(int l,int r){
-        auto [s,mn,mx]=range_query(l,r);
+        auto [s,mn,mx]=prod(l,r);
         return mn;
     }
     T range_max(int l,int r){
-        auto [s,mn,mx]=range_query(l,r);
+        auto [s,mn,mx]=prod(l,r);
         return mx;
     }
 
@@ -399,10 +405,12 @@ void solv(){
     cout<<"=== kth access ===\n";
     cout<<"index 2 = "<<dq.kth(2)<<"\n\n";
 
-    cout<<"=== range query [1,3] ===\n";
-    cout<<"sum = "<<dq.range_sum(1,3)<<"\n";
-    cout<<"min = "<<dq.range_min(1,3)<<"\n";
-    cout<<"max = "<<dq.range_max(1,3)<<"\n\n";
+    cout<<"=== range query [1,4)（半開区間） ===\n";
+    cout<<"sum = "<<dq.range_sum(1,4)<<"\n";
+    cout<<"min = "<<dq.range_min(1,4)<<"\n";
+    cout<<"max = "<<dq.range_max(1,4)<<"\n";
+    auto [s,mn,mx]=dq.prod_closed(1,3);
+    cout<<"prod_closed(1,3)（[1,3]）: sum="<<s<<" min="<<mn<<" max="<<mx<<"\n\n";
 
     cout<<"=== pop_front/back ===\n";
     dq.pop_front();
@@ -416,7 +424,37 @@ void solv(){
     return;
 }
 
+// 愚直解（vector）とのランダム比較テスト：push / insert / erase / kth / prod / range_*
+void random_test_bruteforce(){
+    srand(12345);
+    for(int it=0; it<300; it++){
+        OrderStatisticDeque<long long> dq;
+        vector<long long> v;
+        for(int q=0; q<60; q++){
+            int t=rand()%5;
+            long long x=rand()%21-10;
+            if(t==0){ dq.push_back(x); v.push_back(x); }
+            else if(t==1){ dq.push_front(x); v.insert(v.begin(),x); }
+            else if(t==2){ int k=rand()%(v.size()+1); dq.insert(k,x); v.insert(v.begin()+k,x); }
+            else if(t==3 && !v.empty()){ int k=rand()%v.size(); dq.erase(k); v.erase(v.begin()+k); }
+            int n=v.size();
+            assert(dq.size()==n);
+            for(int i=0;i<n;i++) assert(dq.kth(i)==v[i]);
+            if(n>0){
+                int l=rand()%n, r=l+1+rand()%(n-l);
+                long long s=0, mn=LLONG_MAX, mx=LLONG_MIN;
+                for(int i=l;i<r;i++){ s+=v[i]; mn=min(mn,v[i]); mx=max(mx,v[i]); }
+                assert(dq.prod(l,r)==make_tuple(s,mn,mx));
+                assert(dq.prod_closed(l,r-1)==make_tuple(s,mn,mx));
+                assert(dq.range_sum(l,r)==s && dq.range_min(l,r)==mn && dq.range_max(l,r)==mx);
+            }
+        }
+    }
+    cout<<"random_test_bruteforce: OK\n";
+}
+
 int main(){
+    random_test_bruteforce();
     BUFF;
     int T=1;
     //cin>>T;

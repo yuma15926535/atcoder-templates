@@ -433,7 +433,7 @@ struct OrderStatisticDeque {
     //============================
 
     // [l, r) の (和, 最小, 最大)。l < r であること
-    tuple<T,T,T> range_query(int l,int r){
+    tuple<T,T,T> prod(int l,int r){
         np a,b,c;
         split(root,a,b,l);
         split(b,b,c,r-l);
@@ -447,7 +447,7 @@ struct OrderStatisticDeque {
     }
 
     // [l, r] の (和, 最小, 最大)（閉区間版）
-    tuple<T,T,T> range_query_closed(int l,int r){ return range_query(l, r + 1); }
+    tuple<T,T,T> prod_closed(int l,int r){ return prod(l, r + 1); }
 
     //============================
 
@@ -528,10 +528,10 @@ void solv(){
         cout<<"index "<<i<<" = "<<osd[i]<<"\n";
 
     cout<<"\n--- range query [1,4)（= 閉区間 [1,3]） ---\n";
-    auto [s,mn,mx]=osd.range_query(1,4);
+    auto [s,mn,mx]=osd.prod(1,4);
     cout<<"sum="<<s<<" min="<<mn<<" max="<<mx<<"\n";
-    auto [s2,mn2,mx2]=osd.range_query_closed(1,3);
-    cout<<"range_query_closed(1,3): sum="<<s2<<" min="<<mn2<<" max="<<mx2<<"\n";
+    auto [s2,mn2,mx2]=osd.prod_closed(1,3);
+    cout<<"prod_closed(1,3): sum="<<s2<<" min="<<mn2<<" max="<<mx2<<"\n";
 
     cout<<"\n--- pop_front/back ---\n";
     osd.pop_front();

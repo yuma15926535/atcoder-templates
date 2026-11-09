@@ -267,7 +267,7 @@ struct CompressedBIT {
     // 内部：BIT上でk以上になる最小indexを探す
     // （0-indexedで返す）
     // 戻り値は「prefix和がk未満である最大index」
-    // → kth(k) でそのまま使うと「k番目の位置」になる
+    // → kth(k) では lower_bound_bit(k + 1) で「0 始まりで k 番目の位置」を求める
     // =============================
     int lower_bound_bit(ll k) const {
         if (k <= 0) return 0;
@@ -357,36 +357,36 @@ struct CompressedBIT {
         return internal_sum(n-1);
     }
 
-    // k番目に小さい値（1-indexed）
-    // ・k=1 が最小
+    // k番目に小さい値（0-indexed）
+    // ・k=0 が最小
     // ・存在しない場合は none（既定 -1）
     ll kth(ll k) const {
-        if (k <= 0 || k > count_all()) return none;
-        int i = lower_bound_bit(k);
+        if (k < 0 || k >= count_all()) return none;
+        int i = lower_bound_bit(k + 1);
         return values[i];
     }
 
     // ----------------------------
-    // 順位（1-indexed）
-    // 「vより小さい要素数」
+    // 順位（0-indexed）
+    // 「vより小さい要素数」（= count_lt(v)）
     // ----------------------------
     ll rank(ll v) const {
-        return count_lt(v) + 1;
+        return count_lt(v);
     }
 
     // v以上で最小の値（lower_bound的）
     // ・存在しなければ none（既定 -1）
     ll first_ge(ll v) const {
-        ll k = count_lt(v) + 1; // v以上の最初 = (v未満の次)
-        if (k > count_all()) return none;
+        ll k = count_lt(v); // v以上の最初 = (0 始まりで v未満の個数番目)
+        if (k >= count_all()) return none;
         return kth(k);
     }
 
     // vより大きい値の最小（upper_bound的）
     // ・存在しなければ none（既定 -1）
     ll first_gt(ll v) const {
-        ll k = count_le(v) + 1; // v以下の次
-        if (k > count_all()) return none;
+        ll k = count_le(v); // v以下の次
+        if (k >= count_all()) return none;
         return kth(k);
     }
 
@@ -549,12 +549,12 @@ void random_test(){
             if(type == 6){
                 if(st.empty()) continue;
 
-                int k = rng()%st.size() + 1;
+                int k = rng()%st.size();
 
                 ll a = bit.kth(k);
 
                 auto it = st.begin();
-                advance(it, k-1);
+                advance(it, k);
                 ll b = *it;
 
                 if(a != b){
@@ -595,11 +595,11 @@ void random_test(){
             }
 
             // ------------------------
-            // rank（1-indexed）
+            // rank（0-indexed）
             // ------------------------
             if(type == 8){
                 ll a = bit.rank(x);
-                ll b = distance(st.begin(), st.lower_bound(x)) + 1;
+                ll b = distance(st.begin(), st.lower_bound(x));
 
                 if(a != b){
                     cout << "rank error\n";
@@ -647,11 +647,11 @@ void test_CompressedBIT(){
     cout << "erase(5) 後 count(5): " << st.count(5) << "（期待:1）\n";
 
     cout << "\n--- 順位・k番目 ---\n";
-    cout << "kth(1): " << st.kth(1) << "（最小）\n";
-    cout << "kth(3): " << st.kth(3) << "\n";
+    cout << "kth(0): " << st.kth(0) << "（最小。k は 0 始まり）\n";
+    cout << "kth(2): " << st.kth(2) << "\n";
     cout << "kth(100): " << st.kth(100) << "（期待:-1）\n";
 
-    cout << "rank(3): " << st.rank(3) << "（期待:2）\n";
+    cout << "rank(3): " << st.rank(3) << "（期待:1。3 未満の個数＝0 始まりの順位）\n";
 
     cout << "\n--- 二分探索系 ---\n";
     cout << "first_ge(4): " << st.first_ge(4) << "（期待:5）\n";

@@ -186,13 +186,13 @@ void _dbg(const char*names,T&&x,U&&...y){
 //    - MinBIT(n), MinBIT(a)
 //    - build(a), assign(a), clear()
 //    - update(i, x)
-//    - query(r), all_query()
+//    - prod(r), all_prod()
 //    - values()
 //    - size(), empty()
 //  メモ
 //    - 構築: O(N log N)
 //    - 単調減少更新 (update): O(log N)
-//    - Prefix 最小、最大値取得 (query, all_query): O(log N)
+//    - Prefix 最小、最大値取得 (prod, all_prod): O(log N)
 //    - 内部配列取得 (values): O(N)
 //    - クリア (clear): O(N)
 //  ファイル構成
@@ -223,12 +223,12 @@ void _dbg(const char*names,T&&x,U&&...y){
  * 
  * DPでの使い方:
  * - LIS (最長増加部分列) や、dp[i] = max_{j < i, A[j] < A[i]} { dp[j] } + 1 のような遷移において、
- *   j < i の範囲の最大値を query(i) によって O(log N) で高速に取得するために用います。
+ *   j < i の範囲の最大値を prod(i) によって O(log N) で高速に取得するために用います。
  * 
  * 計算量:
  * - 構築: O(N log N)
  * - 単調増加更新 (update): O(log N)
- * - Prefix 最大値取得 (query, all_query): O(log N)
+ * - Prefix 最大値取得 (prod, all_prod): O(log N)
  * - 内部配列取得 (values): O(N)
  * - クリア (clear): O(N)
  * 
@@ -236,7 +236,7 @@ void _dbg(const char*names,T&&x,U&&...y){
  * - MaxBIT(n), MaxBIT(a)
  * - build(a), assign(a), clear()
  * - update(i, x)
- * - query(r), all_query()
+ * - prod(r), all_prod()
  * - values()
  * - size(), empty()
  */
@@ -336,7 +336,7 @@ public:
      * @return 区間内の最大値。区間が空の場合は極小値 (-INF)
      * @note 計算量: O(log N)
      */
-    T query(int r) const {
+    T prod(int r) const {
         assert(0 <= r && r <= n);
         T res = INF_NEG;
         for (int idx = r; idx > 0; idx -= idx & -idx) {
@@ -350,8 +350,8 @@ public:
      * @return 全体の最大値
      * @note 計算量: O(log N)
      */
-    T all_query() const {
-        return query(n);
+    T all_prod() const {
+        return prod(n);
     }
 
     /**
@@ -376,7 +376,7 @@ public:
  * 計算量:
  * - 構築: O(N log N)
  * - 単調減少更新 (update): O(log N)
- * - Prefix 最小値取得 (query, all_query): O(log N)
+ * - Prefix 最小値取得 (prod, all_prod): O(log N)
  * - 内部配列取得 (values): O(N)
  * - クリア (clear): O(N)
  * 
@@ -384,7 +384,7 @@ public:
  * - MinBIT(n), MinBIT(a)
  * - build(a), assign(a), clear()
  * - update(i, x)
- * - query(r), all_query()
+ * - prod(r), all_prod()
  * - values()
  * - size(), empty()
  */
@@ -484,7 +484,7 @@ public:
      * @return 区間内の最小値。区間が空の場合は極大値 (INF)
      * @note 計算量: O(log N)
      */
-    T query(int r) const {
+    T prod(int r) const {
         assert(0 <= r && r <= n);
         T res = INF_POS;
         for (int idx = r; idx > 0; idx -= idx & -idx) {
@@ -498,8 +498,8 @@ public:
      * @return 全体の最小値
      * @note 計算量: O(log N)
      */
-    T all_query() const {
-        return query(n);
+    T all_prod() const {
+        return prod(n);
     }
 
     /**
@@ -524,20 +524,20 @@ void test_MaxBIT() {
     for (int x : bit.values()) std::cout << x << " ";
     std::cout << std::endl;
 
-    std::cout << "query(3) [0, 3) の最大値: " << bit.query(3) << " (期待値: 4) (3, 1, 4 の最大値)" << std::endl;
-    std::cout << "query(5) [0, 5) の最大値: " << bit.query(5) << " (期待値: 5) (3, 1, 4, 1, 5 の最大値)" << std::endl;
-    std::cout << "all_query(): " << bit.all_query() << " (期待値: 9)" << std::endl;
+    std::cout << "prod(3) [0, 3) の最大値: " << bit.prod(3) << " (期待値: 4) (3, 1, 4 の最大値)" << std::endl;
+    std::cout << "prod(5) [0, 5) の最大値: " << bit.prod(5) << " (期待値: 5) (3, 1, 4, 1, 5 の最大値)" << std::endl;
+    std::cout << "all_prod(): " << bit.all_prod() << " (期待値: 9)" << std::endl;
 
     bit.update(3, 10);
     std::cout << "update(3, 10) 実行後 (位置 3 を 10 に更新):" << std::endl;
-    std::cout << "query(5) [0, 5) の最大値: " << bit.query(5) << " (期待値: 10)" << std::endl;
+    std::cout << "prod(5) [0, 5) の最大値: " << bit.prod(5) << " (期待値: 10)" << std::endl;
 
     bit.update(3, 2);
     std::cout << "update(3, 2) 実行 (減衰更新の試み、無視されるべき):" << std::endl;
     std::cout << "get a[3]: " << bit.values()[3] << " (期待値: 10)" << std::endl;
 
     bit.clear();
-    std::cout << "clear() 実行後 all_query(): " << bit.all_query() << " (期待値: 極小値)" << std::endl;
+    std::cout << "clear() 実行後 all_prod(): " << bit.all_prod() << " (期待値: 極小値)" << std::endl;
 
     std::cout << "--- test_MaxBIT 終了 ---" << std::endl << std::endl;
 }
@@ -552,20 +552,20 @@ void test_MinBIT() {
     for (int x : bit.values()) std::cout << x << " ";
     std::cout << std::endl;
 
-    std::cout << "query(3) [0, 3) の最小値: " << bit.query(3) << " (期待値: 1) (3, 1, 4 の最小値)" << std::endl;
-    std::cout << "query(1) [0, 1) の最小値: " << bit.query(1) << " (期待値: 3) (3 の最小値)" << std::endl;
-    std::cout << "all_query(): " << bit.all_query() << " (期待値: 1)" << std::endl;
+    std::cout << "prod(3) [0, 3) の最小値: " << bit.prod(3) << " (期待値: 1) (3, 1, 4 の最小値)" << std::endl;
+    std::cout << "prod(1) [0, 1) の最小値: " << bit.prod(1) << " (期待値: 3) (3 の最小値)" << std::endl;
+    std::cout << "all_prod(): " << bit.all_prod() << " (期待値: 1)" << std::endl;
 
     bit.update(6, -5);
     std::cout << "update(6, -5) 実行後 (位置 6 を -5 に更新):" << std::endl;
-    std::cout << "all_query(): " << bit.all_query() << " (期待値: -5)" << std::endl;
+    std::cout << "all_prod(): " << bit.all_prod() << " (期待値: -5)" << std::endl;
 
     bit.update(6, 10);
     std::cout << "update(6, 10) 実行 (増大更新の試み、無視されるべき):" << std::endl;
     std::cout << "get a[6]: " << bit.values()[6] << " (期待値: -5)" << std::endl;
 
     bit.clear();
-    std::cout << "clear() 実行後 all_query(): " << bit.all_query() << " (期待値: 極大値)" << std::endl;
+    std::cout << "clear() 実行後 all_prod(): " << bit.all_prod() << " (期待値: 極大値)" << std::endl;
 
     std::cout << "--- test_MinBIT 終了 ---" << std::endl << std::endl;
 }
@@ -593,21 +593,21 @@ void random_test_MaxBIT() {
             naive[i] = std::max(naive[i], x);
             bit.update(i, x);
         } else if (op == 1) {
-            // query
+            // prod
             int r = mt() % (n + 1);
             long long naive_max = std::numeric_limits<long long>::lowest();
             for (int i = 0; i < r; ++i) {
                 naive_max = std::max(naive_max, naive[i]);
             }
-            assert(bit.query(r) == naive_max);
+            assert(bit.prod(r) == naive_max);
         } else {
-            // values, all_query
+            // values, all_prod
             std::vector<long long> b_vals = bit.values();
             assert(b_vals == naive);
             
             long long naive_all = std::numeric_limits<long long>::lowest();
             for (int i = 0; i < n; ++i) naive_all = std::max(naive_all, naive[i]);
-            assert(bit.all_query() == naive_all);
+            assert(bit.all_prod() == naive_all);
         }
     }
 
@@ -637,21 +637,21 @@ void random_test_MinBIT() {
             naive[i] = std::min(naive[i], x);
             bit.update(i, x);
         } else if (op == 1) {
-            // query
+            // prod
             int r = mt() % (n + 1);
             long long naive_min = std::numeric_limits<long long>::max();
             for (int i = 0; i < r; ++i) {
                 naive_min = std::min(naive_min, naive[i]);
             }
-            assert(bit.query(r) == naive_min);
+            assert(bit.prod(r) == naive_min);
         } else {
-            // values, all_query
+            // values, all_prod
             std::vector<long long> b_vals = bit.values();
             assert(b_vals == naive);
             
             long long naive_all = std::numeric_limits<long long>::max();
             for (int i = 0; i < n; ++i) naive_all = std::min(naive_all, naive[i]);
-            assert(bit.all_query() == naive_all);
+            assert(bit.all_prod() == naive_all);
         }
     }
 

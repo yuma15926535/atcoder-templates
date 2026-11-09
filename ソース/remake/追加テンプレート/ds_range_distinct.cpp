@@ -170,7 +170,7 @@ struct RangeDistinct {
     int size() const { return n_; }
     int distinct(int l, int r) const {
         if (l < 0 || r > n_ || l > r) rangedistinct_internal::fail("RangeDistinct::distinct", "0 ≤ l ≤ r ≤ N の半開区間 [l, r)");
-        return count_less(l, r, (unsigned)l + 1);  // prev[i] + 1 ≤ l ⇔ prev[i] < l
+        return count_lt(l, r, (unsigned)l + 1);  // prev[i] + 1 ≤ l ⇔ prev[i] < l
     }
     int distinct_closed(int l, int r) const { return distinct(l, r + 1); }
 
@@ -185,7 +185,7 @@ struct RangeDistinct {
         const int k = i >> 6, s = i & 63;
         return c[k] + (s ? __builtin_popcountll(b[k] & ((1ULL << s) - 1)) : 0);
     }
-    int count_less(int l, int r, unsigned upper) const {  // 位置 [l, r) で値 < upper の数
+    int count_lt(int l, int r, unsigned upper) const {  // 位置 [l, r) で値 < upper の数
         if (upper >= (1u << lg_)) return r - l;
         int res = 0;
         for (int lv = lg_ - 1; lv >= 0; --lv) {

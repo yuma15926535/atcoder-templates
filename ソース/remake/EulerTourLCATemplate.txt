@@ -319,7 +319,7 @@ struct SparseTable {
         }
     }
 
-    std::pair<int, int> query(int l, int r) const {
+    std::pair<int, int> prod(int l, int r) const {   // [l, r) の最小
         int len = r - l;
         int k = log_table[len];
         return std::min(table[k][l], table[k][r - (1 << k)]);
@@ -338,7 +338,7 @@ struct EulerTourLCA {
         int l = et->get_first()[u];
         int r = et->get_first()[v];
         if (l > r) std::swap(l, r);
-        return rmq.query(l, r + 1).second;
+        return rmq.prod(l, r + 1).second;
     }
 
     int dist(int u, int v) const {

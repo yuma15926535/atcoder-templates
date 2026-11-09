@@ -280,9 +280,10 @@ struct Trie {
     bool starts_with(const string& s) const { return count_prefix(s) > 0; }
 
     // ===== k番目に小さい文字列（辞書順）=====
-    // ★ 1-indexed。k が総数より大きいときは "" を返す
+    // ★ 0-indexed（k = 0 が辞書順最小）。k が総数以上のときは "" を返す
     string kth(long long k) const {
-        if(k < 1 || k > size()) return "";
+        if(k < 0 || k >= size()) return "";
+        k++;   // 以下は 1 始まりで数える
         string res;
         int v = 0;
         while(true){
@@ -362,19 +363,55 @@ void demo(){
     cout << "tr.count(\"ACG\") = " << tr.count("ACG") << ", tr.contains(\"AG\") = " << tr.contains("AG") << "   // ACG は 2 個、AG は無い\n";
     cout << "tr.count_prefix(\"AC\") = " << tr.count_prefix("AC") << "   // AC, ACG, ACG の 3 個\n";
     cout << "tr.starts_with(\"AG\") = " << tr.starts_with("AG") << ", tr.size() = " << tr.size() << "\n";
-    cout << "tr.kth(3) = " << tr.kth(3) << "   // 辞書順 AC, ACG, ACG, AGT, TT の 3 番目\n";
+    cout << "tr.kth(2) = " << tr.kth(2) << "   // 辞書順 AC, ACG, ACG, AGT, TT の 2 番目（0 始まり）\n";
     tr.insert("ACG", -1);                      // -1 で 1 個削除
     tr.insert("GGG", -1);                      // 入っていないものは何もしない
     cout << "削除後 tr.words() = "; for (auto& w : tr.words()) cout << w << " "; cout << "\n";
     // 記号まじりの文字列も使える（使う文字をすべて渡す）
     Trie tr2("abc_-0123456789");
     for (string s : {"a_1", "a-2", "b_10", "a_1"}) tr2.insert(s, +1);
-    cout << "tr2.count(\"a_1\") = " << tr2.count("a_1") << ", tr2.count_prefix(\"a\") = " << tr2.count_prefix("a") << ", tr2.kth(1) = " << tr2.kth(1) << "   // '-' < '_' なので a-2 が先\n";
+    cout << "tr2.count(\"a_1\") = " << tr2.count("a_1") << ", tr2.count_prefix(\"a\") = " << tr2.count_prefix("a") << ", tr2.kth(0) = " << tr2.kth(0) << "   // '-' < '_' なので a-2 が先\n";
     cout << "tr2.count(\"zzz\") = " << tr2.count("zzz") << "   // 使えない文字を含む文字列は 0（insert すると assert）\n";
+}
+
+// 愚直解（multiset<string>）とのランダム比較テスト：count / contains / count_prefix / size / kth / words
+void random_test_bruteforce(){
+    mt19937 rng(2026);
+    for(int it = 0; it < 300; it++){
+        Trie tr("abc");
+        multiset<string> ms;
+        for(int q = 0; q < 60; q++){
+            int len = rng() % 4;
+            string s;
+            for(int i = 0; i < len; i++) s += char('a' + rng() % 3);
+            if(rng() % 3 == 0){
+                tr.insert(s, -1);
+                auto p = ms.find(s);
+                if(p != ms.end()) ms.erase(p);
+            }else{
+                tr.insert(s, +1);
+                ms.insert(s);
+            }
+            assert(tr.size() == (long long)ms.size());
+            assert(tr.count(s) == (long long)ms.count(s));
+            assert(tr.contains(s) == (ms.count(s) > 0));
+            long long pre = 0;
+            for(auto& w : ms) if(w.compare(0, s.size(), s) == 0) pre++;
+            assert(tr.count_prefix(s) == pre);
+            vector<string> all(ms.begin(), ms.end());
+            assert(tr.words() == all);
+            for(int k = -1; k <= (int)all.size(); k++){
+                string want = (0 <= k && k < (int)all.size()) ? all[k] : "";
+                assert(tr.kth(k) == want);
+            }
+        }
+    }
+    cout << "random_test_bruteforce: OK\n";
 }
 
 int main(){
     BUFF;
+    random_test_bruteforce();
     demo();
     return 0;
 }

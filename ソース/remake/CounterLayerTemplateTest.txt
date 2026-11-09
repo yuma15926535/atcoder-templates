@@ -286,7 +286,7 @@ public:
         return it==cnt.end()?0:it->second;
     }
 
-    bool exist(const T& x) const{
+    bool contains(const T& x) const{
         return count(x)>0;
     }
 
@@ -581,7 +581,7 @@ void test_layer0(){
 
     cout << "[1 を削除]\n";
     C.erase(1);
-    cout << "exist(1) = " << C.exist(1) << "\n";
+    cout << "contains(1) = " << C.contains(1) << "\n";
     cout << "size = " << C.size() << "\n";
     cout << "distinct = " << C.distinct() << "\n\n";
 
